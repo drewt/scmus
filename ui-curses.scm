@@ -19,6 +19,8 @@
 
 (declare (uses scmus-client))
 
+(include "config.scm")
+
 (define *version-text* "scmus 0.1\nCopyright (C) 2014 Drew Thoreson\n")
 (define *help-text* "I'll write docs later, OK?\n")
 
@@ -59,9 +61,12 @@
       (case (string->symbol (car args))
         ((-v --version) (begin (display *version-text*) (exit 0)))
         ((-h --help) (begin (display *help-text*) (exit 0)))
-        (else (display (string-append "Unrecognized option: \"" (car args) "\"\n"))))
+        (else (display (string-append "Unrecognized option: \""
+                                      (car args)
+                                      "\"\n"))))
       (process-args (cdr args)))))
 
+(load *scmusrc-path*)
 (process-args (command-line-arguments))
 (init-all)
 (main)
