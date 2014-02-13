@@ -16,3 +16,5 @@
 ;;
 
 (define *scmusrc-path* "~/.scmusrc")
+(define *mpd-address* "localhost")
+(define *mpd-port* 6600)

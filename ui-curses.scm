@@ -24,10 +24,32 @@
 (define *version-text* "scmus 0.1\nCopyright (C) 2014 Drew Thoreson\n")
 (define *help-text* "I'll write docs later, OK?\n")
 
+;; TODO: put this somewhere appropriate
+(define-syntax catch
+  (syntax-rules ()
+    ((catch body handler)
+     (call-with-current-continuation
+       (lambda (k)
+         (with-exception-handler
+           (lambda (x) (k (handler x)))
+           (lambda () body)))))))
+
+;; test repl
+(define (repl n)
+  (printf "#;~a> " n)
+  (let ((read-val (read)))
+    (if (eqv? read-val #!eof)
+      (newline)
+      (begin
+        (display (eval read-val))
+        (newline)
+        (repl (+ n 1))))))
+
 (define (main)
   ;(update)
   ;(main)
-  #f 
+  (repl 0)
+  #f
   )
 
 (define (start-color)
@@ -48,26 +70,49 @@
   (update-colors))
 
 (define (init-all)
-  (init-client "localhost" 6600)
-  (init-curses))
+  (catch
+    (begin
+      (init-client *mpd-address* *mpd-port*)
+      ;(init-curses)
+      )
+    (lambda (x)
+      (print "Failed to initialize scmus.  Exiting.")
+      (exit-all 1))))
 
-(define (exit-all)
-  (endwin))
+(define (exit-all code)
+  ;(endwin)
+  (exit code))
 
 (define (process-args args)
-  (if (null? args)
-    #t
-    (begin
-      (case (string->symbol (car args))
-        ((-v --version) (begin (display *version-text*) (exit 0)))
-        ((-h --help) (begin (display *help-text*) (exit 0)))
-        (else (display (string-append "Unrecognized option: \""
-                                      (car args)
-                                      "\"\n"))))
-      (process-args (cdr args)))))
+  (define (port-valid? port)
+    (and (number? port) (> port 0) (< port 65536)))
+  (when (not (null? args))
+    (case (string->symbol (car args))
+      ((-v --version)
+       (begin
+         (display *version-text*)
+         (exit 0)))
+      ((-h --help)
+       (begin
+         (display *help-text*)
+         (exit 0)))
+      ((-a --address)
+       (begin
+         (set! *mpd-address* (cadr args))
+         (set! args (cdr args))))
+      ((-p --port)
+       (let ((port (string->number (cadr args))))
+         (when (not (port-valid? port))
+           (printf "Invalid port: ~a~n" (cadr args))
+           (exit 1))
+         (set! *mpd-port* port)
+         (set! args (cdr args))))
+      (else
+        (printf "Unrecognized option: ~a~n" (car args))))
+    (process-args (cdr args))))
 
 (load *scmusrc-path*)
 (process-args (command-line-arguments))
 (init-all)
 (main)
-(exit-all)
+(exit-all 0)

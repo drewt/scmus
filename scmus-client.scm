@@ -19,8 +19,12 @@
          (uses mpd-client))
 
 (define *mpd-connection*)
+
+;; initialize the mpd connection, printing a message on failure
 (define (init-client host port)
-  (set! *mpd-connection* (mpd:connect host port)))
+  (condition-case (set! *mpd-connection* (mpd:connect host port))
+    (ex (exn i/o) (printf "Error: failed connecting to ~a:~a~n" host port)
+                  (abort ex))))
 
 (define (exit-client)
   (mpd:disconnect *mpd-connection*))
