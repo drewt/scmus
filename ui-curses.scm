@@ -17,40 +17,56 @@
 
 (require-extension ncurses)
 
-(declare (uses scmus-client))
+(declare (unit ui-curses)
+         (uses scmus-client
+               normal-mode
+               command-mode
+               search-mode))
 
-(include "config.scm")
+;; the exit routine; initially (exit), becomes a continuation
+(define scmus-exit exit)
 
-(define *version-text* "scmus 0.1\nCopyright (C) 2014 Drew Thoreson\n")
-(define *help-text* "I'll write docs later, OK?\n")
+(define *current-input-mode* 'normal-mode)
 
-;; TODO: put this somewhere appropriate
-(define-syntax catch
-  (syntax-rules ()
-    ((catch body handler)
-     (call-with-current-continuation
-       (lambda (k)
-         (with-exception-handler
-           (lambda (x) (k (handler x)))
-           (lambda () body)))))))
-
-;; test repl
-(define (repl n)
-  (printf "#;~a> " n)
-  (let ((read-val (read)))
-    (if (eqv? read-val #!eof)
-      (newline)
-      (begin
-        (display (eval read-val))
-        (newline)
-        (repl (+ n 1))))))
-
-(define (main)
-  ;(update)
-  ;(main)
-  (repl 0)
+(define (handle-resize)
   #f
   )
+
+(define (set-input-mode! mode)
+  (case mode
+    ((command-mode) (enter-command-mode))
+    ((search-mode) #f))
+  (set! *current-input-mode* mode))
+
+;; Equality predicate for characters and ncurses keycodes.
+;; This is necessary because the ncurses egg has KEY_* constants as integers
+;; for some reason.
+(define (key= ch key)
+  (eqv? ch (integer->char key)))
+
+;; #t if ch is not a printable character
+(define (key? ch)
+  (> (char->integer ch) 255))
+
+(define (handle-key key)
+  (case *current-input-mode*
+    ((normal-mode)  (normal-mode-key key))
+    ((command-mode) (command-mode-key key))
+    ((search-mode)  (search-mode-key key))))
+
+(define (handle-char ch)
+  (case *current-input-mode*
+    ((normal-mode)  (normal-mode-char ch))
+    ((command-mode) (command-mode-char ch))
+    ((search-mode)  (search-mode-char ch))))
+
+(define (handle-input)
+  (let ((ch (getch)))
+    (cond
+      ((key= ch ERR)        #f)
+      ((key= ch KEY_RESIZE) (handle-resize))
+      ((key? ch)            (handle-key (char->integer ch)))
+      (else                 (handle-char ch)))))
 
 (define (start-color)
   #f
@@ -69,50 +85,5 @@
   (start-color)
   (update-colors))
 
-(define (init-all)
-  (catch
-    (begin
-      (init-client *mpd-address* *mpd-port*)
-      ;(init-curses)
-      )
-    (lambda (x)
-      (print "Failed to initialize scmus.  Exiting.")
-      (exit-all 1))))
-
-(define (exit-all code)
-  ;(endwin)
-  (exit code))
-
-(define (process-args args)
-  (define (port-valid? port)
-    (and (number? port) (> port 0) (< port 65536)))
-  (when (not (null? args))
-    (case (string->symbol (car args))
-      ((-v --version)
-       (begin
-         (display *version-text*)
-         (exit 0)))
-      ((-h --help)
-       (begin
-         (display *help-text*)
-         (exit 0)))
-      ((-a --address)
-       (begin
-         (set! *mpd-address* (cadr args))
-         (set! args (cdr args))))
-      ((-p --port)
-       (let ((port (string->number (cadr args))))
-         (when (not (port-valid? port))
-           (printf "Invalid port: ~a~n" (cadr args))
-           (exit 1))
-         (set! *mpd-port* port)
-         (set! args (cdr args))))
-      (else
-        (printf "Unrecognized option: ~a~n" (car args))))
-    (process-args (cdr args))))
-
-(load *scmusrc-path*)
-(process-args (command-line-arguments))
-(init-all)
-(main)
-(exit-all 0)
+(define (exit-curses)
+  (endwin))

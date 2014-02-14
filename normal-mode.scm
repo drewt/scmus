@@ -15,8 +15,19 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit config))
+(declare (unit normal-mode)
+         (uses ui-curses))
 
-(define *scmusrc-path* "~/.scmusrc")
-(define *mpd-address* "localhost")
-(define *mpd-port* 6600)
+(define (normal-mode-char ch)
+  (case ch
+    ((#\:) (set-input-mode! 'command-mode))
+    ((#\/) (set-input-mode! 'search-mode))
+    ((#\q) (scmus-exit 0))
+    (else #t)))
+
+(define (normal-mode-key key)
+  (case key
+    ((KEY_UP #f))
+    ((KEY_DOWN #f))
+    ((KEY_LEFT #f))
+    ((KEY_RIGHT #f))))
