@@ -16,21 +16,25 @@
 ;;
 
 (declare (unit command-mode)
-         (uses ui-curses))
+         (uses ui-curses
+               editable))
 
-(define *command-line-text* '())
+(use ncurses)
 
-(define (command-line-append-char! ch)
-  (set! *command-line-text* (cons ch *command-line-text*)))
-
+(define *command-line* (make-empty-editable))
 (define (command-line-clear!)
-  (set! *command-line-text* '()))
-
+  (editable-clear! *command-line*))
 (define (command-line-text)
-  (list->string (reverse *command-line-text*)))
- 
+  (editable-text *command-line*))
+(define (command-line-insert! ch)
+  (editable-insert! *command-line* ch))
+(define (command-line-backspace!)
+  (editable-backspace! *command-line*))
+(define (command-line-delete-char!)
+  (editable-delete-char! *command-line*))
+
 (define (run-command cmd)
-  #f
+  (eval (read (open-input-string cmd))) ;; XXX: unsafe, placeholder for debug
   )
 
 (define (enter-command-mode)
@@ -46,12 +50,19 @@
     ((#\esc)
       (command-line-clear!)
       (set-input-mode! 'normal-mode))
+    ((#\backspace)
+      (command-line-backspace!))
+    ((#\x4)
+      (command-line-delete-char!))
     (else
-      (command-line-append-char! ch))))
+      (command-line-insert! ch))))
 
 (define (command-mode-key key)
-  (case key
-    ((KEY_UP) #f)
-    ((KEY_DOWN) #f)
-    ((KEY_LEFT) #f)
-    ((KEY_RIGHT) #f)))
+  (cond
+    ((key= key KEY_UP) #f)
+    ((key= key KEY_DOWN) #f)
+    ((key= key KEY_LEFT) (editable-move-left! *command-line*))
+    ((key= key KEY_RIGHT) (editable-move-right! *command-line*))
+    ((key= key KEY_BACKSPACE) (command-line-backspace!))
+    (else (curses-print (string-append "GOT KEY: " (number->string key)
+                                       "\nBACKSPACE: " (number->string KEY_BACKSPACE))))))

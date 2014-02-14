@@ -28,6 +28,9 @@
 
 (define *current-input-mode* 'normal-mode)
 
+(define (curses-print str)
+  (mvaddstr 0 0 str))
+
 (define (handle-resize)
   #f
   )
@@ -65,7 +68,7 @@
     (cond
       ((key= ch ERR)        #f)
       ((key= ch KEY_RESIZE) (handle-resize))
-      ((key? ch)            (handle-key (char->integer ch)))
+      ((key? ch)            (handle-key ch))
       (else                 (handle-char ch)))))
 
 (define (start-color)
