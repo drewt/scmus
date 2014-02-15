@@ -49,7 +49,8 @@
 
 (define (enter-command-mode)
   (command-line-clear!)
-  (print-command-line-char #\:))
+  (print-command-line-char #\:)
+  (cursor-on))
 
 (define (leave-command-mode)
   (command-line-clear!)

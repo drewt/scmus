@@ -44,8 +44,15 @@
   #f
   )
 
+(define (cursor-on)
+  (curs_set 1))
+
+(define (cursor-off)
+  (curs_set 0))
+
 (define (set-input-mode! mode)
   (case mode
+    ((normal-mode) (enter-normal-mode))
     ((command-mode) (enter-command-mode))
     ((search-mode) #f))
   (set! *current-input-mode* mode))

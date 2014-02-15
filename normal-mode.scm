@@ -18,6 +18,9 @@
 (declare (unit normal-mode)
          (uses ui-curses))
 
+(define (enter-normal-mode)
+  (cursor-off))
+
 (define (normal-mode-char ch)
   (case ch
     ((#\:) (set-input-mode! 'command-mode))

@@ -43,7 +43,8 @@
   (catch
     (begin
       (init-client *mpd-address* *mpd-port*)
-      (init-curses))
+      (init-curses)
+      (set-input-mode! 'normal-mode))
     (lambda (x)
       (print "Failed to initialize scmus.  Exiting.")
       (exit-all 1))))
