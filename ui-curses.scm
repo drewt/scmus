@@ -36,7 +36,6 @@
 
 (define (print-command-line str)
   (move (- (LINES) 1) 1)
-  ;(move 1 0) ; TODO: go to bottom line
   (clrtoeol)
   (addstr str))
 
@@ -54,7 +53,7 @@
   (case mode
     ((normal-mode) (enter-normal-mode))
     ((command-mode) (enter-command-mode))
-    ((search-mode) #f))
+    ((search-mode) (enter-search-mode)))
   (set! *current-input-mode* mode))
 
 ;; Equality predicate for characters and ncurses keycodes.

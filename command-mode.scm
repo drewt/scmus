@@ -19,7 +19,7 @@
          (uses ui-curses
                editable))
 
-(use ncurses)
+(require-extension ncurses)
 
 (define *command-line* (make-empty-editable))
 (define (command-line-changed)
@@ -42,6 +42,12 @@
 (define (command-line-delete-char!)
   (editable-delete-char! *command-line*)
   (command-line-changed))
+(define (command-line-move-left!)
+  (editable-move-left! *command-line*)
+  (command-line-cursor-changed))
+(define (command-line-move-right!)
+  (editable-move-right! *command-line*)
+  (command-line-cursor-changed))
 
 (define (run-command cmd)
   (condition-case (eval (read (open-input-string cmd)))
@@ -77,11 +83,8 @@
     ((key= key KEY_UP) #f)
     ((key= key KEY_DOWN) #f)
     ((key= key KEY_LEFT)
-      (editable-move-left! *command-line*)
-      (command-line-cursor-changed))
+      (command-line-move-left!))
     ((key= key KEY_RIGHT)
-      (editable-move-right! *command-line*)
-      (command-line-cursor-changed))
-    ((key= key KEY_BACKSPACE) (command-line-backspace!))
-    (else (curses-print (string-append "GOT KEY: " (number->string key)
-                                       "\nBACKSPACE: " (number->string KEY_BACKSPACE))))))
+      (command-line-move-right!))
+    ((key= key KEY_BACKSPACE)
+      (command-line-backspace!))))

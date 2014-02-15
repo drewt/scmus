@@ -19,29 +19,43 @@
          (uses ui-curses
                command-mode))
 
+(require-extension ncurses)
+
 (define (do-search text)
   #f
   )
 
 (define (enter-search-mode)
-  ; TODO: put colon on command line column 0
-  (command-line-clear!))
+  (command-line-clear!)
+  (print-command-line-char #\/)
+  (cursor-on))
+
+(define (leave-search-mode)
+  (command-line-clear!)
+  (print-command-line-char #\space)
+  (set-input-mode! 'normal-mode))
 
 (define (search-mode-char ch)
   (case ch
     ((#\newline)
       (do-search (command-line-text))
-      (command-line-clear!)
-      (set-input-mode! 'normal-mode))
+      (leave-search-mode))
     ((#\esc)
-      (command-line-clear!)
-      (set-input-mode! 'normal-mode))
+      (leave-search-mode))
+    ((#\backspace)
+      (command-line-backspace!))
+    ((#\x4)
+      (command-line-delete-char!))
     (else
-      (command-line-append-char! ch))))
+      (command-line-insert! ch))))
 
 (define (search-mode-key key)
-  (case key
-    ((KEY_UP) #f)
-    ((KEY_DOWN) #f)
-    ((KEY_LEFT) #f)
-    ((KEY_RIGHT) #f)))
+  (cond
+    ((key= key KEY_UP) #f)
+    ((key= key KEY_DOWN) #f)
+    ((key= key KEY_LEFT)
+      (command-line-move-left!))
+    ((key= key KEY_RIGHT)
+      (command-line-move-right!))
+    ((key= key KEY_BACKSPACE)
+      (command-line-backspace))))
