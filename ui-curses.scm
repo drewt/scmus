@@ -31,6 +31,11 @@
 (define (curses-print str)
   (mvaddstr 0 0 str))
 
+(define (print-command-line str)
+  (move 1 0) ; TODO: go to bottom line
+  (clrtoeol)
+  (addstr str))
+
 (define (handle-resize)
   #f
   )
