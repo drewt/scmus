@@ -17,12 +17,12 @@
 
 (declare (unit search-mode)
          (uses ui-curses
-               command-mode))
+               command-line))
 
 (require-extension ncurses)
 
 (define (do-search text)
-  #f
+  (void)
   )
 
 (define (enter-search-mode)
@@ -42,20 +42,11 @@
       (leave-search-mode))
     ((#\esc)
       (leave-search-mode))
-    ((#\backspace)
-      (command-line-backspace!))
-    ((#\x4)
-      (command-line-delete-char!))
     (else
-      (command-line-insert! ch))))
+      (command-line-char ch))))
 
 (define (search-mode-key key)
   (cond
-    ((key= key KEY_UP) #f)
-    ((key= key KEY_DOWN) #f)
-    ((key= key KEY_LEFT)
-      (command-line-move-left!))
-    ((key= key KEY_RIGHT)
-      (command-line-move-right!))
-    ((key= key KEY_BACKSPACE)
-      (command-line-backspace))))
+    ((key= key KEY_UP) (void))
+    ((key= key KEY_DOWN) (void))
+    (else (command-line-key key))))
