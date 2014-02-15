@@ -23,7 +23,11 @@
 
 (define *command-line* (make-empty-editable))
 (define (command-line-changed)
-  (print-command-line (command-line-text)))
+  (print-command-line (command-line-text))
+  (command-line-cursor-changed))
+(define (command-line-cursor-changed)
+  (move (- (LINES) 1) (- (+ 1 (editable-length *command-line*))
+                         (editable-pos *command-line*))))
 (define (command-line-clear!)
   (editable-clear! *command-line*)
   (command-line-changed))
@@ -40,19 +44,23 @@
   (command-line-changed))
 
 (define (run-command cmd)
-  (eval (read (open-input-string cmd))) ;; XXX: unsafe, placeholder for debug
-  )
+  (condition-case (eval (read (open-input-string cmd)))
+    (ex () #f)))
 
 (define (enter-command-mode)
-  ; TODO: put colon on command line column 0
-  (command-line-clear!))
+  (command-line-clear!)
+  (print-command-line-char #\:))
+
+(define (leave-command-mode)
+  (command-line-clear!)
+  (print-command-line-char #\space)
+  (set-input-mode! 'normal-mode))
 
 (define (command-mode-char ch)
   (case ch
     ((#\newline)
       (run-command (command-line-text))
-      (command-line-clear!)
-      (set-input-mode! 'normal-mode))
+      (leave-command-mode))
     ((#\esc)
       (command-line-clear!)
       (set-input-mode! 'normal-mode))
@@ -67,8 +75,12 @@
   (cond
     ((key= key KEY_UP) #f)
     ((key= key KEY_DOWN) #f)
-    ((key= key KEY_LEFT) (editable-move-left! *command-line*))
-    ((key= key KEY_RIGHT) (editable-move-right! *command-line*))
+    ((key= key KEY_LEFT)
+      (editable-move-left! *command-line*)
+      (command-line-cursor-changed))
+    ((key= key KEY_RIGHT)
+      (editable-move-right! *command-line*)
+      (command-line-cursor-changed))
     ((key= key KEY_BACKSPACE) (command-line-backspace!))
     (else (curses-print (string-append "GOT KEY: " (number->string key)
                                        "\nBACKSPACE: " (number->string KEY_BACKSPACE))))))

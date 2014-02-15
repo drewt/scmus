@@ -31,8 +31,12 @@
 (define (curses-print str)
   (mvaddstr 0 0 str))
 
+(define (print-command-line-char ch)
+  (mvaddch (- (LINES) 1) 0 ch))
+
 (define (print-command-line str)
-  (move 1 0) ; TODO: go to bottom line
+  (move (- (LINES) 1) 1)
+  ;(move 1 0) ; TODO: go to bottom line
   (clrtoeol)
   (addstr str))
 
