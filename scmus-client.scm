@@ -29,6 +29,14 @@
 (define (exit-client)
   (mpd:disconnect *mpd-connection*))
 
+(define (scmus-playing?)
+  #f
+  )
+
+(define (scmus-track-pos)
+  0
+  )
+
 (define (scmus-next!) (mpd:next-song! *mpd-connection*))
 (define (scmus-prev!) (mpd:previous-song! *mpd-connection*))
 (define (scmus-play! id) (mpd:play! *mpd-connection* id))

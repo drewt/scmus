@@ -21,12 +21,16 @@
          (uses scmus-client
                normal-mode
                command-mode
-               search-mode))
+               search-mode
+               format))
 
 ;; the exit routine; initially (exit), becomes a continuation
 (define scmus-exit exit)
 
 (define *current-input-mode* 'normal-mode)
+
+(define *status-line-format*
+  (process-format (string->list "~P ~p / ~d")))
 
 (define (curses-print str)
   (mvaddstr 0 0 str))
@@ -38,6 +42,16 @@
   (move (- (LINES) 1) 1)
   (clrtoeol)
   (addstr str))
+
+(define (print-status-line)
+  (let* ((status (scmus-format *status-line-format*))
+         (left   (car status))
+         (right  (cdr status)))
+    (mvaddstr (- (LINES) 2) 1 left)
+    (clrtoeol)
+    (mvaddstr (- (LINES) 2)
+              (- (COLS) (string-length right) 1)
+              right)))
 
 (define (handle-resize)
   #f
@@ -54,6 +68,7 @@
     ((normal-mode) (enter-normal-mode))
     ((command-mode) (enter-command-mode))
     ((search-mode) (enter-search-mode)))
+  (print-status-line)
   (set! *current-input-mode* mode))
 
 ;; Equality predicate for characters and ncurses keycodes.

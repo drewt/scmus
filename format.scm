@@ -55,6 +55,8 @@
       ((path) "<path>")
       ((filename) "<filename>")
       ((align) 'align)
+      ((playing) (if (scmus-playing?) ">" "|"))
+      ((current) (number->string (scmus-track-pos)))
       (else "<FORMAT ERROR>"))
     (string e)))
 
@@ -72,7 +74,11 @@
     ((#\d) 'duration)
     ((#\f) 'path)
     ((#\F) 'filename)
-    ((#\=) 'align)))
+    ((#\=) 'align)
+    ; currently playing track
+    ((#\P) 'playing)
+    ((#\p) 'current)
+    ))
 
 ;; skips over a format spec in a char list
 (define (format-next str)
@@ -82,7 +88,7 @@
   (if (null? spec)
     #f
     (case (car spec)
-      ((#\a #\A #\l #\D #\n #\t #\g #\c #\y #\d #\f #\F #\~ #\=)
+      ((#\a #\A #\l #\D #\n #\t #\g #\c #\y #\d #\f #\F #\~ #\= #\P #\p)
         #t)
       (else ; TODO: multi-char spec
         #f))))
