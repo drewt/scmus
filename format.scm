@@ -56,7 +56,7 @@
       ((filename) "<filename>")
       ((align) 'align)
       ((playing) (if (scmus-playing?) ">" "|"))
-      ((current) (number->string (scmus-track-pos)))
+      ((current) (scmus-elapsed))
       (else "<FORMAT ERROR>"))
     (string e)))
 

@@ -33,7 +33,8 @@
 
 (define (main return)
   (define (*main)
-    ;(update)
+    (scmus-update-status!)
+    (curses-update)
     (handle-input)
     (*main))
   (set! scmus-exit return)

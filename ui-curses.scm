@@ -32,6 +32,8 @@
 (define *status-line-format*
   (process-format (string->list "~P ~p / ~d")))
 
+(define *status-line-changed* #t)
+
 (define (curses-print str)
   (mvaddstr 0 0 str))
 
@@ -53,6 +55,14 @@
               (- (COLS) (string-length right) 1)
               right)))
 
+(define (update-status-line)
+  (when *status-line-changed*
+    (set! *status-line-changed* #f)
+    (print-status-line)))
+
+(define (curses-update)
+  (print-status-line))
+
 (define (handle-resize)
   #f
   )
@@ -68,7 +78,6 @@
     ((normal-mode) (enter-normal-mode))
     ((command-mode) (enter-command-mode))
     ((search-mode) (enter-search-mode)))
-  (print-status-line)
   (set! *current-input-mode* mode))
 
 ;; Equality predicate for characters and ncurses keycodes.
