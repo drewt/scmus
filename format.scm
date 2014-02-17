@@ -58,6 +58,7 @@
       ((align) 'align)
       ((playing) (if (scmus-playing?) ">" "|"))
       ((current) (scmus-elapsed))
+      ((db-playtime) (seconds->string (scmus-db-playtime)))
       (else "<FORMAT ERROR>"))
     (string e)))
 
@@ -76,10 +77,9 @@
     ((#\f) 'path)
     ((#\F) 'filename)
     ((#\=) 'align)
-    ; currently playing track
     ((#\P) 'playing)
     ((#\p) 'current)
-    ))
+    ((#\T) 'db-playtime)))
 
 ;; skips over a format spec in a char list
 (define (format-next str)

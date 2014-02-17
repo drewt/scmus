@@ -20,6 +20,7 @@
 
 (define *mpd-connection*)
 (define *mpd-status*)
+(define *mpd-stats*)
 (define *current-song* #f)
 
 (define (seconds->string total-seconds)
@@ -32,7 +33,7 @@
                      (format "~a:" hours))
                    (if (< minutes 10)
                      (format "0~a:" minutes)
-                     (number->string minutes))
+                     (format "~a:" minutes))
                    (if (< seconds 10)
                      (format "0~a" seconds)
                      (number->string seconds)))))
@@ -42,6 +43,7 @@
   (condition-case
     (begin
       (set! *mpd-connection* (mpd:connect host port))
+      (set! *mpd-stats* (mpd:get-stats *mpd-connection*))
       (scmus-update-status!))
     (ex (exn i/o) (printf "Error: failed connecting to ~a:~a~n" host port)
                   (abort ex))))
@@ -82,6 +84,12 @@
         (let ((e (alist-ref sym *current-song*)))
           (if e e default))))))
 
+(define-syntax stat-selector
+  (syntax-rules ()
+    ((stat-selector name sym)
+      (define (name)
+        (alist-ref sym *mpd-stats*)))))
+
 (define (scmus-status) *mpd-status*)
 (status-selector scmus-volume 'volume 0)
 (status-selector scmus-repeat? 'repeat)
@@ -114,6 +122,14 @@
 (current-selector current-albumartist 'AlbumArtist)
 (current-selector current-pos 'Pos 0)
 (current-selector current-id 'Id 0)
+
+(stat-selector scmus-artists 'artists)
+(stat-selector scmus-albums 'albums)
+(stat-selector scmus-songs 'songs)
+(stat-selector scmus-uptime 'uptime)
+(stat-selector scmus-playtime 'playtime)
+(stat-selector scmus-db-playtime 'db_playtime)
+(stat-selector scmus-db-update 'db_update)
 
 (define (scmus-next!) (mpd:next-song! *mpd-connection*))
 (define (scmus-prev!) (mpd:previous-song! *mpd-connection*))
