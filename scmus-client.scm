@@ -18,10 +18,10 @@
 (declare (unit scmus-client)
          (uses mpd-client))
 
-(define *mpd-connection*)
-(define *mpd-status*)
-(define *mpd-stats*)
-(define *current-song* #f)
+(define *mpd-connection* #f)
+(define *mpd-status* '())
+(define *mpd-stats* '())
+(define *current-song* '())
 
 (define (seconds->string total-seconds)
   (let* ((total-minutes (quotient total-seconds 60))
@@ -112,7 +112,7 @@
 (status-selector scmus-mixrampdelay 'mixrampdelay 0.0)
 (status-selector scmus-state 'state 'unknown)
 (status-selector scmus-song 'song-pos 0)
-(status-selector scmus-song-id 'song-id 0)
+(status-selector scmus-song-id 'song-id -1)
 (status-selector *scmus-elapsed 'elapsed-time 0)
 (status-selector scmus-elapsed-ms 'elapsed-ms 0)
 (status-selector scmus-total-time 'total-time 0)
@@ -131,7 +131,7 @@
 (current-selector current-track 'track)
 (current-selector current-albumartist 'albumartist)
 (current-selector current-pos 'pos 0)
-(current-selector current-id 'id 0)
+(current-selector current-id 'id -1)
 (current-selector current-prio 'prio 0)
 
 (stat-selector scmus-artists 'artists)
