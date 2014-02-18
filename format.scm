@@ -42,10 +42,10 @@
 ;; and returns a pair of strings, where the car is the
 ;; left-justified part and the cdr is the right justified
 ;; part.
-(define (scmus-format fmt len)
+(define (scmus-format fmt len track)
   (let ((pair (foldl format-concatenate
                      '("" . "")
-                     (map format-replace fmt))))
+                     (map (lambda (x) (format-replace x track)) fmt))))
     (cons (string-truncate (cdr pair) len)
           (string-truncate-left (car pair) len))))
 
@@ -54,21 +54,21 @@
     (swap pair)
     (cons (string-append (car pair) e) (cdr pair))))
 
-(define (format-replace e)
+(define (format-replace e track)
   (if (symbol? e)
     (case e
-      ((artist) (current-artist))
-      ((album) (current-album))
-      ((albumartist) (current-albumartist))
+      ((artist) (track-artist track))
+      ((album) (track-album track))
+      ((albumartist) (track-albumartist track))
       ((discnumber) "<discnumber>")
-      ((tracknumber) (current-track))
-      ((title) (current-title))
+      ((tracknumber) (track-track track))
+      ((title) (track-title track))
       ((genre) "<genre>")
       ((comment) "<comment>")
-      ((date) (current-date))
-      ((duration) (seconds->string (current-duration)))
-      ((path) (current-file)) ; FIXME: need to prepend mpd music dir
-      ((filename) (current-file)) ; FIXME: need to extract filename
+      ((date) (track-date track))
+      ((duration) (seconds->string (track-duration track)))
+      ((path) (track-file track)) ; FIXME: need to prepend mpd music dir
+      ((filename) (track-file track)) ; FIXME: need to extract filename
       ((align) 'align)
       ((playing) (if (scmus-playing?) ">" "|"))
       ((current) (scmus-elapsed))

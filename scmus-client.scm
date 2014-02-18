@@ -21,7 +21,7 @@
 (define *mpd-connection* #f)
 (define *mpd-status* '())
 (define *mpd-stats* '())
-(define *current-song* '())
+(define *current-track* '())
 
 (define (seconds->string total-seconds)
   (let* ((total-minutes (quotient total-seconds 60))
@@ -64,7 +64,7 @@
     (begin
       (set! *mpd-status* (mpd:get-status *mpd-connection*))
       (if (not (= (scmus-song-id) (current-id)))
-        (set! *current-song* (mpd:get-current-song *mpd-connection*))))
+        (set! *current-track* (mpd:get-current-song *mpd-connection*))))
     (e () (scmus-try-reconnect)))
   *mpd-status*)
 
@@ -90,8 +90,17 @@
       (current-selector name sym ""))
     ((current-selector name sym default)
       (define (name)
-        (let ((e (alist-ref sym *current-song*)))
+        (let ((e (alist-ref sym *current-track*)))
           (if e e default))))))
+
+(define-syntax track-selector
+  (syntax-rules ()
+    ((track-selector name sym)
+      (track-selector name sym ""))
+    ((track-selector name sym default)
+      (define (name song)
+        (let ((e (alist-ref sym song)))
+         (if e e default))))))
 
 (define-syntax stat-selector
   (syntax-rules ()
@@ -120,6 +129,19 @@
 ;(status-selector scmus-audio 'audio '(0 0 0))
 (status-selector scmus-next-song 'next-song-pos 0)
 (status-selector scmus-next-song-id 'next-song-id 0)
+
+(track-selector track-file 'file)
+(track-selector track-last-modified 'last-modified)
+(track-selector track-duration 'duration 0)
+(track-selector track-title 'title)
+(track-selector track-artist 'artist)
+(track-selector track-date 'date)
+(track-selector track-album 'album)
+(track-selector track-track 'track)
+(track-selector track-albumartist 'albumartist)
+(track-selector track-pos 'pos 0)
+(track-selector track-id 'id -1)
+(track-selector track-prio 'prio 0)
 
 (current-selector current-file 'file)
 (current-selector current-last-modified 'last-modified)

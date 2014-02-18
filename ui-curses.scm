@@ -50,7 +50,8 @@
 
 (define (print-status-line)
   (let* ((status (scmus-format *status-line-format*
-                               (- (COLS) 2)))
+                               (- (COLS) 2)
+                               *current-track*))
          (left   (car status))
          (right  (cdr status)))
     (mvaddstr (- (LINES) 2) 1 left)
@@ -66,7 +67,8 @@
 
 (define (print-current-line)
   (let* ((current (scmus-format *current-line-format*
-                                (- (COLS) 2)))
+                                (- (COLS) 2)
+                                *current-track*))
           (left   (car current))
           (right  (cdr current)))
     (mvaddstr (- (LINES) 3) 1 left)
