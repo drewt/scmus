@@ -52,13 +52,14 @@
       ((genre) "<genre>")
       ((comment) "<comment>")
       ((date) (current-date))
-      ((duration) (seconds->string (current-time)))
+      ((duration) (seconds->string (current-duration)))
       ((path) (current-file)) ; FIXME: need to prepend mpd music dir
       ((filename) (current-file)) ; FIXME: need to extract filename
       ((align) 'align)
       ((playing) (if (scmus-playing?) ">" "|"))
       ((current) (scmus-elapsed))
       ((db-playtime) (seconds->string (scmus-db-playtime)))
+      ((volume) (number->string (scmus-volume)))
       (else "<FORMAT ERROR>"))
     (string e)))
 
@@ -79,7 +80,8 @@
     ((#\=) 'align)
     ((#\P) 'playing)
     ((#\p) 'current)
-    ((#\T) 'db-playtime)))
+    ((#\T) 'db-playtime)
+    ((#\v) 'volume)))
 
 ;; skips over a format spec in a char list
 (define (format-next str)

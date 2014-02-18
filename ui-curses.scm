@@ -30,7 +30,7 @@
 (define *current-input-mode* 'normal-mode)
 
 (define *status-line-format*
-  (process-format (string->list "~P ~p / ~d - ~T")))
+  (process-format (string->list "~P ~p / ~d - ~T vol: ~v")))
 
 (define *status-line-changed* #t)
 

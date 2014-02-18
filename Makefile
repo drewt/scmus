@@ -12,5 +12,8 @@ all: scmus
 
 include rules.mk
 
+libmpdclient.scm: libmpdclient.h
+	chicken-bind libmpdclient.h
+
 scmus: $(objects)
-	$(call cmd,ld)
+	$(call cmd,ld,-lmpdclient)
