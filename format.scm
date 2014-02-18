@@ -20,20 +20,34 @@
 ;;       rework cmus's format_print.c and make a wrapper.
 ;;
 
+(require-extension srfi-1)
+
 (declare (unit format)
          (uses scmus-client))
 
 (define (swap pair)
   (cons (cdr pair) (car pair)))
- 
+
+(define (string-truncate s len)
+  (if (> (string-length s) len)
+    (list->string (take (string->list s) len))
+    s))
+
+(define (string-truncate-left s len)
+  (if (> (string-length s) len)
+    (list->string (take-right (string->list s) len))
+    s))
+
 ;; Takes a processed format string (see: process-format)
 ;; and returns a pair of strings, where the car is the
 ;; left-justified part and the cdr is the right justified
 ;; part.
-(define (scmus-format fmt)
-  (swap (foldl format-concatenate
-               '("" . "")
-               (map format-replace fmt))))
+(define (scmus-format fmt len)
+  (let ((pair (foldl format-concatenate
+                     '("" . "")
+                     (map format-replace fmt))))
+    (cons (string-truncate (cdr pair) len)
+          (string-truncate-left (car pair) len))))
 
 (define (format-concatenate pair e)
   (if (symbol? e)

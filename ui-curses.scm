@@ -46,10 +46,11 @@
 (define (print-command-line str)
   (move (- (LINES) 1) 1)
   (clrtoeol)
-  (addstr str))
+  (addstr (string-truncate str (- (COLS) 2))))
 
 (define (print-status-line)
-  (let* ((status (scmus-format *status-line-format*))
+  (let* ((status (scmus-format *status-line-format*
+                               (- (COLS) 2)))
          (left   (car status))
          (right  (cdr status)))
     (mvaddstr (- (LINES) 2) 1 left)
@@ -64,9 +65,10 @@
     (print-status-line)))
 
 (define (print-current-line)
-  (let* ((current (scmus-format *current-line-format*))
-          (left    (car current))
-          (right   (cdr current)))
+  (let* ((current (scmus-format *current-line-format*
+                                (- (COLS) 2)))
+          (left   (car current))
+          (right  (cdr current)))
     (mvaddstr (- (LINES) 3) 1 left)
     (clrtoeol)
     (mvaddstr (- (LINES) 3)
