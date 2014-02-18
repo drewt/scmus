@@ -80,7 +80,7 @@
         (let ((e (alist-ref sym *mpd-status*)))
           (let ((p (open-output-string)))
             (pp *mpd-status* p)
-            ;(curses-print (get-output-string p))
+            (curses-print (get-output-string p))
             )
           (if e e default))))))
 
@@ -128,7 +128,7 @@
 (current-selector current-artist 'artist)
 (current-selector current-date 'date)
 (current-selector current-album 'album)
-(current-selector current-track 'track 0)
+(current-selector current-track 'track)
 (current-selector current-albumartist 'albumartist)
 (current-selector current-pos 'pos 0)
 (current-selector current-id 'id 0)
@@ -142,8 +142,17 @@
 (stat-selector scmus-db-playtime 'db-playtime)
 (stat-selector scmus-db-update 'db-update)
 
-(define (scmus-next!) (mpd:next-song! *mpd-connection*))
-(define (scmus-prev!) (mpd:previous-song! *mpd-connection*))
-(define (scmus-play! id) (mpd:play! *mpd-connection* id))
-(define (scmus-pause!) (mpd:pause! *mpd-connection*))
-(define (scmus-stop!) (mpd:stop! *mpd-connection*))
+(define-syntax scmus-command
+  (syntax-rules ()
+    ((scmus-command name mpd-fn)
+      (define (name)
+        (condition-case
+          (mpd-fn *mpd-connection*)
+          (e (mpd)
+             (curses-print (mpd:error-message e))))))))
+
+(scmus-command scmus-next! mpd:next-song!)
+(scmus-command scmus-prev! mpd:previous-song!)
+(scmus-command scmus-play! mpd:play!)
+(scmus-command scmus-pause! mpd:pause!)
+(scmus-command scmus-stop! mpd:stop!)

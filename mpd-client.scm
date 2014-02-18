@@ -16,8 +16,16 @@
     (mpd_connection_free connection)
     (mpd:connect host port)))
 
-(define (mpd:raise-error code)
-  (abort (make-property-condition 'mpd 'code code)))
+(define mpd:error-code
+  (condition-property-accessor 'mpd 'code))
+(define mpd:error-message
+  (condition-property-accessor 'mpd 'message))
+
+(define (mpd:raise-error connection)
+  (abort (make-property-condition
+           'mpd
+           'code (mpd_connection_get_error connection)
+           'message (mpd_connection_get_error_message connection))))
 
 (define (mpd:get-stats connection)
   (let* ((stats (mpd_run_stats connection))
@@ -37,7 +45,7 @@
        (mpd_stats_free stats))
      (when (not (= error MPD_ERROR_SUCCESS))
        (curses-print (mpd_connection_get_error_message connection))
-       (mpd:raise-error error))
+       (mpd:raise-error connection))
      retval))
 
 (define (mpd-state->symbol state)
@@ -81,7 +89,7 @@
       (mpd_status_free status))
     (when (not (= error MPD_ERROR_SUCCESS))
       (curses-print (string-append "STATUS: " (mpd_connection_get_error_message connection)))
-      (mpd:raise-error error))
+      (mpd:raise-error connection))
     retval))
 
 (define (mpd:get-current-song connection)
@@ -117,11 +125,18 @@
       (mpd_song_free song))
     (when (not (= error MPD_ERROR_SUCCESS))
       (curses-print (mpd_connection_get_error_message connection))
-      (mpd:raise-error error))
+      (mpd:raise-error connection))
     retval))
 
-(define mpd:play! mpd_run_play)
-(define mpd:pause! mpd_run_toggle_pause)
-(define mpd:stop! mpd_run_stop)
-(define mpd:next-song! mpd_run_next)
-(define mpd:previous-song! mpd_run_previous)
+(define-syntax mpd:define-wrapper
+  (syntax-rules ()
+    ((mpd:define-wrapper name mpd-fn)
+      (define (name connection)
+        (if (not (mpd-fn connection))
+          (mpd:raise-error connection))))))
+
+(mpd:define-wrapper mpd:play! mpd_run_play)
+(mpd:define-wrapper mpd:pause! mpd_run_toggle_pause)
+(mpd:define-wrapper mpd:stop! mpd_run_stop)
+(mpd:define-wrapper mpd:next-song! mpd_run_next)
+(mpd:define-wrapper mpd:previous-song! mpd_run_previous)

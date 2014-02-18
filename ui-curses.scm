@@ -32,6 +32,9 @@
 (define *status-line-format*
   (process-format (string->list "~P ~p / ~d - ~T vol: ~v")))
 
+(define *current-line-format*
+  (process-format (string->list "~a - ~l ~n. ~t~= ~y")))
+
 (define *status-line-changed* #t)
 
 (define (curses-print str)
@@ -60,8 +63,19 @@
     (set! *status-line-changed* #f)
     (print-status-line)))
 
+(define (print-current-line)
+  (let* ((current (scmus-format *current-line-format*))
+          (left    (car current))
+          (right   (cdr current)))
+    (mvaddstr (- (LINES) 3) 1 left)
+    (clrtoeol)
+    (mvaddstr (- (LINES) 3)
+              (- (COLS) (string-length right) 1)
+              right)))
+
 (define (curses-update)
-  (print-status-line))
+  (print-status-line)
+  (print-current-line))
 
 (define (handle-resize)
   #f

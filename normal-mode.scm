@@ -16,7 +16,8 @@
 ;;
 
 (declare (unit normal-mode)
-         (uses ui-curses))
+         (uses ui-curses
+               scmus-client))
 
 (define (enter-normal-mode)
   (cursor-off))
@@ -25,6 +26,11 @@
   (case ch
     ((#\:) (set-input-mode! 'command-mode))
     ((#\/) (set-input-mode! 'search-mode))
+    ((#\z) (scmus-prev!))
+    ((#\x) (scmus-play!))
+    ((#\c) (scmus-pause!))
+    ((#\v) (scmus-stop!))
+    ((#\b) (scmus-next!))
     ((#\q) (scmus-exit 0))
     (else #t)))
 
