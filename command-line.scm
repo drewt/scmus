@@ -22,40 +22,43 @@
 
 (define *command-line* (make-empty-editable))
 
-(define (command-line-changed)
-  (print-command-line (command-line-text))
-  (command-line-cursor-changed))
+;; evil global flags
+(define *command-line-changed* #f)
 
-(define (command-line-cursor-changed)
-  (move (- (LINES) 1) (- (+ 1 (editable-length *command-line*))
-                         (editable-pos *command-line*))))
+(define (command-line-changed!)
+  (set! *command-line-changed* #t))
 
 (define (command-line-clear!)
   (editable-clear! *command-line*)
-  (command-line-changed))
+  (command-line-changed!))
 
 (define (command-line-text)
   (editable-text *command-line*))
 
+(define (command-line-cursor-pos)
+  (- (+ 1 (editable-length *command-line*))
+     (editable-pos *command-line*)))
+
+(define (command-line-length)
+  (editable-length *command-line*))
+
 (define (command-line-insert! ch)
   (editable-insert! *command-line* ch)
-  (command-line-changed))
+  (command-line-changed!))
 
 (define (command-line-backspace!)
   (editable-backspace! *command-line*)
-  (command-line-changed))
+  (command-line-changed!))
 
 (define (command-line-delete-char!)
   (editable-delete-char! *command-line*)
-  (command-line-changed))
+  (command-line-changed!))
 
 (define (command-line-move-left!)
-  (editable-move-left! *command-line*)
-  (command-line-cursor-changed))
+  (editable-move-left! *command-line*))
 
 (define (command-line-move-right!)
-  (editable-move-right! *command-line*)
-  (command-line-cursor-changed))
+  (editable-move-right! *command-line*))
 
 (define (command-line-char ch)
   (case ch

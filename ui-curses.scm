@@ -22,6 +22,7 @@
                normal-mode
                command-mode
                search-mode
+               command-line
                format))
 
 ;; the exit routine; initially (exit), becomes a continuation
@@ -43,10 +44,20 @@
 (define (print-command-line-char ch)
   (mvaddch (- (LINES) 1) 0 ch))
 
-(define (print-command-line str)
+(define (print-command-line)
   (move (- (LINES) 1) 1)
   (clrtoeol)
-  (addstr (string-truncate str (- (COLS) 2))))
+  (addstr (string-truncate (command-line-text)
+                           (- (COLS) 2))))
+
+(define (update-cursor)
+  (move (- (LINES) 1) (command-line-cursor-pos)))
+
+(define (update-command-line)
+  (when *command-line-changed*
+    (set! *command-line-changed* #f)
+    (print-command-line))
+  (update-cursor))
 
 (define (print-status-line)
   (let* ((status (scmus-format *status-line-format*
@@ -79,7 +90,8 @@
 
 (define (curses-update)
   (print-status-line)
-  (print-current-line))
+  (print-current-line)
+  (update-command-line))
 
 (define (handle-resize)
   #f
