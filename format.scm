@@ -54,23 +54,30 @@
     (swap pair)
     (cons (string-append (car pair) e) (cdr pair))))
 
+(define (scmus-state->character state)
+  (case state
+    ((play) ">")
+    ((stop) ".")
+    ((pause) "|")
+    ((unknown) "?")))
+
 (define (format-replace e track)
   (if (symbol? e)
     (case e
       ((artist) (track-artist track))
       ((album) (track-album track))
       ((albumartist) (track-albumartist track))
-      ((discnumber) "<discnumber>")
+      ((discnumber) (track-disc track))
       ((tracknumber) (track-track track))
       ((title) (track-title track))
-      ((genre) "<genre>")
-      ((comment) "<comment>")
+      ((genre) (track-genre track))
+      ((comment) (track-comment track))
       ((date) (track-date track))
       ((duration) (seconds->string (track-duration track)))
       ((path) (track-file track)) ; FIXME: need to prepend mpd music dir
       ((filename) (track-file track)) ; FIXME: need to extract filename
       ((align) 'align)
-      ((playing) (if (scmus-playing?) ">" "|"))
+      ((playing) (scmus-state->character (scmus-state)))
       ((current) (scmus-elapsed))
       ((db-playtime) (seconds->string (scmus-db-playtime)))
       ((volume) (number->string (scmus-volume)))

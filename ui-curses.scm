@@ -36,15 +36,13 @@
 (define *current-line-format*
   (process-format (string->list "~a - ~l ~n. ~t~= ~y")))
 
-(define *status-line-changed* #t)
-
 (define (curses-print str)
   (mvaddstr 0 0 str))
 
 (define (print-command-line-char ch)
   (mvaddch (- (LINES) 1) 0 ch))
 
-(define (print-command-line)
+(define (update-command-line)
   (move (- (LINES) 1) 1)
   (clrtoeol)
   (addstr (string-truncate (command-line-text)
@@ -53,13 +51,7 @@
 (define (update-cursor)
   (move (- (LINES) 1) (command-line-cursor-pos)))
 
-(define (update-command-line)
-  (when *command-line-changed*
-    (set! *command-line-changed* #f)
-    (print-command-line))
-  (update-cursor))
-
-(define (print-status-line)
+(define (update-status-line)
   (let* ((status (scmus-format *status-line-format*
                                (- (COLS) 2)
                                *current-track*))
@@ -71,12 +63,7 @@
               (- (COLS) (string-length right) 1)
               right)))
 
-(define (update-status-line)
-  (when *status-line-changed*
-    (set! *status-line-changed* #f)
-    (print-status-line)))
-
-(define (print-current-line)
+(define (update-current-line)
   (let* ((current (scmus-format *current-line-format*
                                 (- (COLS) 2)
                                 *current-track*))
@@ -88,10 +75,22 @@
               (- (COLS) (string-length right) 1)
               right)))
 
+(define *ui-elements-changed* '())
+(define *ui-update-functions*
+  (list (cons 'command-line update-command-line)
+        (cons 'status-line update-status-line)
+        (cons 'current-line update-current-line)))
+
+(define (ui-element-changed! sym)
+  (set! *ui-elements-changed*
+        (cons sym *ui-elements-changed*)))
+
 (define (curses-update)
-  (print-status-line)
-  (print-current-line)
-  (update-command-line))
+  (for-each (lambda (x)
+              ((alist-ref x *ui-update-functions*)))
+            *ui-elements-changed*)
+  (update-cursor)
+  (set! *ui-elements-changed* '()))
 
 (define (handle-resize)
   #f

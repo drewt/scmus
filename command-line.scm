@@ -16,17 +16,15 @@
 ;;
 
 (declare (unit command-line)
-         (uses editable))
+         (uses editable
+               ui-curses))
 
 (require-extension ncurses)
 
 (define *command-line* (make-empty-editable))
 
-;; evil global flags
-(define *command-line-changed* #f)
-
 (define (command-line-changed!)
-  (set! *command-line-changed* #t))
+  (ui-element-changed! 'command-line))
 
 (define (command-line-clear!)
   (editable-clear! *command-line*)
