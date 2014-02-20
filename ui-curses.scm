@@ -23,18 +23,13 @@
                command-mode
                search-mode
                command-line
-               format))
+               format
+               option))
 
 ;; the exit routine; initially (exit), becomes a continuation
 (define scmus-exit exit)
 
 (define *current-input-mode* 'normal-mode)
-
-(define *status-line-format*
-  (process-format (string->list "~P ~p / ~d - ~T vol: ~v")))
-
-(define *current-line-format*
-  (process-format (string->list "~a - ~l ~n. ~t~= ~y")))
 
 (define (curses-print str)
   (mvaddstr 0 0 str))
@@ -52,7 +47,7 @@
   (move (- (LINES) 1) (command-line-cursor-pos)))
 
 (define (update-status-line)
-  (let* ((status (scmus-format *status-line-format*
+  (let* ((status (scmus-format (get-option 'format-status)
                                (- (COLS) 2)
                                *current-track*))
          (left   (car status))
@@ -64,7 +59,7 @@
               right)))
 
 (define (update-current-line)
-  (let* ((current (scmus-format *current-line-format*
+  (let* ((current (scmus-format (get-option 'format-current)
                                 (- (COLS) 2)
                                 *current-track*))
           (left   (car current))
