@@ -19,10 +19,10 @@
 
 (declare (unit ui-curses)
          (uses scmus-client
-               normal-mode
                command-mode
                search-mode
                command-line
+               keys
                format
                option))
 
@@ -30,6 +30,7 @@
 (define scmus-exit exit)
 
 (define *current-input-mode* 'normal-mode)
+(define *current-view* 'browser)
 
 (define (curses-print str)
   (mvaddstr 0 0 str))
