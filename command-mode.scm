@@ -16,6 +16,7 @@
 ;;
 
 (require-extension ncurses
+                   sandbox
                    srfi-13)
  
 (declare (unit command-mode)
@@ -39,9 +40,21 @@
 
 ;; user functions }}}
 
-(define (run-command cmd)
-  (condition-case (eval (read (open-input-string cmd)))
-    (ex () (curses-print "ERROR"))))
+(define *user-env* (make-safe-environment parent: default-safe-environment))
+
+(define (init-sandbox)
+  (safe-environment-set! *user-env* 'bind! user-bind!)
+  (safe-environment-set! *user-env* 'unbind! user-unbind!)
+  (safe-environment-set! *user-env* 'prev! scmus-prev!)
+  (safe-environment-set! *user-env* 'play! scmus-play!)
+  (safe-environment-set! *user-env* 'pause! scmus-pause!)
+  (safe-environment-set! *user-env* 'stop! scmus-stop!)
+  (safe-environment-set! *user-env* 'next! scmus-next!))
+
+(define (user-eval str)
+  (condition-case (safe-eval (read (open-input-string str))
+                             environment: *user-env*)
+    (e () (curses-print "ERROR"))))
 
 (define (enter-command-mode)
   (command-line-clear!)
@@ -56,7 +69,7 @@
 (define (command-mode-char ch)
   (case ch
     ((#\newline)
-      (run-command (command-line-text))
+      (user-eval (command-line-text))
       (leave-command-mode))
     ((#\esc)
       (command-line-clear!)

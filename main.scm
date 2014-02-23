@@ -44,6 +44,7 @@
   (catch
     (begin
       (init-client *mpd-address* *mpd-port*)
+      (init-sandbox)
       (init-curses)
       (set-input-mode! 'normal-mode))
     (lambda (x)
