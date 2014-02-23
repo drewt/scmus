@@ -24,7 +24,22 @@
                command-line
                keys
                format
-               option))
+               option)
+         (export *current-input-mode*
+                 *current-view*
+                 scmus-exit
+                 curses-print
+                 print-command-line-char
+                 ui-element-changed!
+                 curses-update
+                 cursor-on
+                 cursor-off
+                 set-input-mode!
+                 key=
+                 key?
+                 handle-input
+                 init-curses
+                 exit-curses))
 
 ;; the exit routine; initially (exit), becomes a continuation
 (define scmus-exit exit)

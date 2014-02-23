@@ -34,7 +34,13 @@
                    srfi-1)
 
 (declare (unit keys)
-         (uses ui-curses))
+         (uses ui-curses)
+         (export make-binding!
+                 unbind!
+                 binding-keys-valid?
+                 enter-normal-mode
+                 normal-mode-char
+                 normal-mode-key))
 
 (define-record-type binding
   (make-binding key children thunk)

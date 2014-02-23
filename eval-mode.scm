@@ -22,7 +22,12 @@
 (declare (unit eval-mode)
          (uses ui-curses
                command-line
-               keys))
+               keys)
+         (export init-sandbox
+                 enter-eval-mode
+                 leave-eval-mode
+                 eval-mode-char
+                 eval-mode-key))
 
 ;; user functions {{{
 

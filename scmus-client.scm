@@ -16,7 +16,13 @@
 ;;
 
 (declare (unit scmus-client)
-         (uses mpd-client))
+         (uses mpd-client)
+         (hide scmus-try-reconnect
+               status-selector
+               current-selector
+               track-selector
+               stat-selector
+               scmus-command))
 
 (define *mpd-connection* #f)
 (define *mpd-status* '())
@@ -55,9 +61,6 @@
   (condition-case
     (set! *mpd-connection* (mpd:reconnect *mpd-connection*))
     (e () (void))))
-
-(define (scmus-playing?)
-  (eqv? (scmus-state) 'play))
 
 (define (scmus-update-status!)
   (condition-case

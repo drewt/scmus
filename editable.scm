@@ -15,13 +15,13 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
+(require-extension srfi-1)
+
 ;;
 ;; Simple text representation suitable for editing.  Text is stored as a
 ;; reversed list of characters, and can be converted to a string on demand.
 ;;
 (declare (unit editable))
-
-(require-extension srfi-1)
 
 (define-record-type editable
   (make-editable char-list cursor-pos text-length)
@@ -30,14 +30,6 @@
   (cursor-pos editable-pos editable-set-pos!)
   (text-length editable-length editable-set-length!))
 
-(define (list-insert l pos elm)
-  (append (take l pos)
-          (cons elm (drop l pos))))
-
-(define (list-delete l pos)
-  (append (take l pos)
-          (drop l (+ pos 1))))
- 
 (define (make-empty-editable)
   (make-editable '() 0 0))
 
@@ -50,6 +42,9 @@
   (list->string (reverse (editable-list editable))))
 
 (define (editable-insert! editable ch)
+  (define (list-insert l pos elm)
+    (append (take l pos)
+            (cons elm (drop l pos))))
   (editable-set-list! editable
                       (list-insert (editable-list editable)
                                    (editable-pos editable)
@@ -57,6 +52,9 @@
   (editable-set-length! editable (+ (editable-length editable) 1)))
 
 (define (editable-backspace! editable)
+  (define (list-delete l pos)
+    (append (take l pos)
+            (drop l (+ pos 1))))
   (when (< (editable-pos editable)
            (editable-length editable))
     (editable-set-list! editable
@@ -99,5 +97,3 @@
 
 (define (editable-move-end! editable)
   (editable-set-pos! editable 0))
-
-

@@ -16,7 +16,9 @@
 ;;
 
 (declare (unit option)
-         (uses format))
+         (uses format)
+         (export get-option
+                 set-option!))
 
 ;; An option is a value with associated get/set! functions.
 ;; The get/set! functions may be set to *option-value and

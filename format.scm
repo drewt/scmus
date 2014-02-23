@@ -23,7 +23,11 @@
 (require-extension srfi-1)
 
 (declare (unit format)
-         (uses scmus-client))
+         (uses scmus-client)
+         (export string-truncate
+                 scmus-format
+                 process-format
+                 format-string-valid?))
 
 (define (swap pair)
   (cons (cdr pair) (car pair)))
