@@ -27,7 +27,6 @@
                option)
          (export *current-input-mode*
                  *current-view*
-                 scmus-exit
                  curses-print
                  print-command-line-char
                  ui-element-changed!
@@ -35,14 +34,9 @@
                  cursor-on
                  cursor-off
                  set-input-mode!
-                 key=
-                 key?
                  handle-input
                  init-curses
                  exit-curses))
-
-;; the exit routine; initially (exit), becomes a continuation
-(define scmus-exit exit)
 
 (define *current-input-mode* 'normal-mode)
 (define *current-view* 'browser)
@@ -119,16 +113,6 @@
     ((eval-mode) (enter-eval-mode))
     ((search-mode) (enter-search-mode)))
   (set! *current-input-mode* mode))
-
-;; Equality predicate for characters and ncurses keycodes.
-;; This is necessary because the ncurses egg has KEY_* constants as integers
-;; for some reason.
-(define (key= ch key)
-  (eqv? ch (integer->char key)))
-
-;; #t if ch is not a printable character
-(define (key? ch)
-  (> (char->integer ch) 255))
 
 (define (handle-key key)
   (case *current-input-mode*

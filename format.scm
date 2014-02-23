@@ -24,23 +24,12 @@
 
 (declare (unit format)
          (uses scmus-client)
-         (export string-truncate
-                 scmus-format
+         (export scmus-format
                  process-format
                  format-string-valid?))
 
 (define (swap pair)
   (cons (cdr pair) (car pair)))
-
-(define (string-truncate s len)
-  (if (> (string-length s) len)
-    (list->string (take (string->list s) len))
-    s))
-
-(define (string-truncate-left s len)
-  (if (> (string-length s) len)
-    (list->string (take-right (string->list s) len))
-    s))
 
 ;; Takes a processed format string (see: process-format)
 ;; and returns a pair of strings, where the car is the
