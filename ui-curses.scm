@@ -19,7 +19,7 @@
 
 (declare (unit ui-curses)
          (uses scmus-client
-               command-mode
+               eval-mode
                search-mode
                command-line
                keys
@@ -101,7 +101,7 @@
 (define (set-input-mode! mode)
   (case mode
     ((normal-mode) (enter-normal-mode))
-    ((command-mode) (enter-command-mode))
+    ((eval-mode) (enter-eval-mode))
     ((search-mode) (enter-search-mode)))
   (set! *current-input-mode* mode))
 
@@ -118,13 +118,13 @@
 (define (handle-key key)
   (case *current-input-mode*
     ((normal-mode)  (normal-mode-key key))
-    ((command-mode) (command-mode-key key))
+    ((eval-mode) (eval-mode-key key))
     ((search-mode)  (search-mode-key key))))
 
 (define (handle-char ch)
   (case *current-input-mode*
     ((normal-mode)  (normal-mode-char ch))
-    ((command-mode) (command-mode-char ch))
+    ((eval-mode) (eval-mode-char ch))
     ((search-mode)  (search-mode-char ch))))
 
 (define (handle-input)

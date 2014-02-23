@@ -19,7 +19,7 @@
                    sandbox
                    srfi-13)
  
-(declare (unit command-mode)
+(declare (unit eval-mode)
          (uses ui-curses
                command-line
                keys))
@@ -56,28 +56,28 @@
                              environment: *user-env*)
     (e () (curses-print "ERROR"))))
 
-(define (enter-command-mode)
+(define (enter-eval-mode)
   (command-line-clear!)
   (print-command-line-char #\:)
   (cursor-on))
 
-(define (leave-command-mode)
+(define (leave-eval-mode)
   (command-line-clear!)
   (print-command-line-char #\space)
   (set-input-mode! 'normal-mode))
 
-(define (command-mode-char ch)
+(define (eval-mode-char ch)
   (case ch
     ((#\newline)
       (user-eval (command-line-text))
-      (leave-command-mode))
+      (leave-eval-mode))
     ((#\esc)
       (command-line-clear!)
       (set-input-mode! 'normal-mode))
     (else
       (command-line-char ch))))
 
-(define (command-mode-key key)
+(define (eval-mode-key key)
   (cond
     ((key= key KEY_UP) (void))
     ((key= key KEY_DOWN) (void))

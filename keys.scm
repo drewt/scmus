@@ -531,7 +531,7 @@
 
 (define (normal-mode-char ch)
   (case ch
-    ((#\:) (set-input-mode! 'command-mode))
+    ((#\:) (set-input-mode! 'eval-mode))
     ((#\/) (set-input-mode! 'search-mode))
     ((#\z) (scmus-prev!))
     ((#\x) (scmus-play!))
