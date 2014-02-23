@@ -488,13 +488,11 @@
 
 (define key-valid? find-key-code)
 
-(define (binding-keys-valid? str)
-  (define (check-keys keys)
-    (if (null? keys)
-      #f
-      (and (key-valid? (car keys))
-           (check-keys (cdr keys)))))
-  (check-keys (string-tokenize str)))
+(define (binding-keys-valid? keys)
+  (if (null? keys)
+    #t
+    (and (key-valid? (car keys))
+         (binding-keys-valid? (cdr keys)))))
 
 ;; Abandons the current key context.
 (define (clear-context!)

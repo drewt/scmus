@@ -15,11 +15,29 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
+(require-extension ncurses
+                   srfi-13)
+ 
 (declare (unit command-mode)
          (uses ui-curses
-               command-line))
+               command-line
+               keys))
 
-(require-extension ncurses)
+;; user functions {{{
+
+(define (user-bind! keys context thunk)
+  (let ((key-list (string-tokenize keys)))
+    (if (binding-keys-valid? key-list)
+      (make-binding! key-list context thunk)
+      #f)))
+
+(define (user-unbind! keys context)
+  (let ((key-list (string-tokenize keys)))
+    (if (binding-keys-valid? key-list)
+      (unbind! key-list context)
+      #f)))
+
+;; user functions }}}
 
 (define (run-command cmd)
   (condition-case (eval (read (open-input-string cmd)))
