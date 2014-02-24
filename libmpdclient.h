@@ -1,5 +1,13 @@
+/* preamble {{{ */
 
-/* <mpd/protocol.h> {{{ */
+struct mpd_settings;
+struct mpd_connection;
+struct mpd_song;
+struct mpd_pair;
+struct mpd_audio_format;
+struct mpd_status;
+struct mpd_stats;
+struct mpd_song;
 
 enum mpd_server_error {
 	MPD_SERVER_ERROR_UNK = -1,
@@ -19,9 +27,6 @@ enum mpd_server_error {
 	MPD_SERVER_ERROR_EXIST = 56
 };
 
-/* <mpd/protocol.h> }}} */
-/* <mpd/error.h> {{{ */
-
 enum mpd_error {
 	MPD_ERROR_SUCCESS = 0,
 	MPD_ERROR_OOM,
@@ -35,10 +40,40 @@ enum mpd_error {
 	MPD_ERROR_SERVER
 };
 
-/* <mpd/error.h> }}} */
-/* <mpd/settings.h> {{{ */
+enum mpd_state {
+	MPD_STATE_UNKNOWN = 0,
+	MPD_STATE_STOP = 1,
+	MPD_STATE_PLAY = 2,
+	MPD_STATE_PAUSE = 3
+};
 
-struct mpd_settings;
+enum mpd_tag_type
+{
+	MPD_TAG_UNKNOWN = -1,
+
+	MPD_TAG_ARTIST,
+	MPD_TAG_ALBUM,
+	MPD_TAG_ALBUM_ARTIST,
+	MPD_TAG_TITLE,
+	MPD_TAG_TRACK,
+	MPD_TAG_NAME,
+	MPD_TAG_GENRE,
+	MPD_TAG_DATE,
+	MPD_TAG_COMPOSER,
+	MPD_TAG_PERFORMER,
+	MPD_TAG_COMMENT,
+	MPD_TAG_DISC,
+
+	MPD_TAG_MUSICBRAINZ_ARTISTID,
+	MPD_TAG_MUSICBRAINZ_ALBUMID,
+	MPD_TAG_MUSICBRAINZ_ALBUMARTISTID,
+	MPD_TAG_MUSICBRAINZ_TRACKID,
+
+	MPD_TAG_COUNT
+};
+
+/* preamble }}} */
+/* <mpd/settings.h> {{{ */
 
 struct mpd_settings *
 mpd_settings_new(const char *host, unsigned int port, unsigned int timeout_ms,
@@ -61,8 +96,6 @@ mpd_settings_get_password(const struct mpd_settings *settings);
 
 /* <mpd/settings.h> }}} */
 /* <mpd/connection.h>  {{{ */
-
-struct mpd_connection;
 
 struct mpd_connection *
 mpd_connection_new(const char *host, unsigned int port, unsigned int timeout_ms);
@@ -90,8 +123,6 @@ mpd_connection_clear_error(struct mpd_connection *connection);
 
 /* <mpd/connection.h> }}} */
 /* <mpd/player.h> {{{ */
-
-struct mpd_song;
 
 struct mpd_song *
 mpd_run_current_song(struct mpd_connection *connection);
@@ -152,17 +183,6 @@ mpd_run_clearerror(struct mpd_connection *connection);
 
 /* <mpd/player.h> }}} */
 /* <mpd/status.h> {{{ */
-
-enum mpd_state {
-	MPD_STATE_UNKNOWN = 0,
-	MPD_STATE_STOP = 1,
-	MPD_STATE_PLAY = 2,
-	MPD_STATE_PAUSE = 3
-};
-
-struct mpd_pair;
-struct mpd_audio_format;
-struct mpd_status;
 
 struct mpd_status *
 mpd_run_status(struct mpd_connection *connection);
@@ -239,8 +259,6 @@ mpd_status_get_error(const struct mpd_status *status);
 /* <mpd/status.h> }}} */
 /* <mpd/stats.h> {{{ */
 
-struct mpd_stats;
-
 struct mpd_stats *
 mpd_run_stats(struct mpd_connection *connection);
 
@@ -271,31 +289,6 @@ mpd_stats_get_db_play_time(const struct mpd_stats *stats);
 /* <mpd/stats.h> }}} */
 /* <mpd/tag.h> {{{ */
 
-enum mpd_tag_type
-{
-	MPD_TAG_UNKNOWN = -1,
-
-	MPD_TAG_ARTIST,
-	MPD_TAG_ALBUM,
-	MPD_TAG_ALBUM_ARTIST,
-	MPD_TAG_TITLE,
-	MPD_TAG_TRACK,
-	MPD_TAG_NAME,
-	MPD_TAG_GENRE,
-	MPD_TAG_DATE,
-	MPD_TAG_COMPOSER,
-	MPD_TAG_PERFORMER,
-	MPD_TAG_COMMENT,
-	MPD_TAG_DISC,
-
-	MPD_TAG_MUSICBRAINZ_ARTISTID,
-	MPD_TAG_MUSICBRAINZ_ALBUMID,
-	MPD_TAG_MUSICBRAINZ_ALBUMARTISTID,
-	MPD_TAG_MUSICBRAINZ_TRACKID,
-
-	MPD_TAG_COUNT
-};
-
 const char *
 mpd_tag_name(long type);
 
@@ -307,8 +300,6 @@ mpd_tag_name_iparse(const char *name);
 
 /* <mpd/tag.h> }}} */
 /* <mpd/song.h> {{{ */
-
-struct mpd_song;
 
 void
 mpd_song_free(struct mpd_song *song);

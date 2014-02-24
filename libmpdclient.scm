@@ -25,6 +25,28 @@
   (define-constant MPD_ERROR_MALFORMED 7)
   (define-constant MPD_ERROR_CLOSED 8)
   (define-constant MPD_ERROR_SERVER 9)
+  (define-constant MPD_STATE_UNKNOWN 0)
+  (define-constant MPD_STATE_STOP 1)
+  (define-constant MPD_STATE_PLAY 2)
+  (define-constant MPD_STATE_PAUSE 3)
+  (define-constant MPD_TAG_UNKNOWN -1)
+  (define-constant MPD_TAG_ARTIST 0)
+  (define-constant MPD_TAG_ALBUM 1)
+  (define-constant MPD_TAG_ALBUM_ARTIST 2)
+  (define-constant MPD_TAG_TITLE 3)
+  (define-constant MPD_TAG_TRACK 4)
+  (define-constant MPD_TAG_NAME 5)
+  (define-constant MPD_TAG_GENRE 6)
+  (define-constant MPD_TAG_DATE 7)
+  (define-constant MPD_TAG_COMPOSER 8)
+  (define-constant MPD_TAG_PERFORMER 9)
+  (define-constant MPD_TAG_COMMENT 10)
+  (define-constant MPD_TAG_DISC 11)
+  (define-constant MPD_TAG_MUSICBRAINZ_ARTISTID 12)
+  (define-constant MPD_TAG_MUSICBRAINZ_ALBUMID 13)
+  (define-constant MPD_TAG_MUSICBRAINZ_ALBUMARTISTID 14)
+  (define-constant MPD_TAG_MUSICBRAINZ_TRACKID 15)
+  (define-constant MPD_TAG_COUNT 16)
   (begin
     (define mpd_settings_new
       (foreign-lambda*
@@ -227,10 +249,6 @@
         bool
         (((c-pointer (struct "mpd_connection")) a0))
         "return(mpd_run_clearerror(a0));")))
-  (define-constant MPD_STATE_UNKNOWN 0)
-  (define-constant MPD_STATE_STOP 1)
-  (define-constant MPD_STATE_PLAY 2)
-  (define-constant MPD_STATE_PAUSE 3)
   (begin
     (define mpd_run_status
       (foreign-lambda*
@@ -429,24 +447,6 @@
         unsigned-long
         (((c-pointer (struct "mpd_stats")) a0))
         "return(mpd_stats_get_db_play_time(a0));")))
-  (define-constant MPD_TAG_UNKNOWN -1)
-  (define-constant MPD_TAG_ARTIST 0)
-  (define-constant MPD_TAG_ALBUM 1)
-  (define-constant MPD_TAG_ALBUM_ARTIST 2)
-  (define-constant MPD_TAG_TITLE 3)
-  (define-constant MPD_TAG_TRACK 4)
-  (define-constant MPD_TAG_NAME 5)
-  (define-constant MPD_TAG_GENRE 6)
-  (define-constant MPD_TAG_DATE 7)
-  (define-constant MPD_TAG_COMPOSER 8)
-  (define-constant MPD_TAG_PERFORMER 9)
-  (define-constant MPD_TAG_COMMENT 10)
-  (define-constant MPD_TAG_DISC 11)
-  (define-constant MPD_TAG_MUSICBRAINZ_ARTISTID 12)
-  (define-constant MPD_TAG_MUSICBRAINZ_ALBUMID 13)
-  (define-constant MPD_TAG_MUSICBRAINZ_ALBUMARTISTID 14)
-  (define-constant MPD_TAG_MUSICBRAINZ_TRACKID 15)
-  (define-constant MPD_TAG_COUNT 16)
   (begin
     (define mpd_tag_name
       (foreign-lambda* c-string ((long a0)) "return(mpd_tag_name(a0));")))
