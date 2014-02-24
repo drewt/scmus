@@ -345,3 +345,86 @@ struct mpd_song *
 mpd_recv_song(struct mpd_connection *connection);
 
 /* <mpd/song.h> }}} */
+/* <mpd/queue.h> {{{ */
+
+bool
+mpd_send_list_queue_meta(struct mpd_connection *connection);
+
+bool
+mpd_send_list_queue_range_meta(struct mpd_connection *connection,
+		unsigned int start, unsigned int end);
+
+struct mpd_song *
+mpd_run_get_queue_song_pos(struct mpd_connection *connection,
+		unsigned int pos);
+
+struct mpd_song *
+mpd_run_get_queue_song_id(struct mpd_connection *connection, unsigned int id);
+
+bool
+mpd_send_queue_changes_meta(struct mpd_connection *connection,
+		unsigned int version);
+
+bool
+mpd_run_add(struct mpd_connection *connection, const char *uri);
+
+int
+mpd_run_add_id(struct mpd_connection *connection, const char *file);
+
+int
+mpd_run_add_id_to(struct mpd_connection *connection, const char *uri,
+		unsigned int to);
+
+bool
+mpd_run_delete(struct mpd_connection *connection, unsigned int pos);
+
+bool
+mpd_run_delete_range(struct mpd_connection *connection, unsigned int start,
+		unsigned int end);
+
+bool
+mpd_run_delete_id(struct mpd_connection *connection, unsigned int id);
+
+bool
+mpd_run_shuffle(struct mpd_connection *connection);
+
+bool
+mpd_run_shuffle_range(struct mpd_connection *connection, unsigned int start,
+		unsigned int end);
+
+bool
+mpd_run_clear(struct mpd_connection *connection);
+
+bool
+mpd_run_move(struct mpd_connection *connection, unsigned int from,
+		unsigned int to);
+
+bool
+mpd_run_move_id(struct mpd_connection *connection, unsigned int from,
+		unsigned int to);
+
+bool
+mpd_run_move_range(struct mpd_connection *connection, unsigned int start,
+		unsigned int end, unsigned int to);
+
+bool
+mpd_run_swap(struct mpd_connection *connection, unsigned int pos1,
+		unsigned int pos2);
+
+bool
+mpd_run_swap_id(struct mpd_connection *connection, unsigned int id1,
+		unsigned int id2);
+
+bool
+mpd_run_prio(struct mpd_connection *connection, int priority,
+		unsigned int position);
+
+bool
+mpd_run_prio_range(struct mpd_connection *connection, int priority,
+		unsigned int start, unsigned int end);
+
+bool
+mpd_run_prio_id(struct mpd_connection *connection, int priority,
+		unsigned int id);
+
+/* <mpd/queue.h> }}} */

@@ -546,6 +546,164 @@
       (foreign-lambda*
         (c-pointer (struct "mpd_song"))
         (((c-pointer (struct "mpd_connection")) a0))
-        "return(mpd_recv_song(a0));"))))
+        "return(mpd_recv_song(a0));")))
+  (begin
+    (define mpd_send_list_queue_meta
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0))
+        "return(mpd_send_list_queue_meta(a0));")))
+  (begin
+    (define mpd_send_list_queue_range_meta
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (unsigned-integer a1)
+         (unsigned-integer a2))
+        "return(mpd_send_list_queue_range_meta(a0 , a1 , a2));")))
+  (begin
+    (define mpd_run_get_queue_song_pos
+      (foreign-lambda*
+        (c-pointer (struct "mpd_song"))
+        (((c-pointer (struct "mpd_connection")) a0) (unsigned-integer a1))
+        "return(mpd_run_get_queue_song_pos(a0 , a1));")))
+  (begin
+    (define mpd_run_get_queue_song_id
+      (foreign-lambda*
+        (c-pointer (struct "mpd_song"))
+        (((c-pointer (struct "mpd_connection")) a0) (unsigned-integer a1))
+        "return(mpd_run_get_queue_song_id(a0 , a1));")))
+  (begin
+    (define mpd_send_queue_changes_meta
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (unsigned-integer a1))
+        "return(mpd_send_queue_changes_meta(a0 , a1));")))
+  (begin
+    (define mpd_run_add
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (c-string a1))
+        "return(mpd_run_add(a0 , a1));")))
+  (begin
+    (define mpd_run_add_id
+      (foreign-lambda*
+        integer
+        (((c-pointer (struct "mpd_connection")) a0) (c-string a1))
+        "return(mpd_run_add_id(a0 , a1));")))
+  (begin
+    (define mpd_run_add_id_to
+      (foreign-lambda*
+        integer
+        (((c-pointer (struct "mpd_connection")) a0)
+         (c-string a1)
+         (unsigned-integer a2))
+        "return(mpd_run_add_id_to(a0 , a1 , a2));")))
+  (begin
+    (define mpd_run_delete
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (unsigned-integer a1))
+        "return(mpd_run_delete(a0 , a1));")))
+  (begin
+    (define mpd_run_delete_range
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (unsigned-integer a1)
+         (unsigned-integer a2))
+        "return(mpd_run_delete_range(a0 , a1 , a2));")))
+  (begin
+    (define mpd_run_delete_id
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (unsigned-integer a1))
+        "return(mpd_run_delete_id(a0 , a1));")))
+  (begin
+    (define mpd_run_shuffle
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0))
+        "return(mpd_run_shuffle(a0));")))
+  (begin
+    (define mpd_run_shuffle_range
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (unsigned-integer a1)
+         (unsigned-integer a2))
+        "return(mpd_run_shuffle_range(a0 , a1 , a2));")))
+  (begin
+    (define mpd_run_clear
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0))
+        "return(mpd_run_clear(a0));")))
+  (begin
+    (define mpd_run_move
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (unsigned-integer a1)
+         (unsigned-integer a2))
+        "return(mpd_run_move(a0 , a1 , a2));")))
+  (begin
+    (define mpd_run_move_id
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (unsigned-integer a1)
+         (unsigned-integer a2))
+        "return(mpd_run_move_id(a0 , a1 , a2));")))
+  (begin
+    (define mpd_run_move_range
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (unsigned-integer a1)
+         (unsigned-integer a2)
+         (unsigned-integer a3))
+        "return(mpd_run_move_range(a0 , a1 , a2 , a3));")))
+  (begin
+    (define mpd_run_swap
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (unsigned-integer a1)
+         (unsigned-integer a2))
+        "return(mpd_run_swap(a0 , a1 , a2));")))
+  (begin
+    (define mpd_run_swap_id
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (unsigned-integer a1)
+         (unsigned-integer a2))
+        "return(mpd_run_swap_id(a0 , a1 , a2));")))
+  (begin
+    (define mpd_run_prio
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (integer a1)
+         (unsigned-integer a2))
+        "return(mpd_run_prio(a0 , a1 , a2));")))
+  (begin
+    (define mpd_run_prio_range
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (integer a1)
+         (unsigned-integer a2)
+         (unsigned-integer a3))
+        "return(mpd_run_prio_range(a0 , a1 , a2 , a3));")))
+  (begin
+    (define mpd_run_prio_id
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (integer a1)
+         (unsigned-integer a2))
+        "return(mpd_run_prio_id(a0 , a1 , a2));"))))
 
 ;;; END OF FILE
