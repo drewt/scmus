@@ -54,7 +54,15 @@
     ((let-format ((left right) fmt) body ...)
       (let-format ((left right) fmt *current-track*)
         body ...))))
- 
+
+(define (format-print-line line fmt track)
+  (let-format ((left right) fmt track)
+    (mvaddstr line 1 left)
+    (clrtoeol)
+    (mvaddstr line
+              (- (COLS) (string-length right) 1)
+              right)))
+
 (define (curses-print str)
   (mvaddstr 0 0 str))
 
@@ -71,20 +79,14 @@
   (move (- (LINES) 1) (command-line-cursor-pos)))
 
 (define (update-status-line)
-  (let-format ((left right) (get-option 'format-status))
-    (mvaddstr (- (LINES) 2) 1 left)
-    (clrtoeol)
-    (mvaddstr (- (LINES) 2)
-              (- (COLS) (string-length right) 1)
-              right)))
+  (format-print-line (- (LINES) 2)
+                     (get-option 'format-status)
+                     *current-track*))
 
 (define (update-current-line)
-  (let-format ((left right) (get-option 'format-current))
-    (mvaddstr (- (LINES) 3) 1 left)
-    (clrtoeol)
-    (mvaddstr (- (LINES) 3)
-              (- (COLS) (string-length right) 1)
-              right)))
+  (format-print-line (- (LINES) 3)
+                     (get-option 'format-current)
+                     *current-track*))
 
 (define *ui-elements-changed* '())
 (define *ui-update-functions*
