@@ -41,6 +41,20 @@
 (define *current-input-mode* 'normal-mode)
 (define *current-view* 'browser)
 
+(define-syntax let-format
+  (syntax-rules ()
+    ((let-format ((left right) fmt track len) body ...)
+      (let* ((left-right (scmus-format fmt len track))
+             (left (car left-right))
+             (right (cdr left-right)))
+        body ...))
+    ((let-format ((left right) fmt track) body ...)
+      (let-format ((left right) fmt track (- (COLS) 2))
+        body ...))
+    ((let-format ((left right) fmt) body ...)
+      (let-format ((left right) fmt *current-track*)
+        body ...))))
+ 
 (define (curses-print str)
   (mvaddstr 0 0 str))
 
@@ -57,11 +71,7 @@
   (move (- (LINES) 1) (command-line-cursor-pos)))
 
 (define (update-status-line)
-  (let* ((status (scmus-format (get-option 'format-status)
-                               (- (COLS) 2)
-                               *current-track*))
-         (left   (car status))
-         (right  (cdr status)))
+  (let-format ((left right) (get-option 'format-status))
     (mvaddstr (- (LINES) 2) 1 left)
     (clrtoeol)
     (mvaddstr (- (LINES) 2)
@@ -69,11 +79,7 @@
               right)))
 
 (define (update-current-line)
-  (let* ((current (scmus-format (get-option 'format-current)
-                                (- (COLS) 2)
-                                *current-track*))
-          (left   (car current))
-          (right  (cdr current)))
+  (let-format ((left right) (get-option 'format-current))
     (mvaddstr (- (LINES) 3) 1 left)
     (clrtoeol)
     (mvaddstr (- (LINES) 3)
