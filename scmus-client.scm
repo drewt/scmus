@@ -15,6 +15,8 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
+(require-extension srfi-18)
+
 (declare (unit scmus-client)
          (uses mpd-client)
          (hide scmus-try-reconnect
@@ -29,6 +31,8 @@
 (define *mpd-stats* '())
 (define *current-track* '())
 (define *queue* '())
+
+(define *last-update* -1.0)
 
 ;; initialize the mpd connection, printing a message on failure
 (define (init-client host port)
@@ -50,15 +54,17 @@
     (e () (void))))
 
 (define (scmus-update-status!)
-  (condition-case
-    (begin
-      (set! *mpd-status* (mpd:get-status *mpd-connection*))
-      (ui-element-changed! 'status-line)
-      (when (not (= (scmus-song-id) (current-id)))
-        (set! *current-track* (mpd:get-current-song *mpd-connection*))
-        (ui-element-changed! 'current-line)))
-    (e () (scmus-try-reconnect)))
-  *mpd-status*)
+  (let ((ct (time->seconds (current-time))))
+    (when (> (- ct *last-update*) 0.5)
+      (condition-case
+        (begin
+          (set! *mpd-status* (mpd:get-status *mpd-connection*))
+          (ui-element-changed! 'status-line)
+          (when (not (= (scmus-song-id) (current-id)))
+            (set! *current-track* (mpd:get-current-song *mpd-connection*))
+            (ui-element-changed! 'current-line))
+          (set! *last-update* ct))
+        (e () (scmus-try-reconnect))))))
 
 (define (scmus-update-queue!)
   (condition-case
