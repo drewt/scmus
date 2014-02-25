@@ -28,6 +28,7 @@
 (define *mpd-status* '())
 (define *mpd-stats* '())
 (define *current-track* '())
+(define *queue* '())
 
 (define (seconds->string total-seconds)
   (let* ((total-minutes (quotient total-seconds 60))
@@ -50,7 +51,8 @@
     (begin
       (set! *mpd-connection* (mpd:connect host port))
       (set! *mpd-stats* (mpd:get-stats *mpd-connection*))
-      (scmus-update-status!))
+      (scmus-update-status!)
+      (scmus-update-queue!))
     (ex (exn i/o) (printf "Error: failed connecting to ~a:~a~n" host port)
                   (abort ex))))
 
@@ -73,6 +75,13 @@
     (e () (scmus-try-reconnect)))
   *mpd-status*)
 
+(define (scmus-update-queue!)
+  (condition-case
+    (begin
+      (set! *queue* (mpd:list-queue *mpd-connection*))
+      (ui-element-changed! 'queue))
+    (e () (scmus-try-reconnect))))
+
 (define (scmus-elapsed)
   (seconds->string (*scmus-elapsed)))
 
@@ -85,7 +94,7 @@
         (let ((e (alist-ref sym *mpd-status*)))
           (let ((p (open-output-string)))
             (pp *current-track* p)
-            (curses-print (get-output-string p))
+            ;(curses-print (get-output-string p))
             )
           (if e e default))))))
 

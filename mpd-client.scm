@@ -24,6 +24,7 @@
                  mpd:get-stats
                  mpd:get-status
                  mpd:get-current-song
+                 mpd:list-queue
                  mpd:play!
                  mpd:pause!
                  mpd:stop!
@@ -121,41 +122,63 @@
       (mpd:raise-error connection))
     retval))
 
+(define (song->alist song)
+  (list
+    (cons 'file (mpd_song_get_uri song))
+    (cons 'artist (mpd_song_get_tag song MPD_TAG_ARTIST 0))
+    (cons 'album (mpd_song_get_tag song MPD_TAG_ALBUM 0))
+    (cons 'albumartist
+          (mpd_song_get_tag song MPD_TAG_ALBUM_ARTIST 0))
+    (cons 'title (mpd_song_get_tag song MPD_TAG_TITLE 0))
+    (cons 'track (mpd_song_get_tag song MPD_TAG_TRACK 0))
+    (cons 'name (mpd_song_get_tag song MPD_TAG_NAME 0))
+    (cons 'genre (mpd_song_get_tag song MPD_TAG_GENRE 0))
+    (cons 'date (mpd_song_get_tag song MPD_TAG_DATE 0))
+    (cons 'composer (mpd_song_get_tag song MPD_TAG_COMPOSER 0))
+    (cons 'performer (mpd_song_get_tag song MPD_TAG_PERFORMER 0))
+    (cons 'comment (mpd_song_get_tag song MPD_TAG_COMMENT 0))
+    (cons 'disc (mpd_song_get_tag song MPD_TAG_DISC 0))
+    (cons 'duration (mpd_song_get_duration song))
+    (cons 'start (mpd_song_get_start song))
+    (cons 'end (mpd_song_get_end song))
+    (cons 'last-modified (mpd_song_get_last_modified song))
+    (cons 'pos (mpd_song_get_pos song))
+    (cons 'id (mpd_song_get_id song))
+    (cons 'prio (mpd_song_get_prio song))))
+
 (define (mpd:get-current-song connection)
   (let* ((song (mpd_run_current_song connection))
          (error (mpd_connection_get_error connection))
-         (retval
-           (if song
-             (list
-               (cons 'file (mpd_song_get_uri song))
-               (cons 'artist (mpd_song_get_tag song MPD_TAG_ARTIST 0))
-               (cons 'album (mpd_song_get_tag song MPD_TAG_ALBUM 0))
-               (cons 'albumartist
-                     (mpd_song_get_tag song MPD_TAG_ALBUM_ARTIST 0))
-               (cons 'title (mpd_song_get_tag song MPD_TAG_TITLE 0))
-               (cons 'track (mpd_song_get_tag song MPD_TAG_TRACK 0))
-               (cons 'name (mpd_song_get_tag song MPD_TAG_NAME 0))
-               (cons 'genre (mpd_song_get_tag song MPD_TAG_GENRE 0))
-               (cons 'date (mpd_song_get_tag song MPD_TAG_DATE 0))
-               (cons 'composer (mpd_song_get_tag song MPD_TAG_COMPOSER 0))
-               (cons 'performer (mpd_song_get_tag song MPD_TAG_PERFORMER 0))
-               (cons 'comment (mpd_song_get_tag song MPD_TAG_COMMENT 0))
-               (cons 'disc (mpd_song_get_tag song MPD_TAG_DISC 0))
-               (cons 'duration (mpd_song_get_duration song))
-               (cons 'start (mpd_song_get_start song))
-               (cons 'end (mpd_song_get_end song))
-               (cons 'last-modified (mpd_song_get_last_modified song))
-               (cons 'pos (mpd_song_get_pos song))
-               (cons 'id (mpd_song_get_id song))
-               (cons 'prio (mpd_song_get_prio song))
-               )
-             '())))
+         (retval (if song (song->alist song) '())))
     (if song
       (mpd_song_free song))
     (when (not (= error MPD_ERROR_SUCCESS))
       (curses-print (mpd_connection_get_error_message connection))
       (mpd:raise-error connection))
     retval))
+
+(define (read-songs connection l)
+  (let* ((song (mpd_recv_song connection))
+         (error (mpd_connection_get_error connection))
+         (next (if song (song->alist song) '())))
+    (if song
+      (begin
+        (mpd_song_free song)
+        (read-songs connection (cons next l)))
+      ; mpd_recv_song returned NULL
+      (if (= error MPD_ERROR_SUCCESS)
+        l
+        (mpd:raise-error connection)))))
+
+(define (mpd:list-queue connection)
+  (if (mpd_send_list_queue_meta connection)
+    (reverse (read-songs connection '()))
+    (mpd:raise-error connection)))
+
+(define (mpd:list-queue-range connection start end)
+  (if (mpd_send_list_queue_range connection start end)
+    (reverse (read-songs connection '()))
+    (mpd:raise-error connection)))
 
 (define-syntax mpd:define-wrapper
   (syntax-rules ()

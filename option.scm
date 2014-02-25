@@ -55,10 +55,14 @@
     (cons 'format-current
           (process-format (string->list "~a - ~l ~n. ~t~= ~y")))
     (cons 'format-status
-          (process-format (string->list "~P ~p / ~d - ~T vol: ~v")))))
+          (process-format (string->list "~P ~p / ~d - ~T vol: ~v")))
+    (cons 'format-queue
+          (process-format (string->list "~n. ~t~= ~y ~d")))
+    ))
 
 ;; alist associating option names with options
 (define *options*
   (list
     (option-spec 'format-current *option-value format-set!)
-    (option-spec 'format-status *option-value format-set!)))
+    (option-spec 'format-status *option-value format-set!)
+    (option-spec 'format-queue *option-value format-set!)))

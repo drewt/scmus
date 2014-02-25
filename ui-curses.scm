@@ -88,11 +88,23 @@
                      (get-option 'format-current)
                      *current-track*))
 
+(define (update-queue)
+  (let ((max-lines (- (LINES) 4)))
+    (define (*update-queue queue lines)
+      (when (and (> lines 0)
+                 (not (null? queue)))
+        (format-print-line (- max-lines (- lines 1))
+                           (get-option 'format-queue)
+                           (car queue))
+        (*update-queue (cdr queue) (- lines 1))))
+    (*update-queue *queue* max-lines)))
+
 (define *ui-elements-changed* '())
 (define *ui-update-functions*
   (list (cons 'command-line update-command-line)
         (cons 'status-line update-status-line)
-        (cons 'current-line update-current-line)))
+        (cons 'current-line update-current-line)
+        (cons 'queue update-queue)))
 
 (define (ui-element-changed! sym)
   (set! *ui-elements-changed*
