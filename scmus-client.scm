@@ -30,21 +30,6 @@
 (define *current-track* '())
 (define *queue* '())
 
-(define (seconds->string total-seconds)
-  (let* ((total-minutes (quotient total-seconds 60))
-         (seconds (modulo total-seconds 60))
-         (minutes (modulo total-minutes 60))
-         (hours (quotient total-minutes 60)))
-    (string-append (if (= hours 0)
-                     ""
-                     (format "~a:" hours))
-                   (if (< minutes 10)
-                     (format "0~a:" minutes)
-                     (format "~a:" minutes))
-                   (if (< seconds 10)
-                     (format "0~a" seconds)
-                     (number->string seconds)))))
-
 ;; initialize the mpd connection, printing a message on failure
 (define (init-client host port)
   (condition-case
