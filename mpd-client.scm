@@ -34,7 +34,7 @@
 (include "libmpdclient.scm")
 
 (define (mpd:connect host port)
-  (mpd_connection_new host port 500))
+  (mpd_connection_new host port 5000))
 
 (define (mpd:disconnect connection)
   (mpd_connection_free connection))
