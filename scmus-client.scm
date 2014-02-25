@@ -54,7 +54,8 @@
     (e () (void))))
 
 (define (scmus-update-status!)
-  (let ((ct (time->seconds (current-time))))
+  (let ((ct (time->seconds (current-time)))
+        (version (scmus-queue-version)))
     (when (> (- ct *last-update*) 0.5)
       (condition-case
         (begin
@@ -63,6 +64,9 @@
           (when (not (= (scmus-song-id) (current-id)))
             (set! *current-track* (mpd:get-current-song *mpd-connection*))
             (ui-element-changed! 'current-line))
+          (when (not (= version (scmus-queue-version)))
+            (scmus-update-queue!)
+            (ui-element-changed! 'queue))
           (set! *last-update* ct))
         (e () (scmus-try-reconnect))))))
 
@@ -119,8 +123,8 @@
 (status-selector scmus-random? 'random)
 (status-selector scmus-single 'single)
 (status-selector scmus-consume 'consume)
-(status-selector scmus-playlist 'queue-version 0)
-(status-selector scmus-playlist-length 'queue-length 0)
+(status-selector scmus-queue-version 'queue-version 0)
+(status-selector scmus-queue-length 'queue-length 0)
 (status-selector scmus-xfade 'xfade 0)
 (status-selector scmus-mixrampdb 'mixrampdb 0.0)
 (status-selector scmus-mixrampdelay 'mixrampdelay 0.0)
