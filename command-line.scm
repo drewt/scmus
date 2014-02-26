@@ -24,7 +24,7 @@
 (define *command-line* (make-empty-editable))
 
 (define (command-line-changed!)
-  (ui-element-changed! 'command-line))
+  (register-event! 'command-line-changed))
 
 (define (command-line-clear!)
   (editable-clear! *command-line*)

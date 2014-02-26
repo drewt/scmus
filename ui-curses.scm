@@ -29,7 +29,7 @@
                  *current-view*
                  curses-print
                  print-command-line-char
-                 ui-element-changed!
+                 register-event!
                  curses-update
                  cursor-on
                  cursor-off
@@ -102,23 +102,22 @@
           (*update-queue next (- lines 1)))))
     (*update-queue *queue* max-lines)))
 
-(define *ui-elements-changed* '())
-(define *ui-update-functions*
-  (list (cons 'command-line update-command-line)
-        (cons 'status-line update-status-line)
-        (cons 'current-line update-current-line)
-        (cons 'queue update-queue)))
+(define *events* '())
+(define *event-handlers*
+  (list (cons 'command-line-changed update-command-line)
+        (cons 'status-line-changed update-status-line)
+        (cons 'current-line-changed update-current-line)
+        (cons 'queue-changed update-queue)))
 
-(define (ui-element-changed! sym)
-  (set! *ui-elements-changed*
-        (cons sym *ui-elements-changed*)))
+(define (register-event! event)
+  (set! *events* (cons event *events*)))
 
 (define (curses-update)
   (for-each (lambda (x)
-              ((alist-ref x *ui-update-functions*)))
-            *ui-elements-changed*)
+              ((alist-ref x *event-handlers*)))
+            *events*)
   (update-cursor)
-  (set! *ui-elements-changed* '()))
+  (set! *events* '()))
 
 (define (handle-resize)
   #f

@@ -40,8 +40,7 @@
     (begin
       (set! *mpd-connection* (mpd:connect host port))
       (set! *mpd-stats* (mpd:get-stats *mpd-connection*))
-      (scmus-update-status!)
-      (scmus-update-queue!))
+      (scmus-update-status!))
     (ex (exn i/o) (printf "Error: failed connecting to ~a:~a~n" host port)
                   (abort ex))))
 
@@ -60,22 +59,15 @@
       (condition-case
         (begin
           (set! *mpd-status* (mpd:get-status *mpd-connection*))
-          (ui-element-changed! 'status-line)
+          (register-event! 'status-line-changed)
           (when (not (= (scmus-song-id) (current-id)))
             (set! *current-track* (mpd:get-current-song *mpd-connection*))
-            (ui-element-changed! 'current-line))
+            (register-event! 'current-line-changed))
           (when (not (= version (scmus-queue-version)))
-            (scmus-update-queue!)
-            (ui-element-changed! 'queue))
+            (set! *queue* (mpd:list-queue *mpd-connection*))
+            (register-event! 'queue-changed))
           (set! *last-update* ct))
         (e () (scmus-try-reconnect))))))
-
-(define (scmus-update-queue!)
-  (condition-case
-    (begin
-      (set! *queue* (mpd:list-queue *mpd-connection*))
-      (ui-element-changed! 'queue))
-    (e () (scmus-try-reconnect))))
 
 (define (scmus-elapsed)
   (seconds->string (*scmus-elapsed)))
@@ -87,10 +79,6 @@
     ((status-selector name sym default)
       (define (name)
         (let ((e (alist-ref sym *mpd-status*)))
-          (let ((p (open-output-string)))
-            (pp *current-track* p)
-            ;(curses-print (get-output-string p))
-            )
           (if e e default))))))
 
 (define-syntax current-selector
