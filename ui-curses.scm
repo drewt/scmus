@@ -174,4 +174,6 @@
   (update-colors))
 
 (define (exit-curses)
-  (endwin))
+  (handle-exceptions exn
+    (void)
+    (endwin)))

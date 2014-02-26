@@ -45,7 +45,8 @@
                   (abort ex))))
 
 (define (exit-client)
-  (mpd:disconnect *mpd-connection*))
+  (if *mpd-connection*
+    (mpd:disconnect *mpd-connection*)))
 
 (define (scmus-try-reconnect)
   (condition-case

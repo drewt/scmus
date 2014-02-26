@@ -45,6 +45,7 @@
 
 (define (exit-all code)
   (exit-curses)
+  (exit-client)
   (exit code))
 
 (define (process-args args)
