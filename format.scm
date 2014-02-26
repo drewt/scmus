@@ -95,11 +95,42 @@
     ((#\P) 'playing)
     ((#\p) 'current)
     ((#\T) 'db-playtime)
-    ((#\v) 'volume)))
+    ((#\v) 'volume)
+    ((#\{) (braced-spec->symbol (cdr spec)))))
+
+(define (braced-spec->symbol spec)
+  (case (string->symbol
+          (list->string
+            (take-while
+              (lambda (x) (not (eqv? #\} x)))
+              spec)))
+    ((artist)      'artist)
+    ((album)       'album)
+    ((albumartist) 'albumartist)
+    ((discnumber)  'discnumber)
+    ((tracknumber) 'tracknumber)
+    ((title)       'title)
+    ((genre)       'genre)
+    ((comment)     'comment)
+    ((date)        'date)
+    ((duration)    'duration)
+    ((path)        'path)
+    ((filename)    'filename)
+    ((playing)     'playing)
+    ((current)     'current)
+    ((db-playtime) 'db-playtime)
+    ((volume)      'volume)))
 
 ;; skips over a format spec in a char list
-(define (format-next str)
-  (cdr str)) ; TODO: multi-char spec
+(define (format-next spec)
+  (case (car spec)
+    ((#\{) (braced-next (cdr spec)))
+    (else (cdr spec))))
+
+(define (braced-next spec)
+  (if (eqv? (car spec) #\})
+    (cdr spec)
+    (braced-next (cdr spec))))
 
 (define (format-spec-valid? spec)
   (if (null? spec)
