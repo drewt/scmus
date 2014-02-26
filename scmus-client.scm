@@ -21,7 +21,6 @@
          (uses mpd-client)
          (hide scmus-try-reconnect
                status-selector
-               current-selector
                track-selector
                stat-selector
                scmus-command))
@@ -61,7 +60,7 @@
         (begin
           (set! *mpd-status* (mpd:get-status *mpd-connection*))
           (register-event! 'status-line-changed)
-          (when (not (= (scmus-song-id) (current-id)))
+          (when (not (= (scmus-song-id) (track-id *current-track*)))
             (set! *current-track* (mpd:get-current-song *mpd-connection*))
             (register-event! 'current-line-changed))
           (when (not (= version (scmus-queue-version)))
@@ -80,15 +79,6 @@
     ((status-selector name sym default)
       (define (name)
         (let ((e (alist-ref sym *mpd-status*)))
-          (if e e default))))))
-
-(define-syntax current-selector
-  (syntax-rules ()
-    ((current-selector name sym)
-      (current-selector name sym ""))
-    ((current-selector name sym default)
-      (define (name)
-        (let ((e (alist-ref sym *current-track*)))
           (if e e default))))))
 
 (define-syntax track-selector
@@ -147,19 +137,6 @@
 (track-selector track-pos 'pos -1)
 (track-selector track-id 'id -1)
 (track-selector track-prio 'prio 0)
-
-(current-selector current-file 'file)
-(current-selector current-last-modified 'last-modified)
-(current-selector current-duration 'duration 0)
-(current-selector current-title 'title)
-(current-selector current-artist 'artist)
-(current-selector current-date 'date)
-(current-selector current-album 'album)
-(current-selector current-track 'track)
-(current-selector current-albumartist 'albumartist)
-(current-selector current-pos 'pos 0)
-(current-selector current-id 'id -1)
-(current-selector current-prio 'prio 0)
 
 (stat-selector scmus-artists 'artists)
 (stat-selector scmus-albums 'albums)
