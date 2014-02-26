@@ -15,10 +15,15 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit lib))
+(declare (unit lib)
+         (uses config))
 
 ;; the exit routine; initially (exit), becomes a continuation
 (define scmus-exit exit)
+
+(define (verbose-printf . args)
+  (if *verbose*
+    (apply printf args)))
 
 ;; Equality predicate for characters and ncurses keycodes.
 ;; This is necessary because the ncurses egg has KEY_* constants as integers

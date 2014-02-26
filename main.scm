@@ -21,16 +21,6 @@
 (define *version-text* "scmus 0.1\nCopyright (C) 2014 Drew Thoreson\n")
 (define *help-text* "I'll write docs later, OK?\n")
 
-;; TODO: put this somewhere appropriate
-(define-syntax catch
-  (syntax-rules ()
-    ((catch body handler)
-     (call/cc
-       (lambda (k)
-         (with-exception-handler
-           (lambda (x) (k (handler x)))
-           (lambda () body)))))))
-
 (define (main return)
   (define (*main)
     (scmus-update-status!)
@@ -41,15 +31,17 @@
   (*main))
 
 (define (init-all)
-  (catch
-    (begin
-      (init-client *mpd-address* *mpd-port*)
-      (init-sandbox)
-      (init-curses)
-      (set-input-mode! 'normal-mode))
-    (lambda (x)
-      (print "Failed to initialize scmus.  Exiting.")
-      (exit-all 1))))
+  (handle-exceptions exn
+    (begin (print "Failed to initialize scmus.  Exiting.")
+           (verbose-printf "~a~n" (condition->list exn))
+           (exit-all 1))
+    (verbose-printf "Connecting to ~a:~a...~n" *mpd-address* *mpd-port*)
+    (init-client *mpd-address* *mpd-port*)
+    (verbose-printf "Initializing environment...~n")
+    (init-sandbox)
+    (verbose-printf "Initializing ncurses...~n")
+    (init-curses)
+    (set-input-mode! 'normal-mode)))
 
 (define (exit-all code)
   (exit-curses)
@@ -60,6 +52,8 @@
     (and (number? port) (> port 0) (< port 65536)))
   (when (not (null? args))
     (case (string->symbol (car args))
+      ((--verbose)
+       (set! *verbose* #t))
       ((-v --version)
        (begin
          (display *version-text*)

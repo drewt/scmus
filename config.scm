@@ -17,6 +17,8 @@
 
 (declare (unit config))
 
+(define *verbose* #f)
+
 (define *scmusrc-path* "~/.scmusrc")
 (define *mpd-address* "localhost")
 (define *mpd-port* 6600)
