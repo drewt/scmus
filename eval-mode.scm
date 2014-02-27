@@ -77,8 +77,11 @@
       (user-eval (command-line-text))
       (leave-eval-mode))
     ((#\esc)
-      (command-line-clear!)
-      (set-input-mode! 'normal-mode))
+      (leave-eval-mode))
+    ((#\backspace)
+      (if (command-line-empty?)
+        (leave-eval-mode)
+        (command-line-char ch)))
     (else
       (command-line-char ch))))
 
@@ -86,4 +89,8 @@
   (cond
     ((key= key KEY_UP) (void))
     ((key= key KEY_DOWN) (void))
+    ((key= key KEY_BACKSPACE)
+      (if (command-line-empty?)
+        (leave-eval-mode)
+        (command-line-key key)))
     (else (command-line-key key))))

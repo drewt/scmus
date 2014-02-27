@@ -26,6 +26,9 @@
 (define (command-line-changed!)
   (register-event! 'command-line-changed))
 
+(define (command-line-empty?)
+  (= 0 (command-line-length)))
+
 (define (command-line-clear!)
   (editable-clear! *command-line*)
   (command-line-changed!))
@@ -45,8 +48,11 @@
   (command-line-changed!))
 
 (define (command-line-backspace!)
-  (editable-backspace! *command-line*)
-  (command-line-changed!))
+  (if (= 0 (editable-length *command-line*))
+    (set-input-mode! 'normal-mode)
+    (begin
+      (editable-backspace! *command-line*)
+      (command-line-changed!))))
 
 (define (command-line-delete-char!)
   (editable-delete-char! *command-line*)
