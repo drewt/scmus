@@ -60,8 +60,8 @@
       ((artist) (track-artist track))
       ((album) (track-album track))
       ((albumartist) (track-albumartist track))
-      ((discnumber) (track-disc track))
-      ((tracknumber) (track-track track))
+      ((discnumber) (clean-nr (track-disc track)))
+      ((tracknumber) (clean-nr (track-track track)))
       ((title) (track-title track))
       ((genre) (track-genre track))
       ((comment) (track-comment track))
@@ -76,6 +76,10 @@
       ((volume) (number->string (scmus-volume)))
       (else "<FORMAT ERROR>"))
     (string e)))
+
+(define (clean-nr str)
+  (let ((i (string-index str #\/)))
+    (if i (string-take str i) str)))
 
 (define (format-spec->symbol spec)
   (case (car spec)
