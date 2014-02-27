@@ -15,6 +15,8 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
+(require-extension ncurses) ; color constants
+
 (declare (unit option)
          (uses format)
          (export get-option
@@ -75,8 +77,8 @@
     (cons 'color-statusline-bg             'gray)
     (cons 'color-statusline-fg             'black)
     (cons 'color-titleline-attr            'default)
-    (cons 'color-titleline-fg              'blue)
-    (cons 'color-titleline-bg              'white)
+    (cons 'color-titleline-bg              'blue)
+    (cons 'color-titleline-fg              'white)
     (cons 'color-win-attr                  'default)
     (cons 'color-win-bg                    'default)
     (cons 'color-win-cur                   'light-yellow)
@@ -102,8 +104,7 @@
     (cons 'format-status
           (process-format (string->list "~P ~p / ~d - ~T vol: ~v")))
     (cons 'format-queue
-          (process-format (string->list "~n. ~t~= ~y ~d")))
-    ))
+          (process-format (string->list "~n. ~t~= ~y ~d")))))
 
 ;; alist associating option names with options
 (define *options*

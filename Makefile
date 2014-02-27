@@ -19,7 +19,7 @@ libmpdclient.scm: libmpdclient.h
 	chicken-bind libmpdclient.h
 
 scmus: $(objects)
-	$(call cmd,ld,-lmpdclient)
+	$(call cmd,ld,-lmpdclient -lncurses)
 
 eggs:
 	chicken-install $(eggs)

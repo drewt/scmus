@@ -38,6 +38,27 @@
                  init-curses
                  exit-curses))
 
+;;; definitions missing from the ncurses egg
+(define bkgdset
+  (foreign-lambda* void ((unsigned-long a0)) "bkgdset(a0);"))
+(define use_default_colors
+  (foreign-lambda* integer () "return(use_default_colors());"))
+
+(define-constant CURSED-CMDLINE 0)
+(define-constant CURSED-ERROR 1)
+(define-constant CURSED-INFO 2)
+(define-constant CURSED-SEPARATOR 3)
+(define-constant CURSED-STATUSLINE 4)
+(define-constant CURSED-TITLELINE 5)
+(define-constant CURSED-WIN 6)
+(define-constant CURSED-WIN-CUR 7)
+(define-constant CURSED-WIN-CUR-SEL 8)
+(define-constant CURSED-WIN-INACTIVE-CUR-SEL 9)
+(define-constant CURSED-WIN-INACTIVE-SEL 10)
+(define-constant CURSED-WIN-SEL 11)
+(define-constant CURSED-WIN-TITLE 12)
+(define-constant NR-CURSED 13)
+
 (define *current-input-mode* 'normal-mode)
 (define *current-view* 'browser)
 
@@ -57,7 +78,8 @@
 
 (define (format-print-line line fmt track)
   (let-format ((left right) fmt track)
-    (mvaddstr line 1 left)
+    (mvaddch line 0 #\space)
+    (addstr left)
     (clrtoeol)
     (mvaddstr line
               (- (COLS) (string-length right) 1)
@@ -67,9 +89,11 @@
   (mvaddstr 0 0 str))
 
 (define (print-command-line-char ch)
+  (cursed-set! CURSED-CMDLINE)
   (mvaddch (- (LINES) 1) 0 ch))
 
 (define (update-command-line)
+  (cursed-set! CURSED-CMDLINE)
   (move (- (LINES) 1) 1)
   (clrtoeol)
   (addstr (string-truncate (command-line-text)
@@ -79,16 +103,19 @@
   (move (- (LINES) 1) (command-line-cursor-pos)))
 
 (define (update-status-line)
+  (cursed-set! CURSED-STATUSLINE)
   (format-print-line (- (LINES) 2)
                      (get-option 'format-status)
                      *current-track*))
 
 (define (update-current-line)
+  (cursed-set! CURSED-TITLELINE)
   (format-print-line (- (LINES) 3)
                      (get-option 'format-current)
                      *current-track*))
 
 (define (update-queue)
+  (cursed-set! CURSED-WIN)
   (let ((max-lines (- (LINES) 4)))
     (define (*update-queue queue lines)
       (when (> lines 0)
@@ -156,13 +183,125 @@
       ((key? ch)            (handle-key ch))
       (else                 (handle-char ch)))))
 
-(define (start-color)
-  #f
-  )
+;; colors {{{
 
-(define (update-colors)
-  #f
-  )
+(define (color-symbol->number sym)
+  (case sym
+    ((default)       -1)
+    ((black)         COLOR_BLACK)
+    ((red)           COLOR_RED)
+    ((green)         COLOR_GREEN)
+    ((yellow)        COLOR_YELLOW)
+    ((blue)          COLOR_BLUE)
+    ((magenta)       COLOR_MAGENTA)
+    ((cyan)          COLOR_CYAN)
+    ((white)         COLOR_WHITE)
+    ((dark-gray)     8)
+    ((light-red)     9)
+    ((light-green)   10)
+    ((light-yellow)  11)
+    ((light-blue)    12)
+    ((light-magenta) 13)
+    ((light-cyan)    14)
+    ((gray)          15)
+    (else            -1)))
+
+(define *colors* (make-vector NR-CURSED))
+
+(define (colors-set! cursed attr bg fg)
+  (vector-set! *colors* cursed (list attr bg fg)))
+
+(define (get-color-option name)
+  (let ((option (get-option name)))
+    (if (symbol? option)
+      (color-symbol->number option)
+      option)))
+
+(define (cursed-pair cursed)
+  (+ 1 cursed))
+
+(define (cursed-attr cursed)
+  (car (vector-ref *colors* cursed)))
+
+(define (cursed-bg cursed)
+  (cadr (vector-ref *colors* cursed)))
+
+(define (cursed-fg cursed)
+  (caddr (vector-ref *colors* cursed)))
+
+(define (init-cursed! cursed attr bg fg)
+  (colors-set! cursed
+               (get-option attr)
+               (get-color-option bg)
+               (get-color-option fg)))
+
+(define (init-colors!)
+  (init-cursed! CURSED-CMDLINE
+                'color-cmdline-attr
+                'color-cmdline-bg
+                'color-cmdline-fg)
+  (init-cursed! CURSED-ERROR
+                'color-cmdline-attr
+                'color-cmdline-bg
+                'color-error)
+  (init-cursed! CURSED-INFO
+                'color-cmdline-attr
+                'color-cmdline-bg
+                'color-cmdline-fg)
+  (init-cursed! CURSED-SEPARATOR
+                'color-win-attr
+                'color-win-bg
+                'color-separator)
+  (init-cursed! CURSED-STATUSLINE
+                'color-statusline-attr
+                'color-statusline-bg
+                'color-statusline-fg)
+  (init-cursed! CURSED-TITLELINE
+                'color-titleline-attr
+                'color-titleline-bg
+                'color-titleline-fg)
+  (init-cursed! CURSED-WIN
+                'color-win-attr
+                'color-win-bg
+                'color-win-fg)
+  (init-cursed! CURSED-WIN-CUR
+                'color-win-attr
+                'color-win-bg
+                'color-win-cur)
+  (init-cursed! CURSED-WIN-CUR-SEL
+                'color-win-cur-sel-attr
+                'color-win-cur-sel-bg
+                'color-win-cur-sel-fg)
+  (init-cursed! CURSED-WIN-INACTIVE-CUR-SEL
+                'color-win-inactive-cur-sel-attr
+                'color-win-inactive-cur-sel-bg
+                'color-win-inactive-cur-sel-fg)
+  (init-cursed! CURSED-WIN-INACTIVE-SEL
+                'color-win-inactive-sel-attr
+                'color-win-inactive-sel-bg
+                'color-win-inactive-sel-fg)
+  (init-cursed! CURSED-WIN-SEL
+                'color-win-sel-attr
+                'color-win-sel-bg
+                'color-win-sel-fg)
+  (init-cursed! CURSED-WIN-TITLE
+                'color-win-title-attr
+                'color-win-title-bg
+                'color-win-title-fg)
+  (update-colors!)
+  (cursed-set! CURSED-WIN))
+
+(define (cursed-set! cursed)
+  (bkgdset (COLOR_PAIR (cursed-pair cursed))))
+
+(define (update-colors!)
+  (define (*update-colors! i)
+    (when (< i NR-CURSED)
+      (init_pair (cursed-pair i) (cursed-fg i) (cursed-bg i))
+      (*update-colors! (+ i 1))))
+  (*update-colors! 0))
+
+;; colors }}}
 
 (define (init-curses)
   (initscr)
@@ -170,8 +309,9 @@
   (keypad (stdscr) #t)
   (halfdelay 5)
   (noecho)
-  (start-color)
-  (update-colors))
+  (start_color)
+  (use_default_colors)
+  (init-colors!))
 
 (define (exit-curses)
   (handle-exceptions exn
