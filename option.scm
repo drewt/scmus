@@ -104,7 +104,9 @@
     (cons 'format-status
           (process-format (string->list "~P ~p / ~d - ~T vol: ~v")))
     (cons 'format-queue
-          (process-format (string->list "~n. ~t~= ~y ~d")))))
+          (process-format (string->list "~n. ~t~= ~y ~d")))
+    (cons 'format-queue-title
+          (process-format (string->list "Play Queue - ~{queue-length} tracks")))))
 
 ;; alist associating option names with options
 (define *options*
@@ -144,4 +146,5 @@
     (option-spec 'color-win-title-fg *option-value color-set!)
     (option-spec 'format-current *option-value format-set!)
     (option-spec 'format-status *option-value format-set!)
-    (option-spec 'format-queue *option-value format-set!)))
+    (option-spec 'format-queue *option-value format-set!)
+    (option-spec 'format-queue-title *option-value format-set!)))

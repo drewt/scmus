@@ -115,7 +115,6 @@
                      *current-track*))
 
 (define (update-queue)
-  (cursed-set! CURSED-WIN)
   (let ((max-lines (- (LINES) 4)))
     (define (*update-queue queue lines)
       (when (> lines 0)
@@ -127,6 +126,9 @@
                                (get-option 'format-queue)
                                (car queue)))
           (*update-queue next (- lines 1)))))
+    (cursed-set! CURSED-WIN-TITLE)
+    (format-print-line 0 (get-option 'format-queue-title) '())
+    (cursed-set! CURSED-WIN)
     (*update-queue *queue* max-lines)))
 
 (define *events* '())
