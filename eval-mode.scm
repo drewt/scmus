@@ -24,6 +24,7 @@
                command-line
                keys)
          (export init-sandbox
+                 user-load
                  enter-eval-mode
                  leave-eval-mode
                  eval-mode-char
@@ -54,12 +55,23 @@
   (safe-environment-set! *user-env* 'play! scmus-play!)
   (safe-environment-set! *user-env* 'pause! scmus-pause!)
   (safe-environment-set! *user-env* 'stop! scmus-stop!)
-  (safe-environment-set! *user-env* 'next! scmus-next!))
+  (safe-environment-set! *user-env* 'next! scmus-next!)
+  (safe-environment-set! *user-env* 'win-move! win-move!))
 
 (define (user-eval str)
   (condition-case (safe-eval (read (open-input-string str))
                              environment: *user-env*)
     (e () (curses-print "ERROR"))))
+
+(define (user-load path)
+  (call-with-input-file path
+    (lambda (in)
+      (let loop ()
+       (let ((input (read in)))
+         (unless (eqv? input #!eof)
+           (condition-case (safe-eval input environment: *user-env*)
+             (e () (void)))
+           (loop)))))))
 
 (define (enter-eval-mode)
   (command-line-clear!)

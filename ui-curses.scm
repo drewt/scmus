@@ -24,9 +24,11 @@
                command-line
                keys
                format
-               option)
+               option
+               window)
          (export *current-input-mode*
                  *current-view*
+                 win-move!
                  curses-print
                  print-command-line-char
                  register-event!
@@ -60,7 +62,33 @@
 (define-constant NR-CURSED 13)
 
 (define *current-input-mode* 'normal-mode)
-(define *current-view* 'browser)
+(define *current-view* 'queue)
+
+;; alist associating views and windows
+(define *windows*
+  '((queue . #f)
+    (library . #f)))
+
+;; can only be used *after* ncurses initialized
+(define-syntax make-simple-window
+  (syntax-rules ()
+    ((make-simple-window track-list changed-event)
+      (make-window #f
+                   (lambda (x) track-list)
+                   (length track-list)
+                   0
+                   0
+                   (- (LINES) 4)
+                   (lambda (w)
+                     (register-event! changed-event))))))
+
+(define (current-window)
+  (alist-ref *current-view* *windows*))
+
+(define (win-move! nr-lines)
+  (if (> nr-lines 0)
+    (window-move-down! (current-window) nr-lines)
+    (window-move-up! (current-window) (abs nr-lines))))
 
 (define-syntax let-format
   (syntax-rules ()
@@ -114,22 +142,30 @@
                      (get-option 'format-current)
                      *current-track*))
 
-(define (update-queue)
-  (let ((max-lines (- (LINES) 4)))
-    (define (*update-queue queue lines)
+(define (update-track-window window title-fmt track-fmt)
+  (let ((nr-lines (window-nr-lines window)))
+    (define (*update-track-window track-list lines)
       (when (> lines 0)
-        (let ((line-nr (- max-lines (- lines 1)))
-              (next (if (null? queue) '() (cdr queue))))
-          (if (null? queue)
+        (let ((line-nr (- nr-lines (- lines 1)))
+              (next (if (null? track-list) '() (cdr track-list))))
+          (if (null? track-list)
             (begin (move line-nr 1) (clrtoeol))
-            (format-print-line line-nr
-                               (get-option 'format-queue)
-                               (car queue)))
-          (*update-queue next (- lines 1)))))
+            (format-print-line line-nr track-fmt (car track-list)))
+          (*update-track-window next (- lines 1)))))
     (cursed-set! CURSED-WIN-TITLE)
-    (format-print-line 0 (get-option 'format-queue-title) '())
+    (format-print-line 0 title-fmt '())
     (cursed-set! CURSED-WIN)
-    (*update-queue *queue* max-lines)))
+    (*update-track-window (window-top window) nr-lines)
+    (cursed-set! CURSED-WIN-SEL)
+    (format-print-line (+ 1 (- (window-sel-pos window)
+                               (window-top-pos window)))
+                       track-fmt
+                       (window-selected window))))
+
+(define (update-queue)
+  (update-track-window (alist-ref 'queue *windows*)
+                       (get-option 'format-queue-title)
+                       (get-option 'format-queue)))
 
 (define *events* '())
 (define *event-handlers*
@@ -313,7 +349,10 @@
   (noecho)
   (start_color)
   (use_default_colors)
-  (init-colors!))
+  (init-colors!)
+  (alist-update! 'queue
+                 (make-simple-window *queue* 'queue-changed)
+                 *windows*))
 
 (define (exit-curses)
   (handle-exceptions exn

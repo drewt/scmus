@@ -39,6 +39,7 @@
     (init-client *mpd-address* *mpd-port*)
     (verbose-printf "Initializing environment...~n")
     (init-sandbox)
+    (user-load *scmusrc-path*)
     (verbose-printf "Initializing ncurses...~n")
     (init-curses)
     (set-input-mode! 'normal-mode)))
@@ -78,7 +79,6 @@
         (printf "Unrecognized option: ~a~n" (car args))))
     (process-args (cdr args))))
 
-(load *scmusrc-path*)
 (process-args (command-line-arguments))
 (init-all)
 (exit-all (call/cc main))
