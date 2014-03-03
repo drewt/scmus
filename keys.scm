@@ -539,11 +539,6 @@
   (case ch
     ((#\:) (set-input-mode! 'eval-mode))
     ((#\/) (set-input-mode! 'search-mode))
-    ((#\z) (scmus-prev!))
-    ((#\x) (scmus-play!))
-    ((#\c) (scmus-pause!))
-    ((#\v) (scmus-stop!))
-    ((#\b) (scmus-next!))
     ((#\q) (scmus-exit 0))
     (else (handle-user-key ch))))
 

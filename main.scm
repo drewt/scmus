@@ -39,6 +39,7 @@
     (init-client *mpd-address* *mpd-port*)
     (verbose-printf "Initializing environment...~n")
     (init-sandbox)
+    (user-load *sysrc-path*)
     (user-load *scmusrc-path*)
     (verbose-printf "Initializing ncurses...~n")
     (init-curses)

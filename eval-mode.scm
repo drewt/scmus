@@ -32,10 +32,13 @@
 
 ;; user functions {{{
 
-(define (user-bind! keys context thunk)
+(define (user-bind! keys context thunk #!optional (force #f))
   (let ((key-list (string-tokenize keys)))
     (if (binding-keys-valid? key-list)
-      (make-binding! key-list context thunk)
+      (begin
+        (if force
+          (unbind! key-list context))
+        (make-binding! key-list context thunk))
       #f)))
 
 (define (user-unbind! keys context)
