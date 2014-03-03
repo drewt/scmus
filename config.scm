@@ -18,6 +18,7 @@
 (declare (unit config))
 
 (define *verbose* #f)
+(define *debug* #t)
 
 (define *sysrc-path* "scmusrc.scm")
 (define *scmusrc-path* "~/.scmusrc")

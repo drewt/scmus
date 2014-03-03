@@ -25,6 +25,14 @@
   (if *verbose*
     (apply printf args)))
 
+(define (debug-printf . args)
+  (if *debug*
+    (apply printf args)))
+
+(define (debug-pp sexp)
+  (if *debug*
+    (pp sexp)))
+
 ;; Equality predicate for characters and ncurses keycodes.
 ;; This is necessary because the ncurses egg has KEY_* constants as integers
 ;; for some reason.

@@ -21,6 +21,8 @@
 (define *version-text* "scmus 0.1\nCopyright (C) 2014 Drew Thoreson\n")
 (define *help-text* "I'll write docs later, OK?\n")
 
+(define *error* #f)
+
 (define (main return)
   (define (*main)
     (scmus-update-status!)
@@ -28,12 +30,14 @@
     (handle-input)
     (*main))
   (set! scmus-exit return)
-  (*main))
+  (handle-exceptions exn
+    (begin (set! *error* exn) 1)
+    (*main)))
 
 (define (init-all)
   (handle-exceptions exn
     (begin (print "Failed to initialize scmus.  Exiting.")
-           (verbose-printf "~a~n" (condition->list exn))
+           (debug-printf "~a~n" (condition->list exn))
            (exit-all 1))
     (verbose-printf "Connecting to ~a:~a...~n" *mpd-address* *mpd-port*)
     (init-client *mpd-address* *mpd-port*)
@@ -45,10 +49,9 @@
     (init-curses)
     (set-input-mode! 'normal-mode)))
 
-(define (exit-all code)
+(define (exit-all)
   (exit-curses)
-  (exit-client)
-  (exit code))
+  (exit-client))
 
 (define (process-args args)
   (define (port-valid? port)
@@ -82,4 +85,9 @@
 
 (process-args (command-line-arguments))
 (init-all)
-(exit-all (call/cc main))
+(let ((code (call/cc main)))
+  (exit-all)
+  (when *error*
+    (print "Unexpected error.  Exiting.")
+    (debug-pp (condition->list *error*)))
+  (exit code))
