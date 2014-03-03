@@ -26,6 +26,8 @@
                  mpd:get-current-song
                  mpd:list-queue
                  mpd:play!
+                 mpd:play-id!
+                 mpd:play-pos!
                  mpd:pause!
                  mpd:stop!
                  mpd:next-song!
@@ -181,14 +183,21 @@
     (mpd:raise-error connection)))
 
 (define-syntax mpd:define-wrapper
-  (syntax-rules ()
-    ((mpd:define-wrapper name mpd-fn)
+  (syntax-rules (0 1)
+    ((mpd:define-wrapper 0 name mpd-fn)
       (define (name connection)
         (if (not (mpd-fn connection))
+          (mpd:raise-error connection))))
+    ((mpd:define-wrapper 1 name mpd-fn)
+      (define (name connection arg)
+        (if (not (mpd-fn connection arg))
           (mpd:raise-error connection))))))
 
-(mpd:define-wrapper mpd:play! mpd_run_play)
-(mpd:define-wrapper mpd:pause! mpd_run_toggle_pause)
-(mpd:define-wrapper mpd:stop! mpd_run_stop)
-(mpd:define-wrapper mpd:next-song! mpd_run_next)
-(mpd:define-wrapper mpd:previous-song! mpd_run_previous)
+(mpd:define-wrapper 0 mpd:play! mpd_run_play)
+(mpd:define-wrapper 0 mpd:pause! mpd_run_toggle_pause)
+(mpd:define-wrapper 0 mpd:stop! mpd_run_stop)
+(mpd:define-wrapper 0 mpd:next-song! mpd_run_next)
+(mpd:define-wrapper 0 mpd:previous-song! mpd_run_previous)
+
+(mpd:define-wrapper 1 mpd:play-id! mpd_run_play_id)
+(mpd:define-wrapper 1 mpd:play-pos! mpd_run_play_pos)

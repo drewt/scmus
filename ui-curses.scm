@@ -29,6 +29,7 @@
          (export *current-input-mode*
                  *current-view*
                  win-move!
+                 win-activate!
                  curses-print
                  print-command-line-char
                  register-event!
@@ -70,9 +71,9 @@
     (library . #f)))
 
 ;; can only be used *after* ncurses initialized
-(define-syntax make-simple-window
+(define-syntax make-track-window
   (syntax-rules ()
-    ((make-simple-window track-list changed-event)
+    ((make-track-window track-list changed-event)
       (make-window #f
                    (lambda (x) track-list)
                    (length track-list)
@@ -80,7 +81,9 @@
                    0
                    (- (LINES) 4)
                    (lambda (w)
-                     (register-event! changed-event))))))
+                     (register-event! changed-event))
+                   (lambda (w)
+                     (scmus-play-track! (window-selected w)))))))
 
 (define (current-window)
   (alist-ref *current-view* *windows*))
@@ -89,6 +92,9 @@
   (if (> nr-lines 0)
     (window-move-down! (current-window) nr-lines)
     (window-move-up! (current-window) (abs nr-lines))))
+
+(define (win-activate!)
+  (window-activate! (current-window)))
 
 (define-syntax let-format
   (syntax-rules ()
@@ -351,7 +357,7 @@
   (use_default_colors)
   (init-colors!)
   (alist-update! 'queue
-                 (make-simple-window *queue* 'queue-changed)
+                 (make-track-window *queue* 'queue-changed)
                  *windows*))
 
 (define (exit-curses)
