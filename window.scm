@@ -16,8 +16,7 @@
 ;;
 
 (declare (unit window)
-         (uses ui-curses)
-         )
+         (uses ui-curses))
 
 ;; A "window" is a view of a list
 (define-record-type window
@@ -62,6 +61,17 @@
   (window-data-len-set! window (length data))
   (window-top-pos-set! window top-pos)
   (window-sel-pos-set! window sel-pos))
+
+(define (window-data-len-update! window)
+  (let ((top-pos (window-top-pos window))
+        (sel-pos (window-sel-pos window))
+        (nr-lines (window-nr-lines window))
+        (new-len (length (window-data window))))
+    (window-data-len-set! window new-len)
+    (if (>= top-pos new-len)
+      (window-top-pos-set! window (max 0 (- new-len 1))))
+    (if (>= sel-pos new-len)
+      (window-sel-pos-set! window (max 0 (- new-len 1))))))
 
 (define (window-element-removed! window i)
   (let ((top-pos (window-top-pos window))

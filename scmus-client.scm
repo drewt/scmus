@@ -66,7 +66,7 @@
             (register-event! 'current-line-changed))
           (when (not (= version (scmus-queue-version)))
             (set! *queue* (mpd:list-queue *mpd-connection*))
-            (register-event! 'queue-changed))
+            (register-event! 'queue-data-changed))
           (set! *last-update* ct))
         (e () (scmus-try-reconnect))))))
 

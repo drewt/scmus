@@ -182,12 +182,17 @@
                        (get-option 'format-queue-title)
                        (get-option 'format-queue)))
 
+(define (update-queue-data)
+  (window-data-len-update! (alist-ref 'queue *windows*))
+  (update-queue))
+
 (define *events* '())
 (define *event-handlers*
   (list (cons 'command-line-changed update-command-line)
         (cons 'status-line-changed update-status-line)
         (cons 'current-line-changed update-current-line)
-        (cons 'queue-changed update-queue)))
+        (cons 'queue-changed update-queue)
+        (cons 'queue-data-changed update-queue-data)))
 
 (define (register-event! event)
   (set! *events* (cons event *events*)))
