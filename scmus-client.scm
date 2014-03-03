@@ -60,8 +60,9 @@
         (begin
           (set! *mpd-status* (mpd:get-status *mpd-connection*))
           (register-event! 'status-line-changed)
-          (when (not (= (scmus-song-id) (track-id *current-track*)))
+          (unless (= (scmus-song-id) (track-id *current-track*))
             (set! *current-track* (mpd:get-current-song *mpd-connection*))
+            (register-event! 'queue-changed)
             (register-event! 'current-line-changed))
           (when (not (= version (scmus-queue-version)))
             (set! *queue* (mpd:list-queue *mpd-connection*))
@@ -137,6 +138,12 @@
 (track-selector track-pos 'pos -1)
 (track-selector track-id 'id -1)
 (track-selector track-prio 'prio 0)
+
+(define (current-track? track)
+  (= (track-id track) (track-id *current-track*)))
+
+(define (track= a b)
+  (= (track-id a) (track-id b)))
 
 (stat-selector scmus-artists 'artists)
 (stat-selector scmus-albums 'albums)

@@ -148,25 +148,33 @@
                      (get-option 'format-current)
                      *current-track*))
 
+;; set the appropriate CURSED-* pair for the given window and track
+(define (cursed-trackwin-set! window track)
+  (let ((current? (current-track? track))
+        (selected? (track= track (window-selected window))))
+    (cursed-set!
+      (cond
+        ((null? track)            CURSED-WIN)
+        ((and current? selected?) CURSED-WIN-CUR-SEL)
+        (current?                 CURSED-WIN-CUR)
+        (selected?                CURSED-WIN-SEL)
+        (else                     CURSED-WIN)))))
+
 (define (update-track-window window title-fmt track-fmt)
   (let ((nr-lines (window-nr-lines window)))
     (define (*update-track-window track-list lines)
       (when (> lines 0)
         (let ((line-nr (- nr-lines (- lines 1)))
+              (track (if (null? track-list) '() (car track-list)))
               (next (if (null? track-list) '() (cdr track-list))))
+          (cursed-trackwin-set! window track)
           (if (null? track-list)
             (begin (move line-nr 1) (clrtoeol))
-            (format-print-line line-nr track-fmt (car track-list)))
+            (format-print-line line-nr track-fmt track))
           (*update-track-window next (- lines 1)))))
     (cursed-set! CURSED-WIN-TITLE)
     (format-print-line 0 title-fmt '())
-    (cursed-set! CURSED-WIN)
-    (*update-track-window (window-top window) nr-lines)
-    (cursed-set! CURSED-WIN-SEL)
-    (format-print-line (+ 1 (- (window-sel-pos window)
-                               (window-top-pos window)))
-                       track-fmt
-                       (window-selected window))))
+    (*update-track-window (window-top window) nr-lines)))
 
 (define (update-queue)
   (update-track-window (alist-ref 'queue *windows*)
