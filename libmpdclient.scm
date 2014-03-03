@@ -193,14 +193,18 @@
     (define mpd_run_seek_pos
       (foreign-lambda*
         bool
-        (((c-pointer (struct "mpd_connection")) a0))
-        "return(mpd_run_seek_pos(a0));")))
+        (((c-pointer (struct "mpd_connection")) a0)
+         (unsigned-integer a1)
+         (unsigned-integer a2))
+        "return(mpd_run_seek_pos(a0 , a1 , a2));")))
   (begin
     (define mpd_run_seek_id
       (foreign-lambda*
         bool
-        (((c-pointer (struct "mpd_connection")) a0))
-        "return(mpd_run_seek_id(a0));")))
+        (((c-pointer (struct "mpd_connection")) a0)
+         (unsigned-integer a1)
+         (unsigned-integer a2))
+        "return(mpd_run_seek_id(a0 , a1 , a2));")))
   (begin
     (define mpd_run_repeat
       (foreign-lambda*

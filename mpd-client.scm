@@ -31,7 +31,9 @@
                  mpd:pause!
                  mpd:stop!
                  mpd:next-song!
-                 mpd:previous-song!))
+                 mpd:previous-song!
+                 mpd:seek-id!
+                 mpd:seek-pos!))
 
 (include "libmpdclient.scm")
 
@@ -183,7 +185,7 @@
     (mpd:raise-error connection)))
 
 (define-syntax mpd:define-wrapper
-  (syntax-rules (0 1)
+  (syntax-rules (0 1 2)
     ((mpd:define-wrapper 0 name mpd-fn)
       (define (name connection)
         (if (not (mpd-fn connection))
@@ -191,6 +193,10 @@
     ((mpd:define-wrapper 1 name mpd-fn)
       (define (name connection arg)
         (if (not (mpd-fn connection arg))
+          (mpd:raise-error connection))))
+    ((mpd:define-wrapper 2 name mpd-fn)
+      (define (name connection arg1 arg2)
+        (if (not (mpd-fn connection arg1 arg2))
           (mpd:raise-error connection))))))
 
 (mpd:define-wrapper 0 mpd:play! mpd_run_play)
@@ -201,3 +207,6 @@
 
 (mpd:define-wrapper 1 mpd:play-id! mpd_run_play_id)
 (mpd:define-wrapper 1 mpd:play-pos! mpd_run_play_pos)
+
+(mpd:define-wrapper 2 mpd:seek-id! mpd_run_seek_id)
+(mpd:define-wrapper 2 mpd:seek-pos! mpd_run_seek_pos)

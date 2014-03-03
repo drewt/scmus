@@ -147,7 +147,7 @@
 (stat-selector scmus-db-update 'db-update)
 
 (define-syntax scmus-command
-  (syntax-rules (0 1)
+  (syntax-rules (0 1 2)
     ((scmus-command 0 name mpd-fn)
       (define (name)
         (condition-case (mpd-fn *mpd-connection*)
@@ -155,6 +155,10 @@
     ((scmus-command 1 name mpd-fn)
       (define (name arg)
         (condition-case (mpd-fn *mpd-connection* arg)
+          (e (mpd) (curses-print (mpd:error-message e))))))
+    ((scmus-command 2 name mpd-fn)
+      (define (name arg1 arg2)
+        (condition-case (mpd-fn *mpd-connection* arg1 arg2)
           (e (mpd) (curses-print (mpd:error-message e))))))))
 
 (scmus-command 0 scmus-next! mpd:next-song!)
@@ -164,6 +168,13 @@
 (scmus-command 1 scmus-play-pos! mpd:play-pos!)
 (scmus-command 0 scmus-pause! mpd:pause!)
 (scmus-command 0 scmus-stop! mpd:stop!)
+(scmus-command 2 scmus-seek-id! mpd:seek-id!)
+(scmus-command 2 scmus-seek-pos! mpd:seek-pos!)
 
 (define (scmus-play-track! track)
   (scmus-play-id! (track-id track)))
+
+(define (scmus-seek! seconds)
+  (scmus-seek-id! (track-id *current-track*)
+                  (min (track-duration *current-track*)
+                       (max 0 (+ (*scmus-elapsed) seconds)))))

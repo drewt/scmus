@@ -60,6 +60,7 @@
   (safe-environment-set! *user-env* 'pause! scmus-pause!)
   (safe-environment-set! *user-env* 'stop! scmus-stop!)
   (safe-environment-set! *user-env* 'next! scmus-next!)
+  (safe-environment-set! *user-env* 'seek! scmus-seek!)
   (safe-environment-set! *user-env* 'push! user-push!)
   (safe-environment-set! *user-env* 'win-move! win-move!)
   (safe-environment-set! *user-env* 'win-activate! win-activate!))

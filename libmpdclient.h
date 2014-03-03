@@ -152,10 +152,12 @@ bool
 mpd_run_previous(struct mpd_connection *connection);
 
 bool
-mpd_run_seek_pos(struct mpd_connection *connection);
+mpd_run_seek_pos(struct mpd_connection *connection, unsigned int song_pos,
+		unsigned int t);
 
 bool
-mpd_run_seek_id(struct mpd_connection *connection);
+mpd_run_seek_id(struct mpd_connection *connection, unsigned int id,
+		unsigned int t);
 
 bool
 mpd_run_repeat(struct mpd_connection *connection, bool mode);
