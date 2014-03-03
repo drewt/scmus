@@ -15,6 +15,8 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
+(require-extension srfi-13)
+
 (declare (unit lib)
          (uses config))
 
@@ -43,15 +45,20 @@
 (define (key? ch)
   (> (char->integer ch) 255))
 
-(define (string-truncate s len)
+(define (string-truncate s len #!optional (left #f))
   (if (> (string-length s) len)
-    (list->string (take (string->list s) len))
+    (list->string ((if left take-right take) (string->list s) len))
     s))
 
-(define (string-truncate-left s len)
-  (if (> (string-length s) len)
-    (list->string (take-right (string->list s) len))
-    s))
+(define (string-stretch str c len #!optional (right #f))
+  (if (> len (string-length str))
+    (if right
+      (string-pad-right str len c)
+      (string-pad str len c))
+    (string-truncate str len)))
+
+(define (integer-scale len percent)
+  (inexact->exact (round (* len (/ percent 100)))))
 
 (define (seconds->string total-seconds)
   (let* ((total-minutes (quotient total-seconds 60))

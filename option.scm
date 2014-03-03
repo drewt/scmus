@@ -104,7 +104,7 @@
     (cons 'format-status
           (process-format (string->list "~P ~p / ~d - ~T vol: ~v")))
     (cons 'format-queue
-          (process-format (string->list "~n. ~t~= ~y ~d")))
+          (process-format (string->list "~-25%a ~3n. ~t~= ~-4y ~d")))
     (cons 'format-queue-title
           (process-format (string->list "Play Queue - ~{queue-length} tracks")))))
 

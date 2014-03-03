@@ -31,21 +31,8 @@
 (define (swap pair)
   (cons (cdr pair) (car pair)))
 
-;; Takes a processed format string (see: process-format)
-;; and returns a pair of strings, where the car is the
-;; left-justified part and the cdr is the right justified
-;; part.
-(define (scmus-format fmt len track)
-  (let ((pair (foldl format-concatenate
-                     '("" . "")
-                     (map (lambda (x) (format-replace x track)) fmt))))
-    (cons (string-truncate (cdr pair) len)
-          (string-truncate-left (car pair) len))))
-
-(define (format-concatenate pair e)
-  (if (symbol? e)
-    (swap pair)
-    (cons (string-append (car pair) e) (cdr pair))))
+(define (ascii-num? c)
+  (memv c '(#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\0)))
 
 (define (scmus-state->character state)
   (case state
@@ -54,35 +41,75 @@
     ((pause) "|")
     ((unknown) "?")))
 
-(define (format-replace e track)
-  (if (symbol? e)
-    (case e
-      ((artist) (track-artist track))
-      ((album) (track-album track))
-      ((albumartist) (track-albumartist track))
-      ((discnumber) (clean-nr (track-disc track)))
-      ((tracknumber) (clean-nr (track-track track)))
-      ((title) (track-title track))
-      ((genre) (track-genre track))
-      ((comment) (track-comment track))
-      ((date) (track-date track))
-      ((duration) (seconds->string (track-duration track)))
-      ((path) (track-file track)) ; FIXME: need to prepend mpd music dir
-      ((filename) (track-file track)) ; FIXME: need to extract filename
-      ((align) 'align)
-      ((playing) (scmus-state->character (scmus-state)))
-      ((current) (scmus-elapsed))
-      ((db-playtime) (seconds->string (scmus-db-playtime)))
-      ((volume) (number->string (scmus-volume)))
-      ((queue-length) (number->string (scmus-queue-length)))
-      (else "<FORMAT ERROR>"))
-    (string e)))
-
 (define (clean-nr str)
   (let ((i (string-index str #\/)))
     (if i (string-take str i) str)))
 
-(define (format-spec->symbol spec)
+;; Takes a processed format string (see: process-format)
+;; and returns a pair of strings, where the car is the
+;; left-justified part and the cdr is the right justified
+;; part.
+(define (scmus-format fmt len track)
+  (let ((pair (foldl format-concatenate
+                     '("" . "")
+                     (map (lambda (x) (format-replace x track len)) fmt))))
+    (cons (string-truncate (cdr pair) len #f)
+          (string-truncate (car pair) len #t))))
+
+(define (format-concatenate pair e)
+  (if (symbol? e)
+    (swap pair)
+    (cons (string-append (car pair) e) (cdr pair))))
+
+(define (format-replace e track len)
+  (cond
+    ((symbol? e) (interp-format-symbol e track))
+    ((pair? e) (interp-format-list e track len))
+    ((char? e) (string e))
+    (else "<FORMAT ERROR>")))
+
+(define (interp-format-symbol e track)
+  (case e
+    ((artist) (track-artist track))
+    ((album) (track-album track))
+    ((albumartist) (track-albumartist track))
+    ((discnumber) (clean-nr (track-disc track)))
+    ((tracknumber) (clean-nr (track-track track)))
+    ((title) (track-title track))
+    ((genre) (track-genre track))
+    ((comment) (track-comment track))
+    ((date) (track-date track))
+    ((duration) (seconds->string (track-duration track)))
+    ((path) (track-file track)) ; FIXME: need to prepend mpd music dir
+    ((filename) (track-file track)) ; FIXME: need to extract filename
+    ((align) 'align)
+    ((playing) (scmus-state->character (scmus-state)))
+    ((current) (scmus-elapsed))
+    ((db-playtime) (seconds->string (scmus-db-playtime)))
+    ((volume) (number->string (scmus-volume)))
+    ((queue-length) (number->string (scmus-queue-length)))
+    (else "<FORMAT ERROR>")))
+
+(define (interp-format-list l track len)
+  (let *interp ((rest l) (pad-right #f) (pad-char #\space) (rel #f) (width len))
+    (cond
+      ((symbol? rest)
+        (string-stretch (interp-format-symbol rest track)
+                        pad-char
+                        (if rel
+                          (integer-scale len width)
+                          width)
+                        pad-right))
+      ((eqv? (car rest) 'pad-right)
+        (*interp (cdr rest) #t pad-char rel width))
+      ((eqv? (car rest) 'pad-zero)
+        (*interp (cdr rest) pad-right #\0 rel width))
+      ((eqv? (car rest) 'relative)
+        (*interp (cdr rest) pad-right pad-char #t width))
+      ((number? (car rest))
+        (*interp (cdr rest) pad-right pad-char rel (car rest))))))
+
+(define (parse-format-spec spec)
   (case (car spec)
     ((#\a) 'artist)
     ((#\l) 'album)
@@ -101,9 +128,13 @@
     ((#\p) 'current)
     ((#\T) 'db-playtime)
     ((#\v) 'volume)
-    ((#\{) (braced-spec->symbol (cdr spec)))))
+    ((#\{) (parse-braced-spec (cdr spec)))
+    ((#\-) (cons 'pad-right (parse-format-spec (cdr spec))))
+    ((#\0) (cons 'pad-zero (parse-format-spec (cdr spec))))
+    ((#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
+      (parse-numbered-spec spec))))
 
-(define (braced-spec->symbol spec)
+(define (parse-braced-spec spec)
   (case (string->symbol
           (list->string
             (take-while
@@ -127,10 +158,25 @@
     ((volume)       'volume)
     ((queue-length) 'queue-length)))
 
+(define (parse-numbered-spec spec)
+  (define (*parse-spec spec n)
+    (cond
+      ((ascii-num? (car spec))
+        (*parse-spec (cdr spec)
+                     (+ (* n 10)
+                        (- (char->integer (car spec))
+                           (char->integer #\0)))))
+      ((eqv? (car spec) #\%)
+        (cons 'relative (cons n (parse-format-spec (cdr spec)))))
+      (else (cons n (parse-format-spec spec)))))
+  (*parse-spec spec 0))
+
 ;; skips over a format spec in a char list
 (define (format-next spec)
-  (case (car spec)
-    ((#\{) (braced-next (cdr spec)))
+  (cond
+    ((eqv? (car spec) #\{) (braced-next (cdr spec)))
+    ((eqv? (car spec) #\-) (format-next (cdr spec)))
+    ((ascii-num? (car spec)) (numbered-next spec))
     (else (cdr spec))))
 
 (define (braced-next spec)
@@ -138,14 +184,53 @@
     (cdr spec)
     (braced-next (cdr spec))))
 
+(define (skip-number spec)
+  (if (ascii-num? (car spec))
+    (skip-number (cdr spec))
+    spec))
+
+(define (numbered-next spec)
+  (let ((rest (skip-number spec)))
+    (if (eqv? (car rest) #\%)
+      (format-next (cdr rest))
+      (format-next rest))))
+
 (define (format-spec-valid? spec)
   (if (null? spec)
     #f
     (case (car spec)
-      ((#\a #\A #\l #\D #\n #\t #\g #\c #\y #\d #\f #\F #\~ #\= #\P #\p)
-        #t)
-      (else ; TODO: multi-char spec
-        #f))))
+      ((#\a #\A #\l #\D #\n #\t #\g #\c #\y #\d #\f #\F #\~ #\= #\P #\p) #t)
+      ((#\{) (braced-spec-valid? (cdr spec)))
+      ((#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\0) (numbered-spec-valid? spec))
+      ((#\-) (format-spec-valid? (cdr spec)))
+      (else #f))))
+
+(define (braced-spec-valid? spec)
+  (memv (string->symbol
+          (list->string
+            (take-while
+              (lambda (x) (not (eqv? #\} x)))
+              spec)))
+        '(artist
+          album
+          albumartist
+          discnumber
+          tracknumber
+          title
+          genre
+          comment
+          date
+          duration
+          path
+          filename
+          playing
+          current
+          db-playtime
+          volume
+          queue-length)))
+
+(define (numbered-spec-valid? spec)
+  (format-spec-valid? (skip-number spec)))
 
 ;; this should be called on any user-entered format string
 (define (format-string-valid? chars)
@@ -169,7 +254,7 @@
                          (cons (car in) out)))
       (else
         (*process-format (format-next (cdr in))
-                         (cons (format-spec->symbol (cdr in)) out)))))
+                         (cons (parse-format-spec (cdr in)) out)))))
   ; if the format string didn't contain "~=", 'align is added at the end
   (let ((processed (*process-format chars '())))
     (reverse (if (member 'align processed)
