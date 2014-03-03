@@ -515,22 +515,23 @@
 (define (handle-user-key key)
   (if (not *current-context*)
     (start-context!))
-  (let* ((keystr (key->string key))
-         (view-binding (get-binding keystr *current-context*))
-         (common-binding (get-binding keystr *common-context*)))
-    (cond
-      ((procedure? view-binding)
-        (view-binding) ; TODO: eval in sandbox
-        (clear-context!))
-      ((procedure? common-binding)
-        (common-binding) ; TODO: eval in sandbox
-        (clear-context!))
-      ((or (list? view-binding)
-           (list? common-binding))
-        (set! *current-context* (if view-binding view-binding '()))
-        (set! *common-context* (if common-binding common-binding '())))
-      (else ; no binding
-        (clear-context!)))))
+  (let ((keystr (key->string key)))
+    (if keystr
+      (let ((view-binding (get-binding keystr *current-context*))
+            (common-binding (get-binding keystr *common-context*))) 
+        (cond
+          ((procedure? view-binding)
+            (view-binding) ; TODO: eval in sandbox
+            (clear-context!))
+          ((procedure? common-binding)
+            (common-binding) ; TODO: eval in sandbox
+            (clear-context!))
+          ((or (list? view-binding)
+               (list? common-binding))
+            (set! *current-context* (if view-binding view-binding '()))
+            (set! *common-context* (if common-binding common-binding '())))
+          (else ; no binding
+            (clear-context!)))))))
 
 (define (enter-normal-mode)
   (cursor-off))
