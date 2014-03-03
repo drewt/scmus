@@ -36,7 +36,7 @@
   ;; position of the selected row
   (sel-pos window-sel-pos window-sel-pos-set!)
   ;; number of visible rows
-  (nr-lines window-nr-lines window-nr-lines-set!)
+  (nr-lines window-nr-lines *window-nr-lines-set!)
   ;; called when visible part of list has changed
   (changed *window-changed! window-changed-set!)
   ;; function to call when the user "activates" the selection
@@ -108,3 +108,13 @@
     (window-top-pos-set! window (- top-pos scroll))
     (window-sel-pos-set! window (- sel-pos can-move))
     (window-changed! window)))
+
+(define (window-nr-lines-set! window nr-lines)
+  (let ((top-pos (window-top-pos window))
+        (sel-pos (window-sel-pos window)))
+    (when (<= nr-lines (- sel-pos top-pos))
+      (window-top-pos-set! window
+                           (+ top-pos
+                              (- (window-nr-lines window)
+                                 nr-lines)))))
+  (*window-nr-lines-set! window nr-lines))

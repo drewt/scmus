@@ -169,7 +169,7 @@
               (next (if (null? track-list) '() (cdr track-list))))
           (cursed-trackwin-set! window track)
           (if (null? track-list)
-            (begin (move line-nr 1) (clrtoeol))
+            (begin (move line-nr 0) (clrtoeol))
             (format-print-line line-nr track-fmt track))
           (*update-track-window next (- lines 1)))))
     (cursed-set! CURSED-WIN-TITLE)
@@ -199,8 +199,12 @@
   (set! *events* '()))
 
 (define (handle-resize)
-  #f
-  )
+  (window-nr-lines-set! (alist-ref 'queue *windows*)
+                        (- (LINES) 4))
+  (register-event! 'queue-changed)
+  (register-event! 'current-line-changed)
+  (register-event! 'status-line-changed)
+  (register-event! 'command-line-changed))
 
 (define (cursor-on)
   (curs_set 1))
