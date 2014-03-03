@@ -36,6 +36,9 @@
 (define (command-line-text)
   (editable-text *command-line*))
 
+(define (command-line-text-set! str)
+  (editable-text-set! *command-line* str))
+
 (define (command-line-cursor-pos)
   (- (+ 1 (editable-length *command-line*))
      (editable-pos *command-line*)))

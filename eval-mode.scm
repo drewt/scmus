@@ -44,6 +44,10 @@
       (unbind! key-list context)
       #f)))
 
+(define (user-push! str)
+  (set-input-mode! 'eval-mode)
+  (command-line-text-set! str))
+
 ;; user functions }}}
 
 (define *user-env* (make-safe-environment parent: default-safe-environment))
@@ -56,6 +60,7 @@
   (safe-environment-set! *user-env* 'pause! scmus-pause!)
   (safe-environment-set! *user-env* 'stop! scmus-stop!)
   (safe-environment-set! *user-env* 'next! scmus-next!)
+  (safe-environment-set! *user-env* 'push! user-push!)
   (safe-environment-set! *user-env* 'win-move! win-move!)
   (safe-environment-set! *user-env* 'win-activate! win-activate!))
 

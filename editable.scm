@@ -68,7 +68,7 @@
     (editable-move-right! editable)
     (editable-backspace! editable)))
 
-(define (editable-set-text! editable text)
+(define (editable-text-set! editable text)
   (editable-set-list! editable
                       (reverse (string->list text)))
   (editable-set-length! editable
