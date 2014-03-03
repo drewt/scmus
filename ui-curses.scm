@@ -150,15 +150,16 @@
 
 ;; set the appropriate CURSED-* pair for the given window and track
 (define (cursed-trackwin-set! window track)
-  (let ((current? (current-track? track))
-        (selected? (track= track (window-selected window))))
-    (cursed-set!
-      (cond
-        ((null? track)            CURSED-WIN)
-        ((and current? selected?) CURSED-WIN-CUR-SEL)
-        (current?                 CURSED-WIN-CUR)
-        (selected?                CURSED-WIN-SEL)
-        (else                     CURSED-WIN)))))
+  (if (null? track)
+    (cursed-set! CURSED-WIN)
+    (let ((current? (current-track? track))
+          (selected? (track= track (window-selected window))))
+      (cursed-set!
+        (cond
+          ((and current? selected?) CURSED-WIN-CUR-SEL)
+          (current?                 CURSED-WIN-CUR)
+          (selected?                CURSED-WIN-SEL)
+          (else                     CURSED-WIN))))))
 
 (define (update-track-window window title-fmt track-fmt)
   (let ((nr-lines (window-nr-lines window)))
