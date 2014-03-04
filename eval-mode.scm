@@ -69,11 +69,13 @@
   (safe-environment-set! *user-env* 'win-activate! win-activate!))
 
 (define (user-eval str)
+  (assert (string? str))
   (condition-case (safe-eval (read (open-input-string str))
                              environment: *user-env*)
     (e () (curses-print "ERROR"))))
 
 (define (user-load path)
+  (assert (string? path))
   (call-with-input-file path
     (lambda (in)
       (let loop ()
@@ -94,6 +96,7 @@
   (set-input-mode! 'normal-mode))
 
 (define (eval-mode-char ch)
+  (assert (char? ch))
   (case ch
     ((#\newline)
       (user-eval (command-line-text))
