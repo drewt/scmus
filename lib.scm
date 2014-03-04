@@ -39,18 +39,25 @@
 ;; This is necessary because the ncurses egg has KEY_* constants as integers
 ;; for some reason.
 (define (key= ch key)
+  (assert (integer? key))
   (eqv? ch (integer->char key)))
 
 ;; #t if ch is not a printable character
 (define (key? ch)
+  (assert (char? ch))
   (> (char->integer ch) 255))
 
 (define (string-truncate s len #!optional (left #f))
+  (assert (string? s))
+  (assert (integer? len))
   (if (> (string-length s) len)
     (list->string ((if left take-right take) (string->list s) len))
     s))
 
 (define (string-stretch str c len #!optional (right #f))
+  (assert (string? str))
+  (assert (char? c))
+  (assert (integer? len))
   (if (> len (string-length str))
     (if right
       (string-pad-right str len c)
@@ -58,9 +65,15 @@
     (string-truncate str len)))
 
 (define (integer-scale len percent)
+  (assert (integer? len))
+  (assert (integer? percent))
+  (assert (>= len 0))
+  (assert (>= percent 0))
   (inexact->exact (round (* len (/ percent 100)))))
 
 (define (seconds->string total-seconds)
+  (assert (integer? total-seconds))
+  (assert (>= total-seconds 0))
   (let* ((total-minutes (quotient total-seconds 60))
          (seconds (modulo total-seconds 60))
          (minutes (modulo total-minutes 60))
