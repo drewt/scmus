@@ -50,12 +50,7 @@
   (thunk binding-thunk binding-set-thunk!))
 
 (define *views*
-  '(browser
-    filters
-    library
-    playlist
-    queue
-    settings))
+  '(queue library))
  
 ;; alist associating key-contexts with binding alists
 (define *bindings*
@@ -66,10 +61,15 @@
 (define *common-context* #f)
 
 (define (get-binding key bindings)
+  (assert (string? key))
+  (assert (list? bindings))
   (alist-ref key bindings string=?))
 
 ;; Non-destructive binding update.  Binds thunk to keys in key-list.
 (define (make-binding keys key-list thunk)
+  (assert (and (list? keys) (not (null? keys)) (string? (car keys))))
+  (assert (list? key-list))
+  (assert (procedure? thunk))
   (let ((binding (get-binding (car keys) key-list)))
     (cond
       ; last key and no conflict: do bind
@@ -91,15 +91,23 @@
 
 ;; Destructive binding update.  Binds thunk to keys in the given context.
 (define (make-binding! keys context thunk)
+  (assert (and (list? keys) (not (null? keys)) (string? (car keys))))
+  (assert (and (symbol? context)
+               (memv context '(common queue library))))
+  (assert (procedure? thunk))
   (let ((new (make-binding keys (alist-ref context *bindings*) thunk)))
     (if new
       (alist-update! context new *bindings*)
       #f)))
 
 (define (keybind-remove key blist)
+  (assert (string? key))
+  (assert (list? blist))
   (remove (lambda (x) (string=? (car x) key)) blist))
 
 (define (unbind keys key-list)
+  (assert (and (list? keys) (not (null? keys)) (string? (car keys))))
+  (assert (list key-list))
   (let ((binding (get-binding (car keys) key-list)))
     (cond
       ; base case: remove binding
@@ -117,6 +125,9 @@
             (alist-update (car keys) new-bindings key-list string=?)))))))
 
 (define (unbind! keys context)
+  (assert (and (list? keys) (not (null? keys)) (string? (car keys))))
+  (assert (and (symbol? context)
+               (memv context '(common queue library))))
   (let ((new (unbind keys (alist-ref context *bindings*))))
     (if new
       (alist-update! context new *bindings*)
@@ -125,17 +136,20 @@
 ;; Converts an ncurses keypress event to a string.
 ;; Argument may be either a character or an integer.
 (define (key->string key)
+  (assert (or (char? key) (integer? key)))
   (find-key-name (if (char? key)
                    (char->integer key)
                    key)))
 
 (define (find-key-code name)
+  (assert (string? name))
   (let ((r (assoc name *key-table* string=?)))
     (if r
       (cdr r)
       #f)))
 
 (define (find-key-name code)
+  (assert (integer? code))
   (let ((r (rassoc code *key-table*)))
    (if r
      (car r)
@@ -495,6 +509,7 @@
 (define key-valid? find-key-code)
 
 (define (binding-keys-valid? keys)
+  (assert (list keys))
   (if (null? keys)
     #t
     (and (key-valid? (car keys))
