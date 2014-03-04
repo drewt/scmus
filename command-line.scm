@@ -37,6 +37,7 @@
   (editable-text *command-line*))
 
 (define (command-line-text-set! str)
+  (assert (string? str))
   (editable-text-set! *command-line* str))
 
 (define (command-line-cursor-pos)
@@ -47,6 +48,7 @@
   (editable-length *command-line*))
 
 (define (command-line-insert! ch)
+  (assert (char? ch))
   (editable-insert! *command-line* ch)
   (command-line-changed!))
 
@@ -68,6 +70,7 @@
   (editable-move-right! *command-line*))
 
 (define (command-line-char ch)
+  (assert (char? ch))
   (case ch
     ((#\backspace)
       (command-line-backspace!))
