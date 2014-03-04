@@ -33,7 +33,11 @@
                  mpd:next-song!
                  mpd:previous-song!
                  mpd:seek-id!
-                 mpd:seek-pos!))
+                 mpd:seek-pos!
+                 mpd:repeat-set!
+                 mpd:random-set!
+                 mpd:single-set!
+                 mpd:consume-set!))
 
 (include "libmpdclient.scm")
 
@@ -204,9 +208,11 @@
 (mpd:define-wrapper 0 mpd:stop! mpd_run_stop)
 (mpd:define-wrapper 0 mpd:next-song! mpd_run_next)
 (mpd:define-wrapper 0 mpd:previous-song! mpd_run_previous)
-
 (mpd:define-wrapper 1 mpd:play-id! mpd_run_play_id)
 (mpd:define-wrapper 1 mpd:play-pos! mpd_run_play_pos)
-
 (mpd:define-wrapper 2 mpd:seek-id! mpd_run_seek_id)
 (mpd:define-wrapper 2 mpd:seek-pos! mpd_run_seek_pos)
+(mpd:define-wrapper 1 mpd:repeat-set! mpd_run_repeat)
+(mpd:define-wrapper 1 mpd:random-set! mpd_run_random)
+(mpd:define-wrapper 1 mpd:single-set! mpd_run_single)
+(mpd:define-wrapper 1 mpd:consume-set! mpd_run_consume)
