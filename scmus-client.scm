@@ -35,6 +35,8 @@
 
 ;; initialize the mpd connection, printing a message on failure
 (define (init-client host port)
+  (assert (string? host))
+  (assert (integer? port))
   (condition-case
     (begin
       (set! *mpd-connection* (mpd:connect host port))
@@ -88,6 +90,7 @@
       (track-selector name sym ""))
     ((track-selector name sym default)
       (define (name song)
+        (assert (list? song))
         (let ((e (alist-ref sym song)))
          (if e e default))))))
 
@@ -179,9 +182,11 @@
 (scmus-command 2 scmus-seek-pos! mpd:seek-pos!)
 
 (define (scmus-play-track! track)
+  (assert (>= (track-id track) 0))
   (scmus-play-id! (track-id track)))
 
 (define (scmus-seek! seconds)
+  (assert (integer? seconds))
   (scmus-seek-id! (track-id *current-track*)
                   (min (track-duration *current-track*)
                        (max 0 (+ (*scmus-elapsed) seconds)))))
