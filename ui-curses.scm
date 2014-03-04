@@ -28,6 +28,7 @@
                window)
          (export *current-input-mode*
                  *current-view*
+                 set-view!
                  win-move!
                  win-activate!
                  curses-print
@@ -68,7 +69,7 @@
 ;; alist associating views and windows
 (define *windows*
   '((queue . #f)
-    (library . #f)))
+    (status . #f)))
 
 ;; can only be used *after* ncurses initialized
 (define-syntax make-track-window
@@ -85,8 +86,30 @@
                    (lambda (w)
                      (scmus-play-track! (window-selected w)))))))
 
+(define (make-status-window)
+  (make-window #f
+               (lambda (x) *mpd-status*)
+               (length *mpd-status*)
+               0
+               0
+               (- (LINES) 4)
+               (lambda (w)
+                 (register-event! 'status-changed))
+               (lambda (w) (void))))
+
 (define (current-window)
   (alist-ref *current-view* *windows*))
+
+(define (current-view? view)
+  (eqv? view *current-view*))
+
+(define (set-view! view)
+  (when (memv view '(queue library status))
+    (set! *current-view* view)
+    (case view
+      ((queue) (register-event! 'queue-changed))
+      ((library) #f)
+      ((status) (register-event! 'status-changed)))))
 
 (define (win-move! nr-lines)
   (assert (integer? nr-lines))
@@ -146,6 +169,36 @@
                      (get-option 'format-status)
                      *current-track*))
 
+(define (update-status-window)
+  (cursed-set! CURSED-WIN-TITLE)
+  (mvaddstr 0 0 " MPD Status") (clrtoeol)
+  (let* ((window (alist-ref 'status *windows*))
+         (nr-lines (window-nr-lines window))
+         (selected (window-selected window)))
+    (let loop ((status (window-top window)) (lines (window-nr-lines window)))
+      (when (> lines 0)
+        (let ((line-nr (- nr-lines (- lines 1)))
+              (item (if (null? status) '(fake . 0) (car status)))
+              (next (if (null? status) '() (cdr status))))
+          (if (eqv? (car item) (car selected))
+            (cursed-set! CURSED-WIN-SEL)
+            (cursed-set! CURSED-WIN))
+          (if (null? status)
+            (begin (move line-nr 0) (clrtoeol))
+            (begin (mvaddstr line-nr 0
+                             (string-truncate (format " ~a" (car item))
+                                              (- (COLS) 2)))
+                   (clrtoeol)
+                   (mvaddstr line-nr (- (quotient (COLS) 2) 1)
+                             (string-truncate (format " ~a" (cdr item))
+                                              (- (COLS) 2)))))
+          (loop next (- lines 1)))))))
+
+(define (update-status)
+  (update-status-line)
+  (when (current-view? 'status)
+    (update-status-window)))
+
 (define (update-current-line)
   (cursed-set! CURSED-TITLELINE)
   (format-print-line (- (LINES) 3)
@@ -187,9 +240,10 @@
     (*update-track-window (window-top window) nr-lines)))
 
 (define (update-queue)
-  (update-track-window (alist-ref 'queue *windows*)
-                       (get-option 'format-queue-title)
-                       (get-option 'format-queue)))
+  (when (current-view? 'queue)
+    (update-track-window (alist-ref 'queue *windows*)
+                         (get-option 'format-queue-title)
+                         (get-option 'format-queue))))
 
 (define (update-queue-data)
   (window-data-len-update! (alist-ref 'queue *windows*))
@@ -198,7 +252,7 @@
 (define *events* '())
 (define *event-handlers*
   (list (cons 'command-line-changed update-command-line)
-        (cons 'status-line-changed update-status-line)
+        (cons 'status-changed update-status)
         (cons 'current-line-changed update-current-line)
         (cons 'queue-changed update-queue)
         (cons 'queue-data-changed update-queue-data)))
@@ -215,11 +269,11 @@
   (set! *events* '()))
 
 (define (handle-resize)
-  (window-nr-lines-set! (alist-ref 'queue *windows*)
-                        (- (LINES) 4))
+  (for-each (lambda (x) (window-nr-lines-set! (cdr x) (- (LINES) 4)))
+            *windows*)
   (register-event! 'queue-changed)
   (register-event! 'current-line-changed)
-  (register-event! 'status-line-changed)
+  (register-event! 'status-changed)
   (register-event! 'command-line-changed))
 
 (define (cursor-on)
@@ -388,7 +442,8 @@
   (init-colors!)
   (alist-update! 'queue
                  (make-track-window *queue* 'queue-changed)
-                 *windows*))
+                 *windows*)
+  (alist-update! 'status (make-status-window) *windows*))
 
 (define (exit-curses)
   (handle-exceptions exn

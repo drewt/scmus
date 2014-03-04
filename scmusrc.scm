@@ -1,3 +1,7 @@
+;; views
+(bind! "1" 'common (lambda () (set-view! 'queue)))
+(bind! "2" 'common (lambda () (set-view! 'status)))
+
 ;; hjkl
 (bind! "j" 'common (lambda () (win-move!  1)) #t)
 (bind! "k" 'common (lambda () (win-move! -1)) #t)

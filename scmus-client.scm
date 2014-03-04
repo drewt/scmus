@@ -61,7 +61,7 @@
       (condition-case
         (begin
           (set! *mpd-status* (mpd:get-status *mpd-connection*))
-          (register-event! 'status-line-changed)
+          (register-event! 'status-changed)
           (unless (= (scmus-song-id) (track-id *current-track*))
             (set! *current-track* (mpd:get-current-song *mpd-connection*))
             (register-event! 'queue-changed)

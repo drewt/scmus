@@ -50,7 +50,7 @@
   (thunk binding-thunk binding-set-thunk!))
 
 (define *views*
-  '(queue library))
+  '(queue status))
  
 ;; alist associating key-contexts with binding alists
 (define *bindings*
