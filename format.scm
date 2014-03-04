@@ -29,12 +29,16 @@
                  format-string-valid?))
 
 (define (swap pair)
+  (assert (pair? pair))
   (cons (cdr pair) (car pair)))
 
 (define (ascii-num? c)
+  (assert (char? c))
   (memv c '(#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\0)))
 
 (define (scmus-state->character state)
+  (assert (symbol? state))
+  (assert (memv state '(play stop pause unknown)))
   (case state
     ((play) ">")
     ((stop) ".")
@@ -42,6 +46,7 @@
     ((unknown) "?")))
 
 (define (clean-nr str)
+  (assert (string? str))
   (let ((i (string-index str #\/)))
     (if i (string-take str i) str)))
 
@@ -50,6 +55,9 @@
 ;; left-justified part and the cdr is the right justified
 ;; part.
 (define (scmus-format fmt len track)
+  (assert (list? fmt))
+  (assert (integer? len))
+  (assert (list? track))
   (let ((pair (foldl format-concatenate
                      '("" . "")
                      (map (lambda (x) (format-replace x track len)) fmt))))
@@ -57,18 +65,26 @@
           (string-truncate (car pair) len #t))))
 
 (define (format-concatenate pair e)
+  (assert (pair? pair))
   (if (symbol? e)
     (swap pair)
     (cons (string-append (car pair) e) (cdr pair))))
 
 (define (format-replace e track len)
+  (assert (or (symbol? e) (pair? e) (char? e)))
+  (assert (list? track))
+  (assert (integer? len))
   (cond
     ((symbol? e) (interp-format-symbol e track))
     ((pair? e) (interp-format-list e track len))
-    ((char? e) (string e))
-    (else "<FORMAT ERROR>")))
+    ((char? e) (string e))))
 
 (define (interp-format-symbol e track)
+  (assert (symbol? e))
+  (assert (list? track))
+  (assert (memv e '(artist album albumartist discnumber tracknumber title
+                    genre comment date duration path filename align playing
+                    current db-playtime volume queue-length)))
   (case e
     ((artist) (track-artist track))
     ((album) (track-album track))
@@ -87,10 +103,12 @@
     ((current) (scmus-elapsed))
     ((db-playtime) (seconds->string (scmus-db-playtime)))
     ((volume) (number->string (scmus-volume)))
-    ((queue-length) (number->string (scmus-queue-length)))
-    (else "<FORMAT ERROR>")))
+    ((queue-length) (number->string (scmus-queue-length)))))
 
 (define (interp-format-list l track len)
+  (assert (pair? l))
+  (assert (list? track))
+  (assert (integer? len))
   (let *interp ((rest l) (pad-right #f) (pad-char #\space) (rel #f) (width len))
     (cond
       ((symbol? rest)
@@ -110,6 +128,7 @@
         (*interp (cdr rest) pad-right pad-char rel (car rest))))))
 
 (define (parse-format-spec spec)
+  (assert (and (list? spec) (not (null? spec)) (char? (car spec))))
   (case (car spec)
     ((#\a) 'artist)
     ((#\l) 'album)
@@ -135,6 +154,8 @@
       (parse-numbered-spec spec))))
 
 (define (parse-braced-spec spec)
+  (assert (list? spec))
+  (assert (not (null? spec)))
   (case (string->symbol
           (list->string
             (take-while
@@ -159,6 +180,7 @@
     ((queue-length) 'queue-length)))
 
 (define (parse-numbered-spec spec)
+  (assert (and (list? spec) (not (null? spec))))
   (define (*parse-spec spec n)
     (cond
       ((ascii-num? (car spec))
@@ -173,6 +195,7 @@
 
 ;; skips over a format spec in a char list
 (define (format-next spec)
+  (assert (and (list? spec) (not (null? spec)) (char? (car spec))))
   (cond
     ((eqv? (car spec) #\{) (braced-next (cdr spec)))
     ((eqv? (car spec) #\-) (format-next (cdr spec)))
@@ -180,22 +203,26 @@
     (else (cdr spec))))
 
 (define (braced-next spec)
+  (assert (and (list? spec) (not (null? spec)) (char? (car spec))))
   (if (eqv? (car spec) #\})
     (cdr spec)
     (braced-next (cdr spec))))
 
 (define (skip-number spec)
+  (assert (and (list? spec) (not (null? spec)) (char? (car spec))))
   (if (ascii-num? (car spec))
     (skip-number (cdr spec))
     spec))
 
 (define (numbered-next spec)
+  (assert (and (list? spec) (not (null? spec)) (char? (car spec))))
   (let ((rest (skip-number spec)))
     (if (eqv? (car rest) #\%)
       (format-next (cdr rest))
       (format-next rest))))
 
 (define (format-spec-valid? spec)
+  (assert (list? spec))
   (if (null? spec)
     #f
     (case (car spec)
@@ -234,6 +261,7 @@
 
 ;; this should be called on any user-entered format string
 (define (format-string-valid? chars)
+  (assert (list? chars))
   (cond
     ((null? chars) #t)
     ((not (eqv? (car chars) #\~))
@@ -245,6 +273,7 @@
 ;; replaces format specifiers with symbols.
 ;; chars is assumed valid.
 (define (process-format chars)
+  (assert (list? chars))
   (define (*process-format in out)
     (cond
       ((null? in)
