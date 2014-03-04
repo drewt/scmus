@@ -89,6 +89,7 @@
   (alist-ref *current-view* *windows*))
 
 (define (win-move! nr-lines)
+  (assert (integer? nr-lines))
   (if (> nr-lines 0)
     (window-move-down! (current-window) nr-lines)
     (window-move-up! (current-window) (abs nr-lines))))
@@ -111,6 +112,9 @@
         body ...))))
 
 (define (format-print-line line fmt track)
+  (assert (integer? line))
+  (assert (list? fmt))
+  (assert (list? track))
   (let-format ((left right) fmt track)
     (mvaddch line 0 #\space)
     (addstr left)
@@ -150,6 +154,8 @@
 
 ;; set the appropriate CURSED-* pair for the given window and track
 (define (cursed-trackwin-set! window track)
+  (assert (window? window))
+  (assert (list? track))
   (if (null? track)
     (cursed-set! CURSED-WIN)
     (let ((current? (current-track? track))
@@ -162,6 +168,9 @@
           (else                     CURSED-WIN))))))
 
 (define (update-track-window window title-fmt track-fmt)
+  (assert (window? window))
+  (assert (list? title-fmt))
+  (assert (list? track-fmt))
   (let ((nr-lines (window-nr-lines window)))
     (define (*update-track-window track-list lines)
       (when (> lines 0)
@@ -195,6 +204,7 @@
         (cons 'queue-data-changed update-queue-data)))
 
 (define (register-event! event)
+  (assert (symbol? event))
   (set! *events* (cons event *events*)))
 
 (define (curses-update)
@@ -219,6 +229,8 @@
   (curs_set 0))
 
 (define (set-input-mode! mode)
+  (assert (symbol? mode))
+  (assert (memv mode '(normal-mode eval-mode search-mode)))
   (case mode
     ((normal-mode) (enter-normal-mode))
     ((eval-mode) (enter-eval-mode))
