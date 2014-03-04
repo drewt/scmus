@@ -84,7 +84,8 @@
   (assert (list? track))
   (assert (memv e '(artist album albumartist discnumber tracknumber title
                     genre comment date duration path filename align playing
-                    current db-playtime volume queue-length)))
+                    current db-playtime volume queue-length repeat random
+                    single consume)))
   (case e
     ((artist) (track-artist track))
     ((album) (track-album track))
@@ -103,7 +104,11 @@
     ((current) (scmus-elapsed))
     ((db-playtime) (seconds->string (scmus-db-playtime)))
     ((volume) (number->string (scmus-volume)))
-    ((queue-length) (number->string (scmus-queue-length)))))
+    ((queue-length) (number->string (scmus-queue-length)))
+    ((repeat) (if (scmus-repeat?) "R" " "))
+    ((random) (if (scmus-random?) "r" " "))
+    ((single) (if (scmus-single?) "S" " "))
+    ((consume) (if (scmus-consume?) "C" " "))))
 
 (define (interp-format-list l track len)
   (assert (pair? l))
@@ -147,6 +152,10 @@
     ((#\p) 'current)
     ((#\T) 'db-playtime)
     ((#\v) 'volume)
+    ((#\R) 'repeat)
+    ((#\r) 'random)
+    ((#\S) 'single)
+    ((#\C) 'consume)
     ((#\{) (parse-braced-spec (cdr spec)))
     ((#\-) (cons 'pad-right (parse-format-spec (cdr spec))))
     ((#\0) (cons 'pad-zero (parse-format-spec (cdr spec))))
@@ -177,7 +186,11 @@
     ((current)      'current)
     ((db-playtime)  'db-playtime)
     ((volume)       'volume)
-    ((queue-length) 'queue-length)))
+    ((queue-length) 'queue-length)
+    ((repeat)       'repeat)
+    ((random)       'random)
+    ((single)       'single)
+    ((consume)      'consume)))
 
 (define (parse-numbered-spec spec)
   (assert (and (list? spec) (not (null? spec))))
@@ -226,7 +239,8 @@
   (if (null? spec)
     #f
     (case (car spec)
-      ((#\a #\A #\l #\D #\n #\t #\g #\c #\y #\d #\f #\F #\~ #\= #\P #\p) #t)
+      ((#\a #\A #\l #\D #\n #\t #\g #\c #\y #\d #\f #\F #\~ #\= #\P #\p #\T #\v
+        #\R #\r #\S #\C) #t)
       ((#\{) (braced-spec-valid? (cdr spec)))
       ((#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\0) (numbered-spec-valid? spec))
       ((#\-) (format-spec-valid? (cdr spec)))
@@ -254,7 +268,11 @@
           current
           db-playtime
           volume
-          queue-length)))
+          queue-length
+          repeat
+          random
+          single
+          consume)))
 
 (define (numbered-spec-valid? spec)
   (format-spec-valid? (skip-number spec)))

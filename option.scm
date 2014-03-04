@@ -102,7 +102,7 @@
     (cons 'format-current
           (process-format (string->list "~a - ~l ~n. ~t~= ~y")))
     (cons 'format-status
-          (process-format (string->list "~P ~p / ~d - ~T vol: ~v")))
+          (process-format (string->list "~P ~p / ~d - ~T vol: ~v~= ~S~R~r~C")))
     (cons 'format-queue
           (process-format (string->list "~-25%a ~3n. ~t~= ~-4y ~d")))
     (cons 'format-queue-title
