@@ -31,7 +31,6 @@
                  set-view!
                  win-move!
                  win-activate!
-                 curses-print
                  print-command-line-char
                  register-event!
                  curses-update
@@ -69,23 +68,41 @@
 ;; alist associating views and windows
 (define *windows*
   '((queue . #f)
-    (status . #f)))
+    (status . #f)
+    (error . #f)))
 
 ;; can only be used *after* ncurses initialized
-(define-syntax make-list-window
+(define-syntax make-generic-window
   (syntax-rules ()
-    ((make-list-window l changed-event selected-fn)
+    ((make-generic-window getter len changed-event selected-fn)
       (make-window #f
-                   (lambda (x) l)
-                   (length l)
+                   getter
+                   len
                    0
                    0
                    (- (LINES) 4)
-                   (lambda (w)
-                     (register-event! changed-event))
-                   selected-fn))
-    ((make-list-window l changed-event)
-      (make-list-window l changed-event (lambda (w) (void))))))
+                   (lambda (w) (register-event! changed-event))
+                   selected-fn))))
+
+(define-syntax make-list-window
+  (syntax-rules ()
+    ((make-list-window lst changed-event selected-fn)
+      (make-generic-window (lambda (w) lst)
+                           (length lst)
+                           changed-event
+                           selected-fn))
+    ((make-list-window lst changed-event)
+      (make-list-window lst changed-event (lambda (w) (void))))))
+
+(define-syntax make-string-window
+  (syntax-rules ()
+     ((make-string-window str changed-event selected-fn)
+       (make-generic-window (lambda (w) (string-split-lines str))
+                            (length (string-split-lines str))
+                            changed-event
+                            selected-fn))
+     ((make-string-window str changed-event)
+       (make-string-window str changed-event (lambda (w) (void))))))
 
 (define (current-window)
   (alist-ref *current-view* *windows*))
@@ -94,12 +111,12 @@
   (eqv? view *current-view*))
 
 (define (set-view! view)
-  (when (memv view '(queue library status))
+  (when (memv view '(queue status error))
     (set! *current-view* view)
     (case view
       ((queue) (register-event! 'queue-changed))
-      ((library) #f)
-      ((status) (register-event! 'status-changed)))))
+      ((status) (register-event! 'status-changed))
+      ((error) (register-event! 'error-changed)))))
 
 (define (win-move! nr-lines)
   (assert (integer? nr-lines))
@@ -136,12 +153,13 @@
               (- (COLS) (string-length right) 1)
               right)))
 
-(define (curses-print str)
-  (mvaddstr 0 0 str))
-
 (define (print-command-line-char ch)
   (cursed-set! CURSED-CMDLINE)
   (mvaddch (- (LINES) 1) 0 ch))
+
+(define (selected-row? window line-nr)
+  (= (window-sel-pos window)
+     (+ (window-top-pos window) line-nr)))
 
 ;; Calls print-fn with window, row item, and line number for each row in
 ;; window.
@@ -164,7 +182,7 @@
 
 ;; Generic function to print an alist entry, for use with print-window.
 (define (alist-window-print-row window row line-nr)
-  (if (eqv? (car row) (car (window-selected window)))
+  (if (selected-row? window (- line-nr 1))
     (cursed-set! CURSED-WIN-SEL)
     (cursed-set! CURSED-WIN))
   (mvaddstr line-nr 0
@@ -175,13 +193,23 @@
             (string-truncate (format " ~a" (cdr row))
                              (- (COLS) 2))))
 
+(define (list-window-print-row window row line-nr)
+  (if (selected-row? window (- line-nr 1))
+    (cursed-set! CURSED-WIN-SEL)
+    (cursed-set! CURSED-WIN))
+  (mvaddstr line-nr 0
+            (string-truncate (format " ~a" row)
+                             (- (COLS) 2)))
+  (clrtoeol))
+
 ;; Set the appropriate CURSED-* pair for the given window and track.
-(define (cursed-trackwin-set! window track)
+(define (cursed-trackwin-set! window track line-nr)
   (assert (window? window))
   (assert (list? track))
   (if (null? track)
     (cursed-set! CURSED-WIN)
     (let ((current? (current-track? track))
+          (selected? (selected-row? window (- line-nr 1)))
           (selected? (track= track (window-selected window))))
       (cursed-set!
         (cond
@@ -193,7 +221,7 @@
 ;; Returns a function to print a track, which can be passed to print-window.
 (define (make-trackwin-print-row fmt)
   (lambda (window track line-nr)
-    (cursed-trackwin-set! window track)
+    (cursed-trackwin-set! window track line-nr)
     (format-print-line line-nr fmt track)))
 
 (define (update-track-window window title-fmt track-fmt)
@@ -216,6 +244,12 @@
     (print-window (alist-ref 'status *windows*)
                   alist-window-print-row)))
 
+(define (update-error-window)
+  (when (current-view? 'error)
+    (print-window-title (process-format (string->list "Error")))
+    (print-window (alist-ref 'error *windows*)
+                  list-window-print-row)))
+
 (define (update-current-line)
   (cursed-set! CURSED-TITLELINE)
   (format-print-line (- (LINES) 3)
@@ -235,6 +269,10 @@
 (define (update-current)
   (update-current-line))
 
+(define (update-error)
+  (window-data-len-update! (alist-ref 'error *windows*))
+  (update-error-window))
+
 (define (update-command-line)
   (cursed-set! CURSED-CMDLINE)
   (move (- (LINES) 1) 1)
@@ -251,7 +289,8 @@
         (cons 'status-changed update-status)
         (cons 'current-line-changed update-current)
         (cons 'queue-changed update-queue-window)
-        (cons 'queue-data-changed update-queue-data)))
+        (cons 'queue-data-changed update-queue-data)
+        (cons 'error-changed update-error)))
 
 (define (register-event! event)
   (assert (symbol? event))
@@ -270,7 +309,8 @@
   (register-event! 'queue-changed)
   (register-event! 'current-line-changed)
   (register-event! 'status-changed)
-  (register-event! 'command-line-changed))
+  (register-event! 'command-line-changed)
+  (register-event! 'error-changed))
 
 (define (cursor-on)
   (curs_set 1))
@@ -444,6 +484,9 @@
                  *windows*)
   (alist-update! 'status
                  (make-list-window *mpd-status* 'status-changed)
+                 *windows*)
+  (alist-update! 'error
+                 (make-string-window *scmus-error* 'error-changed)
                  *windows*))
 
 (define (exit-curses)

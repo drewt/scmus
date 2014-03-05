@@ -18,10 +18,13 @@
 (require-extension srfi-13)
 
 (declare (unit lib)
-         (uses config))
+         (uses config
+               ui-curses))
 
 ;; the exit routine; initially (exit), becomes a continuation
 (define scmus-exit exit)
+
+(define *scmus-error* "")
 
 (define (verbose-printf . args)
   (if *verbose*
@@ -46,6 +49,11 @@
 (define (key? ch)
   (assert (char? ch))
   (> (char->integer ch) 255))
+
+(define (string-split-lines str)
+  (string-tokenize str (char-set-filter (lambda (c)
+                                          (not (eqv? c #\newline)))
+                                        char-set:full)))
 
 (define (string-truncate s len #!optional (left #f))
   (assert (string? s))
@@ -87,3 +95,9 @@
                    (if (< seconds 10)
                      (format "0~a" seconds)
                      (number->string seconds)))))
+
+(define (error-set! error)
+  (let ((out (open-output-string)))
+    (pretty-print (condition->list error) out)
+    (set! *scmus-error* (get-output-string out)))
+  (register-event! 'error-changed))

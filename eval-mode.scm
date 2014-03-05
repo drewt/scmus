@@ -84,7 +84,7 @@
   (assert (string? str))
   (condition-case (safe-eval (read (open-input-string str))
                              environment: *user-env*)
-    (e () (curses-print "ERROR"))))
+    (e () (error-set! e))))
 
 (define (user-load path)
   (assert (string? path))

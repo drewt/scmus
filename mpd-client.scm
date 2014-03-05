@@ -82,7 +82,6 @@
      (if stats
        (mpd_stats_free stats))
      (when (not (= error MPD_ERROR_SUCCESS))
-       (curses-print (mpd_connection_get_error_message connection))
        (mpd:raise-error connection))
      retval))
 
@@ -126,7 +125,6 @@
     (if status
       (mpd_status_free status))
     (when (not (= error MPD_ERROR_SUCCESS))
-      (curses-print (string-append "STATUS: " (mpd_connection_get_error_message connection)))
       (mpd:raise-error connection))
     retval))
 
@@ -161,7 +159,6 @@
     (if song
       (mpd_song_free song))
     (when (not (= error MPD_ERROR_SUCCESS))
-      (curses-print (mpd_connection_get_error_message connection))
       (mpd:raise-error connection))
     retval))
 

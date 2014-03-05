@@ -52,7 +52,7 @@
 (define (scmus-try-reconnect)
   (condition-case
     (set! *mpd-connection* (mpd:reconnect *mpd-connection*))
-    (e () (void))))
+    (e () (error-set! e))))
 
 (define (scmus-update-status!)
   (let ((ct (time->seconds (current-time)))
@@ -70,7 +70,8 @@
             (set! *queue* (mpd:list-queue *mpd-connection*))
             (register-event! 'queue-data-changed))
           (set! *last-update* ct))
-        (e () (scmus-try-reconnect))))))
+        (e () (error-set! e)
+              (scmus-try-reconnect))))))
 
 (define (scmus-elapsed)
   (seconds->string (*scmus-elapsed)))
@@ -161,15 +162,15 @@
     ((scmus-command 0 name mpd-fn)
       (define (name)
         (condition-case (mpd-fn *mpd-connection*)
-          (e (mpd) (curses-print (mpd:error-message e))))))
+          (e (mpd) (error-set! e)))))
     ((scmus-command 1 name mpd-fn)
       (define (name arg)
         (condition-case (mpd-fn *mpd-connection* arg)
-          (e (mpd) (curses-print (mpd:error-message e))))))
+          (e (mpd) (error-set! e)))))
     ((scmus-command 2 name mpd-fn)
       (define (name arg1 arg2)
         (condition-case (mpd-fn *mpd-connection* arg1 arg2)
-          (e (mpd) (curses-print (mpd:error-message e))))))))
+          (e (mpd) (error-set! e)))))))
 
 (scmus-command 0 scmus-next! mpd:next-song!)
 (scmus-command 0 scmus-prev! mpd:previous-song!)
