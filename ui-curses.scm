@@ -26,7 +26,8 @@
                format
                option
                window)
-         (export *current-input-mode*
+         (export *ui-initialized*
+                 *current-input-mode*
                  *current-view*
                  set-view!
                  win-move!
@@ -62,6 +63,7 @@
 (define-constant CURSED-WIN-TITLE 12)
 (define-constant NR-CURSED 13)
 
+(define *ui-initialized* #f)
 (define *current-input-mode* 'normal-mode)
 (define *current-view* 'queue)
 
@@ -469,12 +471,14 @@
 
 (define (init-curses)
   (initscr)
+  (set! *ui-initialized* #t)
   (cbreak)
   (keypad (stdscr) #t)
   (halfdelay 5)
   (noecho)
-  (start_color)
-  (use_default_colors)
+  (when (has_colors)
+    (start_color)
+    (use_default_colors))
   (init-colors!)
   (alist-update! 'queue
                  (make-list-window *queue*

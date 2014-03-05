@@ -15,7 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-13)
+(require-extension srfi-13 ncurses)
 
 (declare (unit lib)
          (uses config
@@ -28,14 +28,30 @@
 
 (define (verbose-printf . args)
   (if *verbose*
-    (apply printf args)))
+    (apply console-printf args)))
 
 (define (debug-printf . args)
   (if *debug*
-    (apply printf args)))
+    (apply console-printf args)))
 
 (define (debug-pp sexp)
   (if *debug*
+    (console-pp sexp)))
+
+(define (console-printf . args)
+  (if *ui-initialized*
+    (begin
+      (endwin)
+      (apply printf args)
+      (refresh))
+    (apply printf args)))
+
+(define (console-pp sexp)
+  (if *ui-initialized*
+    (begin
+      (endwin)
+      (pp sexp)
+      (refresh))
     (pp sexp)))
 
 ;; Equality predicate for characters and ncurses keycodes.

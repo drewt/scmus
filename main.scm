@@ -38,7 +38,8 @@
   (handle-exceptions exn
     (begin (print "Failed to initialize scmus.  Exiting.")
            (debug-printf "~a~n" (condition->list exn))
-           (exit-all 1))
+           (exit-all)
+           (exit 1))
     (verbose-printf "Connecting to ~a:~a...~n" *mpd-address* *mpd-port*)
     (init-client *mpd-address* *mpd-port*)
     (verbose-printf "Initializing environment...~n")
