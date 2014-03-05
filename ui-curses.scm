@@ -72,30 +72,20 @@
     (status . #f)))
 
 ;; can only be used *after* ncurses initialized
-(define-syntax make-track-window
+(define-syntax make-list-window
   (syntax-rules ()
-    ((make-track-window track-list changed-event)
+    ((make-list-window l changed-event selected-fn)
       (make-window #f
-                   (lambda (x) track-list)
-                   (length track-list)
+                   (lambda (x) l)
+                   (length l)
                    0
                    0
                    (- (LINES) 4)
                    (lambda (w)
                      (register-event! changed-event))
-                   (lambda (w)
-                     (scmus-play-track! (window-selected w)))))))
-
-(define (make-status-window)
-  (make-window #f
-               (lambda (x) *mpd-status*)
-               (length *mpd-status*)
-               0
-               0
-               (- (LINES) 4)
-               (lambda (w)
-                 (register-event! 'status-changed))
-               (lambda (w) (void))))
+                   selected-fn))
+    ((make-list-window l changed-event)
+      (make-list-window l changed-event (lambda (w) (void))))))
 
 (define (current-window)
   (alist-ref *current-view* *windows*))
@@ -441,9 +431,14 @@
   (use_default_colors)
   (init-colors!)
   (alist-update! 'queue
-                 (make-track-window *queue* 'queue-changed)
+                 (make-list-window *queue*
+                                   'queue-changed
+                                   (lambda (w)
+                                     (scmus-play-track! (window-selected w))))
                  *windows*)
-  (alist-update! 'status (make-status-window) *windows*))
+  (alist-update! 'status
+                 (make-list-window *mpd-status* 'status-changed)
+                 *windows*))
 
 (define (exit-curses)
   (handle-exceptions exn
