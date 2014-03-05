@@ -1,6 +1,6 @@
 ;; views
-(bind! "1" 'common (lambda () (set-view! 'queue)))
-(bind! "2" 'common (lambda () (set-view! 'status)))
+(bind! "1" 'common (lambda () (set-view! 'queue))  #t)
+(bind! "2" 'common (lambda () (set-view! 'status)) #t)
 
 ;; hjkl
 (bind! "j" 'common (lambda () (win-move!  1)) #t)
@@ -20,6 +20,12 @@
 (bind! "c" 'common pause! #t)
 (bind! "v" 'common stop!  #t)
 (bind! "b" 'common next!  #t)
+
+;; single, repeat, random, consume
+(bind! "S" 'common toggle-single!  #t)
+(bind! "R" 'common toggle-repeat!  #t)
+(bind! "r" 'common toggle-random!  #t)
+(bind! "C" 'common toggle-consume! #t)
 
 (bind! "<" 'common (lambda () (seek! -60)) #t)
 (bind! ">" 'common (lambda () (seek!  60)) #t)
