@@ -22,7 +22,8 @@
 (declare (unit eval-mode)
          (uses ui-curses
                command-line
-               keys)
+               keys
+               option)
          (export init-sandbox
                  user-load
                  enter-eval-mode
@@ -56,6 +57,8 @@
 (define *user-env* (make-safe-environment parent: default-safe-environment))
 
 (define (init-sandbox)
+  (safe-environment-set! *user-env* 'set-option! set-option!)
+  (safe-environment-set! *user-env* 'get-option get-option)
   (safe-environment-set! *user-env* 'bind! user-bind!)
   (safe-environment-set! *user-env* 'unbind! user-unbind!)
   (safe-environment-set! *user-env* 'prev! scmus-prev!)

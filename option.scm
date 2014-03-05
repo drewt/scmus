@@ -34,11 +34,13 @@
 
 (define (get-option name)
   (let ((option (alist-ref name *options*)))
-    ((option-get option) option)))
+    (if option
+      ((option-get option) option))))
 
 (define (set-option! name value)
   (let ((option (alist-ref name *options*)))
-    ((option-set option) option value)))
+    (if option
+      ((option-set option) option value))))
 
 (define (color-symbol? sym)
   (case sym
@@ -53,9 +55,10 @@
     (*option-value-set! option value)))
 
 (define (format-set! option value)
-  (if (and (string? value)
-           (format-valid? value))
-    (*option-value-set! option (process-format value))))
+  (if (string? value)
+    (let ((fmt (string->list value)))
+      (if (format-string-valid? fmt)
+        (*option-value-set! option (process-format value))))))
 
 ;; generates an alist entry for *options*
 (define (option-spec name accessor mutator)
