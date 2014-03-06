@@ -34,3 +34,9 @@
 
 (bind! "enter" 'common win-activate! #t)
 (bind! "(" 'common (lambda () (push! "(")) #t)
+
+;; library view
+(bind! "h"     'library win-deactivate! #t)
+(bind! "left"  'library win-deactivate! #t)
+(bind! "l"     'library win-activate!   #t)
+(bind! "right" 'library win-activate!   #t)

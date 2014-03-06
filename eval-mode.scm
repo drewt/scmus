@@ -78,7 +78,8 @@
   (safe-environment-set! *user-env* 'push! user-push!)
   (safe-environment-set! *user-env* 'set-view! set-view!)
   (safe-environment-set! *user-env* 'win-move! win-move!)
-  (safe-environment-set! *user-env* 'win-activate! win-activate!))
+  (safe-environment-set! *user-env* 'win-activate! win-activate!)
+  (safe-environment-set! *user-env* 'win-deactivate! win-deactivate!))
 
 (define (user-eval str)
   (assert (string? str))

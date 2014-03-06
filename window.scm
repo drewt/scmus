@@ -22,7 +22,7 @@
 (define-record-type window
   (make-window data data-thunk data-len
                top-pos sel-pos nr-lines
-               changed activate)
+               changed activate deactivate)
   window?
   ;; private data member for internal use
   (data *window-data *window-data-set!)
@@ -38,8 +38,10 @@
   (nr-lines window-nr-lines *window-nr-lines-set!)
   ;; called when visible part of list has changed
   (changed *window-changed! window-changed-set!)
-  ;; function to call when the user "activates" the selection
-  (activate *window-activate! window-activate-set!))
+  ;; function to call when the user "activates" the window
+  (activate *window-activate! window-activate-set!)
+  ;; function to call when the user "deactivates" the window
+  (deactivate *window-deactivate! window-deactivate-set!))
 
 (define (window-data window)
   (assert (window? window))
@@ -62,6 +64,10 @@
 (define (window-activate! window)
   (assert (window? window))
   ((*window-activate! window) window))
+
+(define (window-deactivate! window)
+  (assert (window? window))
+  ((*window-deactivate! window) window))
 
 (define (window-data-len-update! window)
   (assert (window? window))

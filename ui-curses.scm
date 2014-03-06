@@ -32,6 +32,7 @@
                  set-view!
                  win-move!
                  win-activate!
+                 win-deactivate!
                  print-command-line-char
                  register-event!
                  curses-update
@@ -74,10 +75,11 @@
     (status . #f)
     (error . #f)))
 
-;; can only be used *after* ncurses initialized
+;; Convenient interface to make-window.  Can only be used *after* ncurses is
+;; initialized.
 (define-syntax make-generic-window
   (syntax-rules ()
-    ((make-generic-window getter len changed-event selected-fn)
+    ((make-generic-window getter len changed-event selected-fn deactivate-fn)
       (make-window #f
                    getter
                    len
@@ -85,27 +87,42 @@
                    0
                    (- (LINES) 4)
                    (lambda (w) (register-event! changed-event))
-                   selected-fn))))
+                   selected-fn
+                   deactivate-fn))))
 
+;; make-window for global lists.  Each member of the list becomes a row in the
+;; window.
 (define-syntax make-list-window
   (syntax-rules ()
-    ((make-list-window lst changed-event selected-fn)
+    ((make-list-window lst changed-event selected-fn deactivate-fn)
       (make-generic-window (lambda (w) lst)
                            (length lst)
                            changed-event
-                           selected-fn))
+                           selected-fn
+                           deactivate-fn))
+    ((make-list-window lst changed-event selected-fn)
+      (make-list-window lst changed-event selected-fn (lambda (w) (void))))
     ((make-list-window lst changed-event)
-      (make-list-window lst changed-event (lambda (w) (void))))))
+      (make-list-window lst changed-event
+                        (lambda (w) (void))
+                        (lambda (w) (void))))))
 
+;; make-window for global strings.  Each line in the string becomes a row in
+;; the window.
 (define-syntax make-string-window
   (syntax-rules ()
-     ((make-string-window str changed-event selected-fn)
+     ((make-string-window str changed-event selected-fn deactivate-fn)
        (make-generic-window (lambda (w) (string-split-lines str))
                             (length (string-split-lines str))
                             changed-event
-                            selected-fn))
+                            selected-fn
+                            deactivate-fn))
+     ((make-string-window str changed-event selected-fn)
+       (make-string-window str changed-event selected-fn (lambda (w) (void))))
      ((make-string-window str changed-event)
-       (make-string-window str changed-event (lambda (w) (void))))))
+       (make-string-window str changed-event
+                           (lambda (w) (void))
+                           (lambda (w) (void))))))
 
 (define (current-window)
   (alist-ref *current-view* *windows*))
@@ -130,6 +147,9 @@
 
 (define (win-activate!)
   (window-activate! (current-window)))
+
+(define (win-deactivate!)
+  (window-deactivate! (current-window)))
 
 (define-syntax let-format
   (syntax-rules ()
