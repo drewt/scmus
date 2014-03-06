@@ -25,6 +25,7 @@
                  mpd:get-status
                  mpd:get-current-song
                  mpd:list-queue
+                 mpd:db-list-tags
                  mpd:play!
                  mpd:play-id!
                  mpd:play-pos!
@@ -39,6 +40,7 @@
                  mpd:single-set!
                  mpd:consume-set!))
 
+(foreign-declare "#include <mpd/client.h>")
 (include "libmpdclient.scm")
 
 (define (mpd:connect host port)
@@ -91,6 +93,21 @@
     ((= state MPD_STATE_STOP) 'stop)
     ((= state MPD_STATE_PLAY) 'play)
     ((= state MPD_STATE_PAUSE) 'pause)))
+
+(define (symbol->mpd-tag tag)
+  (case tag
+    ((artist)      MPD_TAG_ARTIST)
+    ((album)       MPD_TAG_ALBUM)
+    ((albumartist) MPD_TAG_ALBUM_ARTIST)
+    ((title)       MPD_TAG_TITLE)
+    ((tracknumber) MPD_TAG_TRACK)
+    ((name)        MPD_TAG_NAME)
+    ((genre)       MPD_TAG_GENRE)
+    ((date)        MPD_TAG_DATE)
+    ((composer)    MPD_TAG_COMPOSER)
+    ((performer)   MPD_TAG_PERFORMER)
+    ((comment)     MPD_TAG_COMMENT)
+    ((discnumber)  MPD_TAG_DISC)))
 
 (define (mpd:get-status connection)
   (let* ((status (mpd_run_status connection))
@@ -152,6 +169,9 @@
     (cons 'id (mpd_song_get_id song))
     (cons 'prio (mpd_song_get_prio song))))
 
+(define (mpd-pair->string pair)
+  (mpd_pair-value pair))
+
 (define (mpd:get-current-song connection)
   (let* ((song (mpd_run_current_song connection))
          (error (mpd_connection_get_error connection))
@@ -184,6 +204,28 @@
   (if (mpd_send_list_queue_range connection start end)
     (reverse (read-songs connection '()))
     (mpd:raise-error connection)))
+
+(define (read-tag-pairs connection tag lst)
+  (let* ((pair (mpd_recv_pair_tag connection tag))
+         (error (mpd_connection_get_error connection))
+         (next (if pair (mpd-pair->string pair) '())))
+    (if pair
+      (begin
+        (mpd_return_pair connection pair)
+        (read-tag-pairs connection tag (if (not (string=? next ""))
+                                         (cons next lst)
+                                         lst)))
+      ; mpd_recv_pair_tag returned NULL
+      (if (= error MPD_ERROR_SUCCESS)
+        lst
+        (mpd:raise-error connection)))))
+
+(define (mpd:db-list-tags connection tag)
+  (let ((mpd-tag (symbol->mpd-tag tag)))
+    (if (and (mpd_search_db_tags connection mpd-tag)
+             (mpd_search_commit connection))
+      (reverse (read-tag-pairs connection mpd-tag '()))
+      (mpd:raise-error connection))))
 
 (define-syntax mpd:define-wrapper
   (syntax-rules (0 1 2)

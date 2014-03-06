@@ -1,7 +1,8 @@
 ;; views
-(bind! "1" 'common (lambda () (set-view! 'queue))  #t)
-(bind! "2" 'common (lambda () (set-view! 'status)) #t)
-(bind! "3" 'common (lambda () (set-view! 'error))  #t)
+(bind! "1" 'common (lambda () (set-view! 'library)) #t)
+(bind! "2" 'common (lambda () (set-view! 'queue))   #t)
+(bind! "3" 'common (lambda () (set-view! 'status))  #t)
+(bind! "4" 'common (lambda () (set-view! 'error))   #t)
 
 ;; hjkl
 (bind! "j" 'common (lambda () (win-move!  1)) #t)

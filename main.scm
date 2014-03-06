@@ -23,6 +23,11 @@
 
 (define *error* #f)
 
+(foreign-declare "#include <locale.h>")
+(define set-locale
+  (foreign-lambda* c-string ((integer category) (c-string locale))
+                   "return(setlocale(category, locale));"))
+
 (define (main return)
   (define (*main)
     (scmus-update-status!)
@@ -40,6 +45,8 @@
            (debug-printf "~a~n" (condition->list exn))
            (exit-all)
            (exit 1))
+    (foreign-code "setlocale(LC_CTYPE, \"\");")
+    (foreign-code "setlocale(LC_COLLATE, \"\");")
     (verbose-printf "Connecting to ~a:~a...~n" *mpd-address* *mpd-port*)
     (init-client *mpd-address* *mpd-port*)
     (verbose-printf "Initializing environment...~n")

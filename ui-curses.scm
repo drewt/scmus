@@ -69,7 +69,8 @@
 
 ;; alist associating views and windows
 (define *windows*
-  '((queue . #f)
+  '((library . #f)
+    (queue . #f)
     (status . #f)
     (error . #f)))
 
@@ -113,12 +114,13 @@
   (eqv? view *current-view*))
 
 (define (set-view! view)
-  (when (memv view '(queue status error))
+  (when (memv view '(library queue status error))
     (set! *current-view* view)
     (case view
-      ((queue) (register-event! 'queue-changed))
-      ((status) (register-event! 'status-changed))
-      ((error) (register-event! 'error-changed)))))
+      ((library) (register-event! 'library-changed))
+      ((queue)   (register-event! 'queue-changed))
+      ((status)  (register-event! 'status-changed))
+      ((error)   (register-event! 'error-changed)))))
 
 (define (win-move! nr-lines)
   (assert (integer? nr-lines))
@@ -230,6 +232,12 @@
   (print-window-title title-fmt)
   (print-window window (make-trackwin-print-row track-fmt)))
 
+(define (update-library)
+  (when (current-view? 'library)
+    (print-window-title (process-format (string->list "Library")))
+    (print-window (alist-ref 'library *windows*)
+                  list-window-print-row)))
+
 (define (update-queue-window)
   (when (current-view? 'queue)
     (update-track-window (alist-ref 'queue *windows*)
@@ -290,6 +298,7 @@
   (list (cons 'command-line-changed update-command-line)
         (cons 'status-changed update-status)
         (cons 'current-line-changed update-current)
+        (cons 'library-changed update-library)
         (cons 'queue-changed update-queue-window)
         (cons 'queue-data-changed update-queue-data)
         (cons 'error-changed update-error)))
@@ -308,6 +317,7 @@
 (define (handle-resize)
   (for-each (lambda (x) (window-nr-lines-set! (cdr x) (- (LINES) 4)))
             *windows*)
+  (register-event! 'library-changed)
   (register-event! 'queue-changed)
   (register-event! 'current-line-changed)
   (register-event! 'status-changed)
@@ -480,6 +490,10 @@
     (start_color)
     (use_default_colors))
   (init-colors!)
+  (alist-update! 'library
+                 (make-list-window *artists*
+                                   'library-changed)
+                 *windows*)
   (alist-update! 'queue
                  (make-list-window *queue*
                                    'queue-changed

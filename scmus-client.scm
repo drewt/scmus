@@ -30,6 +30,7 @@
 (define *mpd-stats* '())
 (define *current-track* '())
 (define *queue* '())
+(define *artists* '())
 
 (define *last-update* -1.0)
 
@@ -41,6 +42,8 @@
     (begin
       (set! *mpd-connection* (mpd:connect host port))
       (set! *mpd-stats* (mpd:get-stats *mpd-connection*))
+      (set! *artists* (sort! (mpd:db-list-tags *mpd-connection* 'artist)
+                             string-ci<?))
       (scmus-update-status!))
     (ex (exn i/o) (printf "Error: failed connecting to ~a:~a~n" host port)
                   (abort ex))))

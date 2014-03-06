@@ -3,11 +3,15 @@
 struct mpd_settings;
 struct mpd_connection;
 struct mpd_song;
-struct mpd_pair;
 struct mpd_audio_format;
 struct mpd_status;
 struct mpd_stats;
 struct mpd_song;
+
+struct mpd_pair {
+	const char *name;
+	const char *value;
+};
 
 enum mpd_server_error {
 	MPD_SERVER_ERROR_UNK = -1,
@@ -484,4 +488,13 @@ mpd_search_commit(struct mpd_connection *connection);
 void
 mpd_search_cancel(struct mpd_connection *connection);
 
+struct mpd_pair *
+mpd_recv_pair_tag(struct mpd_connection *connection, unsigned int type);
+
 /* <mpd/search.h> }}} */
+/* <mpd/recv.h> {{{ */
+
+void
+mpd_return_pair(struct mpd_connection *connection, struct mpd_pair *pair);
+
+/* <mpd/recv.h> }}} */
