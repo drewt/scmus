@@ -72,6 +72,20 @@ enum mpd_tag_type
 	MPD_TAG_COUNT
 };
 
+/**
+ * This type is not yet used, it is reserved for a future protocol
+ * extension which will allow us to specify a comparison operator for
+ * constraints.
+ */
+enum mpd_operator {
+	/**
+	 * The default search operator.  If "exact" was passed as
+	 * "true", then it means "full string comparison"; if false,
+	 * then it means "search for substring".
+	 */
+	MPD_OPERATOR_DEFAULT
+};
+
 /* preamble }}} */
 /* <mpd/settings.h> {{{ */
 
@@ -430,3 +444,44 @@ mpd_run_prio_id(struct mpd_connection *connection, int priority,
 		unsigned int id);
 
 /* <mpd/queue.h> }}} */
+/* <mpd/search.h> {{{ */
+
+bool
+mpd_search_db_songs(struct mpd_connection *connection, bool exact);
+
+bool
+mpd_search_add_db_songs(struct mpd_connection *connection, bool exact);
+
+bool
+mpd_search_queue_songs(struct mpd_connection *connection, bool exact);
+
+bool
+mpd_search_db_tags(struct mpd_connection *connection, unsigned int type);
+
+bool
+mpd_count_db_songs(struct mpd_connection *connection);
+
+bool
+mpd_search_add_base_constraint(struct mpd_connection *connection,
+		unsigned int oper, const char *value);
+
+bool
+mpd_search_add_uri_constraint(struct mpd_connection *connection,
+		unsigned int oper, const char *value);
+
+bool
+mpd_search_add_tag_constraint(struct mpd_connection *connection,
+		unsigned int oper, unsigned int type,
+		const char *value);
+
+bool
+mpd_search_add_any_tag_constraint(struct mpd_connection *connection,
+		unsigned int oper, const char *value);
+
+bool
+mpd_search_commit(struct mpd_connection *connection);
+
+void
+mpd_search_cancel(struct mpd_connection *connection);
+
+/* <mpd/search.h> }}} */

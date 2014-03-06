@@ -47,6 +47,7 @@
   (define-constant MPD_TAG_MUSICBRAINZ_ALBUMARTISTID 14)
   (define-constant MPD_TAG_MUSICBRAINZ_TRACKID 15)
   (define-constant MPD_TAG_COUNT 16)
+  (define-constant MPD_OPERATOR_DEFAULT 0)
   (begin
     (define mpd_settings_new
       (foreign-lambda*
@@ -708,6 +709,81 @@
         (((c-pointer (struct "mpd_connection")) a0)
          (integer a1)
          (unsigned-integer a2))
-        "return(mpd_run_prio_id(a0 , a1 , a2));"))))
+        "return(mpd_run_prio_id(a0 , a1 , a2));")))
+  (begin
+    (define mpd_search_db_songs
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (bool a1))
+        "return(mpd_search_db_songs(a0 , a1));")))
+  (begin
+    (define mpd_search_add_db_songs
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (bool a1))
+        "return(mpd_search_add_db_songs(a0 , a1));")))
+  (begin
+    (define mpd_search_queue_songs
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (bool a1))
+        "return(mpd_search_queue_songs(a0 , a1));")))
+  (begin
+    (define mpd_search_db_tags
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (unsigned-integer a1))
+        "return(mpd_search_db_tags(a0 , a1));")))
+  (begin
+    (define mpd_count_db_songs
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0))
+        "return(mpd_count_db_songs(a0));")))
+  (begin
+    (define mpd_search_add_base_constraint
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (unsigned-integer a1)
+         (c-string a2))
+        "return(mpd_search_add_base_constraint(a0 , a1 , a2));")))
+  (begin
+    (define mpd_search_add_uri_constraint
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (unsigned-integer a1)
+         (c-string a2))
+        "return(mpd_search_add_uri_constraint(a0 , a1 , a2));")))
+  (begin
+    (define mpd_search_add_tag_constraint
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (unsigned-integer a1)
+         (unsigned-integer a2)
+         (c-string a3))
+        "return(mpd_search_add_tag_constraint(a0 , a1 , a2 , a3));")))
+  (begin
+    (define mpd_search_add_any_tag_constraint
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (unsigned-integer a1)
+         (c-string a2))
+        "return(mpd_search_add_any_tag_constraint(a0 , a1 , a2));")))
+  (begin
+    (define mpd_search_commit
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0))
+        "return(mpd_search_commit(a0));")))
+  (begin
+    (define mpd_search_cancel
+      (foreign-lambda*
+        void
+        (((c-pointer (struct "mpd_connection")) a0))
+        "mpd_search_cancel(a0);"))))
 
 ;;; END OF FILE
