@@ -42,8 +42,7 @@
     (begin
       (set! *mpd-connection* (mpd:connect host port))
       (set! *mpd-stats* (mpd:get-stats *mpd-connection*))
-      (set! *artists* (sort! (mpd:db-list-tags *mpd-connection* 'artist)
-                             string-ci<?))
+      (set! *artists* (scmus-search-by-tag 'artist))
       (scmus-update-status!))
     (ex (exn i/o) (printf "Error: failed connecting to ~a:~a~n" host port)
                   (abort ex))))
@@ -207,3 +206,10 @@
   (scmus-single-set! (if (scmus-single?) #f #t)))
 (define (scmus-toggle-consume!)
   (scmus-consume-set! (if (scmus-consume?) #f #t)))
+
+(define (scmus-search-by-tag tag . constraints)
+  (condition-case
+    (sort! (apply mpd:db-list-tags
+                  *mpd-connection* tag constraints)
+           string-ci<?)
+    (exn (mpd) (error-set! exn))))

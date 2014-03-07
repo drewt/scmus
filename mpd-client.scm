@@ -220,11 +220,24 @@
         lst
         (mpd:raise-error connection)))))
 
-(define (mpd:db-list-tags connection tag)
+(define (mpd:search-add-tag-constraints connection constraints)
+  (if (null? constraints)
+    #t
+    (if (mpd_search_add_tag_constraint connection
+                                       MPD_OPERATOR_DEFAULT
+                                       (symbol->mpd-tag (caar constraints))
+                                       (cdar constraints))
+      (mpd:search-add-tag-constraints connection (cdr constraints))
+      #f)))
+
+(define (mpd:db-list-tags connection tag . constraints)
   (let ((mpd-tag (symbol->mpd-tag tag)))
-    (if (and (mpd_search_db_tags connection mpd-tag)
-             (mpd_search_commit connection))
-      (reverse (read-tag-pairs connection mpd-tag '()))
+    (if (mpd_search_db_tags connection mpd-tag)
+      (if (and (mpd:search-add-tag-constraints connection constraints)
+               (mpd_search_commit connection))
+        (reverse (read-tag-pairs connection mpd-tag '()))
+        (begin (mpd_search_cancel connection)
+               (mpd:raise-error connection)))
       (mpd:raise-error connection))))
 
 (define-syntax mpd:define-wrapper

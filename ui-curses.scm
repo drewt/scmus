@@ -77,9 +77,9 @@
 
 ;; Convenient interface to make-window.  Can only be used *after* ncurses is
 ;; initialized.
-(define-syntax make-generic-window
+(define-syntax make-global-window
   (syntax-rules ()
-    ((make-generic-window getter len changed-event selected-fn deactivate-fn)
+    ((make-global-window getter len changed-event selected-fn deactivate-fn)
       (make-window #f
                    getter
                    len
@@ -92,37 +92,46 @@
 
 ;; make-window for global lists.  Each member of the list becomes a row in the
 ;; window.
-(define-syntax make-list-window
+(define-syntax make-global-list-window
   (syntax-rules ()
-    ((make-list-window lst changed-event selected-fn deactivate-fn)
-      (make-generic-window (lambda (w) lst)
-                           (length lst)
-                           changed-event
-                           selected-fn
-                           deactivate-fn))
-    ((make-list-window lst changed-event selected-fn)
-      (make-list-window lst changed-event selected-fn (lambda (w) (void))))
-    ((make-list-window lst changed-event)
-      (make-list-window lst changed-event
-                        (lambda (w) (void))
-                        (lambda (w) (void))))))
+    ((make-global-list-window lst changed-event selected-fn deactivate-fn)
+      (make-global-window (lambda (w) lst)
+                          (length lst)
+                          changed-event
+                          selected-fn
+                          deactivate-fn))
+    ((make-global-list-window lst changed-event selected-fn)
+      (make-global-list-window lst changed-event selected-fn void))
+    ((make-global-list-window lst changed-event)
+      (make-global-list-window lst changed-event void void))))
 
 ;; make-window for global strings.  Each line in the string becomes a row in
 ;; the window.
-(define-syntax make-string-window
+(define-syntax make-global-string-window
   (syntax-rules ()
-     ((make-string-window str changed-event selected-fn deactivate-fn)
-       (make-generic-window (lambda (w) (string-split-lines str))
-                            (length (string-split-lines str))
-                            changed-event
-                            selected-fn
-                            deactivate-fn))
-     ((make-string-window str changed-event selected-fn)
-       (make-string-window str changed-event selected-fn (lambda (w) (void))))
-     ((make-string-window str changed-event)
-       (make-string-window str changed-event
-                           (lambda (w) (void))
-                           (lambda (w) (void))))))
+     ((make-global-string-window str changed-event selected-fn deactivate-fn)
+       (make-global-window (lambda (w) (string-split-lines str))
+                           (length (string-split-lines str))
+                           changed-event
+                           selected-fn
+                           deactivate-fn))
+     ((make-global-string-window str changed-event selected-fn)
+       (make-global-string-window str changed-event selected-fn void))
+     ((make-global-global-string-window str changed-event)
+       (make-global-string-window str changed-event void void))))
+
+(define (make-generic-window data changed-event get-data activate deactivate)
+  (let ((window (make-window data
+                             get-data
+                             0
+                             0
+                             0
+                             (- (LINES) 4)
+                             (lambda (w) (register-event! changed-event))
+                             activate
+                             deactivate)))
+    (window-data-len-update! window)
+    window))
 
 (define (current-window)
   (alist-ref *current-view* *windows*))
@@ -150,6 +159,58 @@
 
 (define (win-deactivate!)
   (window-deactivate! (current-window)))
+
+;; *window-data for library is:
+;;
+;; (list <state> ...)
+;;
+;; where
+;;   state       => (cons <list(string>) <activate-fn>)
+;;   activate-fn => fn: window -> void
+;;
+;; That is, *window-data is a stack of states, where a state is represented
+;; by a list of items and a function to call when an item is selected.
+
+(define (lib-data window)
+  (caar (*window-data window)))
+
+(define *lib-artist-activate! void)
+
+(define (lib-artist-activate! window)
+  (let* ((selected (window-selected window))
+         (stack (*window-data window))
+         (next-list (scmus-search-by-tag 'album (cons 'artist selected))))
+    (*window-data-set! window (cons (cons next-list
+                                          lib-album-activate!)
+                                    stack))
+    (window-activate-set! window lib-album-activate!)
+    (window-top-pos-set! window 0)
+    (window-sel-pos-set! window 0)
+    (register-event! 'library-data-changed)))
+
+(define (lib-album-activate! window)
+  (let* ((selected (window-selected window))
+         (stack (*window-data window))
+         (next-list `(,selected "fake" "list")))
+    (*window-data-set! window (cons (cons next-list
+                                          lib-track-activate!)
+                                    stack))
+    (window-activate-set! window lib-track-activate!)
+    (window-top-pos-set! window 0)
+    (window-sel-pos-set! window 0)
+    (register-event! 'library-data-changed)))
+
+(define (lib-track-activate! window)
+  (void))
+
+(define (lib-deactivate! window)
+  (let ((stack (*window-data window)))
+    (when (not (null? (cdr stack)))
+      (*window-data-set! window (cdr stack))
+      (window-activate-set! window (cdadr stack))
+      (register-event! 'library-data-changed))))
+
+;; screen updates {{{
 
 (define-syntax let-format
   (syntax-rules ()
@@ -252,11 +313,15 @@
   (print-window-title title-fmt)
   (print-window window (make-trackwin-print-row track-fmt)))
 
-(define (update-library)
+(define (update-library-window)
   (when (current-view? 'library)
     (print-window-title (process-format (string->list "Library")))
     (print-window (alist-ref 'library *windows*)
                   list-window-print-row)))
+
+(define (update-library-data)
+  (window-data-len-update! (alist-ref 'library *windows*))
+  (update-library-window))
 
 (define (update-queue-window)
   (when (current-view? 'queue)
@@ -313,12 +378,15 @@
 (define (update-cursor)
   (move (- (LINES) 1) (command-line-cursor-pos)))
 
+;; screen updates }}}
+
 (define *events* '())
 (define *event-handlers*
   (list (cons 'command-line-changed update-command-line)
         (cons 'status-changed update-status)
         (cons 'current-line-changed update-current)
-        (cons 'library-changed update-library)
+        (cons 'library-changed update-library-window)
+        (cons 'library-data-changed update-library-data)
         (cons 'queue-changed update-queue-window)
         (cons 'queue-data-changed update-queue-data)
         (cons 'error-changed update-error)))
@@ -499,6 +567,27 @@
 
 ;; colors }}}
 
+(define (init-windows!)
+  (alist-update! 'library
+                 (make-generic-window (list (cons *artists* lib-artist-activate!))
+                                      'library-changed
+                                      lib-data
+                                      lib-artist-activate!
+                                      lib-deactivate!)
+                 *windows*)
+  (alist-update! 'queue
+                 (make-global-list-window *queue*
+                                   'queue-changed
+                                   (lambda (w)
+                                     (scmus-play-track! (window-selected w))))
+                 *windows*)
+  (alist-update! 'status
+                 (make-global-list-window *mpd-status* 'status-changed)
+                 *windows*)
+  (alist-update! 'error
+                 (make-global-string-window *scmus-error* 'error-changed)
+                 *windows*))
+
 (define (init-curses)
   (initscr)
   (set! *ui-initialized* #t)
@@ -510,22 +599,7 @@
     (start_color)
     (use_default_colors))
   (init-colors!)
-  (alist-update! 'library
-                 (make-list-window *artists*
-                                   'library-changed)
-                 *windows*)
-  (alist-update! 'queue
-                 (make-list-window *queue*
-                                   'queue-changed
-                                   (lambda (w)
-                                     (scmus-play-track! (window-selected w))))
-                 *windows*)
-  (alist-update! 'status
-                 (make-list-window *mpd-status* 'status-changed)
-                 *windows*)
-  (alist-update! 'error
-                 (make-string-window *scmus-error* 'error-changed)
-                 *windows*))
+  (init-windows!))
 
 (define (exit-curses)
   (handle-exceptions exn
