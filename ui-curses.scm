@@ -160,28 +160,27 @@
 (define (win-deactivate!)
   (window-deactivate! (current-window)))
 
-;; *window-data for library is:
-;;
-;; (list <state> ...)
-;;
-;; where
-;;   state       => (cons <list(string>) <activate-fn>)
-;;   activate-fn => fn: window -> void
-;;
-;; That is, *window-data is a stack of states, where a state is represented
-;; by a list of items and a function to call when an item is selected.
+(define-record-type lib-state
+  (make-lib-state lst activate constraint)
+  lib-state?
+  (lst lib-state-list lib-state-list-set!)
+  (activate lib-state-activate lib-state-activate-set!)
+  (constraint lib-state-constraint lib-state-constraint-set!))
+
+(define (lib-init-data)
+  (list (make-lib-state *artists* lib-artist-activate! '())))
 
 (define (lib-data window)
-  (caar (*window-data window)))
-
-(define *lib-artist-activate! void)
+  (lib-state-list (car (*window-data window))))
 
 (define (lib-artist-activate! window)
   (let* ((selected (window-selected window))
          (stack (*window-data window))
-         (next-list (scmus-search-by-tag 'album (cons 'artist selected))))
-    (*window-data-set! window (cons (cons next-list
-                                          lib-album-activate!)
+         (constraint (cons 'artist selected))
+         (next-list (scmus-search-by-tag 'album constraint)))
+    (*window-data-set! window (cons (make-lib-state next-list
+                                                    lib-album-activate!
+                                                    constraint)
                                     stack))
     (window-activate-set! window lib-album-activate!)
     (window-top-pos-set! window 0)
@@ -191,9 +190,11 @@
 (define (lib-album-activate! window)
   (let* ((selected (window-selected window))
          (stack (*window-data window))
+         (constraint (cons 'album selected))
          (next-list `(,selected "fake" "list")))
-    (*window-data-set! window (cons (cons next-list
-                                          lib-track-activate!)
+    (*window-data-set! window (cons (make-lib-state next-list
+                                                    lib-track-activate!
+                                                    constraint)
                                     stack))
     (window-activate-set! window lib-track-activate!)
     (window-top-pos-set! window 0)
@@ -205,10 +206,10 @@
 
 (define (lib-deactivate! window)
   (let ((stack (*window-data window)))
-    (when (not (null? (cdr stack)))
-      (*window-data-set! window (cdr stack))
-      (window-activate-set! window (cdadr stack))
-      (register-event! 'library-data-changed))))
+   (when (not (null? (cdr stack)))
+     (*window-data-set! window (cdr stack))
+     (window-activate-set! window (lib-state-activate (cadr stack)))
+     (register-event! 'library-data-changed))))
 
 ;; screen updates {{{
 
@@ -569,7 +570,7 @@
 
 (define (init-windows!)
   (alist-update! 'library
-                 (make-generic-window (list (cons *artists* lib-artist-activate!))
+                 (make-generic-window (lib-init-data)
                                       'library-changed
                                       lib-data
                                       lib-artist-activate!
