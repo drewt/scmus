@@ -33,6 +33,7 @@
                  win-move!
                  win-activate!
                  win-deactivate!
+                 win-remove!
                  print-command-line-char
                  register-event!
                  curses-update
@@ -159,6 +160,10 @@
 
 (define (win-deactivate!)
   (window-deactivate! (current-window)))
+
+(define (win-remove!)
+  (case *current-view*
+    ((queue) (scmus-delete! (window-sel-pos (current-window))))))
 
 (define-record-type lib-state
   (make-lib-state lst activate constraint top-pos sel-pos)

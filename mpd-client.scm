@@ -39,7 +39,20 @@
                  mpd:repeat-set!
                  mpd:random-set!
                  mpd:single-set!
-                 mpd:consume-set!))
+                 mpd:consume-set!
+                 mpd:add!
+                 mpd:add-id!
+                 mpd:add-id-to!
+                 mpd:delete!
+                 mpd:delete-id!
+                 mpd:delete-range!
+                 mpd:shuffle!
+                 mpd:shuffle-range!
+                 mpd:clear!
+                 mpd:move!
+                 mpd:move-range!
+                 mpd:swap!
+                 mpd:swap-id!))
 
 (foreign-declare "#include <mpd/client.h>")
 (include "libmpdclient.scm")
@@ -251,7 +264,7 @@
     (mpd:raise-error connection)))
 
 (define-syntax mpd:define-wrapper
-  (syntax-rules (0 1 2)
+  (syntax-rules (0 1 2 3)
     ((mpd:define-wrapper 0 name mpd-fn)
       (define (name connection)
         (if (not (mpd-fn connection))
@@ -263,6 +276,10 @@
     ((mpd:define-wrapper 2 name mpd-fn)
       (define (name connection arg1 arg2)
         (if (not (mpd-fn connection arg1 arg2))
+          (mpd:raise-error connection))))
+    ((mpd:define-wrapper 3 name mpd-fn)
+      (define (name connection arg1 arg2 arg3)
+        (if (not (mpd-fn connection arg1 arg2 arg3))
           (mpd:raise-error connection))))))
 
 (mpd:define-wrapper 0 mpd:play! mpd_run_play)
@@ -278,3 +295,27 @@
 (mpd:define-wrapper 1 mpd:random-set! mpd_run_random)
 (mpd:define-wrapper 1 mpd:single-set! mpd_run_single)
 (mpd:define-wrapper 1 mpd:consume-set! mpd_run_consume)
+(mpd:define-wrapper 1 mpd:add! mpd_run_add)
+(mpd:define-wrapper 1 mpd:delete! mpd_run_delete)
+(mpd:define-wrapper 1 mpd:delete-id! mpd_run_delete_id)
+(mpd:define-wrapper 2 mpd:delete-range! mpd_run_delete_range)
+(mpd:define-wrapper 0 mpd:shuffle! mpd_run_shuffle)
+(mpd:define-wrapper 2 mpd:shuffle-range! mpd_run_shuffle_range)
+(mpd:define-wrapper 0 mpd:clear! mpd_run_clear)
+(mpd:define-wrapper 2 mpd:move! mpd_run_move)
+(mpd:define-wrapper 2 mpd:move-id! mpd_run_move_id)
+(mpd:define-wrapper 3 mpd:move-range! mpd_run_move_range)
+(mpd:define-wrapper 2 mpd:swap! mpd_run_swap)
+(mpd:define-wrapper 2 mpd:swap-id! mpd_run_swap_id)
+
+(define (mpd:add-id! connection file)
+  (let ((rv (mpd_run_add_id connection file)))
+    (if (= rv -1)
+      (mpd:raise-error connection)
+      rv)))
+
+(define (mpd:add-id-to! connection file pos)
+  (let ((rv (mpd_run_add_it_to connection file pos)))
+    (if (= rv -1)
+      (mpd:raise-error connection)
+      rv)))
