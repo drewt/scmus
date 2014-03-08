@@ -161,54 +161,56 @@
   (window-deactivate! (current-window)))
 
 (define-record-type lib-state
-  (make-lib-state lst activate constraint)
+  (make-lib-state lst activate constraint top-pos sel-pos)
   lib-state?
   (lst lib-state-list lib-state-list-set!)
   (activate lib-state-activate lib-state-activate-set!)
-  (constraint lib-state-constraint lib-state-constraint-set!))
+  (constraint lib-state-constraint lib-state-constraint-set!)
+  (top-pos lib-state-top-pos lib-state-top-pos-set!)
+  (sel-pos lib-state-sel-pos lib-state-sel-pos-set!))
 
 (define (lib-init-data)
-  (list (make-lib-state *artists* lib-artist-activate! '())))
+  (list (make-lib-state *artists* lib-artist-activate! '() 0 0)))
 
 (define (lib-data window)
   (lib-state-list (car (*window-data window))))
 
-(define (lib-artist-activate! window)
-  (let* ((selected (window-selected window))
-         (stack (*window-data window))
-         (constraint (cons 'artist selected))
-         (next-list (scmus-search-by-tag 'album constraint)))
-    (*window-data-set! window (cons (make-lib-state next-list
-                                                    lib-album-activate!
-                                                    constraint)
-                                    stack))
-    (window-activate-set! window lib-album-activate!)
-    (window-top-pos-set! window 0)
-    (window-sel-pos-set! window 0)
-    (register-event! 'library-data-changed)))
-
-(define (lib-album-activate! window)
-  (let* ((selected (window-selected window))
-         (stack (*window-data window))
-         (constraint (cons 'album selected))
-         (next-list (scmus-search-songs #t constraint)))
-    (*window-data-set! window (cons (make-lib-state next-list
-                                                    lib-track-activate!
-                                                    constraint)
-                                    stack))
-    (window-activate-set! window lib-track-activate!)
-    (window-top-pos-set! window 0)
-    (window-sel-pos-set! window 0)
-    (register-event! 'library-data-changed)))
+(define (lib-activate-fn tag activate next-list-gen)
+  (lambda (window)
+    (let* ((selected (window-selected window))
+           (stack (*window-data window))
+           (constraint (cons tag selected))
+           (next-list (next-list-gen constraint)))
+      (lib-state-top-pos-set! (car stack) (window-top-pos window))
+      (lib-state-sel-pos-set! (car stack) (window-sel-pos window))
+      (*window-data-set! window (cons (make-lib-state next-list
+                                                      activate
+                                                      constraint
+                                                      0 0)
+                                      stack))
+      (window-activate-set! window activate)
+      (window-top-pos-set! window 0)
+      (window-sel-pos-set! window 0)
+      (register-event! 'library-data-changed))))
 
 (define (lib-track-activate! window)
   (void))
+
+(define lib-album-activate!
+  (lib-activate-fn 'album lib-track-activate!
+    (lambda (constraint) (scmus-search-songs #t constraint))))
+
+(define lib-artist-activate!
+  (lib-activate-fn 'artist lib-album-activate!
+    (lambda (constraint) (scmus-search-by-tag 'album constraint))))
 
 (define (lib-deactivate! window)
   (let ((stack (*window-data window)))
    (when (not (null? (cdr stack)))
      (*window-data-set! window (cdr stack))
      (window-activate-set! window (lib-state-activate (cadr stack)))
+     (window-top-pos-set! window (lib-state-top-pos (cadr stack)))
+     (window-sel-pos-set! window (lib-state-sel-pos (cadr stack)))
      (register-event! 'library-data-changed))))
 
 ;; screen updates {{{
