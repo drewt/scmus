@@ -33,6 +33,7 @@
                  win-move!
                  win-activate!
                  win-deactivate!
+                 win-add!
                  win-remove!
                  print-command-line-char
                  register-event!
@@ -160,6 +161,18 @@
 
 (define (win-deactivate!)
   (window-deactivate! (current-window)))
+
+(define (win-add! #!optional (view 'queue) (pos #f))
+  (define (queue-add! file)
+    (if pos
+      (scmus-add-id-to! file pos)
+      (scmus-add! file)))
+  (case *current-view*
+    ((library)
+      (let ((selected (window-selected (current-window))))
+        (when (list? selected)
+          (case view
+            ((queue) (queue-add! (track-file selected)))))))))
 
 (define (win-remove!)
   (case *current-view*
