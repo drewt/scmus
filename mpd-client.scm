@@ -315,7 +315,7 @@
       rv)))
 
 (define (mpd:add-id-to! connection file pos)
-  (let ((rv (mpd_run_add_it_to connection file pos)))
+  (let ((rv (mpd_run_add_id_to connection file pos)))
     (if (= rv -1)
       (mpd:raise-error connection)
       rv)))
