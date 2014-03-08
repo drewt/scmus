@@ -213,3 +213,9 @@
                   *mpd-connection* tag constraints)
            string-ci<?)
     (exn (mpd) (error-set! exn))))
+
+(define (scmus-search-songs exact . constraints)
+  (condition-case
+    (apply mpd:db-search-songs
+           *mpd-connection* exact constraints)
+    (exn (mpd) (error-set! exn))))

@@ -191,7 +191,7 @@
   (let* ((selected (window-selected window))
          (stack (*window-data window))
          (constraint (cons 'album selected))
-         (next-list `(,selected "fake" "list")))
+         (next-list (scmus-search-songs #t constraint)))
     (*window-data-set! window (cons (make-lib-state next-list
                                                     lib-track-activate!
                                                     constraint)
@@ -288,6 +288,15 @@
                              (- (COLS) 2)))
   (clrtoeol))
 
+(define (library-window-print-row window row line-nr)
+  (if (list? row)
+    (begin
+      (cursed-trackwin-set! window row line-nr)
+      (format-print-line line-nr (get-option 'format-library) row))
+    (begin
+      (cursed-set! CURSED-WIN)
+      (list-window-print-row window row line-nr))))
+
 ;; Set the appropriate CURSED-* pair for the given window and track.
 (define (cursed-trackwin-set! window track line-nr)
   (assert (window? window))
@@ -318,7 +327,7 @@
   (when (current-view? 'library)
     (print-window-title (process-format (string->list "Library")))
     (print-window (alist-ref 'library *windows*)
-                  list-window-print-row)))
+                  library-window-print-row)))
 
 (define (update-library-data)
   (window-data-len-update! (alist-ref 'library *windows*))

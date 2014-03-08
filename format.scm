@@ -45,11 +45,6 @@
     ((pause) "|")
     ((unknown) "?")))
 
-(define (clean-nr str)
-  (assert (string? str))
-  (let ((i (string-index str #\/)))
-    (if i (string-take str i) str)))
-
 ;; Takes a processed format string (see: process-format)
 ;; and returns a pair of strings, where the car is the
 ;; left-justified part and the cdr is the right justified

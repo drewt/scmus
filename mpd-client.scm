@@ -26,6 +26,7 @@
                  mpd:get-current-song
                  mpd:list-queue
                  mpd:db-list-tags
+                 mpd:db-search-songs
                  mpd:play!
                  mpd:play-id!
                  mpd:play-pos!
@@ -239,6 +240,15 @@
         (begin (mpd_search_cancel connection)
                (mpd:raise-error connection)))
       (mpd:raise-error connection))))
+
+(define (mpd:db-search-songs connection exact . constraints)
+  (if (mpd_search_db_songs connection exact)
+    (if (and (mpd:search-add-tag-constraints connection constraints)
+             (mpd_search_commit connection))
+      (reverse (read-songs connection '()))
+      (begin (mpd_search_cancel connection)
+             (mpd:raise-error connection)))
+    (mpd:raise-error connection)))
 
 (define-syntax mpd:define-wrapper
   (syntax-rules (0 1 2)

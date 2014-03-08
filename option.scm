@@ -106,6 +106,8 @@
           (process-format (string->list "~a - ~l ~n. ~t~= ~y")))
     (cons 'format-status
           (process-format (string->list "~P ~p / ~d - ~T vol: ~v~= ~S~R~r~C")))
+    (cons 'format-library
+          (process-format (string->list "~-25%a ~3n. ~t~= ~-4y ~d")))
     (cons 'format-queue
           (process-format (string->list "~-25%a ~3n. ~t~= ~-4y ~d")))
     (cons 'format-queue-title
@@ -149,5 +151,6 @@
     (option-spec 'color-win-title-fg *option-value color-set!)
     (option-spec 'format-current *option-value format-set!)
     (option-spec 'format-status *option-value format-set!)
+    (option-spec 'format-library *option-value format-set!)
     (option-spec 'format-queue *option-value format-set!)
     (option-spec 'format-queue-title *option-value format-set!)))

@@ -112,6 +112,11 @@
                      (format "0~a" seconds)
                      (number->string seconds)))))
 
+(define (clean-nr str)
+  (assert (string? str))
+  (let ((i (string-index str #\/)))
+    (if i (string-take str i) str)))
+
 (define (error-set! error)
   (let ((out (open-output-string)))
     (pretty-print (condition->list error) out)
