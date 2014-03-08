@@ -32,6 +32,10 @@
 (bind! "<" 'common (lambda () (seek! -60)) #t)
 (bind! ">" 'common (lambda () (seek!  60)) #t)
 
+;; queue management
+(bind! "a" 'common win-add! #t)
+(bind! "d" 'common win-remove! #t)
+
 (bind! "enter" 'common win-activate! #t)
 (bind! "(" 'common (lambda () (push! "(")) #t)
 
