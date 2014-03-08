@@ -1,5 +1,5 @@
 CSC      = csc
-CSCFLAGS = -C -Wno-int-to-pointer-cast -uses lib
+CSCFLAGS = -scrutinize -C -Wno-int-to-pointer-cast -uses lib
 LD       = csc
 LDFLAGS  =
 
