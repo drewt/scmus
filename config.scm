@@ -20,7 +20,9 @@
 (define *verbose* #f)
 (define *debug* #t)
 
-(define *sysrc-path* "scmusrc.scm")
-(define *scmusrc-path* "~/.scmusrc")
+(define *sysrc-path* (string-append *scmus-dir* "/scmusrc.scm"))
+(define *scmusrc-path*
+  (string-append (get-environment-variable "HOME")
+                 "/.scmusrc"))
 (define *mpd-address* "localhost")
 (define *mpd-port* 6600)

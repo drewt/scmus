@@ -51,8 +51,12 @@
     (init-client *mpd-address* *mpd-port*)
     (verbose-printf "Initializing environment...~n")
     (init-sandbox)
-    (user-load *sysrc-path*)
-    (user-load *scmusrc-path*)
+    (handle-exceptions x
+      (printf "WARNING: failed to load ~a~n" *sysrc-path*)
+      (user-load *sysrc-path*))
+    (handle-exceptions x
+      (void)
+      (user-load *scmusrc-path*))
     (verbose-printf "Initializing ncurses...~n")
     (init-curses)
     (set-input-mode! 'normal-mode)))

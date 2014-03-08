@@ -1,4 +1,4 @@
-scmus - Scheme mpd Client
+scmus - Scheme MPD Client
 =========================
 
 Copyright © 2014 Drew Thoreson
@@ -9,9 +9,10 @@ Building
 
 You'll need the Chicken scheme compiler/runtime to build and run scmus.
 Consult http://wiki.call-cc.org/platforms for instructions on getting Chicken
-on your platform.
+on your platform.  You'll also need to install the ncurses and mpdclient
+libraries.
 
-scmus depends on a few "eggs".  To install the dependencies:
+scmus depends on a few "eggs".  To install them:
 
     $ make eggs
 
@@ -24,12 +25,6 @@ Installation
 ------------
 
     $ make install
-
-
-Manuals
--------
-
-TODO
 
 
 Git Repository

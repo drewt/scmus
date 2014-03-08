@@ -1,7 +1,16 @@
+
+prefix = /usr/local
+bindir = $(prefix)/bin
+datadir = $(prefix)/share
+mandir = $(prefix)/share/man
+
+prelude = '"(define *scmus-dir* \"$(datadir)/scmus\")"'
+
 CSC      = csc
 CSCFLAGS = -scrutinize -C -Wno-int-to-pointer-cast -uses lib
 LD       = csc
 LDFLAGS  =
+INSTALL  = @scripts/install
 
 eggs = ncurses sandbox
 
@@ -15,6 +24,8 @@ all: scmus
 
 include rules.mk
 
+config.o: CSCFLAGS += -prelude $(prelude)
+
 libmpdclient.scm: libmpdclient.h
 	chicken-bind libmpdclient.h
 
@@ -23,3 +34,7 @@ scmus: $(objects)
 
 eggs:
 	chicken-install $(eggs)
+
+install: all
+	$(INSTALL) -m755 $(bindir) scmus
+	$(INSTALL) -m644 $(datadir)/scmus scmusrc.scm
