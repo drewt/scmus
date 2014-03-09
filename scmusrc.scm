@@ -7,14 +7,14 @@
 ;; hjkl
 (bind! "j" 'common (lambda () (win-move!  1)) #t)
 (bind! "k" 'common (lambda () (win-move! -1)) #t)
-(bind! "h" 'common (lambda () (seek! -1))     #t)
-(bind! "l" 'common (lambda () (seek!  1))     #t)
+(bind! "h" 'common (lambda () (seek! -5))     #t)
+(bind! "l" 'common (lambda () (seek!  5))     #t)
 
 ;; arrow keys
 (bind! "down"  'common (lambda () (win-move!  1)) #t)
 (bind! "up"    'common (lambda () (win-move! -1)) #t)
-(bind! "left"  'common (lambda () (seek! -1))     #t)
-(bind! "right" 'common (lambda () (seek!  1))     #t)
+(bind! "left"  'common (lambda () (seek! -5))     #t)
+(bind! "right" 'common (lambda () (seek!  5))     #t)
 
 ;; player control
 (bind! "z" 'common prev!  #t)
