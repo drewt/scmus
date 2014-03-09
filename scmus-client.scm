@@ -191,9 +191,6 @@
 (scmus-command 1 scmus-random-set! mpd:random-set!)
 (scmus-command 1 scmus-single-set! mpd:single-set!)
 (scmus-command 1 scmus-consume-set! mpd:consume-set!)
-(scmus-command 1 scmus-add! mpd:add!)
-(scmus-command 1 scmus-add-id! mpd:add-id!)
-(scmus-command 2 scmus-add-id-to! mpd:add-id-to!)
 (scmus-command 1 scmus-delete! mpd:delete!)
 (scmus-command 1 scmus-delete-id! mpd:delete-id!)
 (scmus-command 2 scmus-delete-range! mpd:delete-range!)
@@ -225,6 +222,11 @@
 (define (scmus-toggle-consume!)
   (scmus-consume-set! (if (scmus-consume?) #f #t)))
 
+(define (scmus-add! file #!optional (to #f))
+  (if to
+    (mpd:add-id-to! *mpd-connection* file to)
+    (mpd:add-id! *mpd-connection* file)))
+
 (define (scmus-search-by-tag tag . constraints)
   (condition-case
     (sort! (apply mpd:db-list-tags
@@ -232,8 +234,8 @@
            string-ci<?)
     (exn (mpd) (error-set! exn))))
 
-(define (scmus-search-songs exact . constraints)
+(define (scmus-search-songs exact add . constraints)
   (condition-case
     (apply mpd:db-search-songs
-           *mpd-connection* exact constraints)
+           *mpd-connection* exact add constraints)
     (exn (mpd) (error-set! exn))))

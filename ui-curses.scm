@@ -164,16 +164,11 @@
   (window-deactivate! (current-window)))
 
 (define (win-add! #!optional (view 'queue) (pos #f))
-  (define (queue-add! file)
-    (if pos
-      (scmus-add-id-to! file pos)
-      (scmus-add! file)))
   (case *current-view*
     ((library)
       (let ((selected (window-selected (current-window))))
-        (when (list? selected)
-          (case view
-            ((queue) (queue-add! (track-file selected)))))))))
+        (case view
+          ((queue) (lib-add-selected! pos)))))))
 
 (define (win-remove!)
   (case *current-view*
@@ -184,19 +179,40 @@
     ((queue) (scmus-clear!))))
 
 (define-record-type lib-state
-  (make-lib-state lst activate constraint top-pos sel-pos)
+  (make-lib-state lst tag activate constraint top-pos sel-pos)
   lib-state?
   (lst lib-state-list lib-state-list-set!)
+  (tag lib-state-tag lib-state-tag-set!)
   (activate lib-state-activate lib-state-activate-set!)
   (constraint lib-state-constraint lib-state-constraint-set!)
   (top-pos lib-state-top-pos lib-state-top-pos-set!)
   (sel-pos lib-state-sel-pos lib-state-sel-pos-set!))
 
+(define (lib-next-tag tag)
+  (case tag
+    ((artist) 'album)
+    ((album) 'title)))
+
 (define (lib-init-data)
-  (list (make-lib-state *artists* lib-artist-activate! '() 0 0)))
+  (list (make-lib-state *artists*  'artist lib-artist-activate! '() 0 0)))
 
 (define (lib-data window)
   (lib-state-list (car (*window-data window))))
+
+(define (lib-constraints)
+  (let loop ((stack (*window-data (alist-ref 'library *windows*)))
+             (constraints '()))
+    (let ((constraint (lib-state-constraint (car stack))))
+      (if (null? constraint)
+        constraints
+        (loop (cdr stack) (cons constraint constraints))))))
+
+(define (lib-selected-constraints)
+  (let* ((window (alist-ref 'library *windows*))
+         (selected (window-selected window))
+         (state (car (*window-data window)))
+         (constraint (cons (lib-state-tag state) selected)))
+    (cons constraint (lib-constraints))))
 
 (define (lib-activate-fn tag activate next-list-gen)
   (lambda (window)
@@ -207,6 +223,7 @@
       (lib-state-top-pos-set! (car stack) (window-top-pos window))
       (lib-state-sel-pos-set! (car stack) (window-sel-pos window))
       (*window-data-set! window (cons (make-lib-state next-list
+                                                      (lib-next-tag tag)
                                                       activate
                                                       constraint
                                                       0 0)
@@ -221,7 +238,7 @@
 
 (define lib-album-activate!
   (lib-activate-fn 'album lib-track-activate!
-    (lambda (constraint) (scmus-search-songs #t constraint))))
+    (lambda (constraint) (scmus-search-songs #t #f constraint))))
 
 (define lib-artist-activate!
   (lib-activate-fn 'artist lib-album-activate!
@@ -235,6 +252,12 @@
      (window-top-pos-set! window (lib-state-top-pos (cadr stack)))
      (window-sel-pos-set! window (lib-state-sel-pos (cadr stack)))
      (register-event! 'library-data-changed))))
+
+(define (lib-add-selected! pos)
+  (let ((selected (window-selected (alist-ref 'library *windows*))))
+   (if (list? selected)
+     (scmus-add! (track-file selected) pos)
+     (apply scmus-search-songs #t #t (lib-selected-constraints)))))
 
 ;; screen updates {{{
 
