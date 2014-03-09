@@ -35,6 +35,7 @@
 ;; queue management
 (bind! "a" 'common win-add! #t)
 (bind! "d" 'common win-remove! #t)
+(bind! "D" 'common win-clear!)
 
 (bind! "enter" 'common win-activate! #t)
 (bind! "(" 'common (lambda () (push! "(")) #t)
