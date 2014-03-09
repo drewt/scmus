@@ -43,7 +43,6 @@
                  cursor-off
                  set-input-mode!
                  handle-input
-                 update-colors!
                  init-curses
                  exit-curses))
 
@@ -437,39 +436,17 @@
 (define (update-cursor)
   (move (- (LINES) 1) (command-line-cursor-pos)))
 
-;; screen updates }}}
-
-(define *events* '())
-(define *event-handlers*
-  (list (cons 'command-line-changed update-command-line)
-        (cons 'status-changed update-status)
-        (cons 'current-line-changed update-current)
-        (cons 'library-changed update-library-window)
-        (cons 'library-data-changed update-library-data)
-        (cons 'queue-changed update-queue-window)
-        (cons 'queue-data-changed update-queue-data)
-        (cons 'error-changed update-error)))
-
-(define (register-event! event)
-  (assert (symbol? event))
-  (set! *events* (cons event *events*)))
-
-(define (curses-update)
-  (for-each (lambda (x)
-              ((alist-ref x *event-handlers*)))
-            *events*)
-  (update-cursor)
-  (set! *events* '()))
-
-(define (handle-resize)
+(define (redraw-ui)
   (for-each (lambda (x) (window-nr-lines-set! (cdr x) (- (LINES) 4)))
             *windows*)
-  (register-event! 'library-changed)
-  (register-event! 'queue-changed)
-  (register-event! 'current-line-changed)
-  (register-event! 'status-changed)
-  (register-event! 'command-line-changed)
-  (register-event! 'error-changed))
+  (update-library-window)
+  (update-queue-window)
+  (update-error)
+  (update-current)
+  (update-status)
+  (update-command-line))
+
+;; screen updates }}}
 
 (define (cursor-on)
   (curs_set 1))
@@ -502,7 +479,7 @@
   (let ((ch (getch)))
     (cond
       ((key= ch ERR)        #f)
-      ((key= ch KEY_RESIZE) (handle-resize))
+      ((key= ch KEY_RESIZE) (redraw-ui))
       ((key? ch)            (handle-key ch))
       (else                 (handle-char ch)))))
 
@@ -623,6 +600,30 @@
   (bkgdset (COLOR_PAIR (cursed-pair cursed))))
 
 ;; colors }}}
+
+(define *events* '())
+(define *event-handlers*
+  (list (cons 'command-line-changed update-command-line)
+        (cons 'status-changed update-status)
+        (cons 'current-line-changed update-current)
+        (cons 'library-changed update-library-window)
+        (cons 'library-data-changed update-library-data)
+        (cons 'queue-changed update-queue-window)
+        (cons 'queue-data-changed update-queue-data)
+        (cons 'error-changed update-error)
+        (cons 'color-changed update-colors!)
+        (cons 'format-changed redraw-ui)))
+
+(define (register-event! event)
+  (assert (symbol? event))
+  (set! *events* (cons event *events*)))
+
+(define (curses-update)
+  (for-each (lambda (x)
+              ((alist-ref x *event-handlers*)))
+            *events*)
+  (update-cursor)
+  (set! *events* '()))
 
 (define (init-windows!)
   (alist-update! 'library

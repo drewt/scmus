@@ -54,13 +54,14 @@
   (when (or (and (integer? value) (< value 256))
             (and (symbol? value) (color-symbol? value)))
     (*option-value-set! option value)
-    (update-colors!)))
+    (register-event! 'color-changed)))
 
 (define (format-set! option value)
   (if (string? value)
     (let ((fmt (string->list value)))
-      (if (format-string-valid? fmt)
-        (*option-value-set! option (process-format value))))))
+      (when (format-string-valid? fmt)
+        (*option-value-set! option (process-format fmt))
+        (register-event! 'format-changed)))))
 
 ;; generates an alist entry for *options*
 (define (option-spec name accessor mutator)
