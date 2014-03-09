@@ -21,6 +21,7 @@
  
 (declare (unit eval-mode)
          (uses ui-curses
+               scmus-client
                command-line
                keys
                option)
@@ -82,7 +83,8 @@
   (safe-environment-set! *user-env* 'win-deactivate! win-deactivate!)
   (safe-environment-set! *user-env* 'win-add! win-add!)
   (safe-environment-set! *user-env* 'win-remove! win-remove!)
-  (safe-environment-set! *user-env* 'win-clear! win-clear!))
+  (safe-environment-set! *user-env* 'win-clear! win-clear!)
+  (safe-environment-set! *user-env* 'shuffle! scmus-shuffle!))
 
 (define (user-eval str)
   (assert (string? str))
