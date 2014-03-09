@@ -43,6 +43,7 @@
                  cursor-off
                  set-input-mode!
                  handle-input
+                 update-colors!
                  init-curses
                  exit-curses))
 
@@ -557,7 +558,12 @@
                (get-color-option bg)
                (get-color-option fg)))
 
-(define (init-colors!)
+(define (update-colors!)
+  (define (*update-colors!)
+    (let loop ((i 0))
+      (when (< i NR-CURSED)
+        (init_pair (cursed-pair i) (cursed-fg i) (cursed-bg i))
+        (loop (+ i 1)))))
   (init-cursed! CURSED-CMDLINE
                 'color-cmdline-attr
                 'color-cmdline-bg
@@ -569,7 +575,7 @@
   (init-cursed! CURSED-INFO
                 'color-cmdline-attr
                 'color-cmdline-bg
-                'color-cmdline-fg)
+                'color-info)
   (init-cursed! CURSED-SEPARATOR
                 'color-win-attr
                 'color-win-bg
@@ -610,18 +616,11 @@
                 'color-win-title-attr
                 'color-win-title-bg
                 'color-win-title-fg)
-  (update-colors!)
+  (*update-colors!)
   (cursed-set! CURSED-WIN))
 
 (define (cursed-set! cursed)
   (bkgdset (COLOR_PAIR (cursed-pair cursed))))
-
-(define (update-colors!)
-  (define (*update-colors! i)
-    (when (< i NR-CURSED)
-      (init_pair (cursed-pair i) (cursed-fg i) (cursed-bg i))
-      (*update-colors! (+ i 1))))
-  (*update-colors! 0))
 
 ;; colors }}}
 
@@ -656,7 +655,7 @@
   (when (has_colors)
     (start_color)
     (use_default_colors))
-  (init-colors!)
+  (update-colors!)
   (init-windows!))
 
 (define (exit-curses)

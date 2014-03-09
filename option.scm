@@ -18,7 +18,8 @@
 (require-extension ncurses) ; color constants
 
 (declare (unit option)
-         (uses format)
+         (uses format
+               ui-curses)
          (export get-option
                  set-option!))
 
@@ -50,9 +51,10 @@
     (else    #f)))
 
 (define (color-set! option value)
-  (if (or (and (integer? value) (< value 256))
-          (and (symbol? value) (color-symbol? value)))
-    (*option-value-set! option value)))
+  (when (or (and (integer? value) (< value 256))
+            (and (symbol? value) (color-symbol? value)))
+    (*option-value-set! option value)
+    (update-colors!)))
 
 (define (format-set! option value)
   (if (string? value)
