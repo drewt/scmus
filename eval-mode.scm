@@ -53,11 +53,15 @@
   (set-input-mode! 'eval-mode)
   (command-line-text-set! str))
 
+(define (colorscheme! str)
+  (user-load (format "~a/colors/~a.scm" *scmus-dir* str)))
+
 ;; user functions }}}
 
 (define *user-env* (make-safe-environment parent: default-safe-environment))
 
 (define (init-sandbox)
+  (safe-environment-set! *user-env* 'colorscheme! colorscheme!)
   (safe-environment-set! *user-env* 'set-option! set-option!)
   (safe-environment-set! *user-env* 'get-option get-option)
   (safe-environment-set! *user-env* 'bind! user-bind!)

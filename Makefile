@@ -37,4 +37,5 @@ eggs:
 
 install: all
 	$(INSTALL) -m755 $(bindir) scmus
-	$(INSTALL) -m644 $(datadir)/scmus scmusrc.scm
+	$(INSTALL) -m644 $(datadir)/scmus data/scmusrc.scm
+	$(INSTALL) -m644 $(datadir)/scmus/colors $(wildcard data/colors/*)
