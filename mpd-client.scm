@@ -57,11 +57,10 @@
 (foreign-declare "#include <mpd/client.h>")
 (include "libmpdclient.scm")
 
-(define (mpd:connect host port)
-  (mpd_connection_new host port 5000))
+(define (mpd:connect host port #!optional (timeout 5000))
+  (mpd_connection_new host port timeout))
 
-(define (mpd:disconnect connection)
-  (mpd_connection_free connection))
+(define mpd:disconnect mpd_connection_free)
 
 (define (mpd:reconnect connection)
   (let* ((settings (mpd_connection_get_settings connection))
@@ -97,7 +96,7 @@
              '())))
      (if stats
        (mpd_stats_free stats))
-     (when (not (= error MPD_ERROR_SUCCESS))
+     (unless (= error MPD_ERROR_SUCCESS)
        (mpd:raise-error connection))
      retval))
 
@@ -155,9 +154,9 @@
              '())))
     (if status
       (mpd_status_free status))
-    (when (not (= error MPD_ERROR_SUCCESS))
-      (mpd:raise-error connection))
-    retval))
+    (if (= error MPD_ERROR_SUCCESS)
+      retval
+      (mpd:raise-error connection))))
 
 (define (song->alist song)
   (list
@@ -192,21 +191,21 @@
          (retval (if song (song->alist song) '())))
     (if song
       (mpd_song_free song))
-    (when (not (= error MPD_ERROR_SUCCESS))
-      (mpd:raise-error connection))
-    retval))
+    (if (= error MPD_ERROR_SUCCESS)
+      retval
+      (mpd:raise-error connection))))
 
-(define (read-songs connection l)
+(define (read-songs connection lst)
   (let* ((song (mpd_recv_song connection))
          (error (mpd_connection_get_error connection))
          (next (if song (song->alist song) '())))
     (if song
       (begin
         (mpd_song_free song)
-        (read-songs connection (cons next l)))
+        (read-songs connection (cons next lst)))
       ; mpd_recv_song returned NULL
       (if (= error MPD_ERROR_SUCCESS)
-        l
+        lst
         (mpd:raise-error connection)))))
 
 (define (mpd:list-queue connection)

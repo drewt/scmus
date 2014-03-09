@@ -59,16 +59,16 @@
 ;; for some reason.
 (define (key= ch key)
   (assert (integer? key))
-  (eqv? ch (integer->char key)))
+  (char=? ch (integer->char key)))
 
-;; #t if ch is not a printable character
+;; #t if ch is not an ascii character
 (define (key? ch)
   (assert (char? ch))
   (> (char->integer ch) 255))
 
 (define (string-split-lines str)
   (string-tokenize str (char-set-filter (lambda (c)
-                                          (not (eqv? c #\newline)))
+                                          (not (char=? c #\newline)))
                                         char-set:full)))
 
 (define (string-truncate s len #!optional (left #f))

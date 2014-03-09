@@ -32,10 +32,6 @@
   (assert (pair? pair))
   (cons (cdr pair) (car pair)))
 
-(define (ascii-num? c)
-  (assert (char? c))
-  (memv c '(#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\0)))
-
 (define (scmus-state->character state)
   (assert (symbol? state))
   (assert (memv state '(play stop pause unknown)))
@@ -163,7 +159,7 @@
   (case (string->symbol
           (list->string
             (take-while
-              (lambda (x) (not (eqv? #\} x)))
+              (lambda (x) (not (char=? #\} x)))
               spec)))
     ((artist)       'artist)
     ((album)        'album)
@@ -191,12 +187,12 @@
   (assert (and (list? spec) (not (null? spec))))
   (define (*parse-spec spec n)
     (cond
-      ((ascii-num? (car spec))
+      ((char-numeric? (car spec))
         (*parse-spec (cdr spec)
                      (+ (* n 10)
                         (- (char->integer (car spec))
                            (char->integer #\0)))))
-      ((eqv? (car spec) #\%)
+      ((char=? (car spec) #\%)
         (cons 'relative (cons n (parse-format-spec (cdr spec)))))
       (else (cons n (parse-format-spec spec)))))
   (*parse-spec spec 0))
@@ -205,27 +201,27 @@
 (define (format-next spec)
   (assert (and (list? spec) (not (null? spec)) (char? (car spec))))
   (cond
-    ((eqv? (car spec) #\{) (braced-next (cdr spec)))
-    ((eqv? (car spec) #\-) (format-next (cdr spec)))
-    ((ascii-num? (car spec)) (numbered-next spec))
+    ((char=? (car spec) #\{) (braced-next (cdr spec)))
+    ((char=? (car spec) #\-) (format-next (cdr spec)))
+    ((char-numeric? (car spec)) (numbered-next spec))
     (else (cdr spec))))
 
 (define (braced-next spec)
   (assert (and (list? spec) (not (null? spec)) (char? (car spec))))
-  (if (eqv? (car spec) #\})
+  (if (char=? (car spec) #\})
     (cdr spec)
     (braced-next (cdr spec))))
 
 (define (skip-number spec)
   (assert (and (list? spec) (not (null? spec)) (char? (car spec))))
-  (if (ascii-num? (car spec))
+  (if (char-numeric? (car spec))
     (skip-number (cdr spec))
     spec))
 
 (define (numbered-next spec)
   (assert (and (list? spec) (not (null? spec)) (char? (car spec))))
   (let ((rest (skip-number spec)))
-    (if (eqv? (car rest) #\%)
+    (if (char=? (car rest) #\%)
       (format-next (cdr rest))
       (format-next rest))))
 
@@ -245,7 +241,7 @@
   (memv (string->symbol
           (list->string
             (take-while
-              (lambda (x) (not (eqv? #\} x)))
+              (lambda (x) (not (char=? #\} x)))
               spec)))
         '(artist
           album
@@ -277,7 +273,7 @@
   (assert (list? chars))
   (cond
     ((null? chars) #t)
-    ((not (eqv? (car chars) #\~))
+    ((not (char=? (car chars) #\~))
       (format-string-valid? (cdr chars)))
     ((format-spec-valid? (cdr chars))
       (format-string-valid? (format-next (cdr chars))))
@@ -291,7 +287,7 @@
     (cond
       ((null? in)
         out)
-      ((not (eqv? (car in) #\~))
+      ((not (char=? (car in) #\~))
         (*process-format (cdr in)
                          (cons (car in) out)))
       (else
