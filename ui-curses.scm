@@ -55,17 +55,14 @@
 (define-constant CURSED-CMDLINE 0)
 (define-constant CURSED-ERROR 1)
 (define-constant CURSED-INFO 2)
-(define-constant CURSED-SEPARATOR 3)
-(define-constant CURSED-STATUSLINE 4)
-(define-constant CURSED-TITLELINE 5)
-(define-constant CURSED-WIN 6)
-(define-constant CURSED-WIN-CUR 7)
-(define-constant CURSED-WIN-CUR-SEL 8)
-(define-constant CURSED-WIN-INACTIVE-CUR-SEL 9)
-(define-constant CURSED-WIN-INACTIVE-SEL 10)
-(define-constant CURSED-WIN-SEL 11)
-(define-constant CURSED-WIN-TITLE 12)
-(define-constant NR-CURSED 13)
+(define-constant CURSED-STATUSLINE 3)
+(define-constant CURSED-TITLELINE 4)
+(define-constant CURSED-WIN 5)
+(define-constant CURSED-WIN-CUR 6)
+(define-constant CURSED-WIN-CUR-SEL 7)
+(define-constant CURSED-WIN-SEL 8)
+(define-constant CURSED-WIN-TITLE 9)
+(define-constant NR-CURSED 10)
 
 (define *ui-initialized* #f)
 (define *current-input-mode* 'normal-mode)
@@ -553,10 +550,6 @@
                 'color-cmdline-attr
                 'color-cmdline-bg
                 'color-info)
-  (init-cursed! CURSED-SEPARATOR
-                'color-win-attr
-                'color-win-bg
-                'color-separator)
   (init-cursed! CURSED-STATUSLINE
                 'color-statusline-attr
                 'color-statusline-bg
@@ -577,14 +570,6 @@
                 'color-win-cur-sel-attr
                 'color-win-cur-sel-bg
                 'color-win-cur-sel-fg)
-  (init-cursed! CURSED-WIN-INACTIVE-CUR-SEL
-                'color-win-inactive-cur-sel-attr
-                'color-win-inactive-cur-sel-bg
-                'color-win-inactive-cur-sel-fg)
-  (init-cursed! CURSED-WIN-INACTIVE-SEL
-                'color-win-inactive-sel-attr
-                'color-win-inactive-sel-bg
-                'color-win-inactive-sel-fg)
   (init-cursed! CURSED-WIN-SEL
                 'color-win-sel-attr
                 'color-win-sel-bg
