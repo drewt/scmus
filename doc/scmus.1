@@ -69,6 +69,13 @@ Examples:
 (win-clear!)
 .fi
 .RE
+.SH SEARCHING
+Search mode works like eval mode.  To enter search mode press \fB/\fR and then
+type the search words and press \fBENTER\fR.  Press \fBn\fR to search next
+using the same search words.
+
+scmus uses a simple substring match search.  When the current window contains
+a list of tracks, artist, album, albumartist and title are searched.
 .SH STATUS LINE
 The right hand side of the status line (second row from the bottom) consists
 of the following fields:
