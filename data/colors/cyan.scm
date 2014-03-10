@@ -9,7 +9,7 @@
 (set-option! 'color-win-bg 'default)
 (set-option! 'color-win-fg 'cyan)
 (set-option! 'color-win-cur 'green)
-(set-option! 'color-dir 'light-blue)
+(set-option! 'color-win-dir 'light-blue)
 (set-option! 'color-win-title-bg 'blue)
 (set-option! 'color-win-title-fg 'white)
 (set-option! 'color-win-cur-sel-bg 'blue)
