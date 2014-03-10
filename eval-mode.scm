@@ -109,12 +109,10 @@
 
 (define (enter-eval-mode)
   (command-line-clear!)
-  (print-command-line-char #\:)
   (cursor-on))
 
 (define (leave-eval-mode)
   (command-line-clear!)
-  (print-command-line-char #\space)
   (set-input-mode! 'normal-mode))
 
 (define (eval-mode-char ch)

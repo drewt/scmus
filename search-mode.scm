@@ -31,12 +31,10 @@
 
 (define (enter-search-mode)
   (command-line-clear!)
-  (print-command-line-char #\/)
   (cursor-on))
 
 (define (leave-search-mode)
   (command-line-clear!)
-  (print-command-line-char #\space)
   (set-input-mode! 'normal-mode))
 
 (define (search-mode-char ch)

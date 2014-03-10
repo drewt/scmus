@@ -36,7 +36,6 @@
                  win-add!
                  win-remove!
                  win-clear!
-                 print-command-line-char
                  register-event!
                  curses-update
                  cursor-on
@@ -284,10 +283,6 @@
               (- (COLS) (string-length right) 1)
               right)))
 
-(define (print-command-line-char ch)
-  (cursed-set! CURSED-CMDLINE)
-  (mvaddch (- (LINES) 1) 0 ch))
-
 (define (selected-row? window line-nr)
   (= (window-sel-pos window)
      (+ (window-top-pos window) line-nr)))
@@ -425,8 +420,12 @@
 
 (define (update-command-line)
   (cursed-set! CURSED-CMDLINE)
-  (move (- (LINES) 1) 1)
+  (move (- (LINES) 1) 0)
   (clrtoeol)
+  (addch (case *current-input-mode*
+           ((normal-mode) #\space)
+           ((eval-mode)   #\:)
+           ((search-mode) #\/)))
   (addstr (string-truncate (command-line-text)
                            (- (COLS) 2))))
 
@@ -642,7 +641,8 @@
     (start_color)
     (use_default_colors))
   (update-colors!)
-  (init-windows!))
+  (init-windows!)
+  (redraw-ui))
 
 (define (exit-curses)
   (handle-exceptions exn
