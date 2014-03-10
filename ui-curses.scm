@@ -74,6 +74,41 @@
     (status . #f)
     (error . #f)))
 
+;; user functions {{{
+
+(define (win-move! nr #!optional (relative #f))
+  (assert (integer? nr))
+  (let ((nr-lines (if relative
+                    (integer-scale (window-nr-lines (current-window)) nr)
+                    nr)))
+    (if (> nr-lines 0)
+      (window-move-down! (current-window) nr-lines)
+      (window-move-up! (current-window) (abs nr-lines)))))
+
+(define (win-activate!)
+  (window-activate! (current-window)))
+
+(define (win-deactivate!)
+  (window-deactivate! (current-window)))
+
+(define (win-add! #!optional (view 'queue) (pos #f))
+  (case *current-view*
+    ((library)
+      (let ((selected (window-selected (current-window))))
+        (case view
+          ((queue) (lib-add-selected! pos)))))))
+
+(define (win-remove!)
+  (case *current-view*
+    ((queue) (scmus-delete! (window-sel-pos (current-window))))))
+
+(define (win-clear!)
+  (case *current-view*
+    ((queue) (scmus-clear!))))
+
+;; user functions }}}
+;; windows {{{
+
 ;; Convenient interface to make-window.  Can only be used *after* ncurses is
 ;; initialized.
 (define-syntax make-global-window
@@ -146,33 +181,6 @@
       ((queue)   (register-event! 'queue-changed))
       ((status)  (register-event! 'status-changed))
       ((error)   (register-event! 'error-changed)))))
-
-(define (win-move! nr-lines)
-  (assert (integer? nr-lines))
-  (if (> nr-lines 0)
-    (window-move-down! (current-window) nr-lines)
-    (window-move-up! (current-window) (abs nr-lines))))
-
-(define (win-activate!)
-  (window-activate! (current-window)))
-
-(define (win-deactivate!)
-  (window-deactivate! (current-window)))
-
-(define (win-add! #!optional (view 'queue) (pos #f))
-  (case *current-view*
-    ((library)
-      (let ((selected (window-selected (current-window))))
-        (case view
-          ((queue) (lib-add-selected! pos)))))))
-
-(define (win-remove!)
-  (case *current-view*
-    ((queue) (scmus-delete! (window-sel-pos (current-window))))))
-
-(define (win-clear!)
-  (case *current-view*
-    ((queue) (scmus-clear!))))
 
 (define-record-type lib-state
   (make-lib-state lst tag activate constraint top-pos sel-pos)
@@ -255,6 +263,7 @@
      (scmus-add! (track-file selected) pos)
      (apply scmus-search-songs #t #t (lib-selected-constraints)))))
 
+;; windows }}}
 ;; screen updates {{{
 
 (define (format-print-line line fmt track)

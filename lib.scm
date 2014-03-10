@@ -92,7 +92,6 @@
   (assert (integer? len))
   (assert (integer? percent))
   (assert (>= len 0))
-  (assert (>= percent 0))
   (inexact->exact (round (* len (/ percent 100)))))
 
 (define (seconds->string total-seconds)

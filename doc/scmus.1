@@ -104,6 +104,10 @@ can be bound or unbound.
 2              (set-view! 'queue)
 j,down         (win-move! 1)
 k,up           (win-move! \-1)
+^D             (win-move! 50 #t)
+^U             (win-move! \-50 #t)
+page_down      (win-move! 100 #t)
+page_up        (win-move! \-100 #t)
 h,left         (seek! \-5)
 l,right        (seek! 5)
 z              (prev!)
@@ -138,9 +142,10 @@ brackets.
 .br
 (bind! <keys> <context> <thunk> [force])
 .RS
-Bind \fIkeys\fR to \fIthunk\fR in \fIcontext\fR.  If \fIforce\fR is #t, then
-any binding conflicting with \fIkeys\fR is first unbound.  Otherwise, if there
-is a conflicting binding, this function fail to bind \fIkeys\fR and returns #f.
+Bind \fIkeys\fR to \fIthunk\fR in \fIcontext\fR.  If \fIforce\fR is \fB#t\fR,
+then any binding conflicting with \fIkeys\fR is first unbound.  Otherwise, if
+there is a conflicting binding, this function fail to bind \fIkeys\fR and
+returns \fB#f\fR.
 .RE
 
 ;; colorscheme! : string \-> void
@@ -320,12 +325,13 @@ current selection, e.g. in \fBlibrary\fR view, this navigates backwards in the
 hierarchy.
 .RE
 
-;; win\-move! : integer \-> void
+;; win\-move! : integer [boolean] \-> void
 .br
-(win\-move! <rows>)
+(win\-move! <nr> [relative?])
 .RS
-Moves the cursor up or down \fIrows\fR rows.  Positive values for \fIrows\fR
-mean move down.  Negative values mean move up.
+Moves the cursor up or down \fInr\fR rows.  Positive values for \fInr\fR mean
+move down.  Negative values mean move up.  If \fIrelative\fR is \fB#t\fR, then
+\fInr\fR is interpreted as a percentage of the visible rows.
 .RE
 
 ;; win\-remove! : void \-> void

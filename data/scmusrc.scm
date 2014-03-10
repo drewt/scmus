@@ -16,6 +16,12 @@
 (bind! "left"  'common (lambda () (seek! -5))     #t)
 (bind! "right" 'common (lambda () (seek!  5))     #t)
 
+;; movement
+(bind! "^U" 'common (lambda () (win-move! -50 #t)))
+(bind! "^D" 'common (lambda () (win-move!  50 #t)))
+(bind! "page_up"   'common (lambda () (win-move! -100 #t)))
+(bind! "page_down" 'common (lambda () (win-move!  100 #t)))
+
 ;; player control
 (bind! "z" 'common prev!  #t)
 (bind! "x" 'common play!  #t)
