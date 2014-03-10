@@ -18,34 +18,13 @@
 (require-extension ncurses srfi-13)
 
 (declare (unit ui-curses)
-         (uses scmus-client
-               eval-mode
-               search-mode
-               command-line
-               keys
-               format
-               option
-               window)
-         (export *ui-initialized*
-                 *current-input-mode*
-                 *current-view*
-                 set-view!
-                 win-move!
-                 win-activate!
-                 win-deactivate!
-                 win-add!
-                 win-remove!
-                 win-clear!
-                 win-search!
-                 win-search-next!
-                 register-event!
-                 curses-update
-                 cursor-on
-                 cursor-off
-                 set-input-mode!
-                 handle-input
-                 init-curses
-                 exit-curses))
+         (uses scmus-client eval-mode search-mode command-line keys format
+               option window)
+         (export *ui-initialized* *current-input-mode* *current-view*
+                 set-view! win-move! win-activate! win-deactivate! win-add!
+                 win-remove! win-clear! win-search! win-search-next!
+                 register-event! curses-update cursor-on cursor-off
+                 set-input-mode! handle-input init-curses exit-curses))
 
 ;;; definitions missing from the ncurses egg
 (define bkgdset

@@ -16,8 +16,7 @@
 ;;
 
 (declare (unit command-line)
-         (uses editable
-               ui-curses))
+         (uses editable ui-curses))
 
 (require-extension ncurses)
 

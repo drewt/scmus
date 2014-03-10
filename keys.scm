@@ -35,12 +35,8 @@
 
 (declare (unit keys)
          (uses ui-curses)
-         (export make-binding!
-                 unbind!
-                 binding-keys-valid?
-                 enter-normal-mode
-                 normal-mode-char
-                 normal-mode-key))
+         (export make-binding! unbind! binding-keys-valid? enter-normal-mode
+                 normal-mode-char normal-mode-key))
 
 ;; alist associating key-contexts with binding alists
 (define *bindings*

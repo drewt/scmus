@@ -15,22 +15,12 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension ncurses
-                   sandbox
-                   srfi-13)
+(require-extension ncurses sandbox srfi-13)
  
 (declare (unit eval-mode)
-         (uses ui-curses
-               scmus-client
-               command-line
-               keys
-               option)
-         (export init-sandbox
-                 user-load
-                 enter-eval-mode
-                 leave-eval-mode
-                 eval-mode-char
-                 eval-mode-key))
+         (uses ui-curses scmus-client command-line keys option)
+         (export init-sandbox user-load enter-eval-mode leave-eval-mode
+                 eval-mode-char eval-mode-key))
 
 ;; user functions {{{
 

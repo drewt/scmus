@@ -16,11 +16,8 @@
 ;;
 
 (declare (unit search-mode)
-         (uses ui-curses
-               command-line)
-         (export enter-search-mode
-                 leave-search-mode
-                 search-mode-char
+         (uses ui-curses command-line)
+         (export enter-search-mode leave-search-mode search-mode-char
                  search-mode-key))
 
 (require-extension ncurses)

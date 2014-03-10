@@ -19,10 +19,7 @@
 
 (declare (unit scmus-client)
          (uses mpd-client)
-         (hide scmus-try-reconnect
-               status-selector
-               track-selector
-               stat-selector
+         (hide scmus-try-reconnect status-selector track-selector stat-selector
                scmus-command))
 
 (define *mpd-connection* #f)

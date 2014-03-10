@@ -16,43 +16,16 @@
 ;;
 
 (declare (unit mpd-client)
-         (export mpd:connect
-                 mpd:disconnect
-                 mpd:reconnect
-                 mpd:error-code
-                 mpd:error-message
-                 mpd:get-stats
-                 mpd:get-status
-                 mpd:get-current-song
-                 mpd:list-queue
-                 mpd:db-list-tags
-                 mpd:db-search-songs
-                 mpd:play!
-                 mpd:play-id!
-                 mpd:play-pos!
-                 mpd:pause!
-                 mpd:stop!
-                 mpd:next-song!
-                 mpd:previous-song!
-                 mpd:seek-id!
-                 mpd:seek-pos!
-                 mpd:repeat-set!
-                 mpd:random-set!
-                 mpd:single-set!
-                 mpd:consume-set!
-                 mpd:add!
-                 mpd:add-id!
-                 mpd:add-id-to!
-                 mpd:delete!
-                 mpd:delete-id!
-                 mpd:delete-range!
-                 mpd:shuffle!
-                 mpd:shuffle-range!
-                 mpd:clear!
-                 mpd:move!
-                 mpd:move-range!
-                 mpd:swap!
-                 mpd:swap-id!))
+         (export mpd:connect mpd:disconnect mpd:reconnect mpd:error-code
+                 mpd:error-message mpd:get-stats mpd:get-status
+                 mpd:get-current-song mpd:list-queue mpd:db-list-tags
+                 mpd:db-search-songs mpd:play! mpd:play-id! mpd:play-pos!
+                 mpd:pause! mpd:stop! mpd:next-song! mpd:previous-song!
+                 mpd:seek-id! mpd:seek-pos! mpd:repeat-set! mpd:random-set!
+                 mpd:single-set! mpd:consume-set! mpd:add! mpd:add-id!
+                 mpd:add-id-to! mpd:delete! mpd:delete-id! mpd:delete-range!
+                 mpd:shuffle! mpd:shuffle-range! mpd:clear! mpd:move!
+                 mpd:move-range! mpd:swap! mpd:swap-id!))
 
 (foreign-declare "#include <mpd/client.h>")
 (include "libmpdclient.scm")

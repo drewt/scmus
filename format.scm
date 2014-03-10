@@ -24,9 +24,7 @@
 
 (declare (unit format)
          (uses scmus-client)
-         (export scmus-format
-                 process-format
-                 format-string-valid?))
+         (export scmus-format process-format format-string-valid?))
 
 (define (swap pair)
   (assert (pair? pair))
