@@ -39,3 +39,4 @@ install: all
 	$(INSTALL) -m755 $(bindir) scmus
 	$(INSTALL) -m644 $(datadir)/scmus data/scmusrc.scm
 	$(INSTALL) -m644 $(datadir)/scmus/colors $(wildcard data/colors/*)
+	$(INSTALL) -m644 $(mandir)/man1 $(wildcard doc/*.1)

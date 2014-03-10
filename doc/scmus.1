@@ -1,0 +1,563 @@
+.TH SCMUS 1 09/03/2014 scmus "scmus Manual"
+.nh
+.ad l
+.SH NAME
+scmus \- Scheme MPD Client
+.SH SYNOPSIS
+scmus [\fBoptions\fR]
+.SH DESCRIPTION
+scmus is an ncurses based client for for the Music Player Daemon, written and
+scriptable in the Scheme programming language.
+.SH OPTIONS
+\-a,\-\-address ADDR
+.RS
+IP address or hostname of MPD server.
+.RE
+
+\-p,\-\-port PORT
+.RS
+Port number that MPD is listening on.
+.RE
+
+\-h,\-\-help
+.RS
+Print a help message and exit.
+.RE
+
+\-v,\-\-version
+.RS
+Print scmus's version and exit.
+.RE
+
+\-\-verbose
+.RS
+Print some extra information to the console at run time.
+.RE
+.SH VIEWS
+There are N [TODO] views in scmus.  Press keys 1\-N to change the active view.
+
+Library view (1)
+.RS
+In this view you can browse the entire music database.  The database is
+organized hierarchically, with artists at the top level, then albums, then
+tracks.  The arrow keys or \fBhjkl\fR are used to navigate through the
+hierarchy.
+.RE
+
+Queue view (2)
+.RS
+Displays the tracks in the play queue.
+.RE
+.SH EVAL MODE
+Everything in scmus can be controlled by entering scheme expressions on the
+"command line" (the bottommost line).  To enter eval mode press \fB:\fR.  To
+evaluate an expression press \fBENTER\fR or to cancel press \fBESC\fR.
+
+Examples:
+
+.RS
+.nf
+;; add the selected track to the play queue
+(win-add!)
+
+;; start playing
+;; you could just press 'x' which is the default
+;; binding for this function
+(play!)
+
+;; clear the play queue
+(win-clear!)
+.fi
+.RE
+.SH STATUS LINE
+The right hand side of the status line (second row from the bottom) consists
+of the following fields:
+
+.nf
+single (S) repeat (R) random (r) consume (C)
+.fi
+
+These can be toggled by pressing the \fBS\fR, \fBR\fR, \fBr\fR and \fBC\fR
+keys.
+
+Single means that scmus will play a single song and then stop.
+
+Repeat means that scmus will continue playing from the beginning of the play
+queue when it reaches the end.
+
+Random means that scmus will play tracks in a random order.
+
+Consume means that tracks are removed from the play queue when they are
+finished.
+.SH KEY BINDINGS
+
+In scmus, a key or sequence of keys can be bound to a thunk (a function with
+zero arguments).  When that key or sequence of keys is pressed, the thunk is
+evaluated.
+
+Here's a list of default keybindings.  See the \fBbind!\fR and \fBunbind!\fR
+functions in the SCHEME ENVIRONMENT section for a description of how keys
+can be bound or unbound.
+.SS Common Context
+.nf
+1              (set-view! 'library)
+2              (set-view! 'queue)
+j,down         (win-move! 1)
+k,up           (win-move! \-1)
+h,left         (seek! \-5)
+l,right        (seek! 5)
+z              (prev!)
+x              (play!)
+c              (pause!)
+v              (stop!)
+b              (next!)
+S              (toggle-single!)
+R              (toggle-repeat!)
+r              (toggle-random!)
+C              (toggle-consume!)
+<              (seek! -60)
+>              (seek! 60)
+a              (win-add!)
+d              (win-remove!)
+D              (win-clear!)
+enter          (win-activate!)
+(              (push! "(")
+.fi
+.SS Library Context
+.nf
+h,left         (win-deactivate!)
+l,right        (win-activate!)
+.fi
+.SH SCHEME ENVIRONMENT
+This section describes the functions and variables available in eval mode.
+
+Optional parameters are in brackets.  Obligatory parameters are in angle
+brackets.
+
+;; bind! : string symbol thunk [boolean] \-> boolean
+.br
+(bind! <keys> <context> <thunk> [force])
+.RS
+Bind \fIkeys\fR to \fIthunk\fR in \fIcontext\fR.  If \fIforce\fR is #t, then
+any binding conflicting with \fIkeys\fR is first unbound.  Otherwise, if there
+is a conflicting binding, this function fail to bind \fIkeys\fR and returns #f.
+.RE
+
+;; colorscheme! : string \-> void
+.br
+(colorscheme! <name>)
+.RS
+Loads the colorscheme \fIname\fR.  This function looks for a file named
+\fIname\fR.scm in the scmus colors directory (usually
+/usr/local/share/scmus/colors).
+.RE
+
+;; consume\-set! : boolean \-> void
+.br
+(consume\-set! <value>)
+.RS
+Sets the value of the \fBconsume\fR MPD option.
+.RE
+
+;; get\-option : symbol \-> ???
+.br
+(get\-option! <name>)
+.RS
+Returns the value of the option \fIname\fR.
+.RE
+
+;; next! : void \-> void
+.br
+(next!)
+.RS
+Skip to the next track.
+.RE
+
+;; pause! : void \-> void
+.br
+(pause!)
+.RS
+Toggle pause.
+.RE
+
+;; play! : void \-> void
+.br
+(play!)
+.RS
+Play the current track.  If there is no current track, then the first song in
+the play queue is starts playing.
+.RE
+
+;; prev! : void \-> void
+.br
+(prev!)
+.RS
+Skip to the previous track.
+.RE
+
+;; push! : string \-> void
+.br
+(push! <text>)
+.RS
+Enter eval mode with the command line pre\-set to text.
+.RE
+
+;; random\-set! : boolean \-> void
+.br
+(random\-set! <value>)
+.RS
+Sets the value of the \fBrandom\fR MPD option.
+.RE
+
+;; repeat\-set! : boolean \-> void
+.br
+(repeat\-set! <value>)
+.RS
+Sets the value of the \fBrepeat\fR MPD option.
+.RE
+
+;; seek! : integer \-> void
+.br
+(seek! <seconds>)
+.RS
+Seeks \fIseconds\fR relative the current position in the current track.
+.RE
+
+;; set\-option! : symbol ??? \-> void
+.br
+(set\-option! <name> <value>)
+.RS
+Set the value of the option \fIname\fR to \fIvalue\fR.
+.RE
+
+;; set\-view! : symbol \-> void
+.br
+(set\-view! <name>)
+.RS
+Changes the current view to the view specified by \fIname\fR.
+.RE
+
+;; shuffle! : void \-> void
+.br
+(shuffle!)
+.RS
+Shuffles the order of tracks in the play queue.
+.RE
+
+;; single\-set! : boolean \-> void
+.br
+(single\-set! <value>)
+.RS
+Sets the value of the \fBsingle\fR MPD option.
+.RE
+
+;; toggle\-consume! : void \-> void
+.br
+(toggle\-consume!)
+.RS
+Toggles the value fo the \fBconsume\fR MPD option.
+.RE
+
+;; toggle\-random! : void \-> void
+.br
+(toggle\-random!)
+.RS
+Toggles the value of the \fBrandom\fR MPD option.
+.RE
+
+;; toggle\-repeat! : void \-> void
+.br
+(toggle\-repeat!)
+.RS
+Toggles the value of the \fBrepeat\fR MPD option.
+.RE
+
+;; toggle\-single! : void \-> void
+.br
+(toggle\-single!)
+.RS
+Toggles the value of the \fBsingle\fR MPD option.
+.RE
+
+;; unbind! : string symbol \-> boolean
+.br
+(unbind! <keys> <context>)
+.RS
+Removes the binding for \fIkeys\fR in \fIcontext\fR, or any bindings in
+conflict with \fIkeys\fR.
+.RE
+
+;; win\-activate! : void \-> void
+.br
+(win\-activate!)
+.RS
+Activates the current window.  What this means depends on the view and the
+current selection, e.g. in \fBqueue\fR view, this function will play the
+selected track.
+.RE
+
+;; win\-add! : void \-> void
+.br
+(win\-add!)
+.RS
+Adds the current selection to the play queue (only works in \fBlibrary\fR
+view).
+.RE
+
+;; win\-clear! : void \-> void
+.br
+(win\-clear!)
+.RS
+Clears the current window (only works in \fBqueue\fR view).
+.RE
+
+;; win\-deactivate! : void \-> void
+.br
+(win\-deactivate!)
+.RS
+Deactivates the current window.  What this means depends on the view and the
+current selection, e.g. in \fBlibrary\fR view, this navigates backwards in the
+hierarchy.
+.RE
+
+;; win\-move! : integer \-> void
+.br
+(win\-move! <rows>)
+.RS
+Moves the cursor up or down \fIrows\fR rows.  Positive values for \fIrows\fR
+mean move down.  Negative values mean move up.
+.RE
+
+;; win\-remove! : void \-> void
+.br
+(win\-remove!)
+.RS
+Removes the selection (only works in \fBqueue\fR view).
+.RE
+.SH CONFIGURATION OPTIONS
+This section describes scmus's options that can be altered with the
+\fBset\-option!\fR function.  Default values are in parentheses.
+
+color\-cmdline\-bg ('default)
+.RS
+Command line background color.
+.RE
+
+color\-cmdline\-fg ('default)
+.RS
+Command line foreground color.
+.RE
+
+color\-error ('red)
+.RS
+Color of error messages displayed on the command line.
+.RE
+
+color\-info ('yellow)
+.RS
+Color of informational messages displayed on the command line.
+.RE
+
+color\-statusline\-bg ('white)
+.RS
+Status line background color.
+.RE
+
+color\-statusline\-fg ('black)
+.RS
+Status line foreground color.
+.RE
+
+color\-titleline\-bg ('blue)
+.RS
+Title line background color.
+.RE
+
+color\-titleline\-fg ('white)
+.RS
+Title line foreground color.
+.RE
+
+color\-win\-bg ('default)
+.RS
+Window background color.
+.RE
+
+color\-win\-cur ('yellow)
+.RS
+Color of currently playing track.
+.RE
+
+color\-win\-cur\-sel\-bg ('blue)
+.RS
+Background color of the selected row which is also the currently playing track
+in the active window.
+.RE
+
+color\-win\-cur\-sel\-fg ('yellow)
+.RS
+Foreground color of the selected row which is also the currently playing track
+in the active window.
+.RE
+
+color\-win\-fg ('default)
+.RS
+Window foreground color.
+.RE
+
+color\-win\-sel\-bg ('blue)
+.RS
+Background color of selected row in active window.
+.RE
+
+color\-win\-sel\-fg ('white)
+.RS
+Foreground color of selected row in active window.
+.RE
+
+color\-win\-title\-bg ('blue)
+.RS
+Background color of window titles (topmost line of the screen).
+.RE
+
+color\-win\-title\-fg ('white)
+.RS
+Foreground color of window titles (topmost line of the screen).
+.RE
+
+format\-current ("~a \- ~l ~n. ~t~= ~y")
+.RS
+Format string for the line displaying the currently playing track.
+.RE
+
+format\-library ("~\-25%a ~3n. ~t~= ~\-4y ~d")
+.RS
+Format string for tracks in the \fBlibrary\fR view.
+.RE
+
+format\-queue ("~\-25%a ~3n. ~t~= ~\-4y ~d")
+.RS
+Format string for tracks in the \fBqueue\fR view.
+.RE
+
+format\-queue\-title ("Play Queue \- ~{queue-length} tracks")
+.RS
+Format string for the title of the \fBqueue\fR window.
+.RE
+
+format\-status ("~P ~p / ~d \- ~T vol: ~v~= ~S~R~r~C")
+.RS
+Format string for the status line.
+.RE
+
+.SS Colors
+Colors are integers in the range \-1...255.
+
+The following color symbols are recognized:
+
+Terminal's default color, \-1
+.RS
+default
+.RE
+
+0..7
+.RS
+black, red, green, yellow, blue, magenta, cyan, white
+.RE
+
+8..15
+.RS
+dark\-gray, light\-red, light\-green, light\-yellow, light\-blue, light\-magenta,
+light\-cyan, gray
+.RE
+.SS Format Strings
+Format strings control display text throughout scmus.
+
+Special Keys:
+
+.RS
+~a  ~{artist}
+.br
+~A  ~{albumartist}
+.br
+~l  ~{album}
+.br
+~D  ~{discnumber}
+.br
+~n  ~{tracknumber}
+.br
+~t  ~{title}
+.br
+~g  ~{genre}
+.br
+~c  ~{comment}
+.br
+~y  ~{date}
+.br
+~d  ~{duration}
+.br
+~f  ~{path}
+.br
+~F  ~{filename}
+.br
+~P  ~{playing}
+.br
+~p  ~{current}
+.br
+~T  ~{db\-playtime}
+.br
+~v  ~{volume}
+.br
+~R  ~{repeat}
+.br
+~r  ~{random}
+.br
+~S  ~{single}
+.br
+~C  ~{consume}
+.br
+~=
+.RS
+start align right (use at most once)
+.RE
+~~
+.RS
+literal \fB~\fR
+.RE
+
+You can use printf style formatting (width, alignment, padding).  As an
+extension, the width can have a %\-suffix, to specify a precentage of the
+terminal width.
+
+Examples
+
+.RS
+.nf
+(set\-option! 'format\-current "~a \- ~l ~n. ~t~= ~y")
+(set\-option! 'format\-queue "~\-25%a ~3n. ~t~= ~\-4y ~d")
+.fi
+.RE
+.SH FILES
+scmus reads its configuration from 2 files.
+
+\fI$HOME/.scmusrc\fR
+.RS
+Per-user configuration.
+.RE
+
+\fI/usr/local/share/scmus/scmusrc.scm\fR
+.RS
+System-wide configuration.  This contains default settings, which can be
+overriden on a per-user basis.
+.RE
+.SS Color Schemes
+There are some color schemes in \fI/usr/local/share/scmus/colors\fR.  You can
+switch them using the \fBcolorscheme!\fR function.
+.SH BUGS
+You can submit bugs to the issue tracker on Github
+(https://github.com/drewt/scmus/issues).
+.SH AUTHOR
+scmus was written by Drew Thoreson <drew.thoreson@alumni.ubc.ca>.
+
+This man page is based almost entirely on the cmus man page, written by
+Frank Terbeck, Timo Hirvonen and Clay Barnes.
