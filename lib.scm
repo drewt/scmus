@@ -18,13 +18,15 @@
 (require-extension srfi-13 ncurses)
 
 (declare (unit lib)
-         (uses config
-               ui-curses))
+         (uses config))
 
 ;; the exit routine; initially (exit), becomes a continuation
 (define scmus-exit exit)
 
 (define *scmus-error* "")
+
+(define *views*
+  '(library queue status error))
 
 (define (verbose-printf . args)
   (if *verbose*

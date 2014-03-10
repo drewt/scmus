@@ -42,16 +42,6 @@
                  normal-mode-char
                  normal-mode-key))
 
-(define-record-type binding
-  (make-binding key children thunk)
-  binding?
-  (key binding-key)
-  (children binding-children binding-set-children!)
-  (thunk binding-thunk binding-set-thunk!))
-
-(define *views*
-  '(library queue status error))
- 
 ;; alist associating key-contexts with binding alists
 (define *bindings*
   (map (lambda (x) (cons x '())) (cons 'common *views*)))

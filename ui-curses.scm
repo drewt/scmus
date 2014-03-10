@@ -67,12 +67,7 @@
 (define *current-input-mode* 'normal-mode)
 (define *current-view* 'queue)
 
-;; alist associating views and windows
-(define *windows*
-  '((library . #f)
-    (queue . #f)
-    (status . #f)
-    (error . #f)))
+(define *windows* (map (lambda (x) (cons x #f)) *views*))
 
 ;; user functions {{{
 
