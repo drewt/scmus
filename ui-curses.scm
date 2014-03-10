@@ -70,10 +70,11 @@
 (define *current-view* 'queue)
 
 (define *windows* (map (lambda (x) (cons x #f)) *views*))
+(define *current-library-window* 'artist)
 (define *library-windows*
-  '((artists . '())
-    (albums . '())
-    (tracks . '())))
+  '((artist . '())
+    (album . '())
+    (track . '())))
 
 ;; user functions {{{
 
@@ -217,9 +218,11 @@
       (string-contains-ci (track-artist track) query)
       (string-contains-ci (track-albumartist track) query)))
 
-(define (lib-selected-constraints)
-  (let* ((artists-win (alist-ref 'artists *library-windows*))
-         (albums-win (alist-ref 'albums *library-windows*))
+;; This is the "proper" function to get all constraints before searching.
+;; This isn't used because scmus isn't smart about compilations (yet).
+(define (lib-all-constraints)
+  (let* ((artists-win (alist-ref 'artist *library-windows*))
+         (albums-win (alist-ref 'album *library-windows*))
          (artists (window-data artists-win))
          (albums (window-data albums-win)))
     (cond
@@ -228,6 +231,12 @@
       (else            (list (cons 'artist (window-selected artists-win))
                              (cons 'album  (window-selected albums-win)))))))
 
+;; This is used to get just the most relevant constraint before searching,
+;; which is Wrong but makes it possible to access compilations conveniently.
+(define (lib-selected-constraint)
+  (list (cons *current-library-window*
+              (window-selected (alist-ref 'library *windows*)))))
+
 (define (lib-activate-fn tag next-win-name next-list-gen)
   (lambda (window)
     (let* ((next-win (alist-ref next-win-name *library-windows*))
@@ -235,14 +244,15 @@
            (next-list (next-list-gen constraint)))
       (*window-data-set! next-win next-list)
       (alist-update! 'library next-win *windows*)
+      (set! *current-library-window* next-win-name)
       (register-event! 'library-data-changed))))
 
 (define lib-artist-activate!
-  (lib-activate-fn 'artist 'albums
+  (lib-activate-fn 'artist 'album
     (lambda (constraint) (scmus-search-by-tag 'album constraint))))
 
 (define lib-album-activate!
-  (lib-activate-fn 'album 'tracks
+  (lib-activate-fn 'album 'track
     (lambda (constraint) (scmus-search-songs #t #f constraint))))
 
 (define (lib-track-activate! window)
@@ -256,16 +266,17 @@
       (window-sel-pos-set! window 0)
       (window-match-pos-set! window 0)
       (alist-update! 'library prev-win *windows*)
+      (set! *current-library-window* prev-win-name)
       (register-event! 'library-data-changed))))
 
-(define lib-album-deactivate! (lib-deactivate-fn 'artists))
-(define lib-track-deactivate! (lib-deactivate-fn 'albums))
+(define lib-album-deactivate! (lib-deactivate-fn 'artist))
+(define lib-track-deactivate! (lib-deactivate-fn 'album))
 
 (define (lib-add-selected! pos)
   (let ((selected (window-selected (alist-ref 'library *windows*))))
    (if (list? selected)
      (scmus-add! (track-file selected) pos)
-     (apply scmus-search-songs #t #t (lib-selected-constraints)))))
+     (apply scmus-search-songs #t #t (lib-selected-constraint)))))
 
 ;; windows }}}
 ;; screen updates {{{
@@ -611,7 +622,7 @@
   (set! *events* '()))
 
 (define (init-windows!)
-  (alist-update! 'artists
+  (alist-update! 'artist
                  (make-generic-window *artists*
                                       'library-changed
                                       *window-data
@@ -619,7 +630,7 @@
                                       void
                                       string-contains-ci)
                  *library-windows*)
-  (alist-update! 'albums
+  (alist-update! 'album
                  (make-generic-window '()
                                       'library-changed
                                       *window-data
@@ -627,7 +638,7 @@
                                       lib-album-deactivate!
                                       string-contains-ci)
                  *library-windows*)
-  (alist-update! 'tracks
+  (alist-update! 'track
                  (make-generic-window '()
                                       'library-changed
                                       *window-data
@@ -635,7 +646,7 @@
                                       lib-track-deactivate!
                                       track-match)
                  *library-windows*)
-  (alist-update! 'library (alist-ref 'artists *library-windows*) *windows*)
+  (alist-update! 'library (alist-ref 'artist *library-windows*) *windows*)
   (alist-update! 'queue
                  (make-global-list-window *queue*
                                    'queue-changed
