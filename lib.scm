@@ -15,7 +15,8 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-13 ncurses)
+(require-extension ncurses utf8 utf8-srfi-13)
+(import (except scheme string->list list->string))
 
 (declare (unit lib)
          (uses config))
@@ -68,26 +69,81 @@
   (assert (char? ch))
   (> (char->integer ch) 255))
 
-(define (string-split-lines str)
-  (string-tokenize str (char-set-filter (lambda (c)
-                                          (not (char=? c #\newline)))
-                                        char-set:full)))
+;; unicode stuff {{{
+
+(define (string-width str)
+  (foldl + 0 (map char-width (string->list str))))
+
+(define (char-width c)
+  (let ((u (char->integer c)))
+    (cond
+      ((< u #x20) 0)
+      ((< u #x1100) 1)
+      ; Hangul Jamo init. consonants
+      ((<= u #x115f) 2)
+      ; Zero-width characters
+      ((or (= u #x200b) (= u #x200c) (= u #x200d)) 0)
+      ; Angle brackets
+      ((or (= u #x2329) (= u #x232a)) 2)
+      ((< u #x2e80) 1)
+      ; CJK ... Yi
+      ((< u #x302a) 2)
+      ((<= u #x302f) 1)
+      ((= u #x303f) 1)
+      ((= u #x3099) 1)
+      ((= u #x309a) 1)
+      ; CJK ... Yi
+      ((<= u #xa4cf) 2)
+      ; Hangul Syllables
+      ((and (>= u #xac00) (<= u #xd7a3)) 2)
+      ; CJK Compatibility Ideographs
+      ((and (>= u #xf900) (<= u #xfaff)) 2)
+      ; CJK Compatibility Forms
+      ((and (>= u #xfe30) (<= u #xfe6f)) 2)
+      ; Fullwidth Forms
+      ((and (>= u #xff00) (<= u #xff60)) 2)
+      ((and (>= u #xffe0) (<= u #xffe6)) 2)
+      ; CJK Extra Stuff
+      ((and (>= u #x20000) (<= u #x2fffd)) 2)
+      ; ?
+      ((and (>= u #x30000) (<= u #x3fffd)) 2)
+      (else 1))))
+
+(define (ustring-take str width)
+  (let loop ((result '()) (rest (string->list str)) (r-width 0))
+    (let* ((c (car rest))
+           (c-width (char-width c)))
+      (if (> (+ r-width c-width) width)
+        (list->string (reverse result))
+        (loop (cons c result) (cdr rest) (+ r-width c-width))))))
+
+(define (ustring-take-right str width)
+  (let loop ((result '()) (rest (reverse (string->list str))) (r-width 0))
+    (let* ((c (car rest))
+           (c-width (char-width c)))
+      (if (> (+ r-width c-width) width)
+        (list->string result)
+        (loop (cons c result) (cdr rest) (+ r-width c-width))))))
 
 (define (string-truncate s len #!optional (left #f))
-  (assert (string? s))
-  (assert (integer? len))
-  (if (> (string-length s) len)
-    (list->string ((if left take-right take) (string->list s) len))
-    s))
+  (let ((width (string-width s)))
+    (if (> width len)
+      (if left
+        (ustring-take-right s len)
+        (ustring-take s len))
+      s)))
+
+(define (ustring-pad str len c #!optional (right #f))
+  (if right
+    (string-append str (make-string (- len (string-width str)) c))
+    (string-append (make-string (- len (string-width str)) c) str)))
 
 (define (string-stretch str c len #!optional (right #f))
   (assert (string? str))
   (assert (char? c))
   (assert (integer? len))
-  (if (> len (string-length str))
-    (if right
-      (string-pad-right str len c)
-      (string-pad str len c))
+  (if (> len (string-width str))
+    (ustring-pad str len c right)
     (string-truncate str len)))
 
 (define (integer-scale len percent)
@@ -95,6 +151,11 @@
   (assert (integer? percent))
   (assert (>= len 0))
   (inexact->exact (round (* len (/ percent 100)))))
+
+(define (string-split-lines str)
+  (string-tokenize str (char-set-filter (lambda (c)
+                                          (not (char=? c #\newline)))
+                                        char-set:full)))
 
 (define (seconds->string total-seconds)
   (assert (integer? total-seconds))
