@@ -257,25 +257,13 @@
 
 ;; screen updates {{{
 
-(define-syntax let-format
-  (syntax-rules ()
-    ((let-format ((left right) fmt track len) body ...)
-      (let* ((left-right (scmus-format fmt len track))
-             (left (car left-right))
-             (right (cdr left-right)))
-        body ...))
-    ((let-format ((left right) fmt track) body ...)
-      (let-format ((left right) fmt track (- (COLS) 2))
-        body ...))
-    ((let-format ((left right) fmt) body ...)
-      (let-format ((left right) fmt *current-track*)
-        body ...))))
-
 (define (format-print-line line fmt track)
   (assert (integer? line))
   (assert (list? fmt))
   (assert (list? track))
-  (let-format ((left right) fmt track)
+  (let* ((left-right (scmus-format fmt (- (COLS) 2) track))
+         (left (car left-right))
+         (right (cdr left-right)))
     (mvaddch line 0 #\space)
     (addstr left)
     (clrtoeol)
