@@ -70,6 +70,10 @@
 (define *current-view* 'queue)
 
 (define *windows* (map (lambda (x) (cons x #f)) *views*))
+(define *library-windows*
+  '((artists . '())
+    (albums . '())
+    (tracks . '())))
 
 ;; user functions {{{
 
@@ -213,80 +217,49 @@
       (string-contains-ci (track-artist track) query)
       (string-contains-ci (track-albumartist track) query)))
 
-(define-record-type lib-state
-  (make-lib-state lst tag activate constraint top-pos sel-pos)
-  lib-state?
-  (lst lib-state-list lib-state-list-set!)
-  (tag lib-state-tag lib-state-tag-set!)
-  (activate lib-state-activate lib-state-activate-set!)
-  (constraint lib-state-constraint lib-state-constraint-set!)
-  (top-pos lib-state-top-pos lib-state-top-pos-set!)
-  (sel-pos lib-state-sel-pos lib-state-sel-pos-set!))
-
-(define (lib-next-tag tag)
-  (case tag
-    ((artist) 'album)
-    ((album) 'title)))
-
-(define (lib-init-data)
-  (list (make-lib-state *artists*  'artist lib-artist-activate! '() 0 0)))
-
-(define (lib-data window)
-  (lib-state-list (car (*window-data window))))
-
-(define (lib-constraints)
-  (let loop ((stack (*window-data (alist-ref 'library *windows*)))
-             (constraints '()))
-    (let ((constraint (lib-state-constraint (car stack))))
-      (if (null? constraint)
-        constraints
-        (loop (cdr stack) (cons constraint constraints))))))
-
 (define (lib-selected-constraints)
-  (let* ((window (alist-ref 'library *windows*))
-         (selected (window-selected window))
-         (state (car (*window-data window)))
-         (constraint (cons (lib-state-tag state) selected)))
-    (cons constraint (lib-constraints))))
+  (let* ((artists-win (alist-ref 'artists *library-windows*))
+         (albums-win (alist-ref 'albums *library-windows*))
+         (artists (window-data artists-win))
+         (albums (window-data albums-win)))
+    (cond
+      ((null? artists) (list (cons 'artist "")))
+      ((null? albums)  (list (cons 'artist (window-selected artists-win))))
+      (else            (list (cons 'artist (window-selected artists-win))
+                             (cons 'album  (window-selected albums-win)))))))
 
-(define (lib-activate-fn tag activate next-list-gen)
+(define (lib-activate-fn tag next-win-name next-list-gen)
   (lambda (window)
-    (let* ((selected (window-selected window))
-           (stack (*window-data window))
-           (constraint (cons tag selected))
+    (let* ((next-win (alist-ref next-win-name *library-windows*))
+           (constraint (cons tag (window-selected window)))
            (next-list (next-list-gen constraint)))
-      (lib-state-top-pos-set! (car stack) (window-top-pos window))
-      (lib-state-sel-pos-set! (car stack) (window-sel-pos window))
-      (*window-data-set! window (cons (make-lib-state next-list
-                                                      (lib-next-tag tag)
-                                                      activate
-                                                      constraint
-                                                      0 0)
-                                      stack))
-      (window-activate-set! window activate)
-      (window-top-pos-set! window 0)
-      (window-sel-pos-set! window 0)
+      (*window-data-set! next-win next-list)
+      (alist-update! 'library next-win *windows*)
       (register-event! 'library-data-changed))))
+
+(define lib-artist-activate!
+  (lib-activate-fn 'artist 'albums
+    (lambda (constraint) (scmus-search-by-tag 'album constraint))))
+
+(define lib-album-activate!
+  (lib-activate-fn 'album 'tracks
+    (lambda (constraint) (scmus-search-songs #t #f constraint))))
 
 (define (lib-track-activate! window)
   (void))
 
-(define lib-album-activate!
-  (lib-activate-fn 'album lib-track-activate!
-    (lambda (constraint) (scmus-search-songs #t #f constraint))))
+(define (lib-deactivate-fn prev-win-name)
+  (lambda (window)
+    (let ((prev-win (alist-ref prev-win-name *library-windows*)))
+      (*window-data-set! window '())
+      (window-top-pos-set! window 0)
+      (window-sel-pos-set! window 0)
+      (window-match-pos-set! window 0)
+      (alist-update! 'library prev-win *windows*)
+      (register-event! 'library-data-changed))))
 
-(define lib-artist-activate!
-  (lib-activate-fn 'artist lib-album-activate!
-    (lambda (constraint) (scmus-search-by-tag 'album constraint))))
-
-(define (lib-deactivate! window)
-  (let ((stack (*window-data window)))
-   (when (not (null? (cdr stack)))
-     (*window-data-set! window (cdr stack))
-     (window-activate-set! window (lib-state-activate (cadr stack)))
-     (window-top-pos-set! window (lib-state-top-pos (cadr stack)))
-     (window-sel-pos-set! window (lib-state-sel-pos (cadr stack)))
-     (register-event! 'library-data-changed))))
+(define lib-album-deactivate! (lib-deactivate-fn 'artists))
+(define lib-track-deactivate! (lib-deactivate-fn 'albums))
 
 (define (lib-add-selected! pos)
   (let ((selected (window-selected (alist-ref 'library *windows*))))
@@ -638,14 +611,31 @@
   (set! *events* '()))
 
 (define (init-windows!)
-  (alist-update! 'library
-                 (make-generic-window (lib-init-data)
+  (alist-update! 'artists
+                 (make-generic-window *artists*
                                       'library-changed
-                                      lib-data
+                                      *window-data
                                       lib-artist-activate!
-                                      lib-deactivate!
-                                      (lambda (e q) #f))
-                 *windows*)
+                                      void
+                                      string-contains-ci)
+                 *library-windows*)
+  (alist-update! 'albums
+                 (make-generic-window '()
+                                      'library-changed
+                                      *window-data
+                                      lib-album-activate!
+                                      lib-album-deactivate!
+                                      string-contains-ci)
+                 *library-windows*)
+  (alist-update! 'tracks
+                 (make-generic-window '()
+                                      'library-changed
+                                      *window-data
+                                      lib-track-activate!
+                                      lib-track-deactivate!
+                                      track-match)
+                 *library-windows*)
+  (alist-update! 'library (alist-ref 'artists *library-windows*) *windows*)
   (alist-update! 'queue
                  (make-global-list-window *queue*
                                    'queue-changed
