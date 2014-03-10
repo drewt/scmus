@@ -25,10 +25,6 @@
 
 (require-extension ncurses)
 
-(define (do-search text)
-  (void)
-  )
-
 (define (enter-search-mode)
   (command-line-clear!)
   (cursor-on))
@@ -40,7 +36,7 @@
 (define (search-mode-char ch)
   (case ch
     ((#\newline)
-      (do-search (command-line-text))
+      (win-search! (command-line-text))
       (leave-search-mode))
     ((#\esc)
       (leave-search-mode))

@@ -15,7 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension ncurses)
+(require-extension ncurses srfi-13)
 
 (declare (unit ui-curses)
          (uses scmus-client
@@ -36,6 +36,8 @@
                  win-add!
                  win-remove!
                  win-clear!
+                 win-search!
+                 win-search-next!
                  register-event!
                  curses-update
                  cursor-on
@@ -101,6 +103,15 @@
   (case *current-view*
     ((queue) (scmus-clear!))))
 
+(define (win-search! query)
+  (window-search-init! (current-window) query)
+  (win-search-next!))
+
+(define (win-search-next!)
+  (let ((i (window-next-match! (current-window))))
+    (when i
+      (window-select! (current-window) i))))
+
 ;; user functions }}}
 ;; windows {{{
 
@@ -108,57 +119,76 @@
 ;; initialized.
 (define-syntax make-global-window
   (syntax-rules ()
-    ((make-global-window getter len changed-event selected-fn deactivate-fn)
+    ((make-global-window getter len changed-event selected deactivate match)
       (make-window #f
                    getter
                    len
                    0
                    0
                    (- (LINES) 4)
+                   0
                    (lambda (w) (register-event! changed-event))
-                   selected-fn
-                   deactivate-fn))))
+                   selected
+                   deactivate
+                   match
+                   ""))))
 
 ;; make-window for global lists.  Each member of the list becomes a row in the
 ;; window.
 (define-syntax make-global-list-window
   (syntax-rules ()
-    ((make-global-list-window lst changed-event selected-fn deactivate-fn)
+    ((make-global-list-window lst changed-event selected deactivate match)
       (make-global-window (lambda (w) lst)
                           (length lst)
                           changed-event
-                          selected-fn
-                          deactivate-fn))
-    ((make-global-list-window lst changed-event selected-fn)
-      (make-global-list-window lst changed-event selected-fn void))
+                          selected
+                          deactivate
+                          match))
+    ((make-global-list-window lst changed-event selected deactivate)
+      (make-global-list-window lst changed-event selected deactivate
+                               (lambda (e q) #f)))
+    ((make-global-list-window lst changed-event selected)
+      (make-global-list-window lst changed-event selected void
+                               (lambda (e q) #f)))
     ((make-global-list-window lst changed-event)
-      (make-global-list-window lst changed-event void void))))
+      (make-global-list-window lst changed-event void void
+                               (lambda (e q) #f)))))
 
 ;; make-window for global strings.  Each line in the string becomes a row in
 ;; the window.
 (define-syntax make-global-string-window
   (syntax-rules ()
-     ((make-global-string-window str changed-event selected-fn deactivate-fn)
+     ((make-global-string-window str changed-event selected deactivate match)
        (make-global-window (lambda (w) (string-split-lines str))
                            (length (string-split-lines str))
                            changed-event
-                           selected-fn
-                           deactivate-fn))
-     ((make-global-string-window str changed-event selected-fn)
-       (make-global-string-window str changed-event selected-fn void))
+                           selected
+                           deactivate
+                           match))
+     ((make-global-string-window str changed-event selected deactivate)
+       (make-global-string-window str changed-event selected deactivate
+                                  string-contains-ci))
+     ((make-global-string-window str changed-event selected)
+       (make-global-string-window str changed-event selected void
+                                  string-contains-ci))
      ((make-global-global-string-window str changed-event)
-       (make-global-string-window str changed-event void void))))
+       (make-global-string-window str changed-event void void
+                                  string-contains-ci))))
 
-(define (make-generic-window data changed-event get-data activate deactivate)
+(define (make-generic-window data changed-event get-data activate deactivate
+                             match)
   (let ((window (make-window data
                              get-data
                              0
                              0
                              0
                              (- (LINES) 4)
+                             0
                              (lambda (w) (register-event! changed-event))
                              activate
-                             deactivate)))
+                             deactivate
+                             match
+                             "")))
     (window-data-len-update! window)
     window))
 
@@ -176,6 +206,12 @@
       ((queue)   (register-event! 'queue-changed))
       ((status)  (register-event! 'status-changed))
       ((error)   (register-event! 'error-changed)))))
+
+(define (track-match track query)
+  (or (string-contains-ci (track-title track) query)
+      (string-contains-ci (track-album track) query)
+      (string-contains-ci (track-artist track) query)
+      (string-contains-ci (track-albumartist track) query)))
 
 (define-record-type lib-state
   (make-lib-state lst tag activate constraint top-pos sel-pos)
@@ -607,13 +643,16 @@
                                       'library-changed
                                       lib-data
                                       lib-artist-activate!
-                                      lib-deactivate!)
+                                      lib-deactivate!
+                                      (lambda (e q) #f))
                  *windows*)
   (alist-update! 'queue
                  (make-global-list-window *queue*
                                    'queue-changed
                                    (lambda (w)
-                                     (scmus-play-track! (window-selected w))))
+                                     (scmus-play-track! (window-selected w)))
+                                   void
+                                   track-match)
                  *windows*)
   (alist-update! 'status
                  (make-global-list-window *mpd-status* 'status-changed)

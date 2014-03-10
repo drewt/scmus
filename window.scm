@@ -21,8 +21,9 @@
 ;; A "window" is a view of a list
 (define-record-type window
   (make-window data data-thunk data-len
-               top-pos sel-pos nr-lines
-               changed activate deactivate)
+               top-pos sel-pos nr-lines match-pos
+               changed activate deactivate
+               match query)
   window?
   ;; private data member for internal use
   (data *window-data *window-data-set!)
@@ -36,12 +37,18 @@
   (sel-pos window-sel-pos window-sel-pos-set!)
   ;; number of visible rows
   (nr-lines window-nr-lines *window-nr-lines-set!)
+  ;; position of the last match
+  (match-pos window-match-pos window-match-pos-set!)
   ;; called when visible part of list has changed
   (changed *window-changed! window-changed-set!)
   ;; function to call when the user "activates" the window
   (activate *window-activate! window-activate-set!)
   ;; function to call when the user "deactivates" the window
-  (deactivate *window-deactivate! window-deactivate-set!))
+  (deactivate *window-deactivate! window-deactivate-set!)
+  ;; function to match a search query against a row
+  (match window-match window-match-set!)
+  ;; active search query
+  (query window-query window-query-set!))
 
 (define (window-data window)
   (assert (window? window))
@@ -116,3 +123,32 @@
                               (- (window-nr-lines window)
                                  nr-lines)))))
   (*window-nr-lines-set! window nr-lines))
+
+(define (window-select! window i)
+  (let* ((sel-pos (window-sel-pos window))
+         (diff (- sel-pos i)))
+    (cond
+      ((> diff 0) (window-move-up! window diff))
+      ((< diff 0) (window-move-down! window (abs diff))))))
+
+(define (window-search-init! window query)
+  (window-query-set! window query)
+  (window-match-pos-set! window (window-sel-pos window)))
+
+(define (window-next-match! window)
+  (let* ((query (window-query window))
+         (last-pos (window-match-pos window))
+         (last-match (list-tail (window-data window) last-pos)))
+    (let loop ((pos (+ last-pos 1))
+               (rest (if (null? last-match) '() (cdr last-match))))
+      (cond
+        ((and (= pos last-pos) (null? rest)) #f)
+        ((= pos last-pos)
+          (if ((window-match window) (car rest) query)
+            pos
+            #f))
+        ((null? rest) (loop 0 (window-data window)))
+        (((window-match window) (car rest) query)
+          (window-match-pos-set! window pos)
+          pos)
+        (else (loop (+ pos 1) (cdr rest)))))))

@@ -38,6 +38,9 @@
 (bind! "<" 'common (lambda () (seek! -60)) #t)
 (bind! ">" 'common (lambda () (seek!  60)) #t)
 
+;; search
+(bind! "n" 'common (lambda () (win-search-next!)))
+
 ;; queue management
 (bind! "a" 'common win-add! #t)
 (bind! "d" 'common win-remove! #t)
