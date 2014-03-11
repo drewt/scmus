@@ -142,6 +142,9 @@
 (track-selector track-id 'id -1)
 (track-selector track-prio 'prio 0)
 
+(define (current-track)
+  *current-track*)
+
 (define (current-track? track)
   (track= track *current-track*))
 

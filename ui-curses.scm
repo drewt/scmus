@@ -286,7 +286,7 @@
 
 ;; Calls print-fn with window, row item, and line number for each row in
 ;; window.
-(define (print-window window print-fn)
+(define (print-window window print-fn #!optional (cursed-fn generic-cursed-set!))
   (let ((nr-lines (window-nr-lines window)))
     (let loop ((rows (window-top window)) (lines nr-lines))
       (when (> lines 0)
@@ -295,7 +295,8 @@
             (begin (cursed-set! CURSED-WIN)
                    (move line-nr 0)
                    (clrtoeol))
-            (print-fn window (car rows) line-nr))
+            (begin (cursed-fn window (car rows) line-nr)
+                   (print-fn window (car rows) line-nr)))
           (loop (if (null? rows) '() (cdr rows)) (- lines 1)))))))
 
 ;; Prints a window title from the given format.
@@ -305,9 +306,6 @@
 
 ;; Generic function to print an alist entry, for use with print-window.
 (define (alist-window-print-row window row line-nr)
-  (if (selected-row? window (- line-nr 1))
-    (cursed-set! CURSED-WIN-SEL)
-    (cursed-set! CURSED-WIN))
   (mvaddstr line-nr 0
             (string-truncate (format " ~a" (car row))
                              (- (COLS) 2)))
@@ -317,54 +315,69 @@
                              (- (COLS) 2))))
 
 (define (list-window-print-row window row line-nr)
-  (if (selected-row? window (- line-nr 1))
-    (cursed-set! CURSED-WIN-SEL)
-    (cursed-set! CURSED-WIN))
   (mvaddstr line-nr 0
             (string-truncate (format " ~a" row)
                              (- (COLS) 2)))
   (clrtoeol))
 
 (define (library-window-print-row window row line-nr)
-  (if (list? row)
-    (begin
-      (cursed-trackwin-set! window row line-nr)
-      (format-print-line line-nr (get-option 'format-library) row))
-    (begin
-      (cursed-set! CURSED-WIN)
-      (list-window-print-row window row line-nr))))
+  (library-cursed-set! window row line-nr)
+  (case *current-library-window*
+    ((artist album) (list-window-print-row window row line-nr))
+    ((track) (format-print-line line-nr (get-option 'format-library) row))))
 
-;; Set the appropriate CURSED-* pair for the given window and track.
-(define (cursed-trackwin-set! window track line-nr)
-  (assert (window? window))
-  (assert (list? track))
-  (if (null? track)
-    (cursed-set! CURSED-WIN)
-    (let ((current? (current-track? track))
-          (selected? (selected-row? window (- line-nr 1)))
-          (selected? (track= track (window-selected window))))
+;; Generates a function to call cursed-set! with the appropriate value given
+;; a window, row, and line number.
+(define (win-cursed-fn current?)
+  (lambda (window row line-nr)
+    (let ((current (current? row))
+          (selected (selected-row? window (- line-nr 1))))
       (cursed-set!
         (cond
-          ((and current? selected?) CURSED-WIN-CUR-SEL)
-          (current?                 CURSED-WIN-CUR)
-          (selected?                CURSED-WIN-SEL)
-          (else                     CURSED-WIN))))))
+          ((and current selected) CURSED-WIN-CUR-SEL)
+          (current                CURSED-WIN-CUR)
+          (selected               CURSED-WIN-SEL)
+          (else                   CURSED-WIN))))))
 
-;; Returns a function to print a track, which can be passed to print-window.
-(define (make-trackwin-print-row fmt)
-  (lambda (window track line-nr)
-    (cursed-trackwin-set! window track line-nr)
-    (format-print-line line-nr fmt track)))
+;; cursed-set! suitable for any window (CURSED-CUR[-SEL] is never chosen)
+(define generic-cursed-set! (win-cursed-fn (lambda (x) #f)))
+
+;; cursed-set! for track windows (e.g. queue)
+(define trackwin-cursed-set! (win-cursed-fn current-track?))
+
+(define lib-artists-cursed-set!
+  (win-cursed-fn (lambda (artist)
+                   (string=? artist (track-artist (current-track))))))
+
+(define lib-albums-cursed-set!
+  (win-cursed-fn
+    (lambda (selected-album)
+      (let ((current-album (track-album (current-track)))
+            (current-artist (track-artist (current-track)))
+            (selected-artist (window-selected
+                               (alist-ref 'artist *library-windows*))))
+        (and (string=? selected-album current-album)
+             (string=? selected-artist current-artist))))))
+
+(define (library-cursed-set! window row line-nr)
+  (case *current-library-window*
+    ((artist) (lib-artists-cursed-set! window row line-nr))
+    ((album)  (lib-albums-cursed-set! window row line-nr))
+    ((track)  (trackwin-cursed-set! window row line-nr))))
 
 (define (update-track-window window title-fmt track-fmt)
   (print-window-title title-fmt)
-  (print-window window (make-trackwin-print-row track-fmt)))
+  (print-window window
+                (lambda (window track line-nr)
+                  (format-print-line line-nr track-fmt track))
+                trackwin-cursed-set!))
 
 (define (update-library-window)
   (when (current-view? 'library)
     (print-window-title (process-format (string->list "Library")))
     (print-window (alist-ref 'library *windows*)
-                  library-window-print-row)))
+                  library-window-print-row
+                  library-cursed-set!)))
 
 (define (update-library-data)
   (window-data-len-update! (alist-ref 'library *windows*))
