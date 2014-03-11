@@ -80,6 +80,7 @@
   (safe-environment-set! *user-env* 'win-clear! win-clear!)
   (safe-environment-set! *user-env* 'win-search! win-search!)
   (safe-environment-set! *user-env* 'win-search-next! win-search-next!)
+  (safe-environment-set! *user-env* 'win-search-prev! win-search-prev!)
   (safe-environment-set! *user-env* 'shuffle! scmus-shuffle!))
 
 (define (user-eval str)

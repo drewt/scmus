@@ -23,8 +23,9 @@
          (export *ui-initialized* *current-input-mode* *current-view*
                  set-view! win-move! win-activate! win-deactivate! win-add!
                  win-remove! win-clear! win-search! win-search-next!
-                 register-event! curses-update cursor-on cursor-off
-                 set-input-mode! handle-input init-curses exit-curses))
+                 win-search-prev! register-event! curses-update cursor-on
+                 cursor-off set-input-mode! handle-input init-curses
+                 exit-curses))
 
 ;;; definitions missing from the ncurses egg
 (define bkgdset
@@ -93,6 +94,11 @@
 
 (define (win-search-next!)
   (let ((i (window-next-match! (current-window))))
+    (when i
+      (window-select! (current-window) i))))
+
+(define (win-search-prev!)
+  (let ((i (window-prev-match! (current-window))))
     (when i
       (window-select! (current-window) i))))
 

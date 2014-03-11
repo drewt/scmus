@@ -152,3 +152,14 @@
           (window-match-pos-set! window pos)
           pos)
         (else (loop (+ pos 1) (cdr rest)))))))
+
+(define (window-prev-match! window)
+  (let ((orig-pos (window-match-pos window)))
+    (let loop ((last-pos orig-pos))
+      (let ((rv (window-next-match! window)))
+        (cond
+          ((not rv) #f)
+          ((= rv orig-pos)
+            (window-match-pos-set! window last-pos)
+            last-pos)
+          (else (loop rv)))))))

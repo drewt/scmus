@@ -17,10 +17,10 @@
 (bind! "right" 'common (lambda () (seek!  5))     #t)
 
 ;; movement
-(bind! "^U" 'common (lambda () (win-move! -50 #t)))
-(bind! "^D" 'common (lambda () (win-move!  50 #t)))
-(bind! "page_up"   'common (lambda () (win-move! -100 #t)))
-(bind! "page_down" 'common (lambda () (win-move!  100 #t)))
+(bind! "^U" 'common (lambda () (win-move! -50 #t)) #t)
+(bind! "^D" 'common (lambda () (win-move!  50 #t)) #t)
+(bind! "page_up"   'common (lambda () (win-move! -100 #t)) #t)
+(bind! "page_down" 'common (lambda () (win-move!  100 #t)) #t)
 
 ;; player control
 (bind! "z" 'common prev!  #t)
@@ -39,12 +39,13 @@
 (bind! ">" 'common (lambda () (seek!  60)) #t)
 
 ;; search
-(bind! "n" 'common (lambda () (win-search-next!)))
+(bind! "n" 'common (lambda () (win-search-next!)) #t)
+(bind! "N" 'common (lambda () (win-search-prev!)) #t)
 
 ;; queue management
 (bind! "a" 'common win-add! #t)
 (bind! "d" 'common win-remove! #t)
-(bind! "D" 'common win-clear!)
+(bind! "D" 'common win-clear! #t)
 
 (bind! "enter" 'common win-activate! #t)
 (bind! "(" 'common (lambda () (push! "(")) #t)
