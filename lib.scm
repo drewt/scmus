@@ -153,9 +153,14 @@
   (inexact->exact (round (* len (/ percent 100)))))
 
 (define (string-split-lines str)
-  (string-tokenize str (char-set-filter (lambda (c)
-                                          (not (char=? c #\newline)))
-                                        char-set:full)))
+  (let loop ((result '()) (substr '()) (rest (string->list str)))
+    (if (null? rest)
+      (if (null? substr)
+        (reverse result)
+        (reverse (cons (list->string (reverse substr)) result)))
+      (if (char=? (car rest) #\newline)
+        (loop (cons (list->string (reverse substr)) result) '() (cdr rest))
+        (loop result (cons (car rest) substr) (cdr rest))))))
 
 (define (seconds->string total-seconds)
   (assert (integer? total-seconds))
