@@ -137,16 +137,16 @@
 (track-selector track-duration 'duration 0)
 (track-selector track-start 'start 0)
 (track-selector track-end 'end 0)
-(track-selector track-last-modified 'last-modified)
+(track-selector track-last-modified 'last-modified 0)
 (track-selector track-pos 'pos -1)
 (track-selector track-id 'id -1)
 (track-selector track-prio 'prio 0)
 
 (define (current-track? track)
-  (= (track-id track) (track-id *current-track*)))
+  (track= track *current-track*))
 
 (define (track= a b)
-  (= (track-id a) (track-id b)))
+  (string=? (track-file a) (track-file b)))
 
 (stat-selector scmus-artists 'artists)
 (stat-selector scmus-albums 'albums)
