@@ -95,6 +95,7 @@
         (printf "Unrecognized option: ~a~n" (car args))))
     (process-args (cdr args))))
 
+(set-signal-handler! signal/chld void)
 (process-args (command-line-arguments))
 (init-all)
 (let ((code (call/cc main)))

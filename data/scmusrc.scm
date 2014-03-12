@@ -48,7 +48,10 @@
 (bind! "D" 'common win-clear! #t)
 
 (bind! "enter" 'common win-activate! #t)
+
+;; push! shortcuts
 (bind! "(" 'common (lambda () (push! "(")) #t)
+(bind! "!" 'common (lambda () (push! "(shell! ")) #t)
 
 ;; library view
 (bind! "h"     'library win-deactivate! #t)
