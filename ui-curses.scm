@@ -23,8 +23,8 @@
          (export *ui-initialized* *current-input-mode* *current-view*
                  set-view! win-move! win-activate! win-deactivate! win-add!
                  win-remove! win-clear! win-search! win-search-next!
-                 win-search-prev! register-event! curses-update cursor-on
-                 cursor-off set-input-mode! handle-input init-curses
+                 win-search-prev! win-selected register-event! curses-update
+                 cursor-on cursor-off set-input-mode! handle-input init-curses
                  exit-curses))
 
 ;;; definitions missing from the ncurses egg
@@ -101,6 +101,9 @@
   (let ((i (window-prev-match! (current-window))))
     (when i
       (window-select! (current-window) i))))
+
+(define (win-selected)
+  (window-selected (current-window)))
 
 ;; user functions }}}
 ;; windows {{{

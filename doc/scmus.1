@@ -178,6 +178,13 @@ Loads the colorscheme \fIname\fR.  This function looks for a file named
 Sets the value of the \fBconsume\fR MPD option.
 .RE
 
+;; current\-track : void \-> track
+.br
+(current\-track)
+.RS
+Returns the track object for the currently playing track.
+.RE
+
 ;; get\-option : symbol \-> ???
 .br
 (get\-option! <name>)
@@ -298,6 +305,142 @@ Toggles the value of the \fBrepeat\fR MPD option.
 Toggles the value of the \fBsingle\fR MPD option.
 .RE
 
+;; track\-album : track \-> string
+.br
+(track\-album <track>)
+.RS
+Returns the album tag for the given track.
+.RE
+
+;; track\-albumartist : track \-> string
+.br
+(track\-albumartist <track>)
+.RS
+Returns the albumartist tag for the given track.
+.RE
+
+;; track\-artist : track \-> string
+.br
+(track\-artist <track>)
+.RS
+Returns the artist tag for the given track.
+.RE
+
+;; track\-composer : track \-> string
+.br
+(track\-composer <track>)
+.RS
+Returns the composer tag for the given track.
+.RE
+
+;; track\-date : track \-> string
+.br
+(track\-date <track>)
+.RS
+Returns the date tag for the given track.
+.RE
+
+;; track\-disc : track \-> string
+.br
+(track\-disc <track>)
+.RS
+Returns the disc number tag for the given track.
+.RE
+
+;; track\-duration : track \-> integer
+.br
+(track\-duration <track>)
+.RS
+Returns the duration of the given track.
+.RE
+
+;; track\-end : track\-> integer
+.br
+(track\-end <track>)
+.RS
+Returns the end position for the given track.
+.RE
+
+;; track\-file : track\-> string
+.br
+(track\-file <track>)
+.RS
+Returns the filename for the given track.
+.RE
+
+;; track\-genre : track\-> string
+.br
+(track\-genre <track>)
+.RS
+Returns the genre tag for the given track.
+.RE
+
+;; track\-id : track \-> integer
+.br
+(track\-id <track>)
+.RS
+Returns the id of the given track.  Undefined if \fItrack\fR wasn't obtained
+from the queue.
+.RE
+
+;; track\-last\-modified : track \-> integer
+.br
+(track\-last\-modified <track>)
+.RS
+Returns the POSIX UTC time stamp for the given track.
+.RE
+
+;; track\-name : track \-> string
+.br
+(track\-name <track>)
+.RS
+Returns the name tag for the given track.
+.RE
+
+;; track\-performer : track \-> string
+.br
+(track\-performer <track>)
+.RS
+Returns the performer tag for the given track.
+.RE
+
+;; track\-pos : track \-> integer
+.br
+(track\-pos <track>)
+.RS
+Returns the position of the given track in the queue.  Undefined if \fItrack\fR
+wasn't obtained from the queue.
+.RE
+
+;; track\-prio : track \-> integer
+.br
+(track\-prio <track>)
+.RS
+Returns the priority of the given track in the queue.  Undefined if \fItrack\fR
+wasn't obtained from the queue.
+.RE
+
+;; track\-start : track \-> integer
+.br
+(track\-start <track>)
+.RS
+Returns the start position for the given track.
+.RE
+
+;; track\-title : track \-> string
+.br
+(track\-title <track>)
+.RS
+Returns the title tag for the given track.
+.RE
+
+;; track\-track : track \-> string
+.br
+(track\-track <track>)
+.RS
+Returns the track number tag for the given track.
+.RE
+
 ;; unbind! : string symbol \-> boolean
 .br
 (unbind! <keys> <context>)
@@ -353,6 +496,36 @@ move down.  Negative values mean move up.  If \fIrelative\fR is \fB#t\fR, then
 (win\-remove!)
 .RS
 Removes the selection (only works in \fBqueue\fR view).
+.RE
+
+;; win\-search! : string \-> void
+.br
+(win\-search <query>)
+.RS
+Searches for \fIquery\fR in the current window.
+.RE
+
+;; win\-search\-next! : void \-> void
+.br
+(win\-search\-next!)
+.RS
+Selects the next match for the most recent search.
+.RE
+
+;; win\-search\-prev! : void \-> void
+.br
+(win\-search\-prev!)
+.RS
+Selects the previous match for the most recent search.
+.RE
+
+;; win\-selected : void \-> ???
+.br
+(win\-selected)
+.RS
+Returns the value of the selection in the current window.  The type of this
+value depends on the current window, e.g. in a track window, a track object is
+returned.
 .RE
 .SH CONFIGURATION OPTIONS
 This section describes scmus's options that can be altered with the
