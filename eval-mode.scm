@@ -65,6 +65,7 @@
 
 (define (init-sandbox)
   (user-export! 'bind! user-bind!)
+  (user-export! 'clear-queue! scmus-clear!)
   (user-export! 'colorscheme! colorscheme!)
   (user-export! 'consume-set! scmus-consume-set!)
   (user-export! 'get-option get-option)
