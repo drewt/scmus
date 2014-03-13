@@ -54,7 +54,7 @@
 
 ;; Synchronous version of shell!
 (define (shell-sync! command . args)
-  (process-wait (apply shell! command args)))
+  (nth-value 2 (process-wait (apply shell! command args))))
 
 (define (update! #!optional (path #f))
   (scmus-update! path))
