@@ -62,6 +62,10 @@
   (define-constant MPD_TAG_MUSICBRAINZ_ALBUMARTISTID 14)
   (define-constant MPD_TAG_MUSICBRAINZ_TRACKID 15)
   (define-constant MPD_TAG_COUNT 16)
+  (define-constant MPD_ENTITY_TYPE_UNKNOWN 0)
+  (define-constant MPD_ENTITY_TYPE_DIRECTORY 1)
+  (define-constant MPD_ENTITY_TYPE_SONG 2)
+  (define-constant MPD_ENTITY_TYPE_PLAYLIST 3)
   (define-constant MPD_OPERATOR_DEFAULT 0)
   (begin
     (define mpd_settings_new
@@ -812,6 +816,91 @@
         void
         (((c-pointer (struct "mpd_connection")) a0)
          ((c-pointer (struct "mpd_pair")) a1))
-        "mpd_return_pair(a0 , a1);"))))
+        "mpd_return_pair(a0 , a1);")))
+  (begin
+    (define mpd_send_list_all
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (c-string a1))
+        "return(mpd_send_list_all(a0 , a1));")))
+  (begin
+    (define mpd_send_list_all_meta
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (c-string a1))
+        "return(mpd_send_list_all_meta(a0 , a1));")))
+  (begin
+    (define mpd_send_list_meta
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (c-string a1))
+        "return(mpd_send_list_meta(a0 , a1));")))
+  (begin
+    (define mpd_send_read_comments
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (c-string a1))
+        "return(mpd_send_read_comments(a0 , a1));")))
+  (begin
+    (define mpd_run_update
+      (foreign-lambda*
+        unsigned-integer
+        (((c-pointer (struct "mpd_connection")) a0) (c-string a1))
+        "return(mpd_run_update(a0 , a1));")))
+  (begin
+    (define mpd_run_rescan
+      (foreign-lambda*
+        unsigned-integer
+        (((c-pointer (struct "mpd_connection")) a0) (c-string a1))
+        "return(mpd_run_rescan(a0 , a1));")))
+  (begin
+    (define mpd_entity_free
+      (foreign-lambda*
+        void
+        (((c-pointer (struct "mpd_entity")) a0))
+        "mpd_entity_free(a0);")))
+  (begin
+    (define mpd_entity_get_type
+      (foreign-lambda*
+        (enum "mpd_entity_type")
+        (((c-pointer (struct "mpd_entity")) a0))
+        "return(mpd_entity_get_type(a0));")))
+  (begin
+    (define mpd_entity_get_directory
+      (foreign-lambda*
+        (c-pointer (const (struct "mpd_directory")))
+        (((c-pointer (struct "mpd_entity")) a0))
+        "return(mpd_entity_get_directory(a0));")))
+  (begin
+    (define mpd_entity_get_song
+      (foreign-lambda*
+        (c-pointer (const (struct "mpd_song")))
+        (((c-pointer (struct "mpd_entity")) a0))
+        "return(mpd_entity_get_song(a0));")))
+  (begin
+    (define mpd_entity_get_playlist
+      (foreign-lambda*
+        (c-pointer (const (struct "mpd_playlist")))
+        (((c-pointer (struct "mpd_entity")) a0))
+        "return(mpd_entity_get_playlist(a0));")))
+  (begin
+    (define mpd_entity_begin
+      (foreign-lambda*
+        (c-pointer (struct "mpd_entity"))
+        (((c-pointer (struct "mpd_pair")) a0))
+        "return(mpd_entity_begin(a0));")))
+  (begin
+    (define mpd_entity_feed
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_entity")) a0)
+         ((c-pointer (struct "mpd_pair")) a1))
+        "return(mpd_entity_feed(a0 , a1));")))
+  (begin
+    (define mpd_recv_entity
+      (foreign-lambda*
+        (c-pointer (struct "mpd_entity"))
+        (((c-pointer (struct "mpd_connection")) a0))
+        "return(mpd_recv_entity(a0));"))))
 
 ;;; END OF FILE

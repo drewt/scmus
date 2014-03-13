@@ -7,6 +7,7 @@ struct mpd_audio_format;
 struct mpd_status;
 struct mpd_stats;
 struct mpd_song;
+struct mpd_entity;
 
 struct mpd_pair {
 	const char *name;
@@ -76,17 +77,14 @@ enum mpd_tag_type
 	MPD_TAG_COUNT
 };
 
-/**
- * This type is not yet used, it is reserved for a future protocol
- * extension which will allow us to specify a comparison operator for
- * constraints.
- */
+enum mpd_entity_type {
+	MPD_ENTITY_TYPE_UNKNOWN,
+	MPD_ENTITY_TYPE_DIRECTORY,
+	MPD_ENTITY_TYPE_SONG,
+	MPD_ENTITY_TYPE_PLAYLIST
+};
+
 enum mpd_operator {
-	/**
-	 * The default search operator.  If "exact" was passed as
-	 * "true", then it means "full string comparison"; if false,
-	 * then it means "search for substring".
-	 */
 	MPD_OPERATOR_DEFAULT
 };
 
@@ -498,3 +496,51 @@ void
 mpd_return_pair(struct mpd_connection *connection, struct mpd_pair *pair);
 
 /* <mpd/recv.h> }}} */
+/* <mpd/database.h> {{{ */
+
+bool
+mpd_send_list_all(struct mpd_connection *connection, const char *path);
+
+bool
+mpd_send_list_all_meta(struct mpd_connection *connection, const char *path);
+
+bool
+mpd_send_list_meta(struct mpd_connection *connection, const char *path);
+
+bool
+mpd_send_read_comments(struct mpd_connection *connection, const char *path);
+
+unsigned int
+mpd_run_update(struct mpd_connection *connection, const char *path);
+
+unsigned int
+mpd_run_rescan(struct mpd_connection *connection, const char *path);
+
+/* <mpd/database.h> }}} */
+/* <mpd/entity.h> {{{ */
+
+void
+mpd_entity_free(struct mpd_entity *entity);
+
+enum mpd_entity_type
+mpd_entity_get_type(const struct mpd_entity *entity);
+
+const struct mpd_directory *
+mpd_entity_get_directory(const struct mpd_entity *entity);
+
+const struct mpd_song *
+mpd_entity_get_song(const struct mpd_entity *entity);
+
+const struct mpd_playlist *
+mpd_entity_get_playlist(const struct mpd_entity *entity);
+
+struct mpd_entity *
+mpd_entity_begin(const struct mpd_pair *pair);
+
+bool
+mpd_entity_feed(struct mpd_entity *entity, const struct mpd_pair *pair);
+
+struct mpd_entity *
+mpd_recv_entity(struct mpd_connection *connection);
+
+/* <mpd/entity.h> }}} */
