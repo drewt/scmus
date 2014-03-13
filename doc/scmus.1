@@ -242,6 +242,13 @@ Sets the value of the \fBrandom\fR MPD option.
 Sets the value of the \fBrepeat\fR MPD option.
 .RE
 
+;; rescan! : [string] \-> void
+.br
+(rescan! [path])
+.RS
+Like update!, but also rescans unmodified files.
+.RE
+
 ;; seek! : integer \-> void
 .br
 (seek! <seconds>)
@@ -447,6 +454,14 @@ Returns the track number tag for the given track.
 .RS
 Removes the binding for \fIkeys\fR in \fIcontext\fR, or any bindings in
 conflict with \fIkeys\fR.
+.RE
+
+;; update! : [string] \-> void
+.br
+(update! [path])
+.RS
+Updates the music database.  If \fIpath\fR is given, then only that path is
+updated.
 .RE
 
 ;; win\-activate! : void \-> void

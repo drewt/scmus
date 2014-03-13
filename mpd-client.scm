@@ -25,7 +25,7 @@
                  mpd:single-set! mpd:consume-set! mpd:add! mpd:add-id!
                  mpd:add-id-to! mpd:delete! mpd:delete-id! mpd:delete-range!
                  mpd:shuffle! mpd:shuffle-range! mpd:clear! mpd:move!
-                 mpd:move-range! mpd:swap! mpd:swap-id!))
+                 mpd:move-range! mpd:swap! mpd:swap-id! mpd:update! mpd:rescan!))
 
 (foreign-declare "#include <mpd/client.h>")
 (include "libmpdclient.scm")
@@ -238,22 +238,24 @@
 
 (define-syntax mpd:define-wrapper
   (syntax-rules (0 1 2 3)
-    ((mpd:define-wrapper 0 name mpd-fn)
+    ((mpd:define-wrapper 0 name mpd-fn fail)
       (define (name connection)
-        (if (not (mpd-fn connection))
+        (if (eqv? (mpd-fn connection) fail)
           (mpd:raise-error connection))))
-    ((mpd:define-wrapper 1 name mpd-fn)
+    ((mpd:define-wrapper 1 name mpd-fn fail)
       (define (name connection arg)
-        (if (not (mpd-fn connection arg))
+        (if (eqv? (mpd-fn connection arg) fail)
           (mpd:raise-error connection))))
-    ((mpd:define-wrapper 2 name mpd-fn)
+    ((mpd:define-wrapper 2 name mpd-fn fail)
       (define (name connection arg1 arg2)
-        (if (not (mpd-fn connection arg1 arg2))
+        (if (eqv? (mpd-fn connection arg1 arg2) fail)
           (mpd:raise-error connection))))
-    ((mpd:define-wrapper 3 name mpd-fn)
+    ((mpd:define-wrapper 3 name mpd-fn fail)
       (define (name connection arg1 arg2 arg3)
-        (if (not (mpd-fn connection arg1 arg2 arg3))
-          (mpd:raise-error connection))))))
+        (if (eqv? (mpd-fn connection arg1 arg2 arg3) fail)
+          (mpd:raise-error connection))))
+    ((mpd:define-wrapper n name mpd-fn)
+      (mpd:define-wrapper n name mpd-fn #f))))
 
 (mpd:define-wrapper 0 mpd:play! mpd_run_play)
 (mpd:define-wrapper 0 mpd:pause! mpd_run_toggle_pause)
@@ -280,6 +282,8 @@
 (mpd:define-wrapper 3 mpd:move-range! mpd_run_move_range)
 (mpd:define-wrapper 2 mpd:swap! mpd_run_swap)
 (mpd:define-wrapper 2 mpd:swap-id! mpd_run_swap_id)
+(mpd:define-wrapper 1 mpd:update! mpd_run_update 0)
+(mpd:define-wrapper 1 mpd:rescan! mpd_run_rescan 0)
 
 (define (mpd:add-id! connection file)
   (let ((rv (mpd_run_add_id connection file)))

@@ -202,6 +202,8 @@
 (scmus-command 3 scmus-move-range! mpd:move-range!)
 (scmus-command 2 scmus-swap! mpd:swap!)
 (scmus-command 2 scmus-swap-id! mpd:swap-id!)
+(scmus-command 1 scmus-update! mpd:update!)
+(scmus-command 1 scmus-rescan! mpd:rescan!)
 
 (define (scmus-play-track! track)
   (assert (>= (track-id track) 0))

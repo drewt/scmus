@@ -56,6 +56,12 @@
 (define (shell-sync! command . args)
   (process-wait (apply shell! command args)))
 
+(define (update! #!optional (path #f))
+  (scmus-update! path))
+
+(define (rescan! #!optional (path #f))
+  (scmus-rescan! path))
+
 ;; user functions }}}
 
 (define *user-env* (make-safe-environment parent: default-safe-environment))
@@ -77,6 +83,7 @@
   (user-export! 'push! push!)
   (user-export! 'random-set! scmus-random-set!)
   (user-export! 'repeat-set! scmus-repeat-set!)
+  (user-export! 'rescan! rescan!)
   (user-export! 'seek! scmus-seek!)
   (user-export! 'set-option! set-option!)
   (user-export! 'set-view! set-view!)
@@ -109,6 +116,7 @@
   (user-export! 'track-title track-title)
   (user-export! 'track-track track-track)
   (user-export! 'unbind! user-unbind!)
+  (user-export! 'update! update!)
   (user-export! 'win-move! win-move!)
   (user-export! 'win-activate! win-activate!)
   (user-export! 'win-deactivate! win-deactivate!)
