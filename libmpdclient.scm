@@ -901,6 +901,141 @@
       (foreign-lambda*
         (c-pointer (struct "mpd_entity"))
         (((c-pointer (struct "mpd_connection")) a0))
-        "return(mpd_recv_entity(a0));"))))
+        "return(mpd_recv_entity(a0));")))
+  (begin
+    (define mpd_directory_dup
+      (foreign-lambda*
+        (c-pointer (struct "mpd_directory"))
+        (((c-pointer (struct "mpd_directory")) a0))
+        "return(mpd_directory_dup(a0));")))
+  (begin
+    (define mpd_directory_free
+      (foreign-lambda*
+        void
+        (((c-pointer (struct "mpd_directory")) a0))
+        "mpd_directory_free(a0);")))
+  (begin
+    (define mpd_directory_get_path
+      (foreign-lambda*
+        c-string
+        (((c-pointer (struct "mpd_directory")) a0))
+        "return(mpd_directory_get_path(a0));")))
+  (begin
+    (define mpd_directory_get_last_modified
+      (foreign-lambda*
+        unsigned-long
+        (((c-pointer (struct "mpd_directory")) a0))
+        "return(mpd_directory_get_last_modified(a0));")))
+  (begin
+    (define mpd_recv_directory
+      (foreign-lambda*
+        (c-pointer (struct "mpd_directory"))
+        (((c-pointer (struct "mpd_connection")) a0))
+        "return(mpd_recv_directory(a0));")))
+  (begin
+    (define mpd_playlist_free
+      (foreign-lambda*
+        void
+        (((c-pointer (struct "mpd_playlist")) a0))
+        "mpd_playlist_free(a0);")))
+  (begin
+    (define mpd_playlist_dup
+      (foreign-lambda*
+        (c-pointer (struct "mpd_playlist"))
+        (((c-pointer (struct "mpd_playlist")) a0))
+        "return(mpd_playlist_dup(a0));")))
+  (begin
+    (define mpd_playlist_get_path
+      (foreign-lambda*
+        c-string
+        (((c-pointer (struct "mpd_playlist")) a0))
+        "return(mpd_playlist_get_path(a0));")))
+  (begin
+    (define mpd_playlist_get_last_modified
+      (foreign-lambda*
+        unsigned-long
+        (((c-pointer (struct "mpd_playlist")) a0))
+        "return(mpd_playlist_get_last_modified(a0));")))
+  (begin
+    (define mpd_send_list_playlists
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0))
+        "return(mpd_send_list_playlists(a0));")))
+  (begin
+    (define mpd_recv_playlist
+      (foreign-lambda*
+        (c-pointer (struct "mpd_playlist"))
+        (((c-pointer (struct "mpd_connection")) a0))
+        "return(mpd_recv_playlist(a0));")))
+  (begin
+    (define mpd_send_list_playlist
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (c-string a1))
+        "return(mpd_send_list_playlist(a0 , a1));")))
+  (begin
+    (define mpd_send_list_playlist_meta
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (c-string a1))
+        "return(mpd_send_list_playlist_meta(a0 , a1));")))
+  (begin
+    (define mpd_run_playlist_clear
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (c-string a1))
+        "return(mpd_run_playlist_clear(a0 , a1));")))
+  (begin
+    (define mpd_run_playlist_add
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (c-string a1)
+         (c-string a2))
+        "return(mpd_run_playlist_add(a0 , a1 , a2));")))
+  (begin
+    (define mpd_send_playlist_move
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (c-string a1)
+         (unsigned-integer a2)
+         (unsigned-integer a3))
+        "return(mpd_send_playlist_move(a0 , a1 , a2 , a3));")))
+  (begin
+    (define mpd_run_playlist_delete
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (c-string a1)
+         (unsigned-integer a2))
+        "return(mpd_run_playlist_delete(a0 , a1 , a2));")))
+  (begin
+    (define mpd_run_save
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (c-string a1))
+        "return(mpd_run_save(a0 , a1));")))
+  (begin
+    (define mpd_run_load
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (c-string a1))
+        "return(mpd_run_load(a0 , a1));")))
+  (begin
+    (define mpd_run_rename
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0)
+         (c-string a1)
+         (c-string a2))
+        "return(mpd_run_rename(a0 , a1 , a2));")))
+  (begin
+    (define mpd_run_rm
+      (foreign-lambda*
+        bool
+        (((c-pointer (struct "mpd_connection")) a0) (c-string a1))
+        "return(mpd_run_rm(a0 , a1));"))))
 
 ;;; END OF FILE

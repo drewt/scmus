@@ -8,6 +8,8 @@ struct mpd_status;
 struct mpd_stats;
 struct mpd_song;
 struct mpd_entity;
+struct mpd_directory;
+struct mpd_playlist;
 
 struct mpd_pair {
 	const char *name;
@@ -544,3 +546,76 @@ struct mpd_entity *
 mpd_recv_entity(struct mpd_connection *connection);
 
 /* <mpd/entity.h> }}} */
+/* <mpd/directory.h> {{{ */
+
+struct mpd_directory *
+mpd_directory_dup(const struct mpd_directory *directory);
+
+void
+mpd_directory_free(struct mpd_directory *directory);
+
+const char *
+mpd_directory_get_path(const struct mpd_directory *directory);
+
+unsigned long
+mpd_directory_get_last_modified(const struct mpd_directory *directory);
+
+struct mpd_directory *
+mpd_recv_directory(struct mpd_connection *connection);
+
+/* <mpd/directory.h> }}} */
+/* <mpd/playlist.h> {{{ */
+
+void
+mpd_playlist_free(struct mpd_playlist *playlist);
+
+struct mpd_playlist *
+mpd_playlist_dup(const struct mpd_playlist *playlist);
+
+const char *
+mpd_playlist_get_path(const struct mpd_playlist *playlist);
+
+unsigned long
+mpd_playlist_get_last_modified(const struct mpd_playlist *playlist);
+
+bool
+mpd_send_list_playlists(struct mpd_connection *connection);
+
+struct mpd_playlist *
+mpd_recv_playlist(struct mpd_connection *connection);
+
+bool
+mpd_send_list_playlist(struct mpd_connection *connection, const char *name);
+
+bool
+mpd_send_list_playlist_meta(struct mpd_connection *connection, const char *name);
+
+bool
+mpd_run_playlist_clear(struct mpd_connection *connection, const char *name);
+
+bool
+mpd_run_playlist_add(struct mpd_connection *connection,
+		     const char *name, const char *path);
+
+bool
+mpd_send_playlist_move(struct mpd_connection *connection, const char *name,
+		       unsigned int from, unsigned int to);
+
+bool
+mpd_run_playlist_delete(struct mpd_connection *connection,
+			const char *name, unsigned int pos);
+
+bool
+mpd_run_save(struct mpd_connection *connection, const char *name);
+
+bool
+mpd_run_load(struct mpd_connection *connection, const char *name);
+
+bool
+mpd_run_rename(struct mpd_connection *connection,
+	       const char *from, const char *to);
+
+bool
+mpd_run_rm(struct mpd_connection *connection, const char *name);
+
+/* <mpd/playlist.h> }}} */
