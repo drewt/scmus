@@ -384,6 +384,7 @@
 
 (define (update-library-data)
   (window-data-len-update! (alist-ref 'library *windows*))
+  (redraw-ui)
   (update-library-window))
 
 (define (update-queue-window)
