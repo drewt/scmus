@@ -21,6 +21,8 @@
 (bind! "^D" 'common (lambda () (win-move!  50 #t)) #t)
 (bind! "page_up"   'common (lambda () (win-move! -100 #t)) #t)
 (bind! "page_down" 'common (lambda () (win-move!  100 #t)) #t)
+(bind! "g" 'common win-top!)
+(bind! "G" 'common win-bottom!)
 
 ;; player control
 (bind! "z" 'common prev!  #t)

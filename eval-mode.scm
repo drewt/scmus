@@ -118,6 +118,8 @@
   (user-export! 'unbind! user-unbind!)
   (user-export! 'update! update!)
   (user-export! 'win-move! win-move!)
+  (user-export! 'win-bottom! win-bottom!)
+  (user-export! 'win-top! win-top!)
   (user-export! 'win-activate! win-activate!)
   (user-export! 'win-deactivate! win-deactivate!)
   (user-export! 'win-add! win-add!)

@@ -21,11 +21,11 @@
          (uses scmus-client eval-mode search-mode command-line keys format
                option window)
          (export *ui-initialized* *current-input-mode* *current-view*
-                 set-view! win-move! win-activate! win-deactivate! win-add!
-                 win-remove! win-clear! win-search! win-search-next!
-                 win-search-prev! win-selected register-event! curses-update
-                 cursor-on cursor-off set-input-mode! handle-input init-curses
-                 exit-curses))
+                 set-view! win-move! win-bottom! win-top! win-activate!
+                 win-deactivate! win-add! win-remove! win-clear! win-search!
+                 win-search-next! win-search-prev! win-selected register-event!
+                 curses-update cursor-on cursor-off set-input-mode!
+                 handle-input init-curses exit-curses))
 
 ;;; definitions missing from the ncurses egg
 (define bkgdset
@@ -66,6 +66,13 @@
     (if (> nr-lines 0)
       (window-move-down! (current-window) nr-lines)
       (window-move-up! (current-window) (abs nr-lines)))))
+
+(define (win-bottom!)
+  (let ((window (current-window)))
+    (window-select! window (- (window-data-len window) 1))))
+
+(define (win-top!)
+  (window-select! (current-window) 0))
 
 (define (win-activate!)
   (window-activate! (current-window)))
