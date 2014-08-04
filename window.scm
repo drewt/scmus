@@ -15,13 +15,15 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
+(require-extension srfi-1)
+
 (declare (unit window)
          (uses ui-curses))
 
 ;; A "window" is a view of a list
 (define-record-type window
   (make-window data data-thunk data-len
-               top-pos sel-pos nr-lines match-pos
+               top-pos sel-pos marked nr-lines match-pos
                changed activate deactivate
                match query)
   window?
@@ -35,6 +37,8 @@
   (top-pos window-top-pos window-top-pos-set!)
   ;; position of the selected row
   (sel-pos window-sel-pos window-sel-pos-set!)
+  ;; list of 'marked' rows
+  (marked *window-marked window-marked-set!)
   ;; number of visible rows
   (nr-lines window-nr-lines *window-nr-lines-set!)
   ;; position of the last match
@@ -64,9 +68,59 @@
   (assert (> (length (window-data window)) (window-sel-pos window)))
   (list-ref (window-data window) (window-sel-pos window)))
 
+(define (window-all-selected window)
+  (assert (window? window))
+  (define (select-from indices lst)
+    (cdr (fold (lambda (x acc)
+                 (if (member (car acc) indices)
+                   (cons (+ (car acc) 1)
+                         (cons x (cdr acc)))
+                   (cons (+ (car acc) 1)
+                         (cdr acc))))
+               '(0 . ())
+               lst)))
+  (let* ((sel-pos (window-sel-pos window))
+         (marked (window-marked window)))
+    (reverse (select-from marked (window-data window)))))
+
 (define (window-changed! window)
   (assert (window? window))
   ((*window-changed! window) window))
+
+;; XXX: selected row counts as marked
+(define (window-marked window)
+  (let ((sel-pos (window-sel-pos window))
+        (marked (*window-marked window)))
+    (if (member sel-pos marked)
+      marked
+      (cons sel-pos marked))))
+
+(define (window-mark! window)
+  (assert (window? window))
+  (let ((sel-pos (window-sel-pos window))
+        (marked (*window-marked window)))
+    (unless (member sel-pos marked)
+      (window-marked-set! window (cons sel-pos marked)))))
+
+(define (window-unmark! window)
+  (assert (window? window))
+  (let ((sel-pos (window-sel-pos window))
+        (marked (*window-marked window)))
+    (if (member sel-pos marked)
+      (window-marked-set! window (remove (lambda (x) (= x sel-pos)) marked)))))
+
+;; toggles the 'marked' status of the selected row
+(define (window-toggle-mark! window)
+  (assert (window? window))
+  (let ((sel-pos (window-sel-pos window))
+        (marked (*window-marked window)))
+    (if (member sel-pos marked)
+      (window-marked-set! window (remove (lambda (x) (= x sel-pos)) marked))
+      (window-marked-set! window (cons sel-pos marked)))))
+
+(define (window-clear-marked! window)
+  (assert (window? window))
+  (window-marked-set! window '()))
 
 (define (window-activate! window)
   (assert (window? window))

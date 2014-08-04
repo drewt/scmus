@@ -16,3 +16,5 @@
 (set-option! 'color-win-cur-sel-fg 33)
 (set-option! 'color-win-sel-bg 0)
 (set-option! 'color-win-sel-fg 166)
+(set-option! 'color-win-marked-bg 0)
+(set-option! 'color-win-marked-fg 166)

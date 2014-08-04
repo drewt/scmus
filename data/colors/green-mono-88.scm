@@ -16,3 +16,5 @@
 (set-option! 'color-win-cur-sel-fg 'gray)
 (set-option! 'color-win-sel-bg 'green)
 (set-option! 'color-win-sel-fg 'black)
+(set-option! 'color-win-marked-bg 'green)
+(set-option! 'color-win-marked-fg 'black)

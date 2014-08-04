@@ -101,6 +101,6 @@
 (let ((code (call/cc main)))
   (exit-all)
   (when *error*
-    (print "Unexpected error.  Exiting.")
-    (debug-pp (condition->list *error*)))
+    (pp (condition->list *error*) (current-error-port)))
+    (format (current-error-port) "Unexpected error.  Exiting.~n")
   (exit code))

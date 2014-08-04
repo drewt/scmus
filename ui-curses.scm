@@ -21,11 +21,11 @@
          (uses scmus-client eval-mode search-mode command-line keys format
                option window)
          (export *ui-initialized* *current-input-mode* *current-view*
-                 set-view! win-move! win-bottom! win-top! win-activate!
-                 win-deactivate! win-add! win-remove! win-clear! win-search!
-                 win-search-next! win-search-prev! win-selected register-event!
-                 curses-update cursor-on cursor-off set-input-mode!
-                 handle-input init-curses exit-curses))
+                 current-window set-view! win-move! win-bottom! win-top!
+                 win-add! win-remove! win-clear! win-search!
+                 win-search-next! win-search-prev!
+                 register-event! curses-update cursor-on cursor-off
+                 set-input-mode! handle-input init-curses exit-curses))
 
 ;;; definitions missing from the ncurses egg
 (define bkgdset
@@ -42,8 +42,9 @@
 (define-constant CURSED-WIN-CUR 6)
 (define-constant CURSED-WIN-CUR-SEL 7)
 (define-constant CURSED-WIN-SEL 8)
-(define-constant CURSED-WIN-TITLE 9)
-(define-constant NR-CURSED 10)
+(define-constant CURSED-WIN-MARKED 9)
+(define-constant CURSED-WIN-TITLE 10)
+(define-constant NR-CURSED 11)
 
 (define *ui-initialized* #f)
 (define *current-input-mode* 'normal-mode)
@@ -74,22 +75,20 @@
 (define (win-top!)
   (window-select! (current-window) 0))
 
-(define (win-activate!)
-  (window-activate! (current-window)))
-
-(define (win-deactivate!)
-  (window-deactivate! (current-window)))
-
 (define (win-add! #!optional (view 'queue) (pos #f))
   (case *current-view*
     ((library)
-      (let ((selected (window-selected (current-window))))
-        (case view
-          ((queue) (lib-add-selected! pos)))))))
+      (case view
+        ((queue) (lib-add-selected! pos))))))
 
 (define (win-remove!)
   (case *current-view*
-    ((queue) (scmus-delete! (window-sel-pos (current-window))))))
+    ((queue) (let loop ((marked (sort (window-marked (current-window))
+                                      >)))
+               (unless (null? marked)
+                 (scmus-delete! (car marked))
+                 (loop (cdr marked))))
+             (window-clear-marked! (current-window)))))
 
 (define (win-clear!)
   (case *current-view*
@@ -109,9 +108,6 @@
     (when i
       (window-select! (current-window) i))))
 
-(define (win-selected)
-  (window-selected (current-window)))
-
 ;; user functions }}}
 ;; windows {{{
 
@@ -125,6 +121,7 @@
                    len
                    0
                    0
+                   '()
                    (- (LINES) 4)
                    0
                    (lambda (w) (register-event! changed-event))
@@ -182,6 +179,7 @@
                              0
                              0
                              0
+                             '()
                              (- (LINES) 4)
                              0
                              (lambda (w) (register-event! changed-event))
@@ -228,9 +226,8 @@
 
 ;; This is used to get just the most relevant constraint before searching,
 ;; which is Wrong but makes it possible to access compilations conveniently.
-(define (lib-selected-constraint)
-  (list (cons *current-library-window*
-              (window-selected (alist-ref 'library *windows*)))))
+(define (lib-selected-constraint selected)
+  (list (cons *current-library-window* selected)))
 
 (define (lib-activate-fn tag next-win-name next-list-gen)
   (lambda (window)
@@ -238,6 +235,7 @@
            (constraint (cons tag (window-selected window)))
            (next-list (next-list-gen constraint)))
       (*window-data-set! next-win next-list)
+      (window-clear-marked! next-win)
       (alist-update! 'library next-win *windows*)
       (set! *current-library-window* next-win-name)
       (register-event! 'library-data-changed))))
@@ -260,6 +258,7 @@
       (window-top-pos-set! window 0)
       (window-sel-pos-set! window 0)
       (window-match-pos-set! window 0)
+      (window-clear-marked! prev-win)
       (alist-update! 'library prev-win *windows*)
       (set! *current-library-window* prev-win-name)
       (register-event! 'library-data-changed))))
@@ -268,10 +267,17 @@
 (define lib-track-deactivate! (lib-deactivate-fn 'album))
 
 (define (lib-add-selected! pos)
-  (let ((selected (window-selected (alist-ref 'library *windows*))))
-   (if (list? selected)
-     (scmus-add! (track-file selected) pos)
-     (apply scmus-search-songs #t #t (lib-selected-constraint)))))
+  (let ((selected (window-all-selected (alist-ref 'library *windows*))))
+    (if (eqv? *current-library-window* 'track)
+      (let loop ((selected selected) (pos pos))
+        (unless (null? selected)
+          (scmus-add! (track-file (car selected)) pos)
+          (loop (cdr selected) (if pos (+ pos 1) #f))))
+      (let loop ((selected selected))
+        (unless (null? selected)
+          (apply scmus-search-songs #t #t
+                 (lib-selected-constraint (car selected)))
+          (loop (cdr selected)))))))
 
 ;; windows }}}
 ;; screen updates {{{
@@ -289,10 +295,6 @@
     (mvaddstr line
               (- (COLS) (string-length right) 1)
               right)))
-
-(define (selected-row? window line-nr)
-  (= (window-sel-pos window)
-     (+ (window-top-pos window) line-nr)))
 
 ;; Calls print-fn with window, row item, and line number for each row in
 ;; window.
@@ -340,13 +342,16 @@
 ;; a window, row, and line number.
 (define (win-cursed-fn current?)
   (lambda (window row line-nr)
-    (let ((current (current? row))
-          (selected (selected-row? window (- line-nr 1))))
+    (let* ((current (current? row))
+           (row-pos (+ (window-top-pos window) (- line-nr 1)))
+           (selected (= row-pos (window-sel-pos window)))
+           (marked (member row-pos (window-marked window))))
       (cursed-set!
         (cond
           ((and current selected) CURSED-WIN-CUR-SEL)
           (current                CURSED-WIN-CUR)
           (selected               CURSED-WIN-SEL)
+          (marked                 CURSED-WIN-MARKED)
           (else                   CURSED-WIN))))))
 
 ;; cursed-set! suitable for any window (CURSED-CUR[-SEL] is never chosen)
@@ -594,6 +599,10 @@
                 'color-win-sel-attr
                 'color-win-sel-bg
                 'color-win-sel-fg)
+  (init-cursed! CURSED-WIN-MARKED
+                'color-win-marked-attr
+                'color-win-marked-bg
+                'color-win-marked-fg)
   (init-cursed! CURSED-WIN-TITLE
                 'color-win-title-attr
                 'color-win-title-bg

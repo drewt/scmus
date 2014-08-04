@@ -18,7 +18,7 @@
 (require-extension ncurses sandbox srfi-13)
  
 (declare (unit eval-mode)
-         (uses ui-curses scmus-client command-line keys option)
+         (uses ui-curses scmus-client command-line keys option window)
          (export init-sandbox user-load enter-eval-mode leave-eval-mode
                  eval-mode-char eval-mode-key))
 
@@ -120,15 +120,19 @@
   (user-export! 'win-move! win-move!)
   (user-export! 'win-bottom! win-bottom!)
   (user-export! 'win-top! win-top!)
-  (user-export! 'win-activate! win-activate!)
-  (user-export! 'win-deactivate! win-deactivate!)
+  (user-export! 'win-activate! (lambda () (window-activate! (current-window))))
+  (user-export! 'win-deactivate! (lambda () (window-deactivate! (current-window))))
   (user-export! 'win-add! win-add!)
   (user-export! 'win-remove! win-remove!)
   (user-export! 'win-clear! win-clear!)
   (user-export! 'win-search! win-search!)
   (user-export! 'win-search-next! win-search-next!)
   (user-export! 'win-search-prev! win-search-prev!)
-  (user-export! 'win-selected win-selected))
+  (user-export! 'win-selected (lambda () (window-selected (current-window))))
+  (user-export! 'win-mark! (lambda () (window-mark! (current-window))))
+  (user-export! 'win-unmark! (lambda () (window-unmark! (current-window))))
+  (user-export! 'win-toggle-mark! (lambda () (window-toggle-mark! (current-window))))
+  (user-export! 'win-marked (lambda () (window-marked (current-window)))))
 
 (define (user-eval str)
   (assert (string? str))

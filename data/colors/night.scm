@@ -19,3 +19,5 @@
 (set-option! 'color-win-cur-sel-fg 118)
 (set-option! 'color-win-sel-bg 235)
 (set-option! 'color-win-sel-fg 45)
+(set-option! 'color-win-marked-bg 235)
+(set-option! 'color-win-marked-fg 45)
