@@ -43,6 +43,15 @@
   (set-input-mode! 'eval-mode)
   (command-line-text-set! str))
 
+(define (echo! arg)
+  (define (clean-text text)
+    (string-delete (lambda (x)
+                     (case x
+                       ((#\newline #\linefeed) #t)
+                       (else #f)))
+                   text))
+  (command-line-text-set! (clean-text (format #f "~a" arg))))
+
 (define (colorscheme! str)
   (user-load (format "~a/colors/~a.scm" *scmus-dir* str)))
 
@@ -75,6 +84,7 @@
   (user-export! 'colorscheme! colorscheme!)
   (user-export! 'consume-set! scmus-consume-set!)
   (user-export! 'current-track current-track)
+  (user-export! 'echo! echo!)
   (user-export! 'get-option get-option)
   (user-export! 'next! scmus-next!)
   (user-export! 'pause! scmus-pause!)
@@ -132,6 +142,7 @@
   (user-export! 'win-mark! (lambda () (window-mark! (current-window))))
   (user-export! 'win-unmark! (lambda () (window-unmark! (current-window))))
   (user-export! 'win-toggle-mark! (lambda () (window-toggle-mark! (current-window))))
+  (user-export! 'win-clear-marked! win-clear-marked!)
   (user-export! 'win-marked (lambda () (window-marked (current-window)))))
 
 (define (user-eval str)
@@ -163,8 +174,9 @@
   (assert (char? ch))
   (case ch
     ((#\newline)
-      (user-eval (command-line-text))
-      (leave-eval-mode))
+      (let ((cmdline (command-line-text)))
+        (leave-eval-mode)
+        (user-eval cmdline)))
     ((#\esc)
       (leave-eval-mode))
     ((#\backspace)

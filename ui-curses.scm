@@ -22,7 +22,7 @@
                option window)
          (export *ui-initialized* *current-input-mode* *current-view*
                  current-window set-view! win-move! win-bottom! win-top!
-                 win-add! win-remove! win-clear! win-search!
+                 win-add! win-remove! win-clear! win-clear-marked! win-search!
                  win-search-next! win-search-prev!
                  register-event! curses-update cursor-on cursor-off
                  set-input-mode! handle-input init-curses exit-curses))
@@ -93,6 +93,10 @@
 (define (win-clear!)
   (case *current-view*
     ((queue) (scmus-clear!))))
+
+(define (win-clear-marked!)
+  (window-clear-marked! (current-window))
+  (redraw-ui))
 
 (define (win-search! query)
   (window-search-init! (current-window) query)
