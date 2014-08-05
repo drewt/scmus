@@ -361,7 +361,7 @@
 
 (define (options-window-print-row window row line-nr)
   (alist-window-print-row window
-                          (cons (car row) (option-get (cdr row)))
+                          (cons (car row) (option-string (cdr row)))
                           line-nr))
 
 ;; Generates a function to call cursed-set! with the appropriate value given
