@@ -46,9 +46,9 @@
 
 (define (search-mode-key key)
   (cond
-    ((key= key KEY_UP) (void))
-    ((key= key KEY_DOWN) (void))
-    ((key= key KEY_BACKSPACE)
+    ((= key KEY_UP) (void))
+    ((= key KEY_DOWN) (void))
+    ((= key KEY_BACKSPACE)
       (if (command-line-empty?)
         (leave-search-mode)
         (command-line-key key)))

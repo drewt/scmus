@@ -97,3 +97,12 @@
 
 (define (editable-move-end! editable)
   (editable-set-pos! editable 0))
+
+(define (editable-cursor-pos editable)
+  (let loop ((chars (reverse (editable-list editable)))
+             (pos (- (editable-length editable)
+                     (editable-pos editable))))
+    (if (or (= 0 pos) (null? chars))
+      0
+      (+ (char-width (car chars))
+         (loop (cdr chars) (- pos 1))))))

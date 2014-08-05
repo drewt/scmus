@@ -15,9 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension ncurses utf8 utf8-srfi-13)
-(import (except scheme string->list list->string))
-
 (declare (unit lib)
          (uses config))
 
@@ -56,13 +53,6 @@
       (pp sexp)
       (refresh))
     (pp sexp)))
-
-;; Equality predicate for characters and ncurses keycodes.
-;; This is necessary because the ncurses egg has KEY_* constants as integers
-;; for some reason.
-(define (key= ch key)
-  (assert (integer? key))
-  (char=? ch (integer->char key)))
 
 ;; #t if ch is not an ascii character
 (define (key? ch)

@@ -7,7 +7,7 @@ mandir = $(prefix)/share/man
 prelude = '"(define *scmus-dir* \"$(datadir)/scmus\")"'
 
 CSC      = csc
-CSCFLAGS = -scrutinize -C -Wno-int-to-pointer-cast -uses lib
+CSCFLAGS = -scrutinize -C -Wno-int-to-pointer-cast -uses lib -prologue prologue.scm
 LD       = csc
 LDFLAGS  =
 INSTALL  = @scripts/install

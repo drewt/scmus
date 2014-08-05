@@ -33,6 +33,12 @@
 (define use_default_colors
   (foreign-lambda* integer () "return(use_default_colors());"))
 
+(define (get-wch)
+  (let ((*get-wch (foreign-lambda integer "get_wch" (c-pointer unsigned-int))))
+    (let-location ((ch unsigned-int))
+      (let ((rc (*get-wch (location ch))))
+        (values ch rc)))))
+
 (define-constant CURSED-CMDLINE 0)
 (define-constant CURSED-ERROR 1)
 (define-constant CURSED-INFO 2)
@@ -500,6 +506,15 @@
   (set! *current-input-mode* mode))
 
 (define (handle-key key)
+  (cond
+    ((= key KEY_RESIZE) (redraw-ui))
+    (else
+      (case *current-input-mode*
+        ((normal-mode)  (normal-mode-key key))
+        ((eval-mode) (eval-mode-key key))
+        ((search-mode)  (search-mode-key key))))))
+
+(define (*handle-key key)
   (case *current-input-mode*
     ((normal-mode)  (normal-mode-key key))
     ((eval-mode) (eval-mode-key key))
@@ -512,12 +527,11 @@
     ((search-mode)  (search-mode-char ch))))
 
 (define (handle-input)
-  (let ((ch (getch)))
+  (let-values (((ch rc) (get-wch)))
     (cond
-      ((key= ch ERR)        #f)
-      ((key= ch KEY_RESIZE) (redraw-ui))
-      ((key? ch)            (handle-key ch))
-      (else                 (handle-char ch)))))
+      ((= rc KEY_CODE_YES) (handle-key ch))
+      ((= rc ERR) #f)
+      (else (handle-char (integer->char ch))))))
 
 ;; colors {{{
 

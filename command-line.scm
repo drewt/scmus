@@ -40,8 +40,7 @@
   (editable-text-set! *command-line* str))
 
 (define (command-line-cursor-pos)
-  (- (+ 1 (editable-length *command-line*))
-     (editable-pos *command-line*)))
+  (+ 1 (editable-cursor-pos *command-line*)))
 
 (define (command-line-length)
   (editable-length *command-line*))
@@ -80,9 +79,9 @@
 
 (define (command-line-key key)
   (cond
-    ((key= key KEY_LEFT)
+    ((= key KEY_LEFT)
       (command-line-move-left!))
-    ((key= key KEY_RIGHT)
+    ((= key KEY_RIGHT)
       (command-line-move-right!))
-    ((key= key KEY_BACKSPACE)
+    ((= key KEY_BACKSPACE)
       (command-line-backspace!))))
