@@ -19,7 +19,7 @@
 
 (declare (unit option)
          (uses format ui-curses)
-         (export get-option set-option! *options* option-get option-set
+         (export get-option set-option! *options* option-get option-set!
                  option-string))
 
 ;; An option is a value with associated get/set! functions.
@@ -36,8 +36,9 @@
 (define (option-get option)
   ((option-accessor option) option))
 
-(define (option-set option value)
-  ((option-mutator option) option value))
+(define (option-set! option value)
+  ((option-mutator option) option value)
+  (register-event! 'option-changed))
 
 (define (option-string option)
   ((option-stringifier option) option))
@@ -50,7 +51,7 @@
 (define (set-option! name value)
   (let ((option (alist-ref name *options*)))
     (if option
-      (option-set option value))))
+      (option-set! option value))))
 
 (define (color-symbol? sym)
   (case sym
@@ -69,7 +70,8 @@
   (if (string? value)
     (let ((fmt (string->list value)))
       (when (format-string-valid? fmt)
-        (option-value-set! option (cons fmt (process-format fmt)))
+        (option-value-set! option (cons (string-append "\"" value "\"")
+                                        (process-format fmt)))
         (register-event! 'format-changed)))))
 
 (define (format-get option)
@@ -79,10 +81,11 @@
   (car (option-value option)))
 
 (define (stringify option)
-  (format "~a" (option-get option)))
+  (let ((value (option-get option)))
+    (format (if (symbol? value) "'~s" "~s") value)))
 
 (define (format-value fmt)
-  (cons fmt (process-format (string->list fmt))))
+  (cons (string-append "\"" fmt "\"") (process-format (string->list fmt))))
 
 ;; generates an alist entry for *options*
 (define (option-spec name accessor mutator #!optional (stringifier stringify))

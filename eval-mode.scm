@@ -39,10 +39,6 @@
       (unbind! key-list context)
       #f)))
 
-(define (push! str)
-  (set-input-mode! 'eval-mode)
-  (command-line-text-set! str))
-
 (define (echo! arg)
   (define (clean-text text)
     (string-delete (lambda (x)

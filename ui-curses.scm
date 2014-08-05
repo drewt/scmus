@@ -21,7 +21,7 @@
          (uses scmus-client eval-mode search-mode command-line keys format
                option window)
          (export *ui-initialized* *current-input-mode* *current-view*
-                 current-window set-view! win-move! win-bottom! win-top!
+                 current-window set-view! push! win-move! win-bottom! win-top!
                  win-add! win-remove! win-clear! win-move-tracks!
                  win-clear-marked! win-search! win-search-next! win-search-prev!
                  register-event! curses-update cursor-on cursor-off
@@ -64,6 +64,10 @@
     (track . '())))
 
 ;; user functions {{{
+
+(define (push! str)
+  (set-input-mode! 'eval-mode)
+  (command-line-text-set! str))
 
 (define (win-move! nr #!optional (relative #f))
   (assert (integer? nr))
@@ -299,6 +303,12 @@
           (apply scmus-search-songs #t #t
                  (lib-selected-constraint (car selected)))
           (loop (cdr selected)))))))
+
+(define (option-activate! window)
+  (let* ((selected (window-selected window))
+         (name (car selected))
+         (option (cdr selected)))
+    (push! (format "(set-option! '~a ~a)" name (option-string option)))))
 
 ;; windows }}}
 ;; screen updates {{{
@@ -721,7 +731,9 @@
                  (make-global-string-window *scmus-error* 'error-changed)
                  *windows*)
   (alist-update! 'options
-                 (make-global-list-window *options* 'option-changed)
+                 (make-global-list-window *options*
+                                          'option-changed
+                                          option-activate!)
                  *windows*))
 
 (define (init-curses)
