@@ -24,7 +24,7 @@
 (define *scmus-error* "")
 
 (define *views*
-  '(library queue status error))
+  '(library queue status error options))
 
 (define (verbose-printf . args)
   (if *verbose*

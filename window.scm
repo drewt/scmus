@@ -89,6 +89,7 @@
 
 ;; XXX: selected row counts as marked
 (define (window-marked window)
+  (assert (window? window))
   (let ((sel-pos (window-sel-pos window))
         (marked (*window-marked window)))
     (if (member sel-pos marked)

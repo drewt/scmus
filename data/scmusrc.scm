@@ -3,6 +3,7 @@
 (bind! "2" 'common (lambda () (set-view! 'queue))   #t)
 (bind! "3" 'common (lambda () (set-view! 'status))  #t)
 (bind! "4" 'common (lambda () (set-view! 'error))   #t)
+(bind! "5" 'common (lambda () (set-view! 'options)) #t)
 
 ;; hjkl
 (bind! "j" 'common (lambda () (win-move!  1)) #t)

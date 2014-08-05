@@ -217,13 +217,14 @@
   (eqv? view *current-view*))
 
 (define (set-view! view)
-  (when (memv view '(library queue status error))
+  (when (memv view *views*)
     (set! *current-view* view)
     (case view
       ((library) (register-event! 'library-changed))
       ((queue)   (register-event! 'queue-changed))
       ((status)  (register-event! 'status-changed))
-      ((error)   (register-event! 'error-changed)))))
+      ((error)   (register-event! 'error-changed))
+      ((options) (register-event! 'option-changed)))))
 
 (define (track-match track query)
   (or (string-contains-ci (track-title track) query)
@@ -358,6 +359,11 @@
     ((artist album) (list-window-print-row window row line-nr))
     ((track) (format-print-line line-nr (get-option 'format-library) row))))
 
+(define (options-window-print-row window row line-nr)
+  (alist-window-print-row window
+                          (cons (car row) (option-get (cdr row)))
+                          line-nr))
+
 ;; Generates a function to call cursed-set! with the appropriate value given
 ;; a window, row, and line number.
 (define (win-cursed-fn current?)
@@ -440,6 +446,12 @@
     (print-window-title (process-format (string->list "Error")))
     (print-window (alist-ref 'error *windows*)
                   list-window-print-row)))
+
+(define (update-options-window)
+  (when (current-view? 'options)
+    (print-window-title (process-format (string->list "Options")))
+    (print-window (alist-ref 'options *windows*)
+                  options-window-print-row)))
 
 (define (update-current-line)
   (cursed-set! CURSED-TITLELINE)
@@ -653,6 +665,7 @@
         (cons 'queue-changed update-queue-window)
         (cons 'queue-data-changed update-queue-data)
         (cons 'error-changed update-error)
+        (cons 'option-changed update-options-window)
         (cons 'color-changed update-colors!)
         (cons 'format-changed redraw-ui)))
 
@@ -706,6 +719,9 @@
                  *windows*)
   (alist-update! 'error
                  (make-global-string-window *scmus-error* 'error-changed)
+                 *windows*)
+  (alist-update! 'options
+                 (make-global-list-window *options* 'option-changed)
                  *windows*))
 
 (define (init-curses)

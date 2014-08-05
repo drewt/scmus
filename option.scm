@@ -19,7 +19,7 @@
 
 (declare (unit option)
          (uses format ui-curses)
-         (export get-option set-option!))
+         (export get-option set-option! *options* option-get option-set))
 
 ;; An option is a value with associated get/set! functions.
 ;; The get/set! functions may be set to *option-value and
@@ -27,19 +27,25 @@
 (define-record-type option
   (make-option accessor mutator value)
   option?
-  (accessor option-get)
-  (mutator option-set)
+  (accessor *option-get)
+  (mutator *option-set)
   (value *option-value *option-value-set!))
+
+(define (option-get option)
+  ((*option-get option) option))
+
+(define (option-set option value)
+  ((*option-set option) option value))
 
 (define (get-option name)
   (let ((option (alist-ref name *options*)))
     (if option
-      ((option-get option) option))))
+      (option-get option))))
 
 (define (set-option! name value)
   (let ((option (alist-ref name *options*)))
     (if option
-      ((option-set option) option value))))
+      (option-set option value))))
 
 (define (color-symbol? sym)
   (case sym
