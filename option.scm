@@ -20,7 +20,7 @@
 (declare (unit option)
          (uses format ui-curses)
          (export get-option set-option! *options* option-get option-set!
-                 option-string))
+                 option-string write-config!))
 
 ;; An option is a value with associated get/set! functions.
 ;; The get/set! functions may be set to option-value and
@@ -174,3 +174,12 @@
     (option-spec 'format-library format-get format-set! format-stringify)
     (option-spec 'format-queue format-get format-set! format-stringify)
     (option-spec 'format-queue-title format-get format-set! format-stringify)))
+
+(define (write-config! path)
+  (call-with-output-file path
+    (lambda (out)
+      (let loop ((options *options*))
+        (unless (null? options)
+          (display `(set-option! ',(caar options) ,(option-string (cdar options))) out)
+          (newline out)
+          (loop (cdr options)))))))

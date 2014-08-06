@@ -82,6 +82,7 @@
   (user-export! 'current-track current-track)
   (user-export! 'echo! echo!)
   (user-export! 'get-option get-option)
+  (user-export! 'load user-load)
   (user-export! 'next! scmus-next!)
   (user-export! 'pause! scmus-pause!)
   (user-export! 'play! scmus-play!)
@@ -150,7 +151,8 @@
   (user-export! 'win-toggle-mark! (lambda () (window-toggle-mark! (current-window))))
   (user-export! 'win-clear-marked! win-clear-marked!)
   (user-export! '*win-marked (lambda () (*window-marked (current-window))))
-  (user-export! 'win-marked (lambda () (window-marked (current-window)))))
+  (user-export! 'win-marked (lambda () (window-marked (current-window))))
+  (user-export! 'write-config! write-config!))
 
 (define (user-eval str)
   (assert (string? str))
@@ -166,7 +168,7 @@
        (let ((input (read in)))
          (unless (eqv? input #!eof)
            (condition-case (safe-eval input environment: *user-env*)
-             (e () (void)))
+             (e () (error-set! e)))
            (loop)))))))
 
 (define (enter-eval-mode)
