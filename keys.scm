@@ -34,7 +34,7 @@
                    srfi-1)
 
 (declare (unit keys)
-         (uses ui-curses)
+         (uses ui-curses command-line)
          (export make-binding! unbind! binding-keys-valid? enter-normal-mode
                  normal-mode-char normal-mode-key))
 
@@ -539,8 +539,8 @@
 
 (define (normal-mode-char ch)
   (case ch
-    ((#\:) (set-input-mode! 'eval-mode))
-    ((#\/) (set-input-mode! 'search-mode))
+    ((#\:) (enter-eval-mode))
+    ((#\/) (enter-search-mode))
     ((#\q) (scmus-exit 0))
     (else (handle-user-key ch))))
 

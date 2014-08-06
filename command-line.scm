@@ -16,11 +16,11 @@
 ;;
 
 (declare (unit command-line)
-         (uses editable ui-curses))
+         (uses editable eval-mode ui-curses))
 
 (require-extension ncurses)
 
-(define *command-line* (make-empty-editable))
+;(define *command-line* (make-empty-editable))
 
 (define (command-line-changed!)
   (register-event! 'command-line-changed))
@@ -45,43 +45,59 @@
 (define (command-line-length)
   (editable-length *command-line*))
 
-(define (command-line-insert! ch)
-  (assert (char? ch))
-  (editable-insert! *command-line* ch)
-  (command-line-changed!))
+(define (command-line-leave editable)
+  (editable-clear! editable)
+  (set! *command-line-mode* 'normal-mode)
+  (set-input-mode! 'normal-mode))
 
-(define (command-line-backspace!)
-  (if (= 0 (editable-length *command-line*))
-    (set-input-mode! 'normal-mode)
-    (begin
-      (editable-backspace! *command-line*)
-      (command-line-changed!))))
-
-(define (command-line-delete-char!)
-  (editable-delete-char! *command-line*)
-  (command-line-changed!))
-
-(define (command-line-move-left!)
-  (editable-move-left! *command-line*))
-
-(define (command-line-move-right!)
-  (editable-move-right! *command-line*))
-
-(define (command-line-char ch)
-  (assert (char? ch))
+(define (command-line-char editable ch)
   (case ch
+    ((#\newline)
+      (let ((cmdline (editable-text editable))
+            (mode *command-line-mode*))
+        (command-line-leave editable)
+        (if (eqv? mode 'eval-mode)
+          (user-eval cmdline)
+          (win-search! cmdline))))
+    ((#\esc)
+      (command-line-leave editable))
     ((#\backspace)
-      (command-line-backspace!))
-    ((#\x4)
-      (command-line-delete-char!))
+      (if (= 0 (editable-length editable))
+        (command-line-leave editable)
+        (editable-default-char-handler editable ch)))
     (else
-      (command-line-insert! ch))))
+      (editable-default-char-handler editable ch)))
+  (command-line-changed!))
 
-(define (command-line-key key)
+(define (command-line-key editable key)
   (cond
-    ((= key KEY_LEFT)
-      (command-line-move-left!))
-    ((= key KEY_RIGHT)
-      (command-line-move-right!))
+    ((= key KEY_UP) (void)) ; TODO: history
+    ((= key KEY_DOWN) (void))
     ((= key KEY_BACKSPACE)
-      (command-line-backspace!))))
+      (if (= 0 (editable-length editable))
+        (command-line-leave editable)
+        (editable-default-key-handler editable key)))
+    (else (editable-default-key-handler editable key)))
+  (command-line-changed!))
+
+(define (command-line-init editable)
+  (editable-clear! editable)
+  (cursor-on))
+
+(define *command-line* (make-empty-editable command-line-char
+                                            command-line-key
+                                            command-line-init))
+
+(define *command-line-mode* 'normal-mode)
+
+(define (enter-eval-mode)
+  (set! *command-line-mode* 'eval-mode)
+  (set-input-mode! 'edit-mode *command-line*)
+  (command-line-changed!))
+
+(define (enter-search-mode)
+  (set! *command-line-mode* 'search-mode)
+  (set-input-mode! 'edit-mode *command-line*)
+  (command-line-changed!))
+
+(define (command-line-mode) *command-line-mode*)

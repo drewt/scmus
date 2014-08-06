@@ -18,9 +18,8 @@
 (require-extension ncurses sandbox srfi-13)
  
 (declare (unit eval-mode)
-         (uses ui-curses scmus-client command-line keys option window)
-         (export init-sandbox user-load enter-eval-mode leave-eval-mode
-                 eval-mode-char eval-mode-key))
+         (uses ui-curses scmus-client keys option window)
+         (export init-sandbox user-eval user-load))
 
 ;; user functions {{{
 
@@ -170,37 +169,3 @@
            (condition-case (safe-eval input environment: *user-env*)
              (e () (error-set! e)))
            (loop)))))))
-
-(define (enter-eval-mode)
-  (command-line-clear!)
-  (cursor-on))
-
-(define (leave-eval-mode)
-  (command-line-clear!)
-  (set-input-mode! 'normal-mode))
-
-(define (eval-mode-char ch)
-  (assert (char? ch))
-  (case ch
-    ((#\newline)
-      (let ((cmdline (command-line-text)))
-        (leave-eval-mode)
-        (user-eval cmdline)))
-    ((#\esc)
-      (leave-eval-mode))
-    ((#\backspace)
-      (if (command-line-empty?)
-        (leave-eval-mode)
-        (command-line-char ch)))
-    (else
-      (command-line-char ch))))
-
-(define (eval-mode-key key)
-  (cond
-    ((= key KEY_UP) (void))
-    ((= key KEY_DOWN) (void))
-    ((= key KEY_BACKSPACE)
-      (if (command-line-empty?)
-        (leave-eval-mode)
-        (command-line-key key)))
-    (else (command-line-key key))))

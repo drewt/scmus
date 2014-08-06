@@ -18,7 +18,7 @@
 (require-extension ncurses srfi-13)
 
 (declare (unit ui-curses)
-         (uses scmus-client eval-mode search-mode command-line keys format
+         (uses scmus-client eval-mode command-line keys format
                option window)
          (export *ui-initialized* *current-input-mode* *current-view*
                  current-window set-view! push! win-move! win-bottom! win-top!
@@ -55,6 +55,7 @@
 (define *ui-initialized* #f)
 (define *current-input-mode* 'normal-mode)
 (define *current-view* 'queue)
+(define *current-editable* #f)
 
 (define *windows* (map (lambda (x) (cons x #f)) *views*))
 (define *current-library-window* 'artist)
@@ -66,7 +67,7 @@
 ;; user functions {{{
 
 (define (push! str)
-  (set-input-mode! 'eval-mode)
+  (enter-eval-mode)
   (command-line-text-set! str))
 
 (define (win-move! nr #!optional (relative #f))
@@ -490,7 +491,7 @@
   (cursed-set! CURSED-CMDLINE)
   (move (- (LINES) 1) 0)
   (clrtoeol)
-  (addch (case *current-input-mode*
+  (addch (case (command-line-mode)
            ((normal-mode) #\space)
            ((eval-mode)   #\:)
            ((search-mode) #\/)))
@@ -518,13 +519,14 @@
 (define (cursor-off)
   (curs_set 0))
 
-(define (set-input-mode! mode)
+(define (set-input-mode! mode #!optional (arg #f))
   (assert (symbol? mode))
-  (assert (memv mode '(normal-mode eval-mode search-mode)))
+  (assert (memv mode '(normal-mode edit-mode)))
   (case mode
     ((normal-mode) (enter-normal-mode))
-    ((eval-mode) (enter-eval-mode))
-    ((search-mode) (enter-search-mode)))
+    ((edit-mode)   (assert (editable? arg))
+                   (set! *current-editable* arg)
+                   (editable-init arg)))
   (set! *current-input-mode* mode))
 
 (define (handle-key key)
@@ -532,21 +534,13 @@
     ((= key KEY_RESIZE) (redraw-ui))
     (else
       (case *current-input-mode*
-        ((normal-mode)  (normal-mode-key key))
-        ((eval-mode) (eval-mode-key key))
-        ((search-mode)  (search-mode-key key))))))
-
-(define (*handle-key key)
-  (case *current-input-mode*
-    ((normal-mode)  (normal-mode-key key))
-    ((eval-mode) (eval-mode-key key))
-    ((search-mode)  (search-mode-key key))))
+        ((normal-mode) (normal-mode-key key))
+        ((edit-mode)   (editable-key *current-editable* key))))))
 
 (define (handle-char ch)
   (case *current-input-mode*
-    ((normal-mode)  (normal-mode-char ch))
-    ((eval-mode) (eval-mode-char ch))
-    ((search-mode)  (search-mode-char ch))))
+    ((normal-mode) (normal-mode-char ch))
+    ((edit-mode)   (editable-char *current-editable* ch))))
 
 (define (handle-input)
   (let-values (((ch rc) (get-wch)))

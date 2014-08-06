@@ -15,7 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-1)
+(require-extension srfi-1 ncurses)
 
 ;;
 ;; Simple text representation suitable for editing.  Text is stored as a
@@ -24,17 +24,41 @@
 (declare (unit editable))
 
 (define-record-type editable
-  (make-editable char-list cursor-pos text-length)
+  (make-editable char-handler key-handler init char-list cursor-pos text-length)
   editable?
+  (char-handler editable-char-handler editable-char-handler-set!)
+  (key-handler editable-key-handler editable-key-handler-set!)
+  (init *editable-init editable-init-set!)
   (char-list editable-list editable-set-list!)
   (cursor-pos editable-pos editable-set-pos!)
   (text-length editable-length editable-set-length!))
 
-(define (make-empty-editable)
-  (make-editable '() 0 0))
+(define (editable-default-char-handler editable ch)
+  (case ch
+    ((#\backspace) (editable-backspace! editable))
+    ((#\x4)        (editable-delete-char! editable))
+    (else          (editable-insert! editable ch))))
 
-(define (make-editable-with-text text)
-  (make-editable (reverse (string->list text))
+(define (editable-default-key-handler editable key)
+  (cond
+    ((= key KEY_LEFT)      (editable-move-left! editable))
+    ((= key KEY_RIGHT)     (editable-move-right! editable))
+    ((= key KEY_BACKSPACE) (editable-backspace! editable))))
+
+(define (make-empty-editable #!optional
+                             (char-handler editable-default-char-handler)
+                             (key-handler editable-default-key-handler)
+                             (init editable-default-init))
+  (make-editable char-handler key-handler init '() 0 0))
+
+(define (make-editable-with-text text #!optional
+                                 (char-handler editable-default-char-handler)
+                                 (key-handler editable-default-key-handler)
+                                 (init editable-default-init))
+  (make-editable char-handler
+                 key-handler
+                 init
+                 (reverse (string->list text))
                  0
                  (string-length text)))
 
@@ -106,3 +130,16 @@
       0
       (+ (char-width (car chars))
          (loop (cdr chars) (- pos 1))))))
+
+(define (editable-char editable ch)
+  (assert (editable? editable))
+  (assert (char? ch))
+  ((editable-char-handler editable) editable ch))
+
+(define (editable-key editable key)
+  (assert (editable? editable))
+  (assert (integer? key))
+  ((editable-key-handler editable) editable key))
+
+(define (editable-init editable)
+  ((*editable-init editable) editable))
