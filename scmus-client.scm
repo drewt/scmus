@@ -234,10 +234,10 @@
     (sort! (apply mpd:db-list-tags
                   *mpd-connection* tag constraints)
            string-ci<?)
-    (exn (mpd) (error-set! exn))))
+    (exn (mpd) (error-set! exn) '())))
 
 (define (scmus-search-songs exact add . constraints)
   (condition-case
     (apply mpd:db-search-songs
            *mpd-connection* exact add constraints)
-    (exn (mpd) (error-set! exn))))
+    (exn (mpd) (error-set! exn) '())))

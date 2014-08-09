@@ -45,6 +45,9 @@
     ((= key KEY_RIGHT)     (editable-move-right! editable))
     ((= key KEY_BACKSPACE) (editable-backspace! editable))))
 
+(define (editable-default-init editable)
+  (editable-set-pos! editable 0))
+
 (define (make-empty-editable #!optional
                              (char-handler editable-default-char-handler)
                              (key-handler editable-default-key-handler)

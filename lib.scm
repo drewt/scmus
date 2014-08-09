@@ -15,6 +15,8 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
+(require-extension ncurses)
+
 (declare (unit lib)
          (uses config))
 
@@ -24,7 +26,7 @@
 (define *scmus-error* "")
 
 (define *views*
-  '(library queue status error options))
+  '(library queue search status error options))
 
 (define (verbose-printf . args)
   (if *verbose*
@@ -53,11 +55,6 @@
       (pp sexp)
       (refresh))
     (pp sexp)))
-
-;; #t if ch is not an ascii character
-(define (key? ch)
-  (assert (char? ch))
-  (> (char->integer ch) 255))
 
 ;; unicode stuff {{{
 

@@ -19,12 +19,12 @@
 
 (declare (unit ui-curses)
          (uses scmus-client eval-mode command-line keys format
-               option window)
+               option search window)
          (export *ui-initialized* *current-input-mode* *current-view*
                  current-window set-view! push! win-move! win-bottom! win-top!
                  win-add! win-remove! win-clear! win-move-tracks!
                  win-clear-marked! win-search! win-search-next! win-search-prev!
-                 register-event! curses-update cursor-on cursor-off
+                 win-edit! register-event! curses-update cursor-on cursor-off
                  set-input-mode! handle-input init-curses exit-curses))
 
 ;;; definitions missing from the ncurses egg
@@ -56,6 +56,7 @@
 (define *current-input-mode* 'normal-mode)
 (define *current-view* 'queue)
 (define *current-editable* #f)
+(define *editable-pos* #f)
 
 (define *windows* (map (lambda (x) (cons x #f)) *views*))
 (define *current-library-window* 'artist)
@@ -90,7 +91,8 @@
   (case *current-view*
     ((library)
       (case view
-        ((queue) (lib-add-selected! pos))))))
+        ((queue) (lib-add-selected! pos))))
+    ((search) (search-add! (alist-ref 'search *windows*)))))
 
 (define (win-remove!)
   (case *current-view*
@@ -99,11 +101,13 @@
                (unless (null? marked)
                  (scmus-delete! (car marked))
                  (loop (cdr marked))))
-             (window-clear-marked! (current-window)))))
+             (window-clear-marked! (current-window)))
+    ((search) (search-remove! (alist-ref 'search *windows*)))))
 
 (define (win-clear!)
   (case *current-view*
-    ((queue) (scmus-clear!))))
+    ((queue) (scmus-clear!))
+    ((search) (search-clear! (alist-ref 'search *windows*)))))
 
 (define (win-move-tracks!)
   (case *current-view*
@@ -133,6 +137,10 @@
     (when i
       (window-select! (current-window) i))))
 
+(define (win-edit!)
+  (case *current-view*
+    ((search) (search-edit! (alist-ref 'search *windows*)))))
+
 ;; user functions }}}
 ;; windows {{{
 
@@ -140,37 +148,29 @@
 ;; initialized.
 (define-syntax make-global-window
   (syntax-rules ()
-    ((make-global-window getter len changed-event selected deactivate match)
+    ((make-global-window get-data changed-event activate deactivate match)
       (make-window #f
-                   getter
-                   len
-                   0
-                   0
-                   '()
-                   (- (LINES) 4)
-                   0
+                   get-data
                    (lambda (w) (register-event! changed-event))
-                   selected
+                   activate
                    deactivate
-                   match
-                   ""))))
+                   match))))
 
 ;; make-window for global lists.  Each member of the list becomes a row in the
 ;; window.
 (define-syntax make-global-list-window
   (syntax-rules ()
-    ((make-global-list-window lst changed-event selected deactivate match)
+    ((make-global-list-window lst changed-event activate deactivate match)
       (make-global-window (lambda (w) lst)
-                          (length lst)
                           changed-event
-                          selected
+                          activate
                           deactivate
                           match))
-    ((make-global-list-window lst changed-event selected deactivate)
-      (make-global-list-window lst changed-event selected deactivate
+    ((make-global-list-window lst changed-event activate deactivate)
+      (make-global-list-window lst changed-event activate deactivate
                                (lambda (e q) #f)))
-    ((make-global-list-window lst changed-event selected)
-      (make-global-list-window lst changed-event selected void
+    ((make-global-list-window lst changed-event activate)
+      (make-global-list-window lst changed-event activate void
                                (lambda (e q) #f)))
     ((make-global-list-window lst changed-event)
       (make-global-list-window lst changed-event void void
@@ -180,40 +180,21 @@
 ;; the window.
 (define-syntax make-global-string-window
   (syntax-rules ()
-     ((make-global-string-window str changed-event selected deactivate match)
+     ((make-global-string-window str changed-event activate deactivate match)
        (make-global-window (lambda (w) (string-split-lines str))
-                           (length (string-split-lines str))
                            changed-event
-                           selected
+                           activate
                            deactivate
                            match))
-     ((make-global-string-window str changed-event selected deactivate)
-       (make-global-string-window str changed-event selected deactivate
+     ((make-global-string-window str changed-event activate deactivate)
+       (make-global-string-window str changed-event activate deactivate
                                   string-contains-ci))
-     ((make-global-string-window str changed-event selected)
-       (make-global-string-window str changed-event selected void
+     ((make-global-string-window str changed-event activate)
+       (make-global-string-window str changed-event activate void
                                   string-contains-ci))
      ((make-global-global-string-window str changed-event)
        (make-global-string-window str changed-event void void
                                   string-contains-ci))))
-
-(define (make-generic-window data changed-event get-data activate deactivate
-                             match)
-  (let ((window (make-window data
-                             get-data
-                             0
-                             0
-                             0
-                             '()
-                             (- (LINES) 4)
-                             0
-                             (lambda (w) (register-event! changed-event))
-                             activate
-                             deactivate
-                             match
-                             "")))
-    (window-data-len-update! window)
-    window))
 
 (define (current-window)
   (alist-ref *current-view* *windows*))
@@ -227,6 +208,7 @@
     (case view
       ((library) (register-event! 'library-changed))
       ((queue)   (register-event! 'queue-changed))
+      ((search)  (register-event! 'search-changed))
       ((status)  (register-event! 'status-changed))
       ((error)   (register-event! 'error-changed))
       ((options) (register-event! 'option-changed)))))
@@ -314,7 +296,7 @@
 ;; windows }}}
 ;; screen updates {{{
 
-(define (format-print-line line fmt track)
+(define (track-print-line line fmt track)
   (assert (integer? line))
   (assert (list? fmt))
   (assert (list? track))
@@ -346,29 +328,43 @@
 ;; Prints a window title from the given format.
 (define (print-window-title fmt)
   (cursed-set! CURSED-WIN-TITLE)
-  (format-print-line 0 fmt '()))
+  (track-print-line 0 fmt '()))
+
+(define (simple-print-line line-nr str)
+  (mvaddstr line-nr 0
+            (string-truncate (format " ~a" str)
+                             (- (COLS) 2)))
+  (clrtoeol))
+
+(define (format-print-line line-nr fmt . args)
+  (mvaddstr line-nr 0
+            (string-truncate (apply format fmt args)
+                             (- (COLS) 2)))
+  (clrtoeol))
 
 ;; Generic function to print an alist entry, for use with print-window.
 (define (alist-window-print-row window row line-nr)
-  (mvaddstr line-nr 0
-            (string-truncate (format " ~a" (car row))
-                             (- (COLS) 2)))
-  (clrtoeol)
+  (simple-print-line line-nr (car row))
   (mvaddstr line-nr (- (quotient (COLS) 2) 1)
             (string-truncate (format " ~a" (cdr row))
                              (- (COLS) 2))))
 
 (define (list-window-print-row window row line-nr)
-  (mvaddstr line-nr 0
-            (string-truncate (format " ~a" row)
-                             (- (COLS) 2)))
-  (clrtoeol))
+  (simple-print-line line-nr row))
 
 (define (library-window-print-row window row line-nr)
   (library-cursed-set! window row line-nr)
   (case *current-library-window*
     ((artist album) (list-window-print-row window row line-nr))
-    ((track) (format-print-line line-nr (get-option 'format-library) row))))
+    ((track) (track-print-line line-nr (get-option 'format-library) row))))
+
+(define (search-window-print-row window row line-nr)
+  (cond
+    ((editable? row)
+      (format-print-line line-nr " * ~a" (editable-text row)))
+    ((symbol? row) (move line-nr 0) (clrtoeol))
+    (else
+      (track-print-line line-nr (get-option 'format-library) row))))
 
 (define (options-window-print-row window row line-nr)
   (alist-window-print-row window
@@ -385,6 +381,7 @@
            (marked (member row-pos (window-marked window))))
       (cursed-set!
         (cond
+          ((eqv? row 'separator)  CURSED-WIN-TITLE)
           ((and current selected) CURSED-WIN-CUR-SEL)
           (current                CURSED-WIN-CUR)
           (selected               CURSED-WIN-SEL)
@@ -421,7 +418,7 @@
   (print-window-title title-fmt)
   (print-window window
                 (lambda (window track line-nr)
-                  (format-print-line line-nr track-fmt track))
+                  (track-print-line line-nr track-fmt track))
                 trackwin-cursed-set!))
 
 (define (update-library-window)
@@ -446,6 +443,12 @@
   (window-data-len-update! (alist-ref 'queue *windows*))
   (update-queue-window))
 
+(define (update-search-window)
+  (when (current-view? 'search)
+    (print-window-title (process-format (string->list "Search")))
+    (print-window (alist-ref 'search *windows*)
+                  search-window-print-row)))
+
 (define (update-status-window)
   (when (current-view? 'status)
     (print-window-title (process-format (string->list "MPD Status")))
@@ -466,13 +469,13 @@
 
 (define (update-current-line)
   (cursed-set! CURSED-TITLELINE)
-  (format-print-line (- (LINES) 3)
+  (track-print-line (- (LINES) 3)
                      (get-option 'format-current)
                      *current-track*))
 
 (define (update-status-line)
   (cursed-set! CURSED-STATUSLINE)
-  (format-print-line (- (LINES) 2)
+  (track-print-line (- (LINES) 2)
                      (get-option 'format-status)
                      *current-track*))
 
@@ -499,16 +502,21 @@
                            (- (COLS) 2))))
 
 (define (update-cursor)
-  (move (- (LINES) 1) (command-line-cursor-pos)))
+  ;(move (- (LINES) 1) (command-line-cursor-pos))
+  (if *current-editable*
+    (move (car *editable-pos*) (+ (cdr *editable-pos*)
+                                  (editable-cursor-pos *current-editable*)))))
 
 (define (redraw-ui)
   (for-each (lambda (x) (window-nr-lines-set! (cdr x) (- (LINES) 4)))
             *windows*)
   (update-library-window)
   (update-queue-window)
+  (update-search-window)
   (update-error)
   (update-current)
   (update-status)
+  (update-options-window)
   (update-command-line))
 
 ;; screen updates }}}
@@ -519,14 +527,17 @@
 (define (cursor-off)
   (curs_set 0))
 
-(define (set-input-mode! mode #!optional (arg #f))
+(define (set-input-mode! mode #!optional (arg0 #f) (arg1 #f))
   (assert (symbol? mode))
   (assert (memv mode '(normal-mode edit-mode)))
   (case mode
     ((normal-mode) (enter-normal-mode))
-    ((edit-mode)   (assert (editable? arg))
-                   (set! *current-editable* arg)
-                   (editable-init arg)))
+    ((edit-mode)   (assert (editable? arg0))
+                   (assert (pair? arg1))
+                   (assert (and (integer? (car arg1)) (integer? (cdr arg1))))
+                   (set! *current-editable* arg0)
+                   (set! *editable-pos* arg1)
+                   (editable-init arg0)))
   (set! *current-input-mode* mode))
 
 (define (handle-key key)
@@ -668,6 +679,7 @@
         (cons 'library-data-changed update-library-data)
         (cons 'queue-changed update-queue-window)
         (cons 'queue-data-changed update-queue-data)
+        (cons 'search-changed update-search-window)
         (cons 'error-changed update-error)
         (cons 'option-changed update-options-window)
         (cons 'color-changed update-colors!)
@@ -685,38 +697,42 @@
   (set! *events* '()))
 
 (define (init-windows!)
+  (define (lib-changed! w) (register-event! 'library-changed))
   (alist-update! 'artist
-                 (make-generic-window *artists*
-                                      'library-changed
-                                      *window-data
-                                      lib-artist-activate!
-                                      void
-                                      string-contains-ci)
+                 (make-global-list-window *artists*
+                                          'library-changed
+                                          lib-artist-activate!
+                                          void
+                                          string-contains-ci)
                  *library-windows*)
   (alist-update! 'album
-                 (make-generic-window '()
-                                      'library-changed
-                                      *window-data
-                                      lib-album-activate!
-                                      lib-album-deactivate!
-                                      string-contains-ci)
+                 (make-window '()
+                              *window-data
+                              lib-changed!
+                              lib-album-activate!
+                              lib-album-deactivate!
+                              string-contains-ci)
                  *library-windows*)
   (alist-update! 'track
-                 (make-generic-window '()
-                                      'library-changed
-                                      *window-data
-                                      lib-track-activate!
-                                      lib-track-deactivate!
-                                      track-match)
+                 (make-window '()
+                              *window-data
+                              lib-changed!
+                              lib-track-activate!
+                              lib-track-deactivate!
+                              track-match)
                  *library-windows*)
   (alist-update! 'library (alist-ref 'artist *library-windows*) *windows*)
   (alist-update! 'queue
                  (make-global-list-window *queue*
-                                   'queue-changed
-                                   (lambda (w)
-                                     (scmus-play-track! (window-selected w)))
-                                   void
-                                   track-match)
+                                          'queue-changed
+                                          (lambda (w)
+                                            (scmus-play-track!
+                                              (window-selected w)))
+                                          void
+                                          track-match)
+                 *windows*)
+  (alist-update! 'search
+                 (make-search-window)
                  *windows*)
   (alist-update! 'status
                  (make-global-list-window *mpd-status* 'status-changed)

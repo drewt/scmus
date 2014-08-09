@@ -90,14 +90,17 @@
 
 (define *command-line-mode* 'normal-mode)
 
+(define (command-line-pos)
+  (cons (- (LINES) 1) 1))
+
 (define (enter-eval-mode)
   (set! *command-line-mode* 'eval-mode)
-  (set-input-mode! 'edit-mode *command-line*)
+  (set-input-mode! 'edit-mode *command-line* (command-line-pos))
   (command-line-changed!))
 
 (define (enter-search-mode)
   (set! *command-line-mode* 'search-mode)
-  (set-input-mode! 'edit-mode *command-line*)
+  (set-input-mode! 'edit-mode *command-line* (command-line-pos))
   (command-line-changed!))
 
 (define (command-line-mode) *command-line-mode*)

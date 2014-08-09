@@ -1,9 +1,10 @@
 ;; views
 (bind! "1" 'common (lambda () (set-view! 'library)) #t)
 (bind! "2" 'common (lambda () (set-view! 'queue))   #t)
-(bind! "3" 'common (lambda () (set-view! 'status))  #t)
-(bind! "4" 'common (lambda () (set-view! 'error))   #t)
-(bind! "5" 'common (lambda () (set-view! 'options)) #t)
+(bind! "3" 'common (lambda () (set-view! 'search))  #t)
+(bind! "4" 'common (lambda () (set-view! 'status))  #t)
+(bind! "5" 'common (lambda () (set-view! 'error))   #t)
+(bind! "6" 'common (lambda () (set-view! 'options)) #t)
 
 ;; hjkl
 (bind! "j" 'common (lambda () (win-move!  1)) #t)
@@ -26,6 +27,8 @@
 (bind! "G" 'common win-bottom! #t)
 
 (bind! "space" 'common (lambda () (win-toggle-mark!) (win-move! 1)) #t)
+
+(bind! "i" 'common win-edit! #t)
 
 ;; player control
 (bind! "z" 'common prev!  #t)
@@ -50,7 +53,7 @@
 ;; queue management
 (bind! "a" 'common win-add! #t)
 (bind! "d" 'common win-remove! #t)
-(bind! "D" 'common clear-queue! #t)
+(bind! "D" 'common win-clear! #t)
 
 (bind! "enter" 'common win-activate! #t)
 

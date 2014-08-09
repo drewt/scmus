@@ -15,14 +15,14 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-1)
+(require-extension ncurses srfi-1)
 
 (declare (unit window)
          (uses ui-curses))
 
 ;; A "window" is a view of a list
 (define-record-type window
-  (make-window data data-thunk data-len
+  (*make-window data data-thunk data-len
                top-pos sel-pos marked nr-lines match-pos
                changed activate deactivate
                match query)
@@ -53,6 +53,23 @@
   (match window-match window-match-set!)
   ;; active search query
   (query window-query window-query-set!))
+
+(define (make-window data get-data changed activate deactivate match)
+  (let ((window (*make-window data
+                              get-data
+                              0
+                              0
+                              0
+                              '()
+                              (- (LINES) 4)
+                              0
+                              changed
+                              activate
+                              deactivate
+                              match
+                              "")))
+    (window-data-len-update! window)
+    window))
 
 (define (window-data window)
   (assert (window? window))

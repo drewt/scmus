@@ -143,6 +143,7 @@
   (user-export! 'win-search! win-search!)
   (user-export! 'win-search-next! win-search-next!)
   (user-export! 'win-search-prev! win-search-prev!)
+  (user-export! 'win-edit! win-edit!)
   (user-export! 'win-sel-pos (lambda () (window-sel-pos (current-window))))
   (user-export! 'win-selected (lambda () (window-selected (current-window))))
   (user-export! 'win-mark! (lambda () (window-mark! (current-window))))

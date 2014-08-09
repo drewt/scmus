@@ -209,12 +209,20 @@
 (define (mpd:search-add-tag-constraints connection constraints)
   (if (null? constraints)
     #t
-    (if (mpd_search_add_tag_constraint connection
-                                       MPD_OPERATOR_DEFAULT
-                                       (symbol->mpd-tag (caar constraints))
-                                       (cdar constraints))
-      (mpd:search-add-tag-constraints connection (cdr constraints))
-      #f)))
+    (case (caar constraints)
+      ((any)
+        (if (mpd_search_add_any_tag_constraint connection
+                                               MPD_OPERATOR_DEFAULT
+                                               (cdar constraints))
+          (mpd:search-add-tag-constraints connection (cdr constraints))
+          #f))
+      (else
+        (if (mpd_search_add_tag_constraint connection
+                                           MPD_OPERATOR_DEFAULT
+                                           (symbol->mpd-tag (caar constraints))
+                                           (cdar constraints))
+          (mpd:search-add-tag-constraints connection (cdr constraints))
+          #f)))))
 
 (define (mpd:db-list-tags connection tag . constraints)
   (let ((mpd-tag (symbol->mpd-tag tag)))
