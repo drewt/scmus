@@ -18,7 +18,7 @@
 (require-extension ncurses srfi-1 srfi-13)
 
 (declare (unit search)
-         (uses ui-curses window scmus-client editable)
+         (uses editable scmus-client window ui-curses)
          (export make-search-window search-edit! search-clear! search-add!
                  search-remove!))
 
@@ -129,10 +129,13 @@
 (define (make-search-field)
   (make-empty-editable search-field-char search-field-key search-field-init))
 
+(define (search-match row query)
+  (and (pair? row) (track-match row query)))
+
 (define (make-search-window)
   (make-window (list (make-search-field) 'separator)
                *window-data
                (lambda (w) (search-changed!))
                search-activate!
                void
-               (lambda (e q) #f)))
+               search-match))

@@ -15,7 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-18)
+(require-extension srfi-13 srfi-18)
 
 (declare (unit scmus-client)
          (uses mpd-client)
@@ -150,6 +150,12 @@
 
 (define (track= a b)
   (string=? (track-file a) (track-file b)))
+
+(define (track-match track query)
+  (or (string-contains-ci (track-title track) query)
+      (string-contains-ci (track-album track) query)
+      (string-contains-ci (track-artist track) query)
+      (string-contains-ci (track-albumartist track) query)))
 
 (stat-selector scmus-artists 'artists)
 (stat-selector scmus-albums 'albums)

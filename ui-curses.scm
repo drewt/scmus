@@ -213,12 +213,6 @@
       ((error)   (register-event! 'error-changed))
       ((options) (register-event! 'option-changed)))))
 
-(define (track-match track query)
-  (or (string-contains-ci (track-title track) query)
-      (string-contains-ci (track-album track) query)
-      (string-contains-ci (track-artist track) query)
-      (string-contains-ci (track-albumartist track) query)))
-
 ;; This is the "proper" function to get all constraints before searching.
 ;; This isn't used because scmus isn't smart about compilations (yet).
 (define (lib-all-constraints)
