@@ -494,6 +494,9 @@ mpd_recv_pair_tag(struct mpd_connection *connection, unsigned int type);
 /* <mpd/search.h> }}} */
 /* <mpd/recv.h> {{{ */
 
+struct mpd_pair *
+mpd_recv_pair(struct mpd_connection *connection);
+
 void
 mpd_return_pair(struct mpd_connection *connection, struct mpd_pair *pair);
 

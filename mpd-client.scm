@@ -25,7 +25,10 @@
                  mpd:single-set! mpd:consume-set! mpd:add! mpd:add-id!
                  mpd:add-id-to! mpd:delete! mpd:delete-id! mpd:delete-range!
                  mpd:shuffle! mpd:shuffle-range! mpd:clear! mpd:move!
-                 mpd:move-range! mpd:swap! mpd:swap-id! mpd:update! mpd:rescan!))
+                 mpd:move-range! mpd:swap! mpd:swap-id! mpd:update! mpd:rescan!
+                 mpd:playlist-clear! mpd:playlist-add! mpd:playlist-move!
+                 mpd:playlist-delete! mpd:playlist-save! mpd:playlist-load!
+                 mpd:playlist-rename! mpd:playlist-rm! mpd:list-playlists))
 
 (foreign-declare "#include <mpd/client.h>")
 (include "libmpdclient.scm")
@@ -244,6 +247,27 @@
                (mpd:raise-error connection)))
       (mpd:raise-error connection))))
 
+(define (read-playlists connection)
+  (let loop ((result '()))
+    (let ((pair (mpd_recv_pair connection))
+          (error (mpd_connection_get_error connection)))
+      (if pair
+        (let ((name  (string-copy (mpd_pair-name  pair)))
+              (value (string-copy (mpd_pair-value pair))))
+          (mpd_return_pair connection pair)
+          (if (string=? name "playlist")
+            (loop (cons value result))
+            (loop result)))
+        ; mpd_recv_pair returned NULL
+        (if (= error MPD_ERROR_SUCCESS)
+          (reverse result)
+          (mpd:raise-error connection))))))
+
+(define (mpd:list-playlists connection)
+  (if (mpd_send_list_playlists connection)
+    (read-playlists connection)
+    (mpd:raise-error connection)))
+
 (define-syntax mpd:define-wrapper
   (syntax-rules (0 1 2 3)
     ((mpd:define-wrapper 0 name mpd-fn fail)
@@ -292,6 +316,14 @@
 (mpd:define-wrapper 2 mpd:swap-id! mpd_run_swap_id)
 (mpd:define-wrapper 1 mpd:update! mpd_run_update 0)
 (mpd:define-wrapper 1 mpd:rescan! mpd_run_rescan 0)
+(mpd:define-wrapper 1 mpd:playlist-clear! mpd_run_playlist_clear)
+(mpd:define-wrapper 2 mpd:playlist-add! mpd_run_playlist_add)
+(mpd:define-wrapper 3 mpd:playlist-move! mpd_run_playlist_move)
+(mpd:define-wrapper 2 mpd:playlist-delete! mpd_run_playlist_delete)
+(mpd:define-wrapper 1 mpd:playlist-save! mpd_run_save)
+(mpd:define-wrapper 1 mpd:playlist-load! mpd_run_load)
+(mpd:define-wrapper 2 mpd:playlist-rename! mpd_run_rename)
+(mpd:define-wrapper 1 mpd:playlist-rm! mpd_run_rm)
 
 (define (mpd:add-id! connection file)
   (let ((rv (mpd_run_add_id connection file)))

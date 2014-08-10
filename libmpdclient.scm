@@ -811,6 +811,12 @@
         (((c-pointer (struct "mpd_connection")) a0) (unsigned-integer a1))
         "return(mpd_recv_pair_tag(a0 , a1));")))
   (begin
+    (define mpd_recv_pair
+      (foreign-lambda*
+        (c-pointer (struct "mpd_pair"))
+        (((c-pointer (struct "mpd_connection")) a0))
+        "return(mpd_recv_pair(a0));")))
+  (begin
     (define mpd_return_pair
       (foreign-lambda*
         void
