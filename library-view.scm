@@ -33,8 +33,9 @@
 (define (list-of type lst)
   (map (lambda (x) (cons type x)) lst))
 
-(define (libraryr-add! selected)
+(define (library-add! selected)
   (case (car selected)
+    ((playlist) (scmus-playlist-load! (cdr selected)))
     ((artist album) (scmus-search-songs #t #t selected))
     ((track) (scmus-add! (track-file (cdr selected)) #f))))
 
@@ -89,8 +90,9 @@
     (register-event! 'library-data-changed)))
 
 (define (playlist-activate! window playlist)
-  #f
-  )
+  (let ((tracks (scmus-list-playlist playlist)))
+    (set-window! 'library (make-tracks-window window tracks))
+    (register-event! 'library-data-changed)))
 
 (define (toplevel-activate! window)
   (let ((selected (window-selected window)))

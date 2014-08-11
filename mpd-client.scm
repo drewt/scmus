@@ -28,7 +28,8 @@
                  mpd:move-range! mpd:swap! mpd:swap-id! mpd:update! mpd:rescan!
                  mpd:playlist-clear! mpd:playlist-add! mpd:playlist-move!
                  mpd:playlist-delete! mpd:playlist-save! mpd:playlist-load!
-                 mpd:playlist-rename! mpd:playlist-rm! mpd:list-playlists))
+                 mpd:playlist-rename! mpd:playlist-rm! mpd:list-playlists
+                 mpd:list-playlist))
 
 (foreign-declare "#include <mpd/client.h>")
 (include "libmpdclient.scm")
@@ -246,6 +247,11 @@
         (begin (mpd_search_cancel connection)
                (mpd:raise-error connection)))
       (mpd:raise-error connection))))
+
+(define (mpd:list-playlist connection name)
+  (if (mpd_send_list_playlist_meta connection name)
+    (reverse (read-songs connection '()))
+    (mpd:raise-error connection)))
 
 (define (read-playlists connection)
   (let loop ((result '()))
