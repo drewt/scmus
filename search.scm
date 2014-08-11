@@ -133,7 +133,7 @@
   (and (pair? row) (track-match row query)))
 
 (define (make-search-window)
-  (make-window (list (make-search-field) 'separator)
+  (make-window (list (make-search-field) '(separator . ""))
                *window-data
                (lambda (w) (search-changed!))
                search-activate!

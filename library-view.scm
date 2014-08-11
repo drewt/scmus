@@ -102,8 +102,10 @@
   (unless (*window-data window)
     (let ((playlists (scmus-list-playlists))
           (artists (scmus-search-by-tag 'artist)))
-      (*window-data-set! window (cons (append! (list-of 'playlist playlists)
-                                               (list-of 'artist artists))
+      (*window-data-set! window (cons (append! (cons '(separator . "Playlists")
+                                                     (list-of 'playlist playlists))
+                                               (cons '(separator . "Artists")
+                                                     (list-of 'artist artists)))
                                      #f))))
   (library-window-data window))
 

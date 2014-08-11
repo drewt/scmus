@@ -273,17 +273,21 @@
 
 (define (library-window-print-row window row line-nr)
   (case (car row)
+    ((separator) (simple-print-line line-nr (cdr row)))
     ((playlist) (simple-print-line line-nr (cdr row)))
     ((artist) (format-print-line line-nr " [~a]" (cdr row)))
     ((album) (simple-print-line line-nr (cdr row)))
     ((track) (track-print-line line-nr (get-option 'format-library) (cdr row)))
     ((metadata) (alist-window-print-row window (cdr row) line-nr))))
 
+(define (separator? row)
+  (and (pair? row) (eqv? (car row) 'separator)))
+
 (define (search-window-print-row window row line-nr)
   (cond
     ((editable? row)
       (format-print-line line-nr " * ~a" (editable-text row)))
-    ((symbol? row) (move line-nr 0) (clrtoeol))
+    ((separator? row) (move line-nr 0) (clrtoeol))
     (else
       (track-print-line line-nr (get-option 'format-library) row))))
 
@@ -302,6 +306,7 @@
            (marked (member row-pos (window-marked window))))
       (cursed-set!
         (cond
+          ((separator? row)       CURSED-WIN-TITLE)
           ((eqv? row 'separator)  CURSED-WIN-TITLE)
           ((and current selected) CURSED-WIN-CUR-SEL)
           (current                CURSED-WIN-CUR)
