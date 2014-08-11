@@ -15,8 +15,8 @@ INSTALL  = @scripts/install
 eggs = ncurses sandbox utf8
 
 objects = config.o command-line.o editable.o eval-mode.o format.o keys.o \
-	  lib.o library.o main.o mpd-client.o option.o search.o scmus-client.o \
-	  ui-curses.o window.o
+	  lib.o library-view.o main.o mpd-client.o option.o search.o \
+	  scmus-client.o ui-curses.o window.o
 
 clean = $(objects) scmus
 

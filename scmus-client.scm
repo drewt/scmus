@@ -218,6 +218,7 @@
 (scmus-command 1 scmus-playlist-load! mpd:playlist-load!)
 (scmus-command 2 scmus-playlist-rename! mpd:playlist-rename!)
 (scmus-command 1 scmus-playlist-rm! mpd:playlist-rm!)
+(scmus-command 0 scmus-list-playlists mpd:list-playlists)
 
 (define (scmus-play-track! track)
   (assert (>= (track-id track) 0))

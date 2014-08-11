@@ -18,8 +18,8 @@
 (require-extension ncurses srfi-13)
 
 (declare (unit ui-curses)
-         (uses scmus-client eval-mode command-line keys format *library
-               option search window)
+         (uses scmus-client eval-mode command-line keys format
+               option search window library-view)
          (export *ui-initialized* *current-input-mode* *current-view*
                  current-window set-window! set-view! push! win-move!
                  win-bottom! win-top! win-add! win-remove! win-clear!
@@ -87,7 +87,7 @@
   (case *current-view*
     ((library)
       (case view
-        ((queue) (lib-add-selected! (alist-ref 'library *windows*) pos))))
+        ((queue) (library-add-selected! (alist-ref 'library *windows*)))))
     ((search) (search-add! (alist-ref 'search *windows*)))))
 
 (define (win-remove!)
@@ -204,13 +204,7 @@
 (define (set-view! view)
   (when (memv view *views*)
     (set! *current-view* view)
-    (case view
-      ((library) (register-event! 'library-changed))
-      ((queue)   (register-event! 'queue-changed))
-      ((search)  (register-event! 'search-changed))
-      ((status)  (register-event! 'status-changed))
-      ((error)   (register-event! 'error-changed))
-      ((options) (register-event! 'option-changed)))))
+    (window-changed! (alist-ref view *windows*))))
 
 (define (option-activate! window)
   (let* ((selected (window-selected window))
@@ -278,10 +272,12 @@
   (simple-print-line line-nr row))
 
 (define (library-window-print-row window row line-nr)
-  (library-cursed-set! window row line-nr)
-  (case *current-library-window*
-    ((artist album) (list-window-print-row window row line-nr))
-    ((track) (track-print-line line-nr (get-option 'format-library) row))))
+  (case (car row)
+    ((playlist) (simple-print-line line-nr (cdr row)))
+    ((artist) (format-print-line line-nr " [~a]" (cdr row)))
+    ((album) (simple-print-line line-nr (cdr row)))
+    ((track) (track-print-line line-nr (get-option 'format-library) (cdr row)))
+    ((metadata) (alist-window-print-row window (cdr row) line-nr))))
 
 (define (search-window-print-row window row line-nr)
   (cond
@@ -319,25 +315,6 @@
 ;; cursed-set! for track windows (e.g. queue)
 (define trackwin-cursed-set! (win-cursed-fn current-track?))
 
-(define lib-artists-cursed-set!
-  (win-cursed-fn (lambda (artist)
-                   (string=? artist (track-artist (current-track))))))
-
-(define lib-albums-cursed-set!
-  (win-cursed-fn
-    (lambda (selected-album)
-      (let ((current-album (track-album (current-track)))
-            (current-artist (track-artist (current-track)))
-            (selected-artist (lib-selected-artist)))
-        (and (string=? selected-album current-album)
-             (string=? selected-artist current-artist))))))
-
-(define (library-cursed-set! window row line-nr)
-  (case *current-library-window*
-    ((artist) (lib-artists-cursed-set! window row line-nr))
-    ((album)  (lib-albums-cursed-set! window row line-nr))
-    ((track)  (trackwin-cursed-set! window row line-nr))))
-
 (define (update-track-window window title-fmt track-fmt)
   (print-window-title title-fmt)
   (print-window window
@@ -349,8 +326,7 @@
   (when (current-view? 'library)
     (print-window-title (process-format (string->list "Library")))
     (print-window (alist-ref 'library *windows*)
-                  library-window-print-row
-                  library-cursed-set!)))
+                  library-window-print-row)))
 
 (define (update-library-data)
   (window-data-len-update! (alist-ref 'library *windows*))
