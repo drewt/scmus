@@ -19,7 +19,7 @@
 
 (declare (unit library-view)
          (uses scmus-client window ui-curses)
-         (export library-add-selected! make-library-window))
+         (export library-add-selected! make-library-view))
 
 (define (library-window-data window)
   (car (*window-data window)))
@@ -109,10 +109,19 @@
                                      #f))))
   (library-window-data window))
 
-(define (make-library-window)
-  (make-window #f
-               toplevel-get-data
-               library-changed!
-               toplevel-activate!
-               void
-               (match-function string-contains-ci)))
+(define (library-window-print-row window row line-nr)
+  (case (car row)
+    ((separator playlist artist) (simple-print-line line-nr (cdr row)))
+    ((album) (simple-print-line line-nr (cdr row)))
+    ((track) (track-print-line line-nr (get-option 'format-library) (cdr row)))
+    ((metadata) (alist-print-line window (cdr row) line-nr))))
+
+(define (make-library-view)
+  (make-view (make-window #f
+                          toplevel-get-data
+                          library-changed!
+                          toplevel-activate!
+                          void
+                          (match-function string-contains-ci))
+             "Library"
+             library-window-print-row))

@@ -40,7 +40,7 @@
 
 ;; alist associating key-contexts with binding alists
 (define *bindings*
-  (map (lambda (x) (cons x '())) (cons 'common *views*)))
+  (map (lambda (x) (cons x '())) (cons 'common *view-names*)))
 
 ;; evil global state
 (define *current-context* #f)

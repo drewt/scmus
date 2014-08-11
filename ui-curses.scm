@@ -21,12 +21,14 @@
          (uses scmus-client eval-mode command-line keys format
                option search window library-view)
          (export *ui-initialized* *current-input-mode* *current-view*
+                 simple-print-line format-print-line track-print-line
+                 alist-print-line separator?
                  current-window set-window! set-view! push! win-move!
                  win-bottom! win-top! win-add! win-remove! win-clear!
                  win-move-tracks! win-clear-marked! win-search!
-                 win-search-next! win-search-prev! win-edit! register-event!
-                 curses-update cursor-on cursor-off set-input-mode!
-                 handle-input init-curses exit-curses))
+                 win-search-next! win-search-prev! win-edit! make-view
+                 register-event! curses-update cursor-on cursor-off
+                 set-input-mode! handle-input init-curses exit-curses))
 
 ;;; definitions missing from the ncurses egg
 (define bkgdset
@@ -59,7 +61,7 @@
 (define *current-editable* #f)
 (define *editable-pos* #f)
 
-(define *windows* (map (lambda (x) (cons x #f)) *views*))
+(define *views* (map (lambda (x) (cons x #f)) *view-names*))
 
 ;; user functions {{{
 
@@ -87,8 +89,8 @@
   (case *current-view*
     ((library)
       (case view
-        ((queue) (library-add-selected! (alist-ref 'library *windows*)))))
-    ((search) (search-add! (alist-ref 'search *windows*)))))
+        ((queue) (library-add-selected! (current-window)))))
+    ((search) (search-add! (current-window)))))
 
 (define (win-remove!)
   (case *current-view*
@@ -98,12 +100,12 @@
                  (scmus-delete! (car marked))
                  (loop (cdr marked))))
              (window-clear-marked! (current-window)))
-    ((search) (search-remove! (alist-ref 'search *windows*)))))
+    ((search) (search-remove! (current-window)))))
 
 (define (win-clear!)
   (case *current-view*
     ((queue) (scmus-clear!))
-    ((search) (search-clear! (alist-ref 'search *windows*)))))
+    ((search) (search-clear! (current-window)))))
 
 (define (win-move-tracks!)
   (case *current-view*
@@ -135,76 +137,52 @@
 
 (define (win-edit!)
   (case *current-view*
-    ((search) (search-edit! (alist-ref 'search *windows*)))))
+    ((search) (search-edit! (current-window)))))
 
 ;; user functions }}}
 ;; windows {{{
 
-;; Convenient interface to make-window.  Can only be used *after* ncurses is
-;; initialized.
-(define-syntax make-global-window
-  (syntax-rules ()
-    ((make-global-window get-data changed-event activate deactivate match)
-      (make-window #f
-                   get-data
-                   (lambda (w) (register-event! changed-event))
-                   activate
-                   deactivate
-                   match))))
+(define-record-type view
+  (*make-view window title-fmt print-line cursed)
+  view?
+  (window *view-window *view-window-set!)
+  (title-fmt view-title-fmt view-title-fmt-set!)
+  (print-line *view-print-line)
+  (cursed view-cursed-fn))
 
-;; make-window for global lists.  Each member of the list becomes a row in the
-;; window.
-(define-syntax make-global-list-window
-  (syntax-rules ()
-    ((make-global-list-window lst changed-event activate deactivate match)
-      (make-global-window (lambda (w) lst)
-                          changed-event
-                          activate
-                          deactivate
-                          match))
-    ((make-global-list-window lst changed-event activate deactivate)
-      (make-global-list-window lst changed-event activate deactivate
-                               (lambda (e q) #f)))
-    ((make-global-list-window lst changed-event activate)
-      (make-global-list-window lst changed-event activate void
-                               (lambda (e q) #f)))
-    ((make-global-list-window lst changed-event)
-      (make-global-list-window lst changed-event void void
-                               (lambda (e q) #f)))))
+(define (make-view window title print-line #!optional (cursed generic-cursed-set!))
+  (*make-view window (process-format (string->list title)) print-line cursed))
 
-;; make-window for global strings.  Each line in the string becomes a row in
-;; the window.
-(define-syntax make-global-string-window
-  (syntax-rules ()
-     ((make-global-string-window str changed-event activate deactivate match)
-       (make-global-window (lambda (w) (string-split-lines str))
-                           changed-event
-                           activate
-                           deactivate
-                           match))
-     ((make-global-string-window str changed-event activate deactivate)
-       (make-global-string-window str changed-event activate deactivate
-                                  string-contains-ci))
-     ((make-global-string-window str changed-event activate)
-       (make-global-string-window str changed-event activate void
-                                  string-contains-ci))
-     ((make-global-global-string-window str changed-event)
-       (make-global-string-window str changed-event void void
-                                  string-contains-ci))))
+(define (view-window view-name)
+  (*view-window (alist-ref view-name *views*)))
+
+(define (set-window! view-name window)
+  (*view-window-set! (alist-ref view-name *views*) window))
+
+(define (view-print-title! view)
+  (cursed-set! CURSED-WIN-TITLE)
+  (track-print-line 0 (view-title-fmt view) '()))
+
+(define (view-print-line! view row line-nr)
+  ((*view-print-line view) (*view-window view) row line-nr))
+
+(define (view-cursed-set! view row line-nr)
+  ((view-cursed-fn view) (*view-window view) row line-nr))
+
+(define (update-view! view-name)
+  (if (current-view? view-name)
+    (print-view! (alist-ref view-name *views*))))
 
 (define (current-window)
-  (alist-ref *current-view* *windows*))
+  (view-window *current-view*))
 
-(define (set-window! name window)
-  (alist-update! name window *windows*))
+(define (current-view? view-name)
+  (eqv? view-name *current-view*))
 
-(define (current-view? view)
-  (eqv? view *current-view*))
-
-(define (set-view! view)
-  (when (memv view *views*)
-    (set! *current-view* view)
-    (window-changed! (alist-ref view *windows*))))
+(define (set-view! view-name)
+  (when (memv view-name *view-names*)
+    (set! *current-view* view-name)
+    (window-changed! (view-window view-name))))
 
 (define (option-activate! window)
   (let* ((selected (window-selected window))
@@ -229,10 +207,10 @@
               (- (COLS) (string-length right) 1)
               right)))
 
-;; Calls print-fn with window, row item, and line number for each row in
-;; window.
-(define (print-window window print-fn #!optional (cursed-fn generic-cursed-set!))
-  (let ((nr-lines (window-nr-lines window)))
+(define (print-view! view)
+  (view-print-title! view)
+  (let* ((window (*view-window view))
+         (nr-lines (window-nr-lines window)))
     (let loop ((rows (window-top window)) (lines nr-lines))
       (when (> lines 0)
         (let ((line-nr (- nr-lines (- lines 1))))
@@ -240,14 +218,9 @@
             (begin (cursed-set! CURSED-WIN)
                    (move line-nr 0)
                    (clrtoeol))
-            (begin (cursed-fn window (car rows) line-nr)
-                   (print-fn window (car rows) line-nr)))
+            (begin (view-cursed-set! view (car rows) line-nr)
+                   (view-print-line! view (car rows) line-nr)))
           (loop (if (null? rows) '() (cdr rows)) (- lines 1)))))))
-
-;; Prints a window title from the given format.
-(define (print-window-title fmt)
-  (cursed-set! CURSED-WIN-TITLE)
-  (track-print-line 0 fmt '()))
 
 (define (simple-print-line line-nr str)
   (mvaddstr line-nr 0
@@ -262,7 +235,7 @@
   (clrtoeol))
 
 ;; Generic function to print an alist entry, for use with print-window.
-(define (alist-window-print-row window row line-nr)
+(define (alist-print-line window row line-nr)
   (simple-print-line line-nr (car row))
   (mvaddstr line-nr (- (quotient (COLS) 2) 1)
             (string-truncate (format " ~a" (cdr row))
@@ -271,30 +244,13 @@
 (define (list-window-print-row window row line-nr)
   (simple-print-line line-nr row))
 
-(define (library-window-print-row window row line-nr)
-  (case (car row)
-    ((separator) (simple-print-line line-nr (cdr row)))
-    ((playlist) (simple-print-line line-nr (cdr row)))
-    ((artist) (format-print-line line-nr " [~a]" (cdr row)))
-    ((album) (simple-print-line line-nr (cdr row)))
-    ((track) (track-print-line line-nr (get-option 'format-library) (cdr row)))
-    ((metadata) (alist-window-print-row window (cdr row) line-nr))))
-
 (define (separator? row)
   (and (pair? row) (eqv? (car row) 'separator)))
 
-(define (search-window-print-row window row line-nr)
-  (cond
-    ((editable? row)
-      (format-print-line line-nr " * ~a" (editable-text row)))
-    ((separator? row) (move line-nr 0) (clrtoeol))
-    (else
-      (track-print-line line-nr (get-option 'format-library) row))))
-
 (define (options-window-print-row window row line-nr)
-  (alist-window-print-row window
-                          (cons (car row) (option-string (cdr row)))
-                          line-nr))
+  (alist-print-line window
+                   (cons (car row) (option-string (cdr row)))
+                   line-nr))
 
 ;; Generates a function to call cursed-set! with the appropriate value given
 ;; a window, row, and line number.
@@ -327,51 +283,6 @@
                   (track-print-line line-nr track-fmt track))
                 trackwin-cursed-set!))
 
-(define (update-library-window)
-  (when (current-view? 'library)
-    (print-window-title (process-format (string->list "Library")))
-    (print-window (alist-ref 'library *windows*)
-                  library-window-print-row)))
-
-(define (update-library-data)
-  (window-data-len-update! (alist-ref 'library *windows*))
-  (redraw-ui)
-  (update-library-window))
-
-(define (update-queue-window)
-  (when (current-view? 'queue)
-    (update-track-window (alist-ref 'queue *windows*)
-                         (get-option 'format-queue-title)
-                         (get-option 'format-queue))))
-
-(define (update-queue-data)
-  (window-data-len-update! (alist-ref 'queue *windows*))
-  (update-queue-window))
-
-(define (update-search-window)
-  (when (current-view? 'search)
-    (print-window-title (process-format (string->list "Search")))
-    (print-window (alist-ref 'search *windows*)
-                  search-window-print-row)))
-
-(define (update-status-window)
-  (when (current-view? 'status)
-    (print-window-title (process-format (string->list "MPD Status")))
-    (print-window (alist-ref 'status *windows*)
-                  alist-window-print-row)))
-
-(define (update-error-window)
-  (when (current-view? 'error)
-    (print-window-title (process-format (string->list "Error")))
-    (print-window (alist-ref 'error *windows*)
-                  list-window-print-row)))
-
-(define (update-options-window)
-  (when (current-view? 'options)
-    (print-window-title (process-format (string->list "Options")))
-    (print-window (alist-ref 'options *windows*)
-                  options-window-print-row)))
-
 (define (update-current-line)
   (cursed-set! CURSED-TITLELINE)
   (track-print-line (- (LINES) 3)
@@ -386,14 +297,10 @@
 
 (define (update-status)
   (update-status-line)
-  (update-status-window))
+  (update-view! 'status))
 
 (define (update-current)
   (update-current-line))
-
-(define (update-error)
-  (window-data-len-update! (alist-ref 'error *windows*))
-  (update-error-window))
 
 (define (update-command-line)
   (cursed-set! CURSED-CMDLINE)
@@ -412,15 +319,12 @@
                                   (editable-cursor-pos *current-editable*)))))
 
 (define (redraw-ui)
-  (for-each (lambda (x) (window-nr-lines-set! (cdr x) (- (LINES) 4)))
-            *windows*)
-  (update-library-window)
-  (update-queue-window)
-  (update-search-window)
-  (update-error)
+  (for-each (lambda (x) (window-nr-lines-set! (*view-window (cdr x))
+                                              (- (LINES) 4)))
+            *views*)
+  (print-view! (alist-ref *current-view* *views*))
   (update-current)
   (update-status)
-  (update-options-window)
   (update-command-line))
 
 ;; screen updates }}}
@@ -574,18 +478,26 @@
 
 ;; colors }}}
 
+(define (view-update-fn view-name)
+  (lambda () (update-view! view-name)))
+
+(define (view-update-data-fn view-name)
+  (lambda ()
+    (window-data-len-update! (view-window view-name))
+    (update-view! view-name)))
+
 (define *events* '())
 (define *event-handlers*
   (list (cons 'command-line-changed update-command-line)
         (cons 'status-changed update-status)
         (cons 'current-line-changed update-current)
-        (cons 'library-changed update-library-window)
-        (cons 'library-data-changed update-library-data)
-        (cons 'queue-changed update-queue-window)
-        (cons 'queue-data-changed update-queue-data)
-        (cons 'search-changed update-search-window)
-        (cons 'error-changed update-error)
-        (cons 'option-changed update-options-window)
+        (cons 'library-changed (view-update-fn 'library))
+        (cons 'library-data-changed (view-update-data-fn 'library))
+        (cons 'queue-changed (view-update-fn 'queue))
+        (cons 'queue-data-changed (view-update-data-fn 'queue))
+        (cons 'search-changed (view-update-fn 'search))
+        (cons 'error-changed (view-update-data-fn 'error))
+        (cons 'option-changed (view-update-fn 'options))
         (cons 'color-changed update-colors!)
         (cons 'format-changed redraw-ui)))
 
@@ -600,29 +512,55 @@
   (update-cursor)
   (set! *events* '()))
 
-(define (init-windows!)
-  (alist-update! 'library (make-library-window) *windows*)
-  (alist-update! 'queue
-                 (make-global-list-window *queue*
-                                          'queue-changed
-                                          (lambda (w)
-                                            (scmus-play-track!
-                                              (window-selected w)))
-                                          void
-                                          track-match)
-                 *windows*)
-  (alist-update! 'search (make-search-window) *windows*)
-  (alist-update! 'status
-                 (make-global-list-window *mpd-status* 'status-changed)
-                 *windows*)
-  (alist-update! 'error
-                 (make-global-string-window *scmus-error* 'error-changed)
-                 *windows*)
-  (alist-update! 'options
-                 (make-global-list-window *options*
-                                          'option-changed
-                                          option-activate!)
-                 *windows*))
+(define (make-queue-view)
+  (make-view (make-window #f
+                          (lambda (w) *queue*)
+                          (lambda (w) (register-event! 'queue-changed))
+                          (lambda (w) (scmus-play-track! (window-selected w)))
+                          void
+                          track-match)
+             "Queue"
+             (lambda (window track line-nr)
+               (track-print-line line-nr (get-option 'format-queue) track))
+             trackwin-cursed-set!))
+
+(define (make-status-view)
+  (make-view (make-window #f
+                          (lambda (w) *mpd-status*)
+                          (lambda (w) (register-event! 'status-changed))
+                          void
+                          void
+                          (lambda (e q) #f))
+             "MPD Status"
+             alist-print-line))
+
+(define (make-error-view)
+  (make-view (make-window #f
+                          (lambda (w) (string-split-lines *scmus-error*))
+                          (lambda (w) (register-event! 'error-changed))
+                          void
+                          void
+                          (lambda (e q) #f))
+             "Error"
+             list-window-print-row))
+
+(define (make-options-view)
+  (make-view (make-window #f
+                          (lambda (w) *options*)
+                          (lambda (w) (register-event! 'option-changed))
+                          option-activate!
+                          void
+                          (lambda (e q) #f))
+             "Options"
+             options-window-print-row))
+
+(define (init-views!)
+  (alist-update! 'library (make-library-view) *views*)
+  (alist-update! 'queue (make-queue-view) *views*)
+  (alist-update! 'search (make-search-view) *views*)
+  (alist-update! 'status (make-status-view) *views*)
+  (alist-update! 'error (make-error-view) *views*)
+  (alist-update! 'options (make-options-view) *views*))
 
 (define (init-curses)
   (initscr)
@@ -635,7 +573,7 @@
     (start_color)
     (use_default_colors))
   (update-colors!)
-  (init-windows!)
+  (init-views!)
   (redraw-ui))
 
 (define (exit-curses)

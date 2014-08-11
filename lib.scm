@@ -25,7 +25,7 @@
 
 (define *scmus-error* "")
 
-(define *views*
+(define *view-names*
   '(library queue search status error options))
 
 (define (verbose-printf . args)

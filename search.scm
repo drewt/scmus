@@ -19,7 +19,7 @@
 
 (declare (unit search)
          (uses editable scmus-client window ui-curses)
-         (export make-search-window search-edit! search-clear! search-add!
+         (export make-search-view search-edit! search-clear! search-add!
                  search-remove!))
 
 (define (search-changed!)
@@ -132,10 +132,20 @@
 (define (search-match row query)
   (and (pair? row) (track-match row query)))
 
-(define (make-search-window)
-  (make-window (list (make-search-field) '(separator . ""))
-               *window-data
-               (lambda (w) (search-changed!))
-               search-activate!
-               void
-               search-match))
+(define (search-window-print-row window row line-nr)
+  (cond
+    ((editable? row)
+      (format-print-line line-nr " * ~a" (editable-text row)))
+    ((separator? row) (move line-nr 0) (clrtoeol))
+    (else
+      (track-print-line line-nr (get-option 'format-library) row))))
+
+(define (make-search-view)
+  (make-view (make-window (list (make-search-field) '(separator . ""))
+                          *window-data
+                          (lambda (w) (search-changed!))
+                          search-activate!
+                          void
+                          search-match)
+             "Search"
+             search-window-print-row))
