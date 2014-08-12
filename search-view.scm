@@ -17,7 +17,7 @@
 
 (require-extension ncurses srfi-1 srfi-13)
 
-(declare (unit search)
+(declare (unit search-view)
          (uses editable scmus-client window ui-curses)
          (export make-search-view search-edit! search-clear! search-add!
                  search-remove!))

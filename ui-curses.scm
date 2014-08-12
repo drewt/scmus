@@ -19,7 +19,7 @@
 
 (declare (unit ui-curses)
          (uses scmus-client eval-mode command-line keys format
-               option search window library-view)
+               option window search-view library-view options-view)
          (export *ui-initialized* *current-input-mode* *current-view*
                  simple-print-line format-print-line track-print-line
                  alist-print-line separator?
@@ -184,12 +184,6 @@
     (set! *current-view* view-name)
     (window-changed! (view-window view-name))))
 
-(define (option-activate! window)
-  (let* ((selected (window-selected window))
-         (name (car selected))
-         (option (cdr selected)))
-    (push! (format "(set-option! '~a ~a)" name (option-string option)))))
-
 ;; windows }}}
 ;; screen updates {{{
 
@@ -246,11 +240,6 @@
 
 (define (separator? row)
   (and (pair? row) (eqv? (car row) 'separator)))
-
-(define (options-window-print-row window row line-nr)
-  (alist-print-line window
-                   (cons (car row) (option-string (cdr row)))
-                   line-nr))
 
 ;; Generates a function to call cursed-set! with the appropriate value given
 ;; a window, row, and line number.
@@ -543,16 +532,6 @@
                           (lambda (e q) #f))
              "Error"
              list-window-print-row))
-
-(define (make-options-view)
-  (make-view (make-window #f
-                          (lambda (w) *options*)
-                          (lambda (w) (register-event! 'option-changed))
-                          option-activate!
-                          void
-                          (lambda (e q) #f))
-             "Options"
-             options-window-print-row))
 
 (define (init-views!)
   (alist-update! 'library (make-library-view) *views*)
