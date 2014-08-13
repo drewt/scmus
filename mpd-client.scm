@@ -1,3 +1,30 @@
+;; Copyright (c) 2006-2007, Hans Bulfone
+;; All rights reserved.
+;;
+;; Redistribution and use in source and binary forms, with or without
+;; modification, are permitted provided that the following conditions are met:
+;;
+;;     * Redistributions of source code must retain the above copyright notice,
+;;       this list of conditions and the following disclaimer.
+;;     * Redistributions in binary form must reproduce the above copyright
+;;       notice, this list of conditions and the following disclaimer in the
+;;       documentation and/or other materials provided with the distribution.
+;;     * Neither the name of the author nor the names of his contributors may
+;;       be used to endorse or promote products derived from this software
+;;       without specific prior written permission.
+;;
+;; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+;; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+;; THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+;; PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+;; CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+;; EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+;; PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+;; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+;; WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+;; OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+;; ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 ;;
 ;; Copyright 2014 Drew Thoreson
 ;;
@@ -15,330 +42,352 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
+(require-extension regex srfi-1 tcp)
+
 (declare (unit mpd-client)
-         (export mpd:connect mpd:disconnect mpd:reconnect mpd:error-code
-                 mpd:error-message mpd:get-stats mpd:get-status
-                 mpd:get-current-song mpd:list-queue mpd:db-list-tags
-                 mpd:db-search-songs mpd:play! mpd:play-id! mpd:play-pos!
-                 mpd:pause! mpd:stop! mpd:next-song! mpd:previous-song!
-                 mpd:seek-id! mpd:seek-pos! mpd:repeat-set! mpd:random-set!
-                 mpd:single-set! mpd:consume-set! mpd:add! mpd:add-id!
-                 mpd:add-id-to! mpd:delete! mpd:delete-id! mpd:delete-range!
-                 mpd:shuffle! mpd:shuffle-range! mpd:clear! mpd:move!
-                 mpd:move-range! mpd:swap! mpd:swap-id! mpd:update! mpd:rescan!
-                 mpd:playlist-clear! mpd:playlist-add! mpd:playlist-move!
-                 mpd:playlist-delete! mpd:playlist-save! mpd:playlist-load!
-                 mpd:playlist-rename! mpd:playlist-rm! mpd:list-playlists
-                 mpd:list-playlist))
+         (hide make-connection mpd-host-set! mpd-port-set! in-port in-port-set!
+               out-port out-port-set! mpd-version-set! re-ok+version
+               re-err re-pair raise-mpd-error check-connection send-command
+               playlist-is-number? convert-type read-response parse-songs
+               flatten-constraints format-range range-or-number))
 
-(foreign-declare "#include <mpd/client.h>")
-(include "libmpdclient.scm")
+(define-record-type mpd-connection
+  (make-connection hostname port in-port out-port version)
+  mpd-connection?
+  (hostname mpd-host mpd-host-set!)
+  (port mpd-port mpd-port-set!)
+  (in-port in-port in-port-set!)
+  (out-port out-port out-port-set!)
+  (version mpd-version mpd-version-set!))
 
-(define (mpd:connect host port #!optional (timeout 5000))
-  (mpd_connection_new host port timeout))
+(define re-ok+version (regexp "^OK MPD (.*)$"))
+(define re-err (regexp "^ACK ?(.*)$"))
+(define re-pair (regexp "^([^:]+): (.*)$"))
 
-(define mpd:disconnect mpd_connection_free)
+(define (raise-mpd-error msg . args)
+  (abort
+    (make-composite-condition
+      (make-property-condition 'exn 'message msg 'arguments args)
+      (make-property-condition 'mpd))))
 
-(define (mpd:reconnect connection)
-  (let* ((settings (mpd_connection_get_settings connection))
-         (host (mpd_settings_get_host settings))
-         (port (mpd_settings_get_port settings)))
-    (mpd_connection_free connection)
-    (mpd:connect host port)))
+(define (mpd:connect #!optional (hostname "localhost") (port 6600))
+  (mpd:reconnect (make-connection hostname port #f #f #f)))
 
-(define mpd:error-code
-  (condition-property-accessor 'mpd 'code))
-(define mpd:error-message
-  (condition-property-accessor 'mpd 'message))
+(define (mpd:disconnect con)
+  (close-input-port (in-port con))
+  (close-output-port (out-port con))
+  (in-port-set! con #f)
+  (in-port-set! con #f)
+  (void))
 
-(define (mpd:raise-error connection)
-  (abort (make-property-condition
-           'mpd
-           'code (mpd_connection_get_error connection)
-           'message (mpd_connection_get_error_message connection))))
+(define (mpd:reconnect con)
+  (if (in-port con)
+    (mpd:disconnect con))
+  (let-values (((in out) (tcp-connect (mpd-host con) (mpd-port con))))
+    (let ((l (read-line in)))
+      (cond
+        ((eof-object? l)
+          (close-input-port in)
+          (close-output-port out)
+          (raise-mpd-error "connection closed unexpectedly"))
+        ((string-search re-ok+version l)
+          => (lambda (m)
+               (in-port-set! con in)
+               (out-port-set! con out)
+               (mpd-version-set! con (cadr m))
+               con))
+        (else
+          (close-input-port in)
+          (close-output-port out)
+          (raise-mpd-error "unexpected greeting" l))))))
 
-(define (mpd:get-stats connection)
-  (let* ((stats (mpd_run_stats connection))
-         (error (mpd_connection_get_error connection))
-         (retval
-           (if stats
-             (list
-               (cons 'artists (mpd_stats_get_number_of_artists stats))
-               (cons 'albums (mpd_stats_get_number_of_albums stats))
-               (cons 'songs (mpd_stats_get_number_of_songs stats))
-               (cons 'uptime (mpd_stats_get_uptime stats))
-               (cons 'db-update (mpd_stats_get_db_update_time stats))
-               (cons 'playtime (mpd_stats_get_play_time stats))
-               (cons 'db-playtime (mpd_stats_get_db_play_time stats)))
-             '())))
-     (if stats
-       (mpd_stats_free stats))
-     (unless (= error MPD_ERROR_SUCCESS)
-       (mpd:raise-error connection))
-     retval))
+(define (check-connection con)
+  (let ((in (in-port con)))
+    (if (and (char-ready? in)
+             (eof-object? (peek-char in)))
+      (mpd:reconnect con))))
 
-(define (mpd-state->symbol state)
-  (cond
-    ((= state MPD_STATE_UNKNOWN) 'unknown)
-    ((= state MPD_STATE_STOP) 'stop)
-    ((= state MPD_STATE_PLAY) 'play)
-    ((= state MPD_STATE_PAUSE) 'pause)))
+(define (process-arg arg)
+  (format " ~s" (format "~a" arg)))
 
-(define (symbol->mpd-tag tag)
-  (case tag
-    ((artist)      MPD_TAG_ARTIST)
-    ((album)       MPD_TAG_ALBUM)
-    ((albumartist) MPD_TAG_ALBUM_ARTIST)
-    ((title)       MPD_TAG_TITLE)
-    ((tracknumber) MPD_TAG_TRACK)
-    ((name)        MPD_TAG_NAME)
-    ((genre)       MPD_TAG_GENRE)
-    ((date)        MPD_TAG_DATE)
-    ((composer)    MPD_TAG_COMPOSER)
-    ((performer)   MPD_TAG_PERFORMER)
-    ((comment)     MPD_TAG_COMMENT)
-    ((discnumber)  MPD_TAG_DISC)))
+(define (send-command con cmd . args)
+  (check-connection con)
+  (write-line (fold (lambda (x a) (string-append a (process-arg x)))
+                    cmd
+                    args)
+              (out-port con)))
 
-(define (mpd:get-status connection)
-  (let* ((status (mpd_run_status connection))
-         (error (mpd_connection_get_error connection))
-         (retval
-           (if status
-             (list
-               (cons 'volume (mpd_status_get_volume status))
-               (cons 'repeat (mpd_status_get_repeat status))
-               (cons 'random (mpd_status_get_random status))
-               (cons 'single (mpd_status_get_single status))
-               (cons 'consume (mpd_status_get_consume status))
-               (cons 'queue-length (mpd_status_get_queue_length status))
-               (cons 'queue-version (mpd_status_get_queue_version status))
-               (cons 'state (mpd-state->symbol
-                              (mpd_status_get_state status)))
-               (cons 'xfade (mpd_status_get_crossfade status))
-               (cons 'mixrampdb (mpd_status_get_mixrampdb status))
-               (cons 'mixrampdelay (mpd_status_get_mixrampdelay status))
-               (cons 'song-pos (mpd_status_get_song_pos status))
-               (cons 'song-id (mpd_status_get_song_id status))
-               (cons 'next-song-pos (mpd_status_get_next_song_pos status))
-               (cons 'next-song-id (mpd_status_get_next_song_id status))
-               (cons 'elapsed-time (mpd_status_get_elapsed_time status))
-               (cons 'elapsed-ms (mpd_status_get_elapsed_ms status))
-               (cons 'total-time (mpd_status_get_total_time status))
-               (cons 'bitrate (mpd_status_get_kbit_rate status))
-               ; TODO: audio format
-               (cons 'updating (= 1 (mpd_status_get_update_id status)))
-               (cons 'error (mpd_status_get_error status)))
-             '())))
-    (if status
-      (mpd_status_free status))
-    (if (= error MPD_ERROR_SUCCESS)
-      retval
-      (mpd:raise-error connection))))
+(define playlist-is-number? (make-parameter #f))
 
-(define (song->alist song)
-  (list
-    (cons 'file (mpd_song_get_uri song))
-    (cons 'artist (mpd_song_get_tag song MPD_TAG_ARTIST 0))
-    (cons 'album (mpd_song_get_tag song MPD_TAG_ALBUM 0))
-    (cons 'albumartist
-          (mpd_song_get_tag song MPD_TAG_ALBUM_ARTIST 0))
-    (cons 'title (mpd_song_get_tag song MPD_TAG_TITLE 0))
-    (cons 'track (mpd_song_get_tag song MPD_TAG_TRACK 0))
-    (cons 'name (mpd_song_get_tag song MPD_TAG_NAME 0))
-    (cons 'genre (mpd_song_get_tag song MPD_TAG_GENRE 0))
-    (cons 'date (mpd_song_get_tag song MPD_TAG_DATE 0))
-    (cons 'composer (mpd_song_get_tag song MPD_TAG_COMPOSER 0))
-    (cons 'performer (mpd_song_get_tag song MPD_TAG_PERFORMER 0))
-    (cons 'comment (mpd_song_get_tag song MPD_TAG_COMMENT 0))
-    (cons 'disc (mpd_song_get_tag song MPD_TAG_DISC 0))
-    (cons 'duration (mpd_song_get_duration song))
-    (cons 'start (mpd_song_get_start song))
-    (cons 'end (mpd_song_get_end song))
-    (cons 'last-modified (mpd_song_get_last_modified song))
-    (cons 'pos (mpd_song_get_pos song))
-    (cons 'id (mpd_song_get_id song))
-    (cons 'prio (mpd_song_get_prio song))))
+(define (convert-type k v)
+  (case k
+    ((volume playlistlength song songid bitrate xfade id pos elapsed
+             artists albums songs uptime playtime db_playtime db_update
+             updating_db outputid cpos nextsong nextsongid mixrampdb)
+      (string->number v))
+    ((playlist)
+      (if (playlist-is-number?)
+        (string->number v)
+        v))
+    ((time audio)
+      (map string->number (string-split v ":")))
+    ((repeat random single consume outputenabled)
+      (not (string=? v "0")))
+    ((state)
+      (string->symbol v))
+    (else v)))
 
-(define (mpd-pair->string pair)
-  (mpd_pair-value pair))
-
-(define (mpd:get-current-song connection)
-  (let* ((song (mpd_run_current_song connection))
-         (error (mpd_connection_get_error connection))
-         (retval (if song (song->alist song) '())))
-    (if song
-      (mpd_song_free song))
-    (if (= error MPD_ERROR_SUCCESS)
-      retval
-      (mpd:raise-error connection))))
-
-(define (read-songs connection lst)
-  (let* ((song (mpd_recv_song connection))
-         (error (mpd_connection_get_error connection))
-         (next (if song (song->alist song) '())))
-    (if song
-      (begin
-        (mpd_song_free song)
-        (read-songs connection (cons next lst)))
-      ; mpd_recv_song returned NULL
-      (if (= error MPD_ERROR_SUCCESS)
-        lst
-        (mpd:raise-error connection)))))
-
-(define (mpd:list-queue connection)
-  (if (mpd_send_list_queue_meta connection)
-    (reverse (read-songs connection '()))
-    (mpd:raise-error connection)))
-
-(define (mpd:list-queue-range connection start end)
-  (if (mpd_send_list_queue_range connection start end)
-    (reverse (read-songs connection '()))
-    (mpd:raise-error connection)))
-
-(define (read-tag-pairs connection tag lst)
-  (let* ((pair (mpd_recv_pair_tag connection tag))
-         (error (mpd_connection_get_error connection))
-         (next (if pair (mpd-pair->string pair) '())))
-    (if pair
-      (begin
-        (mpd_return_pair connection pair)
-        (read-tag-pairs connection tag (if (not (string=? next ""))
-                                         (cons next lst)
-                                         lst)))
-      ; mpd_recv_pair_tag returned NULL
-      (if (= error MPD_ERROR_SUCCESS)
-        lst
-        (mpd:raise-error connection)))))
-
-(define (mpd:search-add-tag-constraints connection constraints)
-  (if (null? constraints)
-    #t
-    (case (caar constraints)
-      ((any)
-        (if (mpd_search_add_any_tag_constraint connection
-                                               MPD_OPERATOR_DEFAULT
-                                               (cdar constraints))
-          (mpd:search-add-tag-constraints connection (cdr constraints))
-          #f))
+(define (read-response con)
+  (let loop ((l (read-line (in-port con))) (pairs '()))
+    (cond
+      ((eof-object? l)
+        (mpd:disconnect con)
+        (raise-mpd-error "connection closed unexpectedly"))
+      ((equal? l "OK")
+        (reverse pairs))
+      ((string-search re-err l)
+        => (lambda (m)
+             (raise-mpd-error "error from server" (cadr m))))
+      ((string-search re-pair l)
+        => (lambda (m)
+             (let ((s (string->symbol (string-downcase (cadr m)))))
+               (loop (read-line (in-port con))
+                     (cons (cons s (convert-type s (caddr m)))
+                           pairs)))))
       (else
-        (if (mpd_search_add_tag_constraint connection
-                                           MPD_OPERATOR_DEFAULT
-                                           (symbol->mpd-tag (caar constraints))
-                                           (cdar constraints))
-          (mpd:search-add-tag-constraints connection (cdr constraints))
-          #f)))))
+        (raise-mpd-error "unexpected line from server" l)))))
 
-(define (mpd:db-list-tags connection tag . constraints)
-  (let ((mpd-tag (symbol->mpd-tag tag)))
-    (if (mpd_search_db_tags connection mpd-tag)
-      (if (and (mpd:search-add-tag-constraints connection constraints)
-               (mpd_search_commit connection))
-        (reverse (read-tag-pairs connection mpd-tag '()))
-        (begin (mpd_search_cancel connection)
-               (mpd:raise-error connection)))
-      (mpd:raise-error connection))))
+(define (parse-songs pairs)
+  (let loop ((pairs pairs) (cur #f) (songs '()))
+    (define (next-songs)
+      (if cur (cons (reverse cur) songs) songs))
+    (cond
+      ((null? pairs)
+        (reverse (next-songs)))
+      ((eqv? (caar pairs) 'file)
+        (loop (cdr pairs) (cons (car pairs) '()) (next-songs)))
+      ((not cur)
+        (raise-mpd-error "unexpected pair" (car pairs)))
+      (else
+        (loop (cdr pairs) (cons (car pairs) cur) songs)))))
 
-(define (mpd:db-search-songs connection exact add . constraints)
-  (let ((search (if add mpd_search_add_db_songs mpd_search_db_songs)))
-    (if (search connection exact)
-      (if (and (mpd:search-add-tag-constraints connection constraints)
-               (mpd_search_commit connection))
-        (reverse (read-songs connection '()))
-        (begin (mpd_search_cancel connection)
-               (mpd:raise-error connection)))
-      (mpd:raise-error connection))))
+(define (flatten-constraints constraints)
+  (reverse (fold (lambda (x a)
+                   (cons (cdr x) (cons (symbol->string (car x)) a)))
+                 '()
+                 constraints)))
 
-(define (mpd:list-playlist connection name)
-  (if (mpd_send_list_playlist_meta connection name)
-    (reverse (read-songs connection '()))
-    (mpd:raise-error connection)))
+(define (format-range range)
+  (format "~a:~a" (car range) (cdr range)))
 
-(define (read-playlists connection)
-  (let loop ((result '()))
-    (let ((pair (mpd_recv_pair connection))
-          (error (mpd_connection_get_error connection)))
-      (if pair
-        (let ((name  (string-copy (mpd_pair-name  pair)))
-              (value (string-copy (mpd_pair-value pair))))
-          (mpd_return_pair connection pair)
-          (if (string=? name "playlist")
-            (loop (cons value result))
-            (loop result)))
-        ; mpd_recv_pair returned NULL
-        (if (= error MPD_ERROR_SUCCESS)
-          (reverse result)
-          (mpd:raise-error connection))))))
+(define (range-or-number arg)
+  (if (pair? arg)
+    (format-range arg)
+    arg))
 
-(define (mpd:list-playlists connection)
-  (if (mpd_send_list_playlists connection)
-    (read-playlists connection)
-    (mpd:raise-error connection)))
+(define-syntax define-simple-command
+  (syntax-rules (0 1 2 3 4)
+    ((define-simple-command 0 name cmd)
+      (define (name con)
+        (send-command con cmd)
+        (read-response con)))
+    ((define-simple-command 1 name cmd)
+      (define (name con arg0)
+        (send-command con cmd arg0)
+        (read-response con)))
+    ((define-simple-command 2 name cmd)
+      (define (name con arg0 arg1)
+        (send-command con cmd arg0 arg1)
+        (read-response con)))
+    ((define-simple-command 3 name cmd)
+      (define (name con arg0 arg1 arg2)
+        (send-command con cmd arg0 arg1 arg2)
+        (read-response con)))
+    ((define-simple-command 4 name cmd)
+      (define (name con arg0 arg1 arg2 arg3)
+        (send-command con cmd arg0 arg1 arg2 arg3)
+        (read-response con)))))
 
-(define-syntax mpd:define-wrapper
-  (syntax-rules (0 1 2 3)
-    ((mpd:define-wrapper 0 name mpd-fn fail)
-      (define (name connection)
-        (if (eqv? (mpd-fn connection) fail)
-          (mpd:raise-error connection))))
-    ((mpd:define-wrapper 1 name mpd-fn fail)
-      (define (name connection arg)
-        (if (eqv? (mpd-fn connection arg) fail)
-          (mpd:raise-error connection))))
-    ((mpd:define-wrapper 2 name mpd-fn fail)
-      (define (name connection arg1 arg2)
-        (if (eqv? (mpd-fn connection arg1 arg2) fail)
-          (mpd:raise-error connection))))
-    ((mpd:define-wrapper 3 name mpd-fn fail)
-      (define (name connection arg1 arg2 arg3)
-        (if (eqv? (mpd-fn connection arg1 arg2 arg3) fail)
-          (mpd:raise-error connection))))
-    ((mpd:define-wrapper n name mpd-fn)
-      (mpd:define-wrapper n name mpd-fn #f))))
+(define-syntax define-optional-command
+  (syntax-rules ()
+    ((define-optional-command name cmd)
+      (define (name con #!optional (arg #f))
+        (if arg
+          (send-command con cmd arg)
+          (send-command con cmd))
+        (read-response con)))))
 
-(mpd:define-wrapper 0 mpd:play! mpd_run_play)
-(mpd:define-wrapper 0 mpd:pause! mpd_run_toggle_pause)
-(mpd:define-wrapper 0 mpd:stop! mpd_run_stop)
-(mpd:define-wrapper 0 mpd:next-song! mpd_run_next)
-(mpd:define-wrapper 0 mpd:previous-song! mpd_run_previous)
-(mpd:define-wrapper 1 mpd:play-id! mpd_run_play_id)
-(mpd:define-wrapper 1 mpd:play-pos! mpd_run_play_pos)
-(mpd:define-wrapper 2 mpd:seek-id! mpd_run_seek_id)
-(mpd:define-wrapper 2 mpd:seek-pos! mpd_run_seek_pos)
-(mpd:define-wrapper 1 mpd:repeat-set! mpd_run_repeat)
-(mpd:define-wrapper 1 mpd:random-set! mpd_run_random)
-(mpd:define-wrapper 1 mpd:single-set! mpd_run_single)
-(mpd:define-wrapper 1 mpd:consume-set! mpd_run_consume)
-(mpd:define-wrapper 1 mpd:add! mpd_run_add)
-(mpd:define-wrapper 1 mpd:delete! mpd_run_delete)
-(mpd:define-wrapper 1 mpd:delete-id! mpd_run_delete_id)
-(mpd:define-wrapper 2 mpd:delete-range! mpd_run_delete_range)
-(mpd:define-wrapper 0 mpd:shuffle! mpd_run_shuffle)
-(mpd:define-wrapper 2 mpd:shuffle-range! mpd_run_shuffle_range)
-(mpd:define-wrapper 0 mpd:clear! mpd_run_clear)
-(mpd:define-wrapper 2 mpd:move! mpd_run_move)
-(mpd:define-wrapper 2 mpd:move-id! mpd_run_move_id)
-(mpd:define-wrapper 3 mpd:move-range! mpd_run_move_range)
-(mpd:define-wrapper 2 mpd:swap! mpd_run_swap)
-(mpd:define-wrapper 2 mpd:swap-id! mpd_run_swap_id)
-(mpd:define-wrapper 1 mpd:update! mpd_run_update 0)
-(mpd:define-wrapper 1 mpd:rescan! mpd_run_rescan 0)
-(mpd:define-wrapper 1 mpd:playlist-clear! mpd_run_playlist_clear)
-(mpd:define-wrapper 2 mpd:playlist-add! mpd_run_playlist_add)
-(mpd:define-wrapper 3 mpd:playlist-move! mpd_run_playlist_move)
-(mpd:define-wrapper 2 mpd:playlist-delete! mpd_run_playlist_delete)
-(mpd:define-wrapper 1 mpd:playlist-save! mpd_run_save)
-(mpd:define-wrapper 1 mpd:playlist-load! mpd_run_load)
-(mpd:define-wrapper 2 mpd:playlist-rename! mpd_run_rename)
-(mpd:define-wrapper 1 mpd:playlist-rm! mpd_run_rm)
+(define-syntax define-boolean-setter
+  (syntax-rules ()
+    ((define-boolean-setter name cmd)
+      (define (name con val)
+        (send-command con cmd (if val 1 0))
+        (read-response con)))))
 
-(define (mpd:add-id! connection file)
-  (let ((rv (mpd_run_add_id connection file)))
-    (if (= rv -1)
-      (mpd:raise-error connection)
-      rv)))
+(define-syntax define-constraint-command
+  (syntax-rules ()
+    ((define-constraint-command name cmd)
+      (define (name con first . rest)
+        (apply send-command con cmd (flatten-constraints (cons first rest)))
+        (read-response con)))))
 
-(define (mpd:add-id-to! connection file pos)
-  (let ((rv (mpd_run_add_id_to connection file pos)))
-    (if (= rv -1)
-      (mpd:raise-error connection)
-      rv)))
+(define-syntax define-songs-wrapper
+  (syntax-rules ()
+    ((define-songs-wrapper name fun)
+      (define (name con . args)
+        (parse-songs (apply fun con args))))))
+
+;; Querying MPD's status
+(define-simple-command 0 mpd:clear-error! "clearerror")
+(define-simple-command 0 mpd:current-song "currentsong")
+(define (mpd:status con)
+  (parameterize ((playlist-is-number? #t))
+    (send-command con "status")
+    (read-response con)))
+(define-simple-command 0 mpd:stats "stats")
+
+;; Playback options
+(define-boolean-setter   mpd:consume-set! "consume")
+(define-boolean-setter   mpd:random-set! "random")
+(define-boolean-setter   mpd:repeat-set! "repeat")
+(define-boolean-setter   mpd:single-set! "single")
+(define-simple-command 1 mpd:crossfade-set! "crossfade")
+(define-simple-command 1 mpd:mixrampdb-set! "mixrampdb")
+(define-simple-command 1 mpd:mixrampdelay-set! "mixrampdelay")
+(define-simple-command 1 mpd:volume-set! "setvol")
+(define-simple-command 1 mpd:replay-gain-mode-set! "replay_gain_mode")
+(define-simple-command 0 mpd:replay-gain-status "replay_gain_status")
+
+;; Controlling playback
+(define-simple-command 0 mpd:next! "next")
+(define-boolean-setter   mpd:pause! "pause")
+(define-simple-command 0 mpd:toggle-pause! "pause")
+(define-simple-command 0 mpd:play! "play")
+(define-simple-command 1 mpd:play-pos! "play")
+(define-simple-command 1 mpd:play-id! "playid")
+(define-simple-command 0 mpd:previous! "previous")
+(define-simple-command 2 mpd:seek! "seek")
+(define-simple-command 2 mpd:seek-id! "seekid")
+(define-simple-command 1 mpd:seek-cur! "seekcur")
+(define-simple-command 0 mpd:stop! "stop")
+
+;; The current playlist
+(define-simple-command 1 mpd:add! "add")
+(define-simple-command 1 mpd:add-id! "addid")
+(define-simple-command 2 mpd:add-id-at! "addid")
+(define-simple-command 0 mpd:clear! "clear")
+(define (mpd:delete! con arg)
+  (send-command con "delete" (range-or-number arg))
+  (read-response con))
+(define-simple-command 1 mpd:delete-id! "deleteid")
+(define (mpd:move! con from to)
+  (send-command con "delete" (range-or-number from) to)
+  (read-response con))
+(define-simple-command 2 mpd:move-id! "moveid")
+(define-simple-command 2 mpd:playlist-find "playlistfind")
+(define-simple-command 1 mpd:playlist-id "playlistid")
+(define (mpd:playlist-info con #!optional (arg #f))
+  (if arg
+    (send-command con "playlistinfo" (range-or-number arg))
+    (send-command con "playlistinfo"))
+  (parse-songs (read-response con)))
+(define-simple-command 2 mpd:playlist-search "playlistsearch")
+(define-simple-command 1 mpd:playlist-changes "plchanges")
+(define-simple-command 1 mpd:playlist-changes-posid "plchangesposid")
+(define (mpd:prio-set! con prio first . rest)
+  (apply send-command con "prio" (map format-range (cons first rest)))
+  (read-response con))
+(define (mpd:prio-id-set! con prio first . rest)
+  (apply send-command con "prioid" (cons first rest))
+  (read-response con))
+(define (mpd:shuffle! con #!optional (range #f))
+  (if range
+    (send-command con "shuffle" (format-range range))
+    (send-command con "shuffle"))
+  (read-response con))
+(define-simple-command 2 mpd:swap! "swap")
+(define-simple-command 2 mpd:swap-id! "swapid")
+(define-simple-command 3 mpd:add-tag-id! "addtagid")
+(define (mpd:clear-tag-id! con songid #!optional (tag #f))
+  (if tag
+    (send-command con "cleartagid" songid tag)
+    (send-command con "cleartagid" songid))
+  (read-response con))
+
+;; Stored playlists
+(define-simple-command 1 *mpd:list-playlist "listplaylist")
+(define-songs-wrapper mpd:list-playlist *mpd:list-playlist)
+(define-simple-command 1 *mpd:list-playlist-info "listplaylistinfo")
+(define-songs-wrapper mpd:list-playlist-info *mpd:list-playlist-info)
+(define-simple-command 0 mpd:list-playlists "listplaylists")
+(define (mpd:playlist-load! con name #!optional (range #f))
+  (if range
+    (send-command con "load" name (format-range range))
+    (send-command con "load" name))
+  (read-response con))
+(define-simple-command 2 mpd:playlist-add! "playlistadd")
+(define-simple-command 1 mpd:playlist-clear! "playlistclear")
+(define-simple-command 2 mpd:playlist-delete! "playlistdelete")
+(define-simple-command 3 mpd:playlist-move! "playlistmove")
+(define-simple-command 2 mpd:playlist-rename! "rename")
+(define-simple-command 1 mpd:playlist-rm! "rm")
+(define-simple-command 1 mpd:playlist-save! "save")
+
+;; The music database
+(define-simple-command 2   mpd:count "count")
+(define-constraint-command *mpd:find "find")
+(define-songs-wrapper      mpd:find *mpd:find)
+(define-constraint-command *mpd:find-add! "findadd")
+(define-songs-wrapper      mpd:find-add! *mpd:find-add!)
+(define (mpd:list-tags con type . rest)
+  (apply send-command con "list" type (flatten-constraints rest))
+  (read-response con))
+(define-optional-command   mpd:list-all "listall")
+(define-optional-command   mpd:list-all-info "listallinfo")
+(define-optional-command   mpd:list-files "listfiles")
+(define-optional-command   mpd:lsinfo "lsinfo")
+(define-simple-command 1   mpd:read-comments "readcomments")
+(define-constraint-command *mpd:search "search")
+(define-songs-wrapper      mpd:search *mpd:search)
+(define-constraint-command *mpd:search-add! "searchadd")
+(define-songs-wrapper      mpd:search-add! *mpd:search-add!)
+(define (*mpd:search-add-pl! con name first . rest)
+  (apply send-command con "searchaddpl" name (flatten-constraints (cons first rest))))
+(define-songs-wrapper      mpd:search-add-pl! *mpd:search-add-pl!)
+(define-optional-command   mpd:update! "update")
+(define-optional-command   mpd:rescan! "rescan")
+
+;; Stickers
+(define-simple-command 3 mpd:sticker-get "sticker get")
+(define-simple-command 4 mpd:sticker-set! "sticker set")
+(define-simple-command 2 mpd:sticker-delete! "sticker delete")
+(define-simple-command 2 mpd:sticker-delete-all! "sticker delete")
+(define-simple-command 2 mpd:sticker-list "sticker list")
+(define-simple-command 3 mpd:sticker-find "sticker find")
+
+;; Connection settings
+(define-simple-command 0 mpd:close! "close")
+(define-simple-command 0 mpd:kill! "kill")
+(define-simple-command 1 mpd:password "password")
+(define-simple-command 0 mpd:ping "ping")
+
+;; Audio output devices
+(define-simple-command 1 mpd:disable-output! "disableoutput")
+(define-simple-command 1 mpd:enable-output! "enableoutput")
+(define-simple-command 1 mpd:toggle-output! "toggleoutput")
+(define-simple-command 0 mpd:list-outputs "outputs")
+
+;; Reflection
+(define-simple-command 0 mpd:config "config")
+(define-simple-command 0 mpd:commands "commands")
+(define-simple-command 0 mpd:not-commands "notcommands")
+(define-simple-command 0 mpd:tag-types "tagtypes")
+(define-simple-command 0 mpd:url-handlers "urlhandlers")
+(define-simple-command 0 mpd:decoders "decoders")
+
+;; Client to client
+(define-simple-command 1 mpd:subscribe! "subscribe")
+(define-simple-command 1 mpd:unsubscribe! "unsubscribe")
+(define-simple-command 0 mpd:channels "channels")
+(define-simple-command 0 mpd:read-messages "readmessages")
+(define-simple-command 2 mpd:send-message! "sendmessage")

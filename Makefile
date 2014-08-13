@@ -26,11 +26,8 @@ include rules.mk
 
 config.o: CSCFLAGS += -prelude $(prelude)
 
-libmpdclient.scm: libmpdclient.h
-	chicken-bind libmpdclient.h
-
 scmus: $(objects)
-	$(call cmd,ld,-lmpdclient -lncursesw)
+	$(call cmd,ld,-lncursesw)
 
 eggs:
 	chicken-install $(eggs)

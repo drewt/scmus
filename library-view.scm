@@ -77,7 +77,7 @@
     (register-event! 'library-data-changed)))
 
 (define (make-albums-window prev-win albums)
-  (make-window (cons (list-of 'album albums) prev-win)
+  (make-window (cons albums prev-win)
                library-window-data
                library-changed!
                album-activate!
@@ -85,7 +85,7 @@
                (match-function string-contains-ci)))
 
 (define (artist-activate! window artist)
-  (let ((albums (scmus-search-by-tag 'album (cons 'artist artist))))
+  (let ((albums (scmus-list-tags 'album (cons 'artist artist))))
     (set-window! 'library (make-albums-window window albums))
     (register-event! 'library-data-changed)))
 
@@ -103,11 +103,11 @@
 (define (toplevel-get-data window)
   (unless (*window-data window)
     (let ((playlists (scmus-list-playlists))
-          (artists (scmus-search-by-tag 'artist)))
+          (artists (scmus-list-tags 'artist)))
       (*window-data-set! window (cons (append! (cons '(separator . "Playlists")
-                                                     (list-of 'playlist playlists))
+                                                     playlists)
                                                (cons '(separator . "Artists")
-                                                     (list-of 'artist artists)))
+                                                     artists))
                                      #f))))
   (library-window-data window))
 

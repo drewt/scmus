@@ -55,6 +55,9 @@
 
 (define (format-concatenate pair e)
   (assert (pair? pair))
+  (assert (string? (car pair)))
+  (assert (string? (cdr pair)))
+  (assert (or (symbol? e) (string? e)))
   (if (symbol? e)
     (swap pair)
     (cons (string-append (car pair) e) (cdr pair))))
@@ -86,7 +89,7 @@
     ((comment) (track-comment track))
     ((date) (track-date track))
     ((duration) (seconds->string (track-duration track)))
-    ((path) (track-file track)) ; FIXME: need to prepend mpd music dir
+    ((path) (track-file track))
     ((filename) (track-file track)) ; FIXME: need to extract filename
     ((align) 'align)
     ((playing) (scmus-state->character (scmus-state)))

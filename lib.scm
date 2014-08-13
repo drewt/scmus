@@ -97,6 +97,7 @@
       (else 1))))
 
 (define (ustring-take str width)
+  (assert (string? str))
   (let loop ((result '()) (rest (string->list str)) (r-width 0))
     (let* ((c (car rest))
            (c-width (char-width c)))
@@ -150,6 +151,7 @@
         (loop result (cons (car rest) substr) (cdr rest))))))
 
 (define (seconds->string total-seconds)
+  (assert (number? total-seconds))
   (assert (integer? total-seconds))
   (assert (>= total-seconds 0))
   (let* ((total-minutes (quotient total-seconds 60))
