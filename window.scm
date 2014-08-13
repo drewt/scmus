@@ -117,14 +117,14 @@
   (assert (window? window))
   (let ((sel-pos (window-sel-pos window))
         (marked (*window-marked window)))
-    (unless (member sel-pos marked)
+    (unless (or (<= (window-data-len window) 0) (member sel-pos marked))
       (window-marked-set! window (cons sel-pos marked)))))
 
 (define (window-unmark! window)
   (assert (window? window))
   (let ((sel-pos (window-sel-pos window))
         (marked (*window-marked window)))
-    (if (member sel-pos marked)
+    (if (and (positive? (window-data-len window)) (member sel-pos marked))
       (window-marked-set! window (remove (lambda (x) (= x sel-pos)) marked)))))
 
 ;; toggles the 'marked' status of the selected row
@@ -132,9 +132,10 @@
   (assert (window? window))
   (let ((sel-pos (window-sel-pos window))
         (marked (*window-marked window)))
-    (if (member sel-pos marked)
-      (window-marked-set! window (remove (lambda (x) (= x sel-pos)) marked))
-      (window-marked-set! window (cons sel-pos marked)))))
+    (when (positive? (window-data-len window))
+      (if (member sel-pos marked)
+        (window-marked-set! window (remove (lambda (x) (= x sel-pos)) marked))
+        (window-marked-set! window (cons sel-pos marked))))))
 
 (define (window-clear-marked! window)
   (assert (window? window))
@@ -142,11 +143,13 @@
 
 (define (window-activate! window)
   (assert (window? window))
-  ((*window-activate! window) window))
+  (when (positive? (window-data-len window))
+    ((*window-activate! window) window)))
 
 (define (window-deactivate! window)
   (assert (window? window))
-  ((*window-deactivate! window) window))
+  (when (positive? (window-data-len window))
+    ((*window-deactivate! window) window)))
 
 (define (window-data-len-update! window)
   (assert (window? window))
@@ -166,7 +169,7 @@
          (sel-pos (window-sel-pos window))
          (data-len (window-data-len window))
          (nr-lines (window-nr-lines window))
-         (can-move (min n (- data-len sel-pos 1)))
+         (can-move (max 0 (min n (- data-len sel-pos 1))))
          (scroll (max 0 (+ 1 (- (+ sel-pos can-move)
                                 (+ top-pos nr-lines))))))
     (window-top-pos-set! window (+ top-pos scroll))
