@@ -22,6 +22,9 @@
          (export make-search-view search-edit! search-clear! search-add!
                  search-remove!))
 
+(define (search-result? row)
+  (and (pair? row) (not (separator? row))))
+
 (define (search-changed!)
   (register-event! 'search-changed))
 
@@ -35,7 +38,8 @@
 (define (add-search-field! window)
   (let-values (((queries results) (search-window-data window)))
     (*window-data-set! window (append queries
-                                      (list (make-search-field) 'separator)
+                                      (list (make-search-field)
+                                            '(separator . ""))
                                       results))
     (window-data-len-set! window (+ 1 (window-data-len window)))
     (if (>= (window-sel-pos window) (length queries))
@@ -50,14 +54,14 @@
   (let ((selected (window-selected window)))
     (cond
       ((editable? selected) (add-search-field! window))
-      ((pair? selected) (add-selected-tracks! window)))))
+      ((search-result? selected) (add-selected-tracks! window)))))
 
 (define (search-remove! window)
   (let-values (((prev rest) (split-at (*window-data window)
                                       (window-sel-pos window))))
     (cond
       ((null? prev) (editable-clear! (car rest)))
-      ((symbol? (car rest)) (void))
+      ((separator? (car rest)) (void))
       (else
         (*window-data-set! window (append prev (cdr rest)))
         (window-data-len-set! window (- (window-data-len window) 1))
@@ -67,7 +71,7 @@
 
 (define (search-clear! window)
   (let loop ((data (window-data window)) (result '()))
-    (if (or (null? data) (pair? (car data)))
+    (if (or (null? data) (search-result? (car data)))
       (begin
         (*window-data-set! window (reverse result))
         (window-data-len-update! window)

@@ -56,6 +56,9 @@
       (refresh))
     (pp sexp)))
 
+(define (separator? obj)
+  (and (pair? obj) (eq? (car obj) 'separator)))
+
 ;; unicode stuff {{{
 
 (define (string-width str)
