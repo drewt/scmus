@@ -38,7 +38,7 @@
 
 (define (option-set! option value)
   ((option-mutator option) option value)
-  (register-event! 'option-changed))
+  (register-event! 'option-data-changed))
 
 (define (option-string option)
   ((option-stringifier option) option))
@@ -82,7 +82,7 @@
 
 (define (stringify option)
   (let ((value (option-get option)))
-    (format (if (symbol? value) "'~s" "~s") value)))
+    (format "~s" value)))
 
 (define (format-value fmt)
   (cons (string-append "\"" fmt "\"") (process-format (string->list fmt))))

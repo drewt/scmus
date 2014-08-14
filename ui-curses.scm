@@ -22,7 +22,7 @@
                option window search-view library-view options-view)
          (export *ui-initialized* *current-input-mode* *current-view*
                  simple-print-line format-print-line track-print-line
-                 alist-print-line separator?
+                 alist-print-line separator? view-window update-view!
                  current-window set-window! set-view! push! win-move!
                  win-bottom! win-top! win-add! win-remove! win-clear!
                  win-move-tracks! win-clear-marked! win-search!
@@ -137,7 +137,8 @@
 
 (define (win-edit!)
   (case *current-view*
-    ((search) (search-edit! (current-window)))))
+    ((search) (search-edit! (current-window)))
+    ((options) (option-edit! (current-window)))))
 
 ;; user functions }}}
 ;; windows {{{
@@ -486,6 +487,7 @@
         (cons 'queue-data-changed (view-update-data-fn 'queue))
         (cons 'search-changed (view-update-fn 'search))
         (cons 'error-changed (view-update-data-fn 'error))
+        (cons 'option-data-changed (lambda () (update-options-data (view-window 'options))))
         (cons 'option-changed (view-update-fn 'options))
         (cons 'color-changed update-colors!)
         (cons 'format-changed redraw-ui)))
