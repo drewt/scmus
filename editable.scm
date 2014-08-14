@@ -43,7 +43,9 @@
   (cond
     ((= key KEY_LEFT)      (editable-move-left! editable))
     ((= key KEY_RIGHT)     (editable-move-right! editable))
-    ((= key KEY_BACKSPACE) (editable-backspace! editable))))
+    ((= key KEY_BACKSPACE) (editable-backspace! editable))
+    ((= key KEY_HOME)      (editable-move-home! editable))
+    ((= key KEY_END)       (editable-move-end! editable))))
 
 (define (editable-default-init editable)
   (editable-set-pos! editable 0))
