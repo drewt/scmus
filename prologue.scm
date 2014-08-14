@@ -11,3 +11,18 @@
     substring=? substring-ci=? substring-index substring-index-ci)
   (except extras
     read-string write-string read-token))
+
+;; Macros
+
+(define-syntax key-case
+  (syntax-rules (else)
+    ((key-case key (else first rest ...))
+      (begin first rest ...))
+    ((key-case key (() first rest ...))
+      (void))
+    ((key-case key (() first rest ...) others ...)
+      (key-case key others ...))
+    ((key-case key ((choice choices ...) first rest ...) others ...)
+      (if (= key choice)
+        (begin first rest ...)
+        (key-case key ((choices ...) first rest ...) others ...)))))

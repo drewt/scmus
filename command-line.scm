@@ -71,12 +71,12 @@
   (command-line-changed!))
 
 (define (command-line-key editable key)
-  (cond
-    ((= key KEY_ENTER)
+  (key-case key
+    ((KEY_ENTER)
       (command-line-commit! editable))
-    ((= key KEY_UP) (void)) ; TODO: history
-    ((= key KEY_DOWN) (void))
-    ((= key KEY_BACKSPACE)
+    ((KEY_UP) (void)) ; TODO: history
+    ((KEY_DOWN) (void))
+    ((KEY_BACKSPACE)
       (if (= 0 (editable-length editable))
         (command-line-leave editable)
         (editable-default-key-handler editable key)))
