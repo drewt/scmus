@@ -45,7 +45,8 @@
     ((= key KEY_RIGHT)     (editable-move-right! editable))
     ((= key KEY_BACKSPACE) (editable-backspace! editable))
     ((= key KEY_HOME)      (editable-move-home! editable))
-    ((= key KEY_END)       (editable-move-end! editable))))
+    ((= key KEY_END)       (editable-move-end! editable))
+    ((= key KEY_DC)        (editable-delete-char! editable))))
 
 (define (make-editable text #!optional
                        (char-handler editable-default-char-handler)
@@ -70,14 +71,18 @@
         (editable-default-char-handler editable ch)))
     (changed)))
 
-(define (simple-key-handler changed)
+(define (simple-key-handler activate leave changed)
   (lambda (editable key)
-    (editable-default-key-handler editable key)
+    (cond
+      ((= key KEY_ENTER)
+        (activate editable)
+        (leave editable))
+      (else (editable-default-key-handler editable key)))
     (changed)))
 
 (define (make-simple-editable activate leave changed #!optional (text ""))
   (*make-editable (simple-char-handler activate leave changed)
-                  (simple-key-handler changed)
+                  (simple-key-handler activate leave changed)
                   editable-move-end!
                   (reverse (string->list text))
                   0

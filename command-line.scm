@@ -48,15 +48,18 @@
   (set! *command-line-mode* 'normal-mode)
   (set-input-mode! 'normal-mode))
 
+(define (command-line-commit! editable)
+  (let ((cmdline (editable-text editable))
+        (mode *command-line-mode*))
+    (command-line-leave editable)
+    (if (eqv? mode 'eval-mode)
+      (user-eval cmdline)
+      (win-search! cmdline))))
+
 (define (command-line-char editable ch)
   (case ch
     ((#\newline)
-      (let ((cmdline (editable-text editable))
-            (mode *command-line-mode*))
-        (command-line-leave editable)
-        (if (eqv? mode 'eval-mode)
-          (user-eval cmdline)
-          (win-search! cmdline))))
+      (command-line-commit! editable))
     ((#\esc)
       (command-line-leave editable))
     ((#\backspace)
@@ -69,6 +72,8 @@
 
 (define (command-line-key editable key)
   (cond
+    ((= key KEY_ENTER)
+      (command-line-commit! editable))
     ((= key KEY_UP) (void)) ; TODO: history
     ((= key KEY_DOWN) (void))
     ((= key KEY_BACKSPACE)
