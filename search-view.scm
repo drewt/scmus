@@ -25,7 +25,7 @@
 (define (search-result? row)
   (and (pair? row) (not (separator? row))))
 
-(define (search-changed!)
+(define (search-changed! . ignore)
   (register-event! 'search-changed))
 
 (define (search-edit! window)
@@ -115,23 +115,10 @@
                                     (length results))))
   (search-changed!))
 
-(define (search-field-char editable ch)
-  (case ch
-    ((#\newline)
-      (set-input-mode! 'normal-mode))
-    (else (editable-default-char-handler editable ch)))
-  (search-changed!))
-
-(define (search-field-key editable key)
-  (editable-default-key-handler editable key)
-  (search-changed!))
-
-(define (search-field-init editable)
-  (cursor-on)
-  (editable-default-init editable))
-
 (define (make-search-field)
-  (make-empty-editable search-field-char search-field-key search-field-init))
+  (make-simple-editable void
+                        (lambda (e) (set-input-mode! 'normal-mode))
+                        search-changed!))
 
 (define (search-match row query)
   (and (pair? row) (track-match row query)))

@@ -20,8 +20,6 @@
 
 (require-extension ncurses)
 
-;(define *command-line* (make-empty-editable))
-
 (define (command-line-changed!)
   (register-event! 'command-line-changed))
 
@@ -80,13 +78,10 @@
     (else (editable-default-key-handler editable key)))
   (command-line-changed!))
 
-(define (command-line-init editable)
-  (editable-clear! editable)
-  (cursor-on))
-
-(define *command-line* (make-empty-editable command-line-char
-                                            command-line-key
-                                            command-line-init))
+(define *command-line* (make-editable ""
+                                      command-line-char
+                                      command-line-key
+                                      editable-clear!))
 
 (define *command-line-mode* 'normal-mode)
 

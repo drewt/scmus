@@ -24,7 +24,7 @@
 (declare (unit editable))
 
 (define-record-type editable
-  (make-editable char-handler key-handler init char-list cursor-pos text-length)
+  (*make-editable char-handler key-handler init char-list cursor-pos text-length)
   editable?
   (char-handler editable-char-handler editable-char-handler-set!)
   (key-handler editable-key-handler editable-key-handler-set!)
@@ -47,25 +47,41 @@
     ((= key KEY_HOME)      (editable-move-home! editable))
     ((= key KEY_END)       (editable-move-end! editable))))
 
-(define (editable-default-init editable)
-  (editable-set-pos! editable 0))
+(define (make-editable text #!optional
+                       (char-handler editable-default-char-handler)
+                       (key-handler editable-default-key-handler)
+                       (init editable-move-end!))
+  (*make-editable char-handler
+                  key-handler
+                  init
+                  (reverse (string->list text))
+                  0
+                  (string-length text)))
 
-(define (make-empty-editable #!optional
-                             (char-handler editable-default-char-handler)
-                             (key-handler editable-default-key-handler)
-                             (init editable-default-init))
-  (make-editable char-handler key-handler init '() 0 0))
+(define (simple-char-handler activate leave changed)
+  (lambda (editable ch)
+    (case ch
+      ((#\newline)
+        (activate editable)
+        (leave editable))
+      ((#\esc)
+        (leave editable))
+      (else
+        (editable-default-char-handler editable ch)))
+    (changed)))
 
-(define (make-editable-with-text text #!optional
-                                 (char-handler editable-default-char-handler)
-                                 (key-handler editable-default-key-handler)
-                                 (init editable-default-init))
-  (make-editable char-handler
-                 key-handler
-                 init
-                 (reverse (string->list text))
-                 0
-                 (string-length text)))
+(define (simple-key-handler changed)
+  (lambda (editable key)
+    (editable-default-key-handler editable key)
+    (changed)))
+
+(define (make-simple-editable activate leave changed #!optional (text ""))
+  (*make-editable (simple-char-handler activate leave changed)
+                  (simple-key-handler changed)
+                  editable-move-end!
+                  (reverse (string->list text))
+                  0
+                  (string-length text)))
 
 (define (editable-text editable)
   (list->string (reverse (editable-list editable))))

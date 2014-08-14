@@ -28,23 +28,6 @@
   (condition-case (with-input-from-string (editable-text editable) read)
     (e () (error-set! e))))
 
-(define (option-char editable ch)
-  (case ch
-    ((#\newline)
-      (set-option! (car (window-selected (view-window 'options)))
-                   (editable-read editable))
-      (set-input-mode! 'normal-mode))
-    (else (editable-default-char-handler editable ch)))
-  (option-changed!))
-
-(define (option-key editable key)
-  (editable-default-key-handler editable key)
-  (option-changed!))
-
-(define (option-init editable)
-  (cursor-on)
-  (editable-default-init editable))
-
 (define (option-edit! window)
   (let* ((selected (window-selected window))
          (name (car selected))
@@ -59,13 +42,17 @@
                     (cons (car row) (editable-text (cdr row)))
                     line-nr))
 
+(define (option-commit-edit! editable)
+  (set-option! (car (window-selected (view-window 'options)))
+               (editable-read editable)))
+
 (define (make-options-data)
   (define (option->row pair)
     (cons (car pair)
-          (make-editable-with-text (option-string (cdr pair))
-                                   option-char
-                                   option-key
-                                   option-init)))
+          (make-simple-editable option-commit-edit!
+                                (lambda (e) (set-input-mode! 'normal-mode))
+                                option-changed!
+                                (option-string (cdr pair)))))
   (map option->row *options*))
 
 (define (make-options-view)

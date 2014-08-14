@@ -335,6 +335,7 @@
                    (assert (and (integer? (car arg1)) (integer? (cdr arg1))))
                    (set! *current-editable* arg0)
                    (set! *editable-pos* arg1)
+                   (cursor-on)
                    (editable-init arg0)))
   (set! *current-input-mode* mode))
 
