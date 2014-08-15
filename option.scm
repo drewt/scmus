@@ -63,6 +63,11 @@
              (<= value 65535))
     (option-value-set! option value)))
 
+(define (update-interval-set! option value)
+  (when (and (number? value)
+             (positive? value))
+    (option-value-set! option value)))
+
 (define (color-symbol? sym)
   (case sym
     ((default black red green yellow blue magenta cyan gray dark-gray
@@ -109,6 +114,7 @@
   (list
     (cons 'mpd-address                     "localhost")
     (cons 'mpd-port                        6600)
+    (cons 'status-update-interval          0.5)
     (cons 'color-cmdline-attr              'default)
     (cons 'color-cmdline-bg                'default)
     (cons 'color-cmdline-fg                'default)
@@ -154,6 +160,7 @@
   (list
     (option-spec 'mpd-address option-value mpd-address-set!)
     (option-spec 'mpd-port option-value mpd-port-set!)
+    (option-spec 'status-update-interval option-value update-interval-set!)
     (option-spec 'color-cmdline-attr option-value color-set!)
     (option-spec 'color-cmdline-bg option-value color-set!)
     (option-spec 'color-cmdline-fg option-value color-set!)

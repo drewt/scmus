@@ -30,7 +30,7 @@
 
 (define (main return)
   (define (*main)
-    (scmus-update-status!)
+    (scmus-update-client!)
     (curses-update)
     (handle-input)
     (*main))
