@@ -18,7 +18,7 @@
 (require-extension srfi-13 srfi-18)
 
 (declare (unit scmus-client)
-         (uses mpd-client)
+         (uses mpd-client option)
          (hide scmus-try-reconnect status-selector track-selector stat-selector
                scmus-command))
 
@@ -31,17 +31,22 @@
 (define *max-retries* 2)
 (define *last-update* -1.0)
 
-;; initialize the mpd connection, printing a message on failure
-(define (init-client host port)
-  (assert (string? host))
-  (assert (integer? port))
-  (condition-case
-    (begin
-      (set! *mpd-connection* (mpd:connect host port))
-      (set! *mpd-stats* (mpd:stats *mpd-connection*))
-      (scmus-update-status!))
-    (ex (exn i/o net) (printf "Error: failed connecting to ~a:~a~n" host port)
-                      (abort ex))))
+(define (scmus-connect! #!optional (*host #f) (*port #f))
+  (let ((host (if *host *host (get-option 'mpd-address)))
+        (port (if *port *port (get-option 'mpd-port))))
+    (assert (string? host))
+    (assert (integer? port))
+    (condition-case
+      (begin
+        (set! *mpd-connection* (mpd:connect host port))
+        (set! *mpd-stats* (mpd:stats *mpd-connection*))
+        (scmus-update-status!))
+      (e (exn i/o net) (error-set! e)
+                       (set! *mpd-connection* #f)
+                       #f))))
+
+(define (scmus-connected?)
+  (if *mpd-connection* #t #f))
 
 (define (exit-client)
   (if *mpd-connection*
@@ -55,7 +60,7 @@
 (define (scmus-update-status!)
   (let ((ct (time->seconds (current-time)))
         (version (scmus-queue-version)))
-    (when (> (- ct *last-update*) 0.5)
+    (when (and (scmus-connected?) (> (- ct *last-update*) 0.5))
       (condition-case
         (begin
           (set! *mpd-status* (mpd:status *mpd-connection*))
@@ -96,8 +101,11 @@
 (define-syntax stat-selector
   (syntax-rules ()
     ((stat-selector name sym)
+      (stat-selector name sym 0))
+    ((stat-selector name sym default)
       (define (name)
-        (alist-ref sym *mpd-stats*)))))
+        (let ((e (alist-ref sym *mpd-stats*)))
+          (if e e default))))))
 
 (define (scmus-status) *mpd-status*)
 (status-selector scmus-volume 'volume 0)
@@ -171,12 +179,14 @@
   (syntax-rules ()
     ((scmus-command name mpd-fn)
       (define (name . args)
-        (let retry ((try 0))
-          (condition-case (apply mpd-fn *mpd-connection* args)
-            (e (mpd) (error-set! e))
-            (e (net) (if (> try *max-retries*)
-                       (error-set! e)
-                       (retry (+ try 1))))))))))
+        (if (scmus-connected?)
+          (let retry ((try 0))
+            (condition-case (apply mpd-fn *mpd-connection* args)
+              (e (mpd) (error-set! e))
+              (e (net) (if (> try *max-retries*)
+                         (begin (error-set! e) '())
+                         (retry (+ try 1))))))
+          '())))))
 
 (scmus-command scmus-clear-error! mpd:clear-error!)
 (scmus-command scmus-current-song mpd:current-song)

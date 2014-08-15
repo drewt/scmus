@@ -53,6 +53,16 @@
     (if option
       (option-set! option value))))
 
+(define (mpd-address-set! option value)
+  (when (string? value)
+    (option-value-set! option value)))
+
+(define (mpd-port-set! option value)
+  (when (and (integer? value)
+             (positive? value)
+             (<= value 65535))
+    (option-value-set! option value)))
+
 (define (color-symbol? sym)
   (case sym
     ((default black red green yellow blue magenta cyan gray dark-gray
@@ -97,6 +107,8 @@
 ;; alist associating option names with default values
 (define *default-options*
   (list
+    (cons 'mpd-address                     "localhost")
+    (cons 'mpd-port                        6600)
     (cons 'color-cmdline-attr              'default)
     (cons 'color-cmdline-bg                'default)
     (cons 'color-cmdline-fg                'default)
@@ -140,6 +152,8 @@
 ;; alist associating option names with options
 (define *options*
   (list
+    (option-spec 'mpd-address option-value mpd-address-set!)
+    (option-spec 'mpd-port option-value mpd-port-set!)
     (option-spec 'color-cmdline-attr option-value color-set!)
     (option-spec 'color-cmdline-bg option-value color-set!)
     (option-spec 'color-cmdline-fg option-value color-set!)

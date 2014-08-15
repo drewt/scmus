@@ -47,8 +47,7 @@
            (exit 1))
     (foreign-code "setlocale(LC_CTYPE, \"\");")
     (foreign-code "setlocale(LC_COLLATE, \"\");")
-    (verbose-printf "Connecting to ~a:~a...~n" *mpd-address* *mpd-port*)
-    (init-client *mpd-address* *mpd-port*)
+    (scmus-connect!)
     (verbose-printf "Initializing environment...~n")
     (init-sandbox)
     (handle-exceptions x
