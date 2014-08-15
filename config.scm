@@ -20,9 +20,18 @@
 (define *verbose* #f)
 (define *debug* #t)
 
+(define (get-env-default name default)
+  (let ((env (get-environment-variable name)))
+   (if env env default)))
+
+(define *home-dir* (get-env-default "HOME" "."))
+(define *user-config-dir*
+  (string-append (get-env-default "XDG_CONFIG_HOME"
+                                  (string-append *home-dir* "/.config"))
+                 "/scmus"))
+
 (define *sysrc-path* (string-append *scmus-dir* "/scmusrc.scm"))
-(define *scmusrc-path*
-  (string-append (get-environment-variable "HOME")
-                 "/.scmusrc"))
+(define *scmusrc-path* (string-append *user-config-dir* "/rc.scm"))
+
 (define *mpd-address* "localhost")
 (define *mpd-port* 6600)
