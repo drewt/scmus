@@ -37,13 +37,13 @@
     (assert (string? host))
     (assert (integer? port))
     (condition-case
-      (begin
-        (set! *mpd-connection* (mpd:connect host port))
-        (set! *mpd-stats* (mpd:stats *mpd-connection*))
-        (scmus-update-status!))
-      (e (exn i/o net) (error-set! e)
-                       (set! *mpd-connection* #f)
-                       #f))))
+      (let ((con (mpd:connect host port)))
+        (if (scmus-connected?)
+          (mpd:disconnect *mpd-connection*))
+        (set! *mpd-connection* con)
+        (scmus-update-status!)
+        (register-event! 'db-changed))
+      (e (exn i/o net) (error-set! e) #f))))
 
 (define (scmus-connected?)
   (if *mpd-connection* #t #f))
@@ -57,13 +57,16 @@
     (set! *mpd-connection* (mpd:reconnect *mpd-connection*))
     (e () (error-set! e))))
 
+(define (scmus-update-stats!)
+  (set! *mpd-stats* (scmus-stats)))
+
 (define (scmus-update-status!)
   (let ((ct (time->seconds (current-time)))
         (version (scmus-queue-version)))
     (when (and (scmus-connected?) (> (- ct *last-update*) 0.5))
       (condition-case
         (begin
-          (set! *mpd-status* (mpd:status *mpd-connection*))
+          (set! *mpd-status* (scmus-status))
           (register-event! 'status-changed)
           (unless (= (scmus-song-id) (track-id *current-track*))
             (set! *current-track* (mpd:current-song *mpd-connection*))

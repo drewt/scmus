@@ -303,6 +303,11 @@
   (addstr (string-truncate (command-line-text)
                            (- (COLS) 2))))
 
+(define (update-db)
+  (scmus-update-stats!)
+  (update-library!)
+  (update-view! 'library))
+
 (define (update-cursor)
   (if *current-editable*
     (move (car *editable-pos*) (+ (cdr *editable-pos*)
@@ -491,7 +496,8 @@
         (cons 'option-data-changed (lambda () (update-options-data (view-window 'options))))
         (cons 'option-changed (view-update-fn 'options))
         (cons 'color-changed update-colors!)
-        (cons 'format-changed redraw-ui)))
+        (cons 'format-changed redraw-ui)
+        (cons 'db-changed update-db)))
 
 (define (register-event! event)
   (assert (symbol? event))

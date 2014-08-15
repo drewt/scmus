@@ -19,7 +19,7 @@
 
 (declare (unit library-view)
          (uses scmus-client window ui-curses)
-         (export library-add-selected! make-library-view))
+         (export library-add-selected! make-library-view update-library!))
 
 (define (library-window-data window)
   (car (*window-data window)))
@@ -102,14 +102,17 @@
 
 (define (toplevel-get-data window)
   (unless (*window-data window)
-    (let ((playlists (scmus-list-playlists))
-          (artists (scmus-list-tags 'artist)))
-      (*window-data-set! window (cons (append! (cons '(separator . "Playlists")
-                                                     playlists)
-                                               (cons '(separator . "Artists")
-                                                     artists))
-                                     #f))))
+    (*window-data-set! window (cons (append! (cons '(separator . "Playlists")
+                                                   (scmus-list-playlists))
+                                             (cons '(separator . "Artists")
+                                                   (scmus-list-tags 'artist)))
+                                    #f))
+    (window-data-len-update! window))
   (library-window-data window))
+
+(define (update-library!)
+  (set-window! 'library (make-library-window))
+  (register-event! 'library-data-changed))
 
 (define (library-window-print-row window row line-nr)
   (case (car row)
@@ -118,12 +121,15 @@
     ((track) (track-print-line line-nr (get-option 'format-library) (cdr row)))
     ((metadata) (alist-print-line window (cdr row) line-nr))))
 
+(define (make-library-window)
+  (make-window #f
+               toplevel-get-data
+               library-changed!
+               toplevel-activate!
+               void
+               (match-function string-contains-ci)))
+
 (define (make-library-view)
-  (make-view (make-window #f
-                          toplevel-get-data
-                          library-changed!
-                          toplevel-activate!
-                          void
-                          (match-function string-contains-ci))
+  (make-view (make-library-window)
              "Library"
              library-window-print-row))
