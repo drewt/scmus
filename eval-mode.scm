@@ -72,7 +72,8 @@
 
 ;; user functions }}}
 
-(define *user-env* (make-safe-environment parent: default-safe-environment))
+(define *user-env* (make-safe-environment parent: default-safe-environment
+                                          mutable: #t))
 
 (define (user-export! name obj)
   (safe-environment-set! *user-env* name obj))
