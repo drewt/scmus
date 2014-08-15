@@ -48,7 +48,11 @@
   (command-line-text-set! (clean-text (format #f "~a" arg))))
 
 (define (colorscheme! str)
-  (user-load (format "~a/colors/~a.scm" *scmus-dir* str)))
+  (cond
+    ((file-exists? (format "~a/colors/~a.scm" *user-config-dir* str))
+      => user-load)
+    ((file-exists? (format "~a/colors/~a.scm" *scmus-dir* str))
+      => user-load)))
 
 (define (shell! command  . args)
   (process-fork
