@@ -4,7 +4,10 @@ bindir = $(prefix)/bin
 datadir = $(prefix)/share
 mandir = $(prefix)/share/man
 
-prelude = '"(define *scmus-dir* \"$(datadir)/scmus\")"'
+version := $(shell git rev-parse --verify --short HEAD 2>/dev/null)-git
+
+prelude = '"(define *scmus-dir* \"$(datadir)/scmus\")\
+	    (define *version* \"$(version)\")"'
 
 CSC      = csc
 CSCFLAGS = -scrutinize -C -Wno-int-to-pointer-cast -uses lib -prologue prologue.scm

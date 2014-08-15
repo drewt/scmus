@@ -18,7 +18,7 @@
 (declare (uses ui-curses
                config))
 
-(define *version-text* "scmus 0.1\nCopyright (C) 2014 Drew Thoreson\n")
+(define *version-text* (format "scmus ~a~n" *version*))
 (define *help-text* "I'll write docs later, OK?\n")
 
 (define *error* #f)
