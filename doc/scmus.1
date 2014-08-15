@@ -748,9 +748,10 @@ Examples
 .SH FILES
 scmus reads its configuration from 2 files.
 
-\fI$HOME/.scmusrc\fR
+\fI$XDG_CONFIG_HOME/scmus/rc.scm\fR
 .RS
-Per-user configuration.
+Per-user configuration.  ($XDG_CONFIG_HOME defaults to $HOME/.config if it is
+not set.)
 .RE
 
 \fI/usr/local/share/scmus/scmusrc.scm\fR
