@@ -45,7 +45,7 @@
                        ((#\newline #\linefeed) #t)
                        (else #f)))
                    text))
-  (command-line-text-set! (clean-text (format #f "~a" arg))))
+  (command-line-print-info! (clean-text (format #f "~a" arg))))
 
 (define (colorscheme! str)
   (cond

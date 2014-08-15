@@ -20,12 +20,10 @@
 (declare (unit command-line)
          (uses editable eval-mode ui-curses)
          (export command-line-text-set! command-line-mode command-line-text
+                 command-line-print-info! command-line-print-error!
                  enter-eval-mode enter-search-mode))
 
 ;; history {{{
-
-(define *eval-history* '())
-(define *search-history* '())
 
 (define (iter-data iter)
   (caar iter))
@@ -73,33 +71,32 @@
 (define (iter-init! iter)
   (iter-add! (iter-reset iter) ""))
 
-(define (eval-mode?)
-  (eqv? *command-line-mode* 'eval-mode))
-
-(define (history)
-  (if (eval-mode?)
-    *eval-history*
-    *search-history*))
+(define history
+  (let ((eval-history '())
+        (search-history '()))
+    (getter-with-setter
+      (lambda ()
+        (case *command-line-mode*
+          ((eval)   eval-history)
+          ((search) search-history)
+          (else     (assert #f))))
+      (lambda (x)
+        (case *command-line-mode*
+          ((eval)   (set! eval-history x))
+          ((search) (set! search-history x))
+          (else     (assert #f)))))))
 
 (define (history-init!)
-  (if (eval-mode?)
-    (set! *eval-history* (iter-init! *eval-history*))
-    (set! *search-history* (iter-init! *search-history*))))
+  (set! (history) (iter-init! (history))))
 
 (define (history-abort!)
-  (if (eval-mode?)
-    (set! *eval-history* (iter-pop! *eval-history*))
-    (set! *search-history* (iter-pop! *search-history*))))
+  (set! (history) (iter-pop! (history))))
 
 (define (history-next!)
-  (if (eval-mode?)
-    (set! *eval-history* (iter-move-next *eval-history*))
-    (set! *search-history* (iter-move-next *search-history*))))
+  (set! (history) (iter-move-next (history))))
 
 (define (history-prev!)
-  (if (eval-mode?)
-    (set! *eval-history* (iter-move-prev *eval-history*))
-    (set! *search-history* (iter-move-prev *search-history*))))
+  (set! (history) (iter-move-prev (history))))
 
 (define (history-add! elm)
   (if (string=? elm "")
@@ -113,6 +110,14 @@
   (iter-set! (history) elm))
 
 ;; history }}}
+
+(define (command-line-print-info! str)
+  (editable-text-set! *command-line* str)
+  (set! *command-line-mode* 'info))
+
+(define (command-line-print-error! str)
+  (editable-text-set! *command-line* str)
+  (set! *command-line-mode* 'error))
 
 (define (command-line-changed!)
   (register-event! 'command-line-changed))
@@ -140,14 +145,14 @@
 (define (command-line-leave editable)
   (history-add! (editable-text editable))
   (editable-clear! editable)
-  (set! *command-line-mode* 'normal-mode)
+  (set! *command-line-mode* 'normal)
   (set-input-mode! 'normal-mode))
 
 (define (command-line-commit! editable)
   (let ((cmdline (editable-text editable))
         (mode *command-line-mode*))
     (command-line-leave editable)
-    (if (eqv? mode 'eval-mode)
+    (if (eqv? mode 'eval)
       (user-eval cmdline)
       (win-search! cmdline))))
 
@@ -187,7 +192,7 @@
                                       command-line-key
                                       editable-clear!))
 
-(define *command-line-mode* 'normal-mode)
+(define *command-line-mode* 'normal)
 
 (define (command-line-pos)
   (cons (- (LINES) 1) 1))
@@ -198,11 +203,11 @@
   (command-line-changed!))
 
 (define (enter-eval-mode)
-  (set! *command-line-mode* 'eval-mode)
+  (set! *command-line-mode* 'eval)
   (command-line-init!))
 
 (define (enter-search-mode)
-  (set! *command-line-mode* 'search-mode)
+  (set! *command-line-mode* 'search)
   (command-line-init!))
 
 (define (command-line-mode) *command-line-mode*)
