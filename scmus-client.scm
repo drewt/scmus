@@ -45,6 +45,19 @@
         (register-event! 'db-changed))
       (e (exn i/o net) (error-set! e) #f))))
 
+(define (scmus-disconnect!)
+  (mpd:disconnect *mpd-connection*)
+  (set! *mpd-connection* #f))
+
+(define (scmus-oneshot cmd . args)
+  (condition-case
+    (let* ((con (mpd:connect (get-option 'mpd-address)
+                             (get-option 'mpd-port)))
+           (res (apply mpd:send-command con cmd args)))
+      (mpd:disconnect con)
+      res)
+    (e () (condition->list e))))
+
 (define (scmus-connected?)
   (if *mpd-connection* #t #f))
 
@@ -54,8 +67,8 @@
 
 (define (scmus-try-reconnect)
   (condition-case
-    (set! *mpd-connection* (mpd:reconnect *mpd-connection*))
-    (e () (error-set! e))))
+    (begin (set! *mpd-connection* (mpd:reconnect *mpd-connection*)) #t)
+    (e () (error-set! e) #f)))
 
 (define (scmus-update-stats!)
   (set! *mpd-stats* (scmus-stats)))
@@ -107,7 +120,7 @@
       (track-selector name sym ""))
     ((track-selector name sym default)
       (define (name song)
-        (assert (list? song))
+        (assert (list? song) "" song)
         (let ((e (alist-ref sym song)))
          (if e e default))))))
 
@@ -188,18 +201,25 @@
 (stat-selector scmus-db-playtime 'db_playtime)
 (stat-selector scmus-db-update 'db_update)
 
+(define (scmus-bail! e)
+  (scmus-disconnect!)
+  (error-set! e)
+  '())
+
+(define (*scmus-command mpd-fn . args)
+  (if (scmus-connected?)
+    (condition-case (apply mpd-fn *mpd-connection* args)
+      (e () (error-set! e)
+            (unless (scmus-try-reconnect)
+              (scmus-disconnect!))
+            '()))
+    '()))
+
 (define-syntax scmus-command
   (syntax-rules ()
     ((scmus-command name mpd-fn)
       (define (name . args)
-        (if (scmus-connected?)
-          (let retry ((try 0))
-            (condition-case (apply mpd-fn *mpd-connection* args)
-              (e (mpd) (error-set! e))
-              (e (net) (if (> try *max-retries*)
-                         (begin (error-set! e) '())
-                         (retry (+ try 1))))))
-          '())))))
+        (apply *scmus-command mpd-fn args)))))
 
 (scmus-command scmus-clear-error! mpd:clear-error!)
 (scmus-command scmus-current-song mpd:current-song)

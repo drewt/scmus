@@ -112,10 +112,14 @@
 
 (define (send-command con cmd . args)
   (check-connection con)
-  (write-line (fold (lambda (x a) (string-append a (process-arg x)))
+  (let ((line (fold (lambda (x a) (string-append a (process-arg x)))
                     cmd
-                    args)
-              (out-port con)))
+                    args)))
+    (write-line line (out-port con))))
+
+(define (mpd:send-command con cmd . args)
+  (apply send-command con cmd args)
+  (read-response-for con cmd))
 
 (define playlist-is-number? (make-parameter #f))
 
@@ -170,6 +174,12 @@
         (raise-mpd-error "unexpected pair" (car pairs)))
       (else
         (loop (cdr pairs) (cons (car pairs) cur) songs)))))
+
+(define (read-response-for con cmd)
+  (case (string->symbol cmd)
+    ((listplaylist listplaylistinfo find findadd search searchadd)
+      (parse-songs (read-response con)))
+    (else (read-response con))))
 
 (define (flatten-constraints constraints)
   (reverse (fold (lambda (x a)

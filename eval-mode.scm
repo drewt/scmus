@@ -85,6 +85,7 @@
   (user-export! 'connect! scmus-connect!)
   (user-export! 'consume-set! scmus-consume-set!)
   (user-export! 'current-track current-track)
+  (user-export! 'disconnect! scmus-disconnect!)
   (user-export! 'echo! echo!)
   (user-export! 'get-option get-option)
   (user-export! 'load user-load)

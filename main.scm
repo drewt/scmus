@@ -15,7 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (uses config option ui-curses))
+(declare (uses config option scmus-client ui-curses))
 
 (define *version-text* (format "scmus ~a~n" *version*))
 (define *help-text* "I'll write docs later, OK?\n")
@@ -90,7 +90,12 @@
             (printf "Invalid port: ~a~n" (car args))
             (exit 1))
           (set-option! 'mpd-port port)
-          (cdr args))))))
+          (cdr args))))
+    (("-c" "--command") ("CMD" "ARGS...")
+     "send a command to the mpd server and print the response to stdout"
+     ,(lambda (args)
+        (pp (apply scmus-oneshot args))
+        (exit 0)))))
 
 (define (opt-names opt) (car opt))
 (define (opt-args opt) (cadr opt))

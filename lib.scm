@@ -179,5 +179,6 @@
 (define (error-set! error)
   (let ((out (open-output-string)))
     (pretty-print (condition->list error) out)
+    (verbose-printf "~a~n"(get-output-string out))
     (set! *scmus-error* (get-output-string out)))
   (register-event! 'error-changed))
