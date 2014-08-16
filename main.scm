@@ -23,9 +23,6 @@
 (define *error* #f)
 
 (foreign-declare "#include <locale.h>")
-(define set-locale
-  (foreign-lambda* c-string ((integer category) (c-string locale))
-                   "return(setlocale(category, locale));"))
 
 (define (main return)
   (define (*main)
@@ -49,13 +46,14 @@
     (scmus-connect!)
     (verbose-printf "Initializing environment...~n")
     (init-sandbox)
+    (verbose-printf "Loading config files...~n")
     (handle-exceptions x
       (printf "WARNING: failed to load ~a~n" *sysrc-path*)
       (user-load *sysrc-path*))
     (handle-exceptions x
-      (void)
+      (verbose-printf "failed to load ~a~n" *scmusrc-path*)
       (user-load *scmusrc-path*))
-    (verbose-printf "Initializing ncurses...~n")
+    (verbose-printf "Initializing curses...~n")
     (init-curses)
     (set-input-mode! 'normal-mode)))
 
@@ -63,38 +61,73 @@
   (exit-curses)
   (exit-client))
 
-(define (process-args args)
-  (define (port-valid? port)
-    (and (number? port) (> port 0) (< port 65536)))
-  (when (not (null? args))
-    (case (string->symbol (car args))
-      ((--verbose)
-       (set! *verbose* #t))
-      ((-v --version)
-       (begin
-         (display *version-text*)
-         (exit 0)))
-      ((-h --help)
-       (begin
-         (display *help-text*)
-         (exit 0)))
-      ((-a --address)
-       (begin
-         (set-option! 'mpd-address (cadr args))
-         (set! args (cdr args))))
-      ((-p --port)
-       (let ((port (string->number (cadr args))))
-         (when (not (port-valid? port))
-           (printf "Invalid port: ~a~n" (cadr args))
-           (exit 1))
-         (set-option! 'mpd-port port)
-         (set! args (cdr args))))
-      (else
-        (printf "Unrecognized option: ~a~n" (car args))))
-    (process-args (cdr args))))
+(define *cmdline-opts*
+  `((("--verbose") ()
+     "print some extra information to the console at run time"
+     ,(lambda (args)
+        (set! *verbose* #t)
+        args))
+    (("-v" "--version") ()
+     "print scmus's version and exit"
+     ,(lambda (args)
+        (printf "scmus ~a~n" *version*)
+        (exit 0)))
+    (("-h" "--help") ()
+     "print this message and exit"
+     ,(lambda (args)
+        (print-usage)
+        (exit 0)))
+    (("-a" "--address") ("ADDR")
+     "IP address or hostname of MPD server"
+     ,(lambda (args)
+        (set-option! 'mpd-address (car args))
+        (cdr args)))
+    (("-p" "--port") ("ADDR")
+     "port number of MPD server"
+     ,(lambda (args)
+        (let ((port (string->number (car args))))
+          (unless (and (number? port) (> port 0) (< port 65536))
+            (printf "Invalid port: ~a~n" (car args))
+            (exit 1))
+          (set-option! 'mpd-port port)
+          (cdr args))))))
+
+(define (opt-names opt) (car opt))
+(define (opt-args opt) (cadr opt))
+(define (opt-doc opt) (caddr opt))
+(define (opt-fun opt) (cadddr opt))
+
+(define (print-usage)
+  (print "Usage: scmus [options]")
+  (print "Options:")
+  (let loop ((opts *cmdline-opts*))
+    (unless (null? opts)
+      (display "    ")
+      (for-each (lambda (x) (display x) (display #\space))
+                (opt-names (car opts)))
+      (for-each (lambda (x) (display x) (display #\space))
+                (opt-args (car opts)))
+      (newline)
+      (printf "        ~a~n" (opt-doc (car opts)))
+      (loop (cdr opts)))))
+
+(define (process-opts opts)
+  (define (get-opt opt)
+    (let loop ((opts *cmdline-opts*))
+      (cond
+        ((null? opts) #f)
+        ((member opt (opt-names (car opts))) (car opts))
+        (else (loop (cdr opts))))))
+  (unless (null? opts)
+    (let ((opt (get-opt (car opts))))
+      (if opt
+        (process-opts ((opt-fun opt) (cdr opts)))
+        (begin
+          (printf "Unrecognized option: ~a~n" (car opts))
+          (process-opts (cdr opts)))))))
 
 (set-signal-handler! signal/chld void)
-(process-args (command-line-arguments))
+(process-opts (command-line-arguments))
 (init-all)
 (let ((code (call/cc main)))
   (exit-all)
