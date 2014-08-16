@@ -15,8 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (uses ui-curses
-               config))
+(declare (uses config option ui-curses))
 
 (define *version-text* (format "scmus ~a~n" *version*))
 (define *help-text* "I'll write docs later, OK?\n")
@@ -81,14 +80,14 @@
          (exit 0)))
       ((-a --address)
        (begin
-         (set! *mpd-address* (cadr args))
+         (set-option! 'mpd-address (cadr args))
          (set! args (cdr args))))
       ((-p --port)
        (let ((port (string->number (cadr args))))
          (when (not (port-valid? port))
            (printf "Invalid port: ~a~n" (cadr args))
            (exit 1))
-         (set! *mpd-port* port)
+         (set-option! 'mpd-port port)
          (set! args (cdr args))))
       (else
         (printf "Unrecognized option: ~a~n" (car args))))
