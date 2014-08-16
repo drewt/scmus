@@ -79,12 +79,12 @@
         (case *command-line-mode*
           ((eval)   eval-history)
           ((search) search-history)
-          (else     (assert #f))))
+          (else     (assert #f "history-getter"))))
       (lambda (x)
         (case *command-line-mode*
           ((eval)   (set! eval-history x))
           ((search) (set! search-history x))
-          (else     (assert #f)))))))
+          (else     (assert #f "history-setter")))))))
 
 (define (history-init!)
   (set! (history) (iter-init! (history))))
@@ -133,7 +133,7 @@
   (editable-text *command-line*))
 
 (define (command-line-text-set! str)
-  (assert (string? str))
+  (assert (string? str) "command-line-text-set!" str)
   (editable-text-set! *command-line* str))
 
 (define (command-line-cursor-pos)

@@ -168,13 +168,13 @@
   (user-export! 'write-config! write-config!))
 
 (define (user-eval str)
-  (assert (string? str))
+  (assert (string? str) "user-eval" str)
   (condition-case (safe-eval (read (open-input-string str))
                              environment: *user-env*)
     (e () (error-set! e))))
 
 (define (user-load path)
-  (assert (string? path))
+  (assert (string? path) "user-load" path)
   (call-with-input-file path
     (lambda (in)
       (let loop ()

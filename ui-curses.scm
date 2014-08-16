@@ -70,7 +70,7 @@
   (command-line-text-set! str))
 
 (define (win-move! nr #!optional (relative #f))
-  (assert (integer? nr))
+  (assert (integer? nr) "win-move!" nr)
   (let ((nr-lines (if relative
                     (integer-scale (window-nr-lines (current-window)) nr)
                     nr)))
@@ -189,9 +189,9 @@
 ;; screen updates {{{
 
 (define (track-print-line line fmt track)
-  (assert (integer? line))
-  (assert (list? fmt))
-  (assert (list? track))
+  (assert (integer? line) "track-print-line" line)
+  (assert (list? fmt) "track-print-line" fmt)
+  (assert (list? track) "track-print-line" track)
   (let* ((left-right (scmus-format fmt (- (COLS) 2) track))
          (left (car left-right))
          (right (cdr left-right)))
@@ -335,13 +335,14 @@
   (curs_set 0))
 
 (define (set-input-mode! mode #!optional (arg0 #f) (arg1 #f))
-  (assert (symbol? mode))
-  (assert (memv mode '(normal-mode edit-mode)))
+  (assert (symbol? mode) "set-input-mode!" mode)
+  (assert (memv mode '(normal-mode edit-mode)) "set-input-mode!" mode)
   (case mode
     ((normal-mode) (enter-normal-mode))
-    ((edit-mode)   (assert (editable? arg0))
-                   (assert (pair? arg1))
-                   (assert (and (integer? (car arg1)) (integer? (cdr arg1))))
+    ((edit-mode)   (assert (editable? arg0) "set-input-mode!" arg0)
+                   (assert (pair? arg1) "set-input-mode!" arg1)
+                   (assert (and (integer? (car arg1)) (integer? (cdr arg1)))
+                           "set-input-mode!" (car arg1) (cdr arg1))
                    (set! *current-editable* arg0)
                    (set! *editable-pos* arg1)
                    (cursor-on)
@@ -504,7 +505,7 @@
         (cons 'db-changed update-db)))
 
 (define (register-event! event)
-  (assert (symbol? event))
+  (assert (symbol? event) "register-event!" event)
   (set! *events* (cons event *events*)))
 
 (define (curses-update)

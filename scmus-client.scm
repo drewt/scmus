@@ -34,8 +34,8 @@
 (define (scmus-connect! #!optional (*host #f) (*port #f))
   (let ((host (if *host *host (get-option 'mpd-address)))
         (port (if *port *port (get-option 'mpd-port))))
-    (assert (string? host))
-    (assert (integer? port))
+    (assert (string? host) "scmus-connect!" host)
+    (assert (integer? port) "scmus-connect!" port)
     (condition-case
       (let ((con (mpd:connect host port)))
         (if (scmus-connected?)
@@ -293,11 +293,11 @@
           (*scmus-list-playlists)))
 
 (define (scmus-play-track! track)
-  (assert (>= (track-id track) 0))
+  (assert (>= (track-id track) 0) "scmus-play-track!" (track-id track))
   (scmus-play-id! (track-id track)))
 
 (define (scmus-seek! seconds)
-  (assert (integer? seconds))
+  (assert (integer? seconds) "scmus-seek!" seconds)
   (scmus-seek-id! (track-id *current-track*)
                   (min (track-duration *current-track*)
                        (max 0 (+ (car (scmus-elapsed-time)) seconds)))))

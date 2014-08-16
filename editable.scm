@@ -158,13 +158,13 @@
          (loop (cdr chars) (- pos 1))))))
 
 (define (editable-char editable ch)
-  (assert (editable? editable))
-  (assert (char? ch))
+  (assert (editable? editable) "editable-char" editable)
+  (assert (char? ch) "editable-char" ch)
   ((editable-char-handler editable) editable ch))
 
 (define (editable-key editable key)
-  (assert (editable? editable))
-  (assert (integer? key))
+  (assert (editable? editable) "editable-key" editable)
+  (assert (integer? key) "editable-key" key)
   ((editable-key-handler editable) editable key))
 
 (define (editable-init editable)

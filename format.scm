@@ -27,12 +27,12 @@
          (export scmus-format process-format format-string-valid?))
 
 (define (swap pair)
-  (assert (pair? pair))
+  (assert (pair? pair) "swap" pair)
   (cons (cdr pair) (car pair)))
 
 (define (scmus-state->character state)
-  (assert (symbol? state))
-  (assert (memv state '(play stop pause unknown)))
+  (assert (symbol? state) "scmus-state->character" state)
+  (assert (memv state '(play stop pause unknown)) "scmus-state->character" state)
   (case state
     ((play) ">")
     ((stop) ".")
@@ -44,9 +44,9 @@
 ;; left-justified part and the cdr is the right justified
 ;; part.
 (define (scmus-format fmt len track)
-  (assert (list? fmt))
-  (assert (integer? len))
-  (assert (list? track))
+  (assert (list? fmt) "scmus-format" fmt)
+  (assert (integer? len) "scmus-format" len)
+  (assert (list? track) "scmus-format" track)
   (let ((pair (foldl format-concatenate
                      '("" . "")
                      (map (lambda (x) (format-replace x track len)) fmt))))
@@ -54,30 +54,30 @@
           (string-truncate (car pair) len #t))))
 
 (define (format-concatenate pair e)
-  (assert (pair? pair))
-  (assert (string? (car pair)))
-  (assert (string? (cdr pair)))
-  (assert (or (symbol? e) (string? e)))
+  (assert (pair? pair) "format-concatenate" pair)
+  (assert (string? (car pair)) "format-concatenate" (car pair))
+  (assert (string? (cdr pair)) "format-concatenate" (cdr pair))
+  (assert (or (symbol? e) (string? e)) "format-concatenate" e)
   (if (symbol? e)
     (swap pair)
     (cons (string-append (car pair) e) (cdr pair))))
 
 (define (format-replace e track len)
-  (assert (or (symbol? e) (pair? e) (char? e)))
-  (assert (list? track))
-  (assert (integer? len))
+  (assert (or (symbol? e) (pair? e) (char? e)) "format-replace" e)
+  (assert (list? track) "format-replace" track)
+  (assert (integer? len) "format-replace" len)
   (cond
     ((symbol? e) (interp-format-symbol e track))
     ((pair? e) (interp-format-list e track len))
     ((char? e) (string e))))
 
 (define (interp-format-symbol e track)
-  (assert (symbol? e))
-  (assert (list? track))
+  (assert (symbol? e) "interp-format-symbol" e)
+  (assert (list? track) "interp-format-symbol" track)
   (assert (memv e '(artist album albumartist discnumber tracknumber title
                     genre comment date duration path filename align playing
                     current db-playtime volume queue-length repeat random
-                    single consume)))
+                    single consume)) "interp-format-symbol" e)
   (case e
     ((artist) (track-artist track))
     ((album) (track-album track))
@@ -103,9 +103,9 @@
     ((consume) (if (scmus-consume?) "C" " "))))
 
 (define (interp-format-list l track len)
-  (assert (pair? l))
-  (assert (list? track))
-  (assert (integer? len))
+  (assert (pair? l) "interp-format-list" l)
+  (assert (list? track) "interp-format-list" track)
+  (assert (integer? len) "interp-format-list" len)
   (let *interp ((rest l) (pad-right #f) (pad-char #\space) (rel #f) (width len))
     (cond
       ((symbol? rest)
@@ -125,7 +125,8 @@
         (*interp (cdr rest) pad-right pad-char rel (car rest))))))
 
 (define (parse-format-spec spec)
-  (assert (and (list? spec) (not (null? spec)) (char? (car spec))))
+  (assert (and (list? spec) (not (null? spec)) (char? (car spec)))
+          "parse-format-spec" spec)
   (case (car spec)
     ((#\a) 'artist)
     ((#\l) 'album)
@@ -155,8 +156,7 @@
       (parse-numbered-spec spec))))
 
 (define (parse-braced-spec spec)
-  (assert (list? spec))
-  (assert (not (null? spec)))
+  (assert (and (list? spec) (not (null? spec))) "parse-braced-spec" spec)
   (case (string->symbol
           (list->string
             (take-while
@@ -185,7 +185,7 @@
     ((consume)      'consume)))
 
 (define (parse-numbered-spec spec)
-  (assert (and (list? spec) (not (null? spec))))
+  (assert (and (list? spec) (not (null? spec))) "parse-numbered-spec" spec)
   (define (*parse-spec spec n)
     (cond
       ((char-numeric? (car spec))
@@ -200,7 +200,8 @@
 
 ;; skips over a format spec in a char list
 (define (format-next spec)
-  (assert (and (list? spec) (not (null? spec)) (char? (car spec))))
+  (assert (and (list? spec) (not (null? spec)) (char? (car spec)))
+          "format-next" spec)
   (cond
     ((char=? (car spec) #\{) (braced-next (cdr spec)))
     ((char=? (car spec) #\-) (format-next (cdr spec)))
@@ -208,26 +209,29 @@
     (else (cdr spec))))
 
 (define (braced-next spec)
-  (assert (and (list? spec) (not (null? spec)) (char? (car spec))))
+  (assert (and (list? spec) (not (null? spec)) (char? (car spec)))
+          "braced-next" spec)
   (if (char=? (car spec) #\})
     (cdr spec)
     (braced-next (cdr spec))))
 
 (define (skip-number spec)
-  (assert (and (list? spec) (not (null? spec)) (char? (car spec))))
+  (assert (and (list? spec) (not (null? spec)) (char? (car spec)))
+          "skip-number" spec)
   (if (char-numeric? (car spec))
     (skip-number (cdr spec))
     spec))
 
 (define (numbered-next spec)
-  (assert (and (list? spec) (not (null? spec)) (char? (car spec))))
+  (assert (and (list? spec) (not (null? spec)) (char? (car spec)))
+          "numbered-next" spec)
   (let ((rest (skip-number spec)))
     (if (char=? (car rest) #\%)
       (format-next (cdr rest))
       (format-next rest))))
 
 (define (format-spec-valid? spec)
-  (assert (list? spec))
+  (assert (list? spec) "format-spec-valid?" spec)
   (if (null? spec)
     #f
     (case (car spec)
@@ -271,7 +275,7 @@
 
 ;; this should be called on any user-entered format string
 (define (format-string-valid? chars)
-  (assert (list? chars))
+  (assert (list? chars) "format-string-valid?" chars)
   (cond
     ((null? chars) #t)
     ((not (char=? (car chars) #\~))
@@ -283,7 +287,7 @@
 ;; replaces format specifiers with symbols.
 ;; chars is assumed valid.
 (define (process-format chars)
-  (assert (list? chars))
+  (assert (list? chars) "process-format" chars)
   (define (*process-format in out)
     (cond
       ((null? in)

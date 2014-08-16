@@ -100,7 +100,7 @@
       (else 1))))
 
 (define (ustring-take str width)
-  (assert (string? str))
+  (assert (string? str) "ustring-take" str)
   (let loop ((result '()) (rest (string->list str)) (r-width 0))
     (let* ((c (car rest))
            (c-width (char-width c)))
@@ -130,17 +130,17 @@
     (string-append (make-string (- len (string-width str)) c) str)))
 
 (define (string-stretch str c len #!optional (right #f))
-  (assert (string? str))
-  (assert (char? c))
-  (assert (integer? len))
+  (assert (string? str) "string-stretch" str)
+  (assert (char? c) "string-stretch" c)
+  (assert (integer? len) "string-stretch" len)
   (if (> len (string-width str))
     (ustring-pad str len c right)
     (string-truncate str len)))
 
 (define (integer-scale len percent)
-  (assert (integer? len))
-  (assert (integer? percent))
-  (assert (>= len 0))
+  (assert (integer? len) "integer-scale" len)
+  (assert (integer? percent) "integer-scale" percent)
+  (assert (>= len 0) "integer-scale" len)
   (inexact->exact (round (* len (/ percent 100)))))
 
 (define (string-split-lines str)
@@ -154,9 +154,9 @@
         (loop result (cons (car rest) substr) (cdr rest))))))
 
 (define (seconds->string total-seconds)
-  (assert (number? total-seconds))
-  (assert (integer? total-seconds))
-  (assert (>= total-seconds 0))
+  (assert (number? total-seconds) "seconds->string" total-seconds)
+  (assert (integer? total-seconds) "seconds->string" total-seconds)
+  (assert (>= total-seconds 0) "seconds->string" total-seconds)
   (let* ((total-minutes (quotient total-seconds 60))
          (seconds (modulo total-seconds 60))
          (minutes (modulo total-minutes 60))
@@ -172,7 +172,7 @@
                      (number->string seconds)))))
 
 (define (clean-nr str)
-  (assert (string? str))
+  (assert (string? str) "clean-nr" str)
   (let ((i (string-index str #\/)))
     (if i (string-take str i) str)))
 

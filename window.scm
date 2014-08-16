@@ -72,21 +72,22 @@
     window))
 
 (define (window-data window)
-  (assert (window? window))
+  (assert (window? window) "window-data" window)
   ((window-data-thunk window) window))
 
 (define (window-top window)
-  (assert (window? window))
+  (assert (window? window) "window-top" window)
   (assert (>= (length (window-data window)) (window-top-pos window)))
   (list-tail (window-data window) (window-top-pos window)))
 
 (define (window-selected window)
-  (assert (window? window))
-  (assert (> (length (window-data window)) (window-sel-pos window)))
+  (assert (window? window) "window-selected" window)
+  (assert (> (length (window-data window)) (window-sel-pos window))
+          "window-selected")
   (list-ref (window-data window) (window-sel-pos window)))
 
 (define (window-all-selected window)
-  (assert (window? window))
+  (assert (window? window) "window-all-selected" window)
   (define (select-from indices lst)
     (cdr (fold (lambda (x acc)
                  (if (member (car acc) indices)
@@ -101,12 +102,12 @@
     (reverse (select-from marked (window-data window)))))
 
 (define (window-changed! window)
-  (assert (window? window))
+  (assert (window? window) "window-changed!" window)
   ((*window-changed! window) window))
 
 ;; XXX: selected row counts as marked
 (define (window-marked window)
-  (assert (window? window))
+  (assert (window? window) "window-marked" window)
   (let ((sel-pos (window-sel-pos window))
         (marked (*window-marked window)))
     (if (member sel-pos marked)
@@ -114,14 +115,14 @@
       (cons sel-pos marked))))
 
 (define (window-mark! window)
-  (assert (window? window))
+  (assert (window? window) "window-mark!" window)
   (let ((sel-pos (window-sel-pos window))
         (marked (*window-marked window)))
     (unless (or (<= (window-data-len window) 0) (member sel-pos marked))
       (window-marked-set! window (cons sel-pos marked)))))
 
 (define (window-unmark! window)
-  (assert (window? window))
+  (assert (window? window) "window-unmark!" window)
   (let ((sel-pos (window-sel-pos window))
         (marked (*window-marked window)))
     (if (and (positive? (window-data-len window)) (member sel-pos marked))
@@ -129,7 +130,7 @@
 
 ;; toggles the 'marked' status of the selected row
 (define (window-toggle-mark! window)
-  (assert (window? window))
+  (assert (window? window) "window-toggle-mark!" window)
   (let ((sel-pos (window-sel-pos window))
         (marked (*window-marked window)))
     (when (positive? (window-data-len window))
@@ -138,21 +139,21 @@
         (window-marked-set! window (cons sel-pos marked))))))
 
 (define (window-clear-marked! window)
-  (assert (window? window))
+  (assert (window? window) "window-clear-marked!" window)
   (window-marked-set! window '()))
 
 (define (window-activate! window)
-  (assert (window? window))
+  (assert (window? window) "window-activate!" window)
   (when (positive? (window-data-len window))
     ((*window-activate! window) window)))
 
 (define (window-deactivate! window)
-  (assert (window? window))
+  (assert (window? window) "window-deactivate!" window)
   (when (positive? (window-data-len window))
     ((*window-deactivate! window) window)))
 
 (define (window-data-len-update! window)
-  (assert (window? window))
+  (assert (window? window) "window-data-len-update!" window)
   (let ((top-pos (window-top-pos window))
         (sel-pos (window-sel-pos window))
         (nr-lines (window-nr-lines window))
@@ -164,7 +165,7 @@
       (window-sel-pos-set! window (max 0 (- new-len 1))))))
 
 (define (window-move-down! window n)
-  (assert (window? window))
+  (assert (window? window) "window-move-down!" window)
   (let* ((top-pos (window-top-pos window))
          (sel-pos (window-sel-pos window))
          (data-len (window-data-len window))
@@ -177,7 +178,7 @@
     (window-changed! window)))
 
 (define (window-move-up! window n)
-  (assert (window? window))
+  (assert (window? window) "window-move-up!" window)
   (let* ((top-pos (window-top-pos window))
          (sel-pos (window-sel-pos window))
          (can-move (min n sel-pos))
@@ -188,8 +189,8 @@
     (window-changed! window)))
 
 (define (window-nr-lines-set! window nr-lines)
-  (assert (window? window))
-  (assert (>= nr-lines 0))
+  (assert (window? window) "window-nr-lines-set!" window)
+  (assert (>= nr-lines 0) "window-nr-lines-set!" nr-lines)
   (let ((top-pos (window-top-pos window))
         (sel-pos (window-sel-pos window)))
     (when (<= nr-lines (- sel-pos top-pos))
