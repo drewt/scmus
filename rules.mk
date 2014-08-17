@@ -12,7 +12,7 @@
 #
 
 .SUFFIXES:
-.PHONY: clean distclean
+.PHONY: clean distclean run
 
 #dependencies = $(addprefix ., $(addsuffix .d, $(basename $(objects))))
 distclean += $(dependencies)
@@ -28,6 +28,9 @@ clean:
 
 distclean: clean
 	$(if $(distclean), rm -f $(distclean))
+
+run: all
+	$(if $(target), ./$(target))
 
 %.o: %.c
 	$(call cmd,cc)
