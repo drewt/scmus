@@ -43,7 +43,6 @@
            (exit 1))
     (foreign-code "setlocale(LC_CTYPE, \"\");")
     (foreign-code "setlocale(LC_COLLATE, \"\");")
-    (scmus-connect!)
     (verbose-printf "Initializing environment...~n")
     (init-sandbox)
     (verbose-printf "Loading config files...~n")
@@ -55,6 +54,7 @@
       (user-load *scmusrc-path*))
     (verbose-printf "Initializing curses...~n")
     (init-curses)
+    (scmus-connect!)
     (set-input-mode! 'normal-mode)))
 
 (define (exit-all)

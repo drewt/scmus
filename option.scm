@@ -63,6 +63,10 @@
              (<= value 65535))
     (option-value-set! option value)))
 
+(define (mpd-password-set! option value)
+  (when (or (not value) (string? value))
+    (option-value-set! option value)))
+
 (define (update-interval-set! option value)
   (when (and (number? value)
              (positive? value))
@@ -114,6 +118,7 @@
   (list
     (cons 'mpd-address                     "localhost")
     (cons 'mpd-port                        6600)
+    (cons 'mpd-password                    #f)
     (cons 'status-update-interval          0.5)
     (cons 'color-cmdline-attr              'default)
     (cons 'color-cmdline-bg                'default)
@@ -160,6 +165,7 @@
   (list
     (option-spec 'mpd-address option-value mpd-address-set!)
     (option-spec 'mpd-port option-value mpd-port-set!)
+    (option-spec 'mpd-password option-value mpd-password-set!)
     (option-spec 'status-update-interval option-value update-interval-set!)
     (option-spec 'color-cmdline-attr option-value color-set!)
     (option-spec 'color-cmdline-bg option-value color-set!)

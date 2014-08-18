@@ -31,13 +31,15 @@
 (define *max-retries* 2)
 (define *last-update* -1.0)
 
-(define (scmus-connect! #!optional (*host #f) (*port #f))
+(define (scmus-connect! #!optional (*host #f) (*port #f) (*pass #f))
   (let ((host (if *host *host (get-option 'mpd-address)))
-        (port (if *port *port (get-option 'mpd-port))))
+        (port (if *port *port (get-option 'mpd-port)))
+        (pass (if *pass *pass (get-option 'mpd-password))))
     (assert (string? host) "scmus-connect!" host)
     (assert (integer? port) "scmus-connect!" port)
+    (assert (or (not pass) (string? pass)) "scmus-connect!" pass)
     (condition-case
-      (let ((con (mpd:connect host port)))
+      (let ((con (mpd:connect host port pass)))
         (if (scmus-connected?)
           (mpd:disconnect *mpd-connection*))
         (set! *mpd-connection* con)

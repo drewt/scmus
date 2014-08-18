@@ -52,10 +52,11 @@
                flatten-constraints format-range range-or-number))
 
 (define-record-type mpd-connection
-  (make-connection hostname port in-port out-port version)
+  (make-connection hostname port password in-port out-port version)
   mpd-connection?
   (hostname mpd-host mpd-host-set!)
   (port mpd-port mpd-port-set!)
+  (password mpd-password)
   (in-port in-port in-port-set!)
   (out-port out-port out-port-set!)
   (version mpd-version mpd-version-set!))
@@ -70,8 +71,8 @@
       (make-property-condition 'exn 'message msg 'arguments args)
       (make-property-condition 'mpd))))
 
-(define (mpd:connect #!optional (hostname "localhost") (port 6600))
-  (mpd:reconnect (make-connection hostname port #f #f #f)))
+(define (mpd:connect #!optional (hostname "localhost") (port 6600) (password #f))
+  (mpd:reconnect (make-connection hostname port password #f #f #f)))
 
 (define (mpd:disconnect con)
   (close-input-port (in-port con))
@@ -95,6 +96,7 @@
                (in-port-set! con in)
                (out-port-set! con out)
                (mpd-version-set! con (cadr m))
+               (cond ((mpd-password con) => (lambda (x) (mpd:password con x))))
                con))
         (else
           (close-input-port in)
@@ -177,7 +179,7 @@
 
 (define (read-response-for con cmd)
   (case (string->symbol cmd)
-    ((listplaylist listplaylistinfo find findadd search searchadd)
+    ((playlistinfo listplaylist listplaylistinfo find findadd search searchadd)
       (parse-songs (read-response con)))
     (else (read-response con))))
 
@@ -200,23 +202,23 @@
     ((define-simple-command 0 name cmd)
       (define (name con)
         (send-command con cmd)
-        (read-response con)))
+        (read-response-for con cmd)))
     ((define-simple-command 1 name cmd)
       (define (name con arg0)
         (send-command con cmd arg0)
-        (read-response con)))
+        (read-response-for con cmd)))
     ((define-simple-command 2 name cmd)
       (define (name con arg0 arg1)
         (send-command con cmd arg0 arg1)
-        (read-response con)))
+        (read-response-for con cmd)))
     ((define-simple-command 3 name cmd)
       (define (name con arg0 arg1 arg2)
         (send-command con cmd arg0 arg1 arg2)
-        (read-response con)))
+        (read-response-for con cmd)))
     ((define-simple-command 4 name cmd)
       (define (name con arg0 arg1 arg2 arg3)
         (send-command con cmd arg0 arg1 arg2 arg3)
-        (read-response con)))))
+        (read-response-for con cmd)))))
 
 (define-syntax define-optional-command
   (syntax-rules ()
@@ -225,27 +227,21 @@
         (if arg
           (send-command con cmd arg)
           (send-command con cmd))
-        (read-response con)))))
+        (read-response-for con cmd)))))
 
 (define-syntax define-boolean-setter
   (syntax-rules ()
     ((define-boolean-setter name cmd)
       (define (name con val)
         (send-command con cmd (if val 1 0))
-        (read-response con)))))
+        (read-response-for con cmd)))))
 
 (define-syntax define-constraint-command
   (syntax-rules ()
     ((define-constraint-command name cmd)
       (define (name con first . rest)
         (apply send-command con cmd (flatten-constraints (cons first rest)))
-        (read-response con)))))
-
-(define-syntax define-songs-wrapper
-  (syntax-rules ()
-    ((define-songs-wrapper name fun)
-      (define (name con . args)
-        (parse-songs (apply fun con args))))))
+        (read-response-for con cmd)))))
 
 ;; Querying MPD's status
 (define-simple-command 0 mpd:clear-error! "clearerror")
@@ -325,10 +321,8 @@
   (read-response con))
 
 ;; Stored playlists
-(define-simple-command 1 *mpd:list-playlist "listplaylist")
-(define-songs-wrapper mpd:list-playlist *mpd:list-playlist)
-(define-simple-command 1 *mpd:list-playlist-info "listplaylistinfo")
-(define-songs-wrapper mpd:list-playlist-info *mpd:list-playlist-info)
+(define-simple-command 1 mpd:list-playlist "listplaylist")
+(define-simple-command 1 mpd:list-playlist-info "listplaylistinfo")
 (define-simple-command 0 mpd:list-playlists "listplaylists")
 (define (mpd:playlist-load! con name #!optional (range #f))
   (if range
@@ -345,10 +339,8 @@
 
 ;; The music database
 (define-simple-command 2   mpd:count "count")
-(define-constraint-command *mpd:find "find")
-(define-songs-wrapper      mpd:find *mpd:find)
-(define-constraint-command *mpd:find-add! "findadd")
-(define-songs-wrapper      mpd:find-add! *mpd:find-add!)
+(define-constraint-command mpd:find "find")
+(define-constraint-command mpd:find-add! "findadd")
 (define (mpd:list-tags con type . rest)
   (apply send-command con "list" type (flatten-constraints rest))
   (read-response con))
@@ -357,13 +349,11 @@
 (define-optional-command   mpd:list-files "listfiles")
 (define-optional-command   mpd:lsinfo "lsinfo")
 (define-simple-command 1   mpd:read-comments "readcomments")
-(define-constraint-command *mpd:search "search")
-(define-songs-wrapper      mpd:search *mpd:search)
-(define-constraint-command *mpd:search-add! "searchadd")
-(define-songs-wrapper      mpd:search-add! *mpd:search-add!)
+(define-constraint-command mpd:search "search")
+(define-constraint-command mpd:search-add! "searchadd")
 (define (*mpd:search-add-pl! con name first . rest)
-  (apply send-command con "searchaddpl" name (flatten-constraints (cons first rest))))
-(define-songs-wrapper      mpd:search-add-pl! *mpd:search-add-pl!)
+  (apply send-command con "searchaddpl" name (flatten-constraints (cons first rest)))
+  (parse-songs (read-response con)))
 (define-optional-command   mpd:update! "update")
 (define-optional-command   mpd:rescan! "rescan")
 
