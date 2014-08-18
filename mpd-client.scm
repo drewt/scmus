@@ -103,6 +103,9 @@
           (close-output-port out)
           (raise-mpd-error "unexpected greeting" l))))))
 
+(define (mpd:connected? con)
+  (if (in-port con) #t #f))
+
 (define (check-connection con)
   (let ((in (in-port con)))
     (if (and (char-ready? in)

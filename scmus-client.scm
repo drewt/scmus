@@ -38,18 +38,18 @@
     (assert (string? host) "scmus-connect!" host)
     (assert (integer? port) "scmus-connect!" port)
     (assert (or (not pass) (string? pass)) "scmus-connect!" pass)
-    (condition-case
+    (handle-exceptions e
+      (begin (error-set! e) #f)
       (let ((con (mpd:connect host port pass)))
         (if (scmus-connected?)
           (mpd:disconnect *mpd-connection*))
         (set! *mpd-connection* con)
         (scmus-update-client!)
-        (register-event! 'db-changed))
-      (e (exn i/o net) (error-set! e) #f))))
+        (register-event! 'db-changed)
+        #t))))
 
 (define (scmus-disconnect!)
-  (mpd:disconnect *mpd-connection*)
-  (set! *mpd-connection* #f))
+  (mpd:disconnect *mpd-connection*))
 
 (define (scmus-oneshot cmd . args)
   (condition-case
@@ -61,7 +61,7 @@
     (e () (condition->list e))))
 
 (define (scmus-connected?)
-  (if *mpd-connection* #t #f))
+  (and *mpd-connection* (mpd:connected? *mpd-connection*)))
 
 (define (exit-client)
   (if *mpd-connection*

@@ -15,32 +15,73 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (uses config option scmus-client ui-curses))
-
-(define *version-text* (format "scmus ~a~n" *version*))
-(define *help-text* "I'll write docs later, OK?\n")
-
-(define *error* #f)
+(declare (uses config getopt option scmus-client ui-curses))
 
 (foreign-declare "#include <locale.h>")
 
+(define *error* #f)
+
+(define *cmdline-opts*
+  (list (mkopt 'verbose '("--verbose") '()
+               "print some extra information to the console at run time"
+               store-true)
+        (mkopt 'version '("-v" "--version") '()
+               "print scmus's version and exit"
+               store-true)
+        (mkopt 'help '("-h" "--help") '()
+               "print this message and exit"
+               store-true)
+        (mkopt 'address '("-a" "--address") '("ADDR")
+               "IP address or hostname of the MPD server"
+               store-one)
+        (mkopt 'port '("-p" "--port") '("PORT")
+               "port number of the MPD server"
+               store-number port-valid?)
+        (mkopt 'password '("--password") '("PASS")
+               "password for the MPD server"
+               store-one)
+        (mkopt 'command '("-c" "--command") '("CMD" "ARGS...")
+               "send a command to the mpd server and print the response"
+               store-all)))
+
+(define (version)
+  (printf "scmus ~a~n" *version*)
+  (exit 0))
+
+(define (command cmd)
+  (pp (apply scmus-oneshot cmd))
+  (exit 0))
+
+(define (option-setter name)
+  (lambda (x) (set-option! name x)))
+
+;; main loop
 (define (main return)
-  (define (*main)
-    (scmus-update-client!)
-    (curses-update)
-    (handle-input)
-    (*main))
   (set! scmus-exit return)
   (handle-exceptions exn
     (begin (set! *error* exn) 1)
-    (*main)))
+    (let loop ()
+      (scmus-update-client!)
+      (curses-update)
+      (handle-input)
+      (loop))))
 
-(define (init-all)
+(define (exit-all)
+  (exit-curses)
+  (exit-client))
+
+;; initialize scmus
+(let ((opts (process-opts (command-line-arguments) *cmdline-opts*)))
+  (if (alist-ref 'help opts) (usage *cmdline-opts* 0))
+  (if (alist-ref 'version opts) (version))
+  (if (alist-ref 'verbose opts) (set! *verbose* #t))
+  (cond ((alist-ref 'command opts) => command))
   (handle-exceptions exn
     (begin (print "Failed to initialize scmus.  Exiting.")
            (debug-printf "~a~n" (condition->list exn))
            (exit-all)
            (exit 1))
+    (set-signal-handler! signal/chld void)
     (foreign-code "setlocale(LC_CTYPE, \"\");")
     (foreign-code "setlocale(LC_COLLATE, \"\");")
     (verbose-printf "Initializing environment...~n")
@@ -54,86 +95,11 @@
       (user-load *scmusrc-path*))
     (verbose-printf "Initializing curses...~n")
     (init-curses)
-    (scmus-connect!)
-    (set-input-mode! 'normal-mode)))
+    (scmus-connect! (alist-ref 'address opts)
+                    (alist-ref 'port opts)
+                    (alist-ref 'password opts))))
 
-(define (exit-all)
-  (exit-curses)
-  (exit-client))
-
-(define *cmdline-opts*
-  `((("--verbose") ()
-     "print some extra information to the console at run time"
-     ,(lambda (args)
-        (set! *verbose* #t)
-        args))
-    (("-v" "--version") ()
-     "print scmus's version and exit"
-     ,(lambda (args)
-        (printf "scmus ~a~n" *version*)
-        (exit 0)))
-    (("-h" "--help") ()
-     "print this message and exit"
-     ,(lambda (args)
-        (print-usage)
-        (exit 0)))
-    (("-a" "--address") ("ADDR")
-     "IP address or hostname of MPD server"
-     ,(lambda (args)
-        (set-option! 'mpd-address (car args))
-        (cdr args)))
-    (("-p" "--port") ("ADDR")
-     "port number of MPD server"
-     ,(lambda (args)
-        (let ((port (string->number (car args))))
-          (unless (and (number? port) (> port 0) (< port 65536))
-            (printf "Invalid port: ~a~n" (car args))
-            (exit 1))
-          (set-option! 'mpd-port port)
-          (cdr args))))
-    (("-c" "--command") ("CMD" "ARGS...")
-     "send a command to the mpd server and print the response to stdout"
-     ,(lambda (args)
-        (pp (apply scmus-oneshot args))
-        (exit 0)))))
-
-(define (opt-names opt) (car opt))
-(define (opt-args opt) (cadr opt))
-(define (opt-doc opt) (caddr opt))
-(define (opt-fun opt) (cadddr opt))
-
-(define (print-usage)
-  (print "Usage: scmus [options]")
-  (print "Options:")
-  (let loop ((opts *cmdline-opts*))
-    (unless (null? opts)
-      (display "    ")
-      (for-each (lambda (x) (display x) (display #\space))
-                (opt-names (car opts)))
-      (for-each (lambda (x) (display x) (display #\space))
-                (opt-args (car opts)))
-      (newline)
-      (printf "        ~a~n" (opt-doc (car opts)))
-      (loop (cdr opts)))))
-
-(define (process-opts opts)
-  (define (get-opt opt)
-    (let loop ((opts *cmdline-opts*))
-      (cond
-        ((null? opts) #f)
-        ((member opt (opt-names (car opts))) (car opts))
-        (else (loop (cdr opts))))))
-  (unless (null? opts)
-    (let ((opt (get-opt (car opts))))
-      (if opt
-        (process-opts ((opt-fun opt) (cdr opts)))
-        (begin
-          (printf "Unrecognized option: ~a~n" (car opts))
-          (process-opts (cdr opts)))))))
-
-(set-signal-handler! signal/chld void)
-(process-opts (command-line-arguments))
-(init-all)
+;; enter main loop, and clean up on exit
 (let ((code (call/cc main)))
   (exit-all)
   (when *error*

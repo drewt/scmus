@@ -59,6 +59,9 @@
 (define (separator? obj)
   (and (pair? obj) (eq? (car obj) 'separator)))
 
+(define (port-valid? port)
+  (and (integer? port) (positive? port) (< port 65536)))
+
 ;; unicode stuff {{{
 
 (define (string-width str)

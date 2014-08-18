@@ -567,7 +567,8 @@
     (use_default_colors))
   (update-colors!)
   (init-views!)
-  (redraw-ui))
+  (redraw-ui)
+  (set-input-mode! 'normal-mode))
 
 (define (exit-curses)
   (handle-exceptions exn

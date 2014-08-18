@@ -58,9 +58,7 @@
     (option-value-set! option value)))
 
 (define (mpd-port-set! option value)
-  (when (and (integer? value)
-             (positive? value)
-             (<= value 65535))
+  (when (port-valid? value)
     (option-value-set! option value)))
 
 (define (mpd-password-set! option value)
