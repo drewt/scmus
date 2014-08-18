@@ -48,8 +48,11 @@
   (printf "scmus ~a~n" *version*)
   (exit 0))
 
-(define (command cmd)
-  (pp (apply scmus-oneshot cmd))
+(define (command opts)
+  (pp (apply scmus-oneshot (alist-ref 'address opts)
+                           (alist-ref 'port opts)
+                           (alist-ref 'password opts)
+                           (alist-ref 'command opts)))
   (exit 0))
 
 (define (option-setter name)
@@ -75,7 +78,7 @@
   (if (alist-ref 'help opts) (usage *cmdline-opts* 0))
   (if (alist-ref 'version opts) (version))
   (if (alist-ref 'verbose opts) (set! *verbose* #t))
-  (cond ((alist-ref 'command opts) => command))
+  (if (alist-ref 'command opts) (command opts))
   (handle-exceptions exn
     (begin (print "Failed to initialize scmus.  Exiting.")
            (debug-printf "~a~n" (condition->list exn))

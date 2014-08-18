@@ -51,10 +51,11 @@
 (define (scmus-disconnect!)
   (mpd:disconnect *mpd-connection*))
 
-(define (scmus-oneshot cmd . args)
+(define (scmus-oneshot host port pass cmd . args)
   (condition-case
-    (let* ((con (mpd:connect (get-option 'mpd-address)
-                             (get-option 'mpd-port)))
+    (let* ((con (mpd:connect (if host host (get-option 'mpd-address))
+                             (if port port (get-option 'mpd-port))
+                             (if pass pass (get-option 'mpd-password))))
            (res (apply mpd:send-command con cmd args)))
       (mpd:disconnect con)
       res)
