@@ -30,11 +30,10 @@
 ;; keys are pressed, scmus is in one of the top-level contexts.
 ;; 
 
-(require-extension ncurses
-                   srfi-1)
+(require-extension srfi-1)
 
 (declare (unit keys)
-         (uses ui-curses command-line)
+         (uses command-line ncurses ui-curses)
          (export make-binding! unbind! binding-keys-valid? enter-normal-mode
                  normal-mode-char normal-mode-key))
 

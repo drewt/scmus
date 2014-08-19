@@ -15,10 +15,10 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension ncurses srfi-1 srfi-13)
+(require-extension srfi-1 srfi-13)
 
 (declare (unit search-view)
-         (uses editable scmus-client window ui-curses)
+         (uses editable ncurses scmus-client window ui-curses)
          (export make-search-view search-edit! search-clear! search-add!
                  search-remove!))
 

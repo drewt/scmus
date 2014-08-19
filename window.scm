@@ -15,10 +15,10 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension ncurses srfi-1)
+(require-extension srfi-1)
 
 (declare (unit window)
-         (uses ui-curses))
+         (uses ncurses ui-curses))
 
 ;; A "window" is a view of a list
 (define-record-type window

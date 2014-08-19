@@ -15,10 +15,8 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension ncurses)
-
 (declare (unit command-line)
-         (uses editable eval-mode ui-curses)
+         (uses editable eval-mode ncurses ui-curses)
          (export command-line-text-set! command-line-mode command-line-text
                  command-line-print-info! command-line-print-error!
                  enter-eval-mode enter-search-mode))

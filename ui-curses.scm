@@ -15,10 +15,10 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension ncurses srfi-13)
+(require-extension srfi-13)
 
 (declare (unit ui-curses)
-         (uses scmus-client eval-mode command-line keys format
+         (uses scmus-client eval-mode command-line keys format ncurses
                option window search-view library-view options-view)
          (export *ui-initialized* *current-input-mode* *current-view*
                  simple-print-line format-print-line track-print-line
@@ -29,18 +29,6 @@
                  win-search-next! win-search-prev! win-edit! make-view
                  register-event! curses-update cursor-on cursor-off
                  set-input-mode! handle-input init-curses exit-curses))
-
-;;; definitions missing from the ncurses egg
-(define bkgdset
-  (foreign-lambda* void ((unsigned-long a0)) "bkgdset(a0);"))
-(define use_default_colors
-  (foreign-lambda* integer () "return(use_default_colors());"))
-
-(define (get-wch)
-  (let ((*get-wch (foreign-lambda integer "get_wch" (c-pointer unsigned-int))))
-    (let-location ((ch unsigned-int))
-      (let ((rc (*get-wch (location ch))))
-        (values ch rc)))))
 
 (define-constant CURSED-CMDLINE 0)
 (define-constant CURSED-ERROR 1)

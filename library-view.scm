@@ -15,10 +15,10 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension ncurses srfi-1 srfi-13)
+(require-extension srfi-1 srfi-13)
 
 (declare (unit library-view)
-         (uses scmus-client window ui-curses)
+         (uses ncurses scmus-client ui-curses window)
          (export library-add-selected! make-library-view update-library!))
 
 (define (library-window-data window)

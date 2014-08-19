@@ -15,10 +15,8 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension ncurses)
-
 (declare (unit lib)
-         (uses config))
+         (uses config ncurses))
 
 ;; the exit routine; initially (exit), becomes a continuation
 (define scmus-exit exit)

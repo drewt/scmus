@@ -15,10 +15,8 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension ncurses) ; color constants
-
 (declare (unit option)
-         (uses format ui-curses)
+         (uses format ncurses ui-curses)
          (export get-option set-option! *options* option-get option-set!
                  option-string write-config!))
 
