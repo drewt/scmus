@@ -19,7 +19,8 @@
 
 (declare (unit ui-curses)
          (uses scmus-client eval-mode command-line keys format ncurses
-               option window search-view library-view options-view)
+               option window search-view library-view options-view
+               browser-view)
          (export *ui-initialized* *current-input-mode* *current-view*
                  simple-print-line format-print-line track-print-line
                  alist-print-line separator? view-window update-view!
@@ -73,12 +74,11 @@
 (define (win-top!)
   (window-select! (current-window) 0))
 
-(define (win-add! #!optional (view 'queue) (pos #f))
+(define (win-add!)
   (case *current-view*
-    ((library)
-      (case view
-        ((queue) (library-add-selected! (current-window)))))
-    ((search) (search-add! (current-window)))))
+    ((library) (library-add-selected! (current-window)))
+    ((search)  (search-add! (current-window)))
+    ((browser) (browser-add-selected! (current-window)))))
 
 (define (win-remove!)
   (case *current-view*
@@ -298,6 +298,7 @@
 (define (update-db)
   (scmus-update-stats!)
   (update-library!)
+  (update-browser!)
   (update-view! 'library))
 
 (define (update-cursor)
@@ -485,6 +486,8 @@
         (cons 'queue-changed (view-update-fn 'queue))
         (cons 'queue-data-changed (view-update-data-fn 'queue))
         (cons 'search-changed (view-update-fn 'search))
+        (cons 'browser-changed (view-update-fn 'browser))
+        (cons 'browser-data-changed (view-update-data-fn 'browser))
         (cons 'error-changed (view-update-data-fn 'error))
         (cons 'option-data-changed (lambda () (update-options-data (view-window 'options))))
         (cons 'option-changed (view-update-fn 'options))
@@ -539,6 +542,7 @@
   (alist-update! 'library (make-library-view) *views*)
   (alist-update! 'queue (make-queue-view) *views*)
   (alist-update! 'search (make-search-view) *views*)
+  (alist-update! 'browser (make-browser-view) *views*)
   (alist-update! 'status (make-status-view) *views*)
   (alist-update! 'error (make-error-view) *views*)
   (alist-update! 'options (make-options-view) *views*))

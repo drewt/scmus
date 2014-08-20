@@ -24,7 +24,7 @@
 (define *scmus-error* "")
 
 (define *view-names*
-  '(library queue search status error options))
+  '(library queue search browser status error options))
 
 (define (verbose-printf . args)
   (if *verbose*

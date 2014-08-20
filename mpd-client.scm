@@ -166,24 +166,30 @@
       (else
         (raise-mpd-error "unexpected line from server" l)))))
 
-(define (parse-songs pairs)
-  (let loop ((pairs pairs) (cur #f) (songs '()))
-    (define (next-songs)
-      (if cur (cons (reverse cur) songs) songs))
-    (cond
-      ((null? pairs)
-        (reverse (next-songs)))
-      ((eqv? (caar pairs) 'file)
-        (loop (cdr pairs) (cons (car pairs) '()) (next-songs)))
-      ((not cur)
-        (raise-mpd-error "unexpected pair" (car pairs)))
-      (else
-        (loop (cdr pairs) (cons (car pairs) cur) songs)))))
+(define (response-parser heads)
+  (lambda (pairs)
+    (let loop ((pairs pairs) (cur #f) (results '()))
+      (define (next-results)
+        (if cur (cons (reverse cur) results) results))
+      (cond
+        ((null? pairs)
+          (reverse (next-results)))
+        ((memv (caar pairs) heads)
+          (loop (cdr pairs) (cons (car pairs) '()) (next-results)))
+        ((not cur)
+          (raise-mpd-error "unexpected pair" (car pairs)))
+        (else
+          (loop (cdr pairs) (cons (car pairs) cur) results))))))
+
+(define parse-songs (response-parser '(file)))
+(define parse-objects (response-parser '(directory file playlist)))
 
 (define (read-response-for con cmd)
   (case (string->symbol cmd)
     ((playlistinfo listplaylist listplaylistinfo find findadd search searchadd)
       (parse-songs (read-response con)))
+    ((lsinfo)
+      (parse-objects (read-response con)))
     (else (read-response con))))
 
 (define (flatten-constraints constraints)

@@ -80,7 +80,7 @@
   (assert (and (list? keys) (not (null? keys)) (string? (car keys)))
           "make-binding!" keys)
   (assert (and (symbol? context)
-               (memv context '(common queue library)))
+               (memv context (cons 'common *view-names*)))
           "make-binding!" context)
   (assert (procedure? thunk) "make-binding!" thunk)
   (let ((new (make-binding keys (alist-ref context *bindings*) thunk)))
@@ -117,7 +117,7 @@
   (assert (and (list? keys) (not (null? keys)) (string? (car keys)))
           "unbind!" keys)
   (assert (and (symbol? context)
-               (memv context '(common queue library)))
+               (memv context (cons 'common *view-names*)))
           "unbind!" context)
   (let ((new (unbind keys (alist-ref context *bindings*))))
     (if new

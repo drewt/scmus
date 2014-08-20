@@ -2,9 +2,10 @@
 (bind! "1" 'common (lambda () (set-view! 'library)) #t)
 (bind! "2" 'common (lambda () (set-view! 'queue))   #t)
 (bind! "3" 'common (lambda () (set-view! 'search))  #t)
-(bind! "4" 'common (lambda () (set-view! 'status))  #t)
-(bind! "5" 'common (lambda () (set-view! 'error))   #t)
-(bind! "6" 'common (lambda () (set-view! 'options)) #t)
+(bind! "4" 'common (lambda () (set-view! 'browser)) #t)
+(bind! "5" 'common (lambda () (set-view! 'status))  #t)
+(bind! "6" 'common (lambda () (set-view! 'error))   #t)
+(bind! "7" 'common (lambda () (set-view! 'options)) #t)
 
 ;; hjkl
 (bind! "j" 'common (lambda () (win-move!  1)) #t)
@@ -66,3 +67,9 @@
 (bind! "left"  'library win-deactivate! #t)
 (bind! "l"     'library win-activate!   #t)
 (bind! "right" 'library win-activate!   #t)
+
+;; browser view
+(bind! "h"     'browser win-deactivate! #t)
+(bind! "left"  'browser win-deactivate! #t)
+(bind! "l"     'browser win-activate!   #t)
+(bind! "right" 'browser win-activate!   #t)

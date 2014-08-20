@@ -17,9 +17,10 @@ INSTALL  = @scripts/install
 
 eggs = easyffi sandbox utf8
 
-objects = config.o command-line.o editable.o eval-mode.o format.o getopt.o \
-	  keys.o lib.o library-view.o main.o mpd-client.o ncurses.o option.o \
-	  options-view.o search-view.o scmus-client.o ui-curses.o window.o
+objects = browser-view.o config.o command-line.o editable.o eval-mode.o \
+	  format.o getopt.o keys.o lib.o library-view.o main.o mpd-client.o \
+	  ncurses.o option.o options-view.o search-view.o scmus-client.o \
+	  ui-curses.o window.o
 target = scmus
 
 clean = $(objects) $(target)
