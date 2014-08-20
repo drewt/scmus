@@ -14,14 +14,20 @@ scriptable in the Scheme programming language.
 IP address or hostname of MPD server.
 .RE
 
-\-p,\-\-port PORT
+\-c,\-\-command
 .RS
-Port number that MPD is listening on.
+Send a command to the MPD server and print the response (as a scheme object)
+to standard output.
 .RE
 
 \-h,\-\-help
 .RS
 Print a help message and exit.
+.RE
+
+\-p,\-\-port PORT
+.RS
+Port number that MPD is listening on.
 .RE
 
 \-v,\-\-version
@@ -48,6 +54,40 @@ Queue view (2)
 .RS
 Displays the tracks in the play queue.
 .RE
+
+Search view (3)
+.RS
+Used for searching MPD's music database.  This view is split into two panes:
+the top pane has a list of search fields, and the bottom lists the results of
+the search.  To edit a search field, run the \fBwin\-edit!\fR function with the
+field selected.  Search fields should contain simple keywords, or a tag:value
+pair (e.g. "artist:boris").  To perform the search, use the
+\fBwin\-activate!\fR function.
+.RE
+
+Browser view (4)
+.RS
+Like the library view, except that this view is organized as a file system
+rather than by artist/album/track.
+.RE
+
+Status view (5)
+.RS
+Displays the response to the last "status" MPD command.
+.RE
+
+Error view (6)
+.RS
+Displays a message describing the last error encountered by scmus.  This should
+be a network/mpd related error, or an exception triggered by your own code
+executed in eval mode.  If not, consider filing a bug report.
+.RE
+
+Options view (7)
+.RS
+Used for viewing and editing scmus's options.  To edit an option, select it
+and run the \fBwin\-edit!\fR function.
+.RE
 .SH EVAL MODE
 Everything in scmus can be controlled by entering scheme expressions on the
 "command line" (the bottommost line).  To enter eval mode press \fB:\fR.  To
@@ -65,7 +105,7 @@ Examples:
 ;; binding for this function
 (play!)
 
-;; clear the play queue
+;; clear current window
 (win-clear!)
 .fi
 .RE
@@ -109,6 +149,11 @@ can be bound or unbound.
 .nf
 1              (set-view! 'library)
 2              (set-view! 'queue)
+3              (set-view! 'search)
+4              (set-view! 'browser)
+5              (set-view! 'status)
+6              (set-view! 'error)
+7              (set-view! 'options)
 j,down         (win-move! 1)
 k,up           (win-move! \-1)
 ^D             (win-move! 50 #t)
@@ -117,6 +162,10 @@ page_down      (win-move! 100 #t)
 page_up        (win-move! \-100 #t)
 h,left         (seek! \-5)
 l,right        (seek! 5)
+g              (win-top!)
+G              (win-bottom!)
+space          (begin (win-toggle-mark!) (win-move! 1))
+i              (win-edit!)
 z              (prev!)
 x              (play!)
 c              (pause!)
@@ -128,13 +177,21 @@ r              (toggle-random!)
 C              (toggle-consume!)
 <              (seek! -60)
 >              (seek! 60)
+n              (win-search-next!)
+N              (win-search-prev!)
 a              (win-add!)
 d              (win-remove!)
 D              (win-clear!)
 enter          (win-activate!)
 (              (push! "(")
+!              (push! "(shell! ")
 .fi
 .SS Library Context
+.nf
+h,left         (win-deactivate!)
+l,right        (win-activate!)
+.fi
+.SS Browser Context
 .nf
 h,left         (win-deactivate!)
 l,right        (win-activate!)
@@ -171,6 +228,15 @@ Loads the colorscheme \fIname\fR.  This function looks for a file named
 /usr/local/share/scmus/colors).
 .RE
 
+;; connect! : [string] [integer] [string] \-> boolean
+.br
+(connect! [host] [port] [password])
+.RS
+Connects the the MPD server given by host:port with the given password, using
+the values of the mpd-address, mpd-port and mpd-password options if they are
+not provided as arguments.
+.RE
+
 ;; consume\-set! : boolean \-> void
 .br
 (consume\-set! <value>)
@@ -185,11 +251,33 @@ Sets the value of the \fBconsume\fR MPD option.
 Returns the track object for the currently playing track.
 .RE
 
+;; disconnect! : void \-> void
+.br
+(disconnect!)
+.RS
+Disconnects from the current MPD server.
+.RE
+
+;; echo! : string \-> void
+.br
+(echo! <str>)
+.RS
+Prints the given string to the command line.
+.RE
+
 ;; get\-option : symbol \-> ???
 .br
 (get\-option! <name>)
 .RS
 Returns the value of the option \fIname\fR.
+.RE
+
+;; load : string -> void
+.br
+(load <filename>)
+.RS
+Loads the given file into the current environment.  This differs from the
+standard \fBload\fR function in that exceptions are ignored.
 .RE
 
 ;; next! : void \-> void
@@ -214,6 +302,62 @@ Play the current track.  If there is no current track, then the first song in
 the play queue is starts playing.
 .RE
 
+;; playlist\-clear! : string \-> void
+.br
+(playlist\-clear! <name>)
+.RS
+Clears the given playlist.
+.RE
+
+;; playlist\-add! : string string \-> void
+.br
+(playlist\-add! <name> <uri>)
+.RS
+Adds \fIuri\fR to the given playlist.
+.RE
+
+;; playlist\-move! : string integer integer \-> void
+.br
+(playlist\-move! <name> <songid> <songpos>)
+.RS
+Adds \fIsongid\fR in the given playlist to the position \fIsongpos\fR.
+.RE
+
+;; playlist\-delete! : string integer \-> void
+.br
+(playlist\-delete! : <name> <songpos>)
+.RS
+Deletes \fIsongpos\fR from the given playlist.
+.RE
+
+;; playlist\-save! : string \-> void
+.br
+(playlist\-save! <name>)
+.RS
+Saves the current playlist (i.e. the play queue) as \fIname\fR.
+.RE
+
+;; playlist\-load! : string \-> void
+.br
+(playlist\-load! <name>)
+.RS
+Loads the given playlist to the play queue.
+.RE
+
+;; playlist\-rename! : string string \-> void
+.br
+(playlist\-rename! <name> <newname>)
+.RS
+Renames the playlist \fIname\fR to \fInewname\fR.
+.RE
+
+;; playlist-rm! : string \-> void
+.br
+(playlist\-rm! <name>)
+.RS
+Removes the given playlist.
+.RE
+
 ;; prev! : void \-> void
 .br
 (prev!)
@@ -226,6 +370,50 @@ Skip to the previous track.
 (push! <text>)
 .RS
 Enter eval mode with the command line pre\-set to text.
+.RE
+
+;; queue\-delete! : (or integer range) \-> void
+.br
+(queue\-delete! <pos>)
+(queue\-delete! (<start> . <end>))
+.RS
+Removes the given pos/range from the play queue.
+.RE
+
+;; queue\-delete\-id! : integer \-> void
+.br
+(queue\-delete\-id! <songid>)
+.RS
+Removes \fIsongid\fR from the play queue.
+.RE
+
+;; queue\-move! : (or integer range) integer \-> void
+.br
+(queue\-move! <from> <to>)
+(queue\-move! (<start> . <end>) <to>)
+.RS
+Moves the given pos/range to the position \fIto\fR in the play queue.
+.RE
+
+;; queue\-move\-id! : integer integer \-> void
+.br
+(queue\-move\-to! <from> <to>)
+.RS
+Moves the track with id \fIfrom\fR to position \fIto\fR in the play queue.
+.RE
+
+;; queue\-swap! : integer integer \-> void
+.br
+(queue\-swap! <track1> <track2>)
+.RS
+Swaps the tracks at positions \fItrack1\fR and \fItrack2\fR in the play queue.
+.RE
+
+;; queue\-swap\-id! : integer integer \-> void
+.br
+(queue\-swap\-id! <track1> <track2>)
+.RS
+Swaps the tracks with ids \fItrack1\fR and \fItrack2\fR in the play queue.
 .RE
 
 ;; random\-set! : boolean \-> void
@@ -268,6 +456,21 @@ Set the value of the option \fIname\fR to \fIvalue\fR.
 (set\-view! <name>)
 .RS
 Changes the current view to the view specified by \fIname\fR.
+.RE
+
+;; shell! : string . strings \-> void
+.br
+(shell! <command> . <args>)
+.RS
+Runs the command \fIcommand\fR with arguments \fIargs\fR in a separate process.
+.RE
+
+;; shell\-sync! : string . strings \-> integer
+.br
+(shell\-sync! <command> . <args>)
+.RS
+Like \fBshell!\fR, except that this function waits for the process to exit and
+returns its exit status.
 .RE
 
 ;; shuffle! : void \-> void
@@ -481,6 +684,13 @@ Adds the current selection to the play queue (only works in \fBlibrary\fR
 view).
 .RE
 
+;; win\-bottom! : void \-> void
+.br
+(win\-bottom!)
+.RS
+Moves the cursor to the last line in the current window.
+.RE
+
 ;; win\-clear! : void \-> void
 .br
 (win\-clear!)
@@ -495,6 +705,13 @@ Clears the current window (only works in \fBqueue\fR view).
 Deactivates the current window.  What this means depends on the view and the
 current selection, e.g. in \fBlibrary\fR view, this navigates backwards in the
 hierarchy.
+.RE
+
+;; win\-edit! : void \-> void
+.br
+(win\-edit!)
+.RS
+Begins editing the selected row in the current window, when applicable.
 .RE
 
 ;; win\-move! : integer [boolean] \-> void
@@ -542,95 +759,75 @@ Returns the value of the selection in the current window.  The type of this
 value depends on the current window, e.g. in a track window, a track object is
 returned.
 .RE
+
+;; win\-top! : void \-> void
+.br
+(win\-top!)
+.RS
+Moves the cursor to the first line in the current window.
+.RE
+
+;; write\-config! : string \-> void
+.br
+(write\-config! <filename>)
+.RS
+Writes the current options to \fIfilename\fR, such that a subsequent call to
+\fBload\fR on the same file would restore scmus's options to their current
+values.
+.RE
 .SH CONFIGURATION OPTIONS
 This section describes scmus's options that can be altered with the
 \fBset\-option!\fR function.  Default values are in parentheses.
 
-color\-cmdline\-bg ('default)
+color\-cmdline ('(default default default))
 .RS
-Command line background color.
+Command line colors.
 .RE
 
-color\-cmdline\-fg ('default)
+color\-error ('(default default red))
 .RS
-Command line foreground color.
+Colors for error messages displayed on the command line.
 .RE
 
-color\-error ('red)
+color\-info ('(default default yellow))
 .RS
-Color of error messages displayed on the command line.
+Colors for informational messages displayed on the command line.
 .RE
 
-color\-info ('yellow)
+color\-statusline ('(default white black))
 .RS
-Color of informational messages displayed on the command line.
+Status line colors.
 .RE
 
-color\-statusline\-bg ('white)
+color\-titleline ('(default blue white))
 .RS
-Status line background color.
+Title line colors.
 .RE
 
-color\-statusline\-fg ('black)
+color\-win ('(default default default))
 .RS
-Status line foreground color.
+Window colors.
 .RE
 
-color\-titleline\-bg ('blue)
+color\-win\-cur ('(default default yellow))
 .RS
-Title line background color.
+Colors for currently playing track.
 .RE
 
-color\-titleline\-fg ('white)
+color\-win\-cur\-sel ('(default blue yellow))
 .RS
-Title line foreground color.
+Colors for the selected row which is also the currently playing track in the
+active window.
 .RE
 
-color\-win\-bg ('default)
+color\-win\-sel ('(default blue white))
 .RS
-Window background color.
+Colors for the selected row in the active window.
 .RE
 
-color\-win\-cur ('yellow)
+color\-win\-title ('(default blue white))
 .RS
-Color of currently playing track.
-.RE
-
-color\-win\-cur\-sel\-bg ('blue)
-.RS
-Background color of the selected row which is also the currently playing track
-in the active window.
-.RE
-
-color\-win\-cur\-sel\-fg ('yellow)
-.RS
-Foreground color of the selected row which is also the currently playing track
-in the active window.
-.RE
-
-color\-win\-fg ('default)
-.RS
-Window foreground color.
-.RE
-
-color\-win\-sel\-bg ('blue)
-.RS
-Background color of selected row in active window.
-.RE
-
-color\-win\-sel\-fg ('white)
-.RS
-Foreground color of selected row in active window.
-.RE
-
-color\-win\-title\-bg ('blue)
-.RS
-Background color of window titles (topmost line of the screen).
-.RE
-
-color\-win\-title\-fg ('white)
-.RS
-Foreground color of window titles (topmost line of the screen).
+Colors for window titles (topmost line of the screen).
 .RE
 
 format\-current ("~a \- ~l ~n. ~t~= ~y")
@@ -658,6 +855,26 @@ format\-status ("~P ~p / ~d \- ~T vol: ~v~= ~S~R~r~C")
 Format string for the status line.
 .RE
 
+mpd\-address ("localhost")
+.RS
+Hostname of the MPD server.
+.RE
+
+mpd\-password (#f)
+.RS
+Password to use with the MPD server.
+.RE
+
+mpd\-port (6600)
+.RS
+Port number of the MPD server.
+.RE
+
+status\-update\-interval (0.5)
+.RS
+Number of seconds to wait between MPD status updates.  Consider increasing this
+if the latency to the MPD server is high.
+.RE
 .SS Colors
 Colors are integers in the range \-1...255.
 
@@ -678,8 +895,18 @@ black, red, green, yellow, blue, magenta, cyan, white
 dark\-gray, light\-red, light\-green, light\-yellow, light\-blue, light\-magenta,
 light\-cyan, gray
 .RE
+
+Attributes may also be used, such as bold or underline.  The following
+attribute symbols are recognized:
+
+.RS
+default normal underline reverse blink bold dim invis standout
+.RE
+
+Color options are specified as 3-tuples (attribute background-color
+foreground-color).
 .SS Format Strings
-Format strings control display text throughout scmus.
+Format strings control the display of text throughout scmus.
 
 Special Keys:
 
