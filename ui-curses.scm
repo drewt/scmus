@@ -360,37 +360,36 @@
 
 ;; colors {{{
 
-(define (color-symbol->number sym)
-  (case sym
-    ((default)       -1)
-    ((black)         COLOR_BLACK)
-    ((red)           COLOR_RED)
-    ((green)         COLOR_GREEN)
-    ((yellow)        COLOR_YELLOW)
-    ((blue)          COLOR_BLUE)
-    ((magenta)       COLOR_MAGENTA)
-    ((cyan)          COLOR_CYAN)
-    ((white)         COLOR_WHITE)
-    ((dark-gray)     8)
-    ((light-red)     9)
-    ((light-green)   10)
-    ((light-yellow)  11)
-    ((light-blue)    12)
-    ((light-magenta) 13)
-    ((light-cyan)    14)
-    ((gray)          15)
-    (else            -1)))
+(define (color->number color)
+  (if (number? color)
+    color
+    (case color
+      ((default)       -1)
+      ((black)         COLOR_BLACK)
+      ((red)           COLOR_RED)
+      ((green)         COLOR_GREEN)
+      ((yellow)        COLOR_YELLOW)
+      ((blue)          COLOR_BLUE)
+      ((magenta)       COLOR_MAGENTA)
+      ((cyan)          COLOR_CYAN)
+      ((white)         COLOR_WHITE)
+      ((dark-gray)     8)
+      ((light-red)     9)
+      ((light-green)   10)
+      ((light-yellow)  11)
+      ((light-blue)    12)
+      ((light-magenta) 13)
+      ((light-cyan)    14)
+      ((gray)          15)
+      (else            -1))))
 
 (define *colors* (make-vector NR-CURSED))
 
-(define (colors-set! cursed attr bg fg)
-  (vector-set! *colors* cursed (list attr bg fg)))
-
 (define (get-color-option name)
   (let ((option (get-option name)))
-    (if (symbol? option)
-      (color-symbol->number option)
-      option)))
+    (list (car option)
+          (color->number (cadr option))
+          (color->number (caddr option)))))
 
 (define (cursed-pair cursed)
   (+ 1 cursed))
@@ -404,11 +403,8 @@
 (define (cursed-fg cursed)
   (caddr (vector-ref *colors* cursed)))
 
-(define (init-cursed! cursed attr bg fg)
-  (colors-set! cursed
-               (get-option attr)
-               (get-color-option bg)
-               (get-color-option fg)))
+(define (init-cursed! cursed color)
+  (vector-set! *colors* cursed (get-color-option color)))
 
 (define (update-colors!)
   (define (*update-colors!)
@@ -416,50 +412,17 @@
       (when (< i NR-CURSED)
         (init_pair (cursed-pair i) (cursed-fg i) (cursed-bg i))
         (loop (+ i 1)))))
-  (init-cursed! CURSED-CMDLINE
-                'color-cmdline-attr
-                'color-cmdline-bg
-                'color-cmdline-fg)
-  (init-cursed! CURSED-ERROR
-                'color-cmdline-attr
-                'color-cmdline-bg
-                'color-error)
-  (init-cursed! CURSED-INFO
-                'color-cmdline-attr
-                'color-cmdline-bg
-                'color-info)
-  (init-cursed! CURSED-STATUSLINE
-                'color-statusline-attr
-                'color-statusline-bg
-                'color-statusline-fg)
-  (init-cursed! CURSED-TITLELINE
-                'color-titleline-attr
-                'color-titleline-bg
-                'color-titleline-fg)
-  (init-cursed! CURSED-WIN
-                'color-win-attr
-                'color-win-bg
-                'color-win-fg)
-  (init-cursed! CURSED-WIN-CUR
-                'color-win-attr
-                'color-win-bg
-                'color-win-cur)
-  (init-cursed! CURSED-WIN-CUR-SEL
-                'color-win-cur-sel-attr
-                'color-win-cur-sel-bg
-                'color-win-cur-sel-fg)
-  (init-cursed! CURSED-WIN-SEL
-                'color-win-sel-attr
-                'color-win-sel-bg
-                'color-win-sel-fg)
-  (init-cursed! CURSED-WIN-MARKED
-                'color-win-marked-attr
-                'color-win-marked-bg
-                'color-win-marked-fg)
-  (init-cursed! CURSED-WIN-TITLE
-                'color-win-title-attr
-                'color-win-title-bg
-                'color-win-title-fg)
+  (init-cursed! CURSED-CMDLINE     'color-cmdline)
+  (init-cursed! CURSED-ERROR       'color-error)
+  (init-cursed! CURSED-INFO        'color-info)
+  (init-cursed! CURSED-STATUSLINE  'color-statusline)
+  (init-cursed! CURSED-TITLELINE   'color-titleline)
+  (init-cursed! CURSED-WIN         'color-win)
+  (init-cursed! CURSED-WIN-CUR     'color-win-cur)
+  (init-cursed! CURSED-WIN-CUR-SEL 'color-win-cur-sel)
+  (init-cursed! CURSED-WIN-SEL     'color-win-sel)
+  (init-cursed! CURSED-WIN-MARKED  'color-win-marked)
+  (init-cursed! CURSED-WIN-TITLE   'color-win-title)
   (*update-colors!)
   (cursed-set! CURSED-WIN))
 
