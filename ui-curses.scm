@@ -383,11 +383,35 @@
       ((gray)          15)
       (else            -1))))
 
+(define (attr->number attr)
+  (if (number? attr)
+    attr
+    (case attr
+      ((default)    0)
+      ((normal)     A_NORMAL)
+      ((underline)  A_UNDERLINE)
+      ((reverse)    A_REVERSE)
+      ((blink)      A_BLINK)
+      ((bold)       A_BOLD)
+      ((dim)        A_DIM)
+      ((altcharset) A_ALTCHARSET)
+      ((invis)      A_INVIS)
+      ((attributes) A_ATTRIBUTES)
+      ((chartext)   A_CHARTEXT)
+      ((color)      A_COLOR)
+      ((standout)   A_STANDOUT)
+      ((protect)    A_PROTECT)
+      ((left)       A_LEFT)
+      ((right)      A_RIGHT)
+      ((low)        A_LOW)
+      ((top)        A_TOP)
+      ((vertical)   A_VERTICAL))))
+
 (define *colors* (make-vector NR-CURSED))
 
 (define (get-color-option name)
   (let ((option (get-option name)))
-    (list (car option)
+    (list (attr->number (car option))
           (color->number (cadr option))
           (color->number (caddr option)))))
 
@@ -427,7 +451,8 @@
   (cursed-set! CURSED-WIN))
 
 (define (cursed-set! cursed)
-  (bkgdset (COLOR_PAIR (cursed-pair cursed))))
+  (bkgdset (bitwise-ior (COLOR_PAIR (cursed-pair cursed))
+                        (cursed-attr cursed))))
 
 ;; colors }}}
 

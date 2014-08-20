@@ -76,7 +76,11 @@
     (else    #f)))
 
 (define (attr-valid? attr)
-  #t)
+  (case attr
+    ((default normal underline reverse blink bold dim altcharset invis
+      attributes chartext color standout protect left right low top vertical)
+          #t)
+    (else #f)))
 
 (define (color-valid? value)
   (or (and (integer? value) (< value 256))
@@ -90,12 +94,6 @@
              (color-valid? (caddr value)))
     (option-value-set! option value)
     (register-event! 'color-changed)))
-
-;(define (color-set! option value)
-;  (when (or (and (integer? value) (< value 256))
-;            (and (symbol? value) (color-symbol? value)))
-;    (option-value-set! option value)
-;    (register-event! 'color-changed)))
 
 (define (format-set! option value)
   (if (string? value)
