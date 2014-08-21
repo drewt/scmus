@@ -115,6 +115,11 @@
                           (integer-scale len width)
                           width)
                         pad-right))
+      ((eqv? (car rest) 'function)
+        (let ((r ((cdr rest) track)))
+          (if (string? r)
+            r
+            (format "<error: not a string: ~a>" r))))
       ((eqv? (car rest) 'pad-right)
         (*interp (cdr rest) #t pad-char rel width))
       ((eqv? (car rest) 'pad-zero)
@@ -150,6 +155,7 @@
     ((#\S) 'single)
     ((#\C) 'consume)
     ((#\{) (parse-braced-spec (cdr spec)))
+    ((#\[) (parse-code-spec (cdr spec)))
     ((#\-) (cons 'pad-right (parse-format-spec (cdr spec))))
     ((#\0) (cons 'pad-zero (parse-format-spec (cdr spec))))
     ((#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
@@ -184,6 +190,25 @@
     ((single)       'single)
     ((consume)      'consume)))
 
+(define (code-split spec)
+  (let loop ((rest spec) (code '()) (escaping? #f))
+    (cond
+      ((null? rest) (values (reverse code) #f))
+      (escaping? (loop (cdr rest) (cons (car rest) code) #f))
+      (else
+        (case (car rest)
+          ((#\])  (values (reverse code) (cdr rest)))
+          ((#\\ ) (loop (cdr rest) code #t))
+          (else   (loop (cdr rest) (cons (car rest) code) #f)))))))
+
+(define (parse-code-spec spec)
+  (assert (and (list? spec) (not (null? spec))) "parse-code-spec" spec)
+  (let* ((str (list->string (code-split spec)))
+         (fun (user-eval str)))
+    (if (procedure? fun)
+      (cons 'function fun)
+      (cons 'function (lambda (x) "<error: not a function>")))))
+
 (define (parse-numbered-spec spec)
   (assert (and (list? spec) (not (null? spec))) "parse-numbered-spec" spec)
   (define (*parse-spec spec n)
@@ -204,6 +229,7 @@
           "format-next" spec)
   (cond
     ((char=? (car spec) #\{) (braced-next (cdr spec)))
+    ((char=? (car spec) #\[) (code-next (cdr spec)))
     ((char=? (car spec) #\-) (format-next (cdr spec)))
     ((char-numeric? (car spec)) (numbered-next spec))
     (else (cdr spec))))
@@ -214,6 +240,9 @@
   (if (char=? (car spec) #\})
     (cdr spec)
     (braced-next (cdr spec))))
+
+(define (code-next spec)
+  (nth-value 1 (code-split spec)))
 
 (define (skip-number spec)
   (assert (and (list? spec) (not (null? spec)) (char? (car spec)))
@@ -238,6 +267,7 @@
       ((#\a #\A #\l #\D #\n #\t #\g #\c #\y #\d #\f #\F #\~ #\= #\P #\p #\T #\v
         #\R #\r #\S #\C) #t)
       ((#\{) (braced-spec-valid? (cdr spec)))
+      ((#\[) (code-spec-valid? (cdr spec)))
       ((#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\0) (numbered-spec-valid? spec))
       ((#\-) (format-spec-valid? (cdr spec)))
       (else #f))))
@@ -269,6 +299,15 @@
           random
           single
           consume)))
+
+;; Considered valid if contains a valid s-expression.  We don't check that it
+;; evaluates to a function, in case it has side-effects.
+(define (code-spec-valid? spec)
+  (condition-case
+    (let* ((str (list->string (code-split spec)))
+           (body (read (open-input-string str))))
+      #t)
+    (e () (error-set! e) #f)))
 
 (define (numbered-spec-valid? spec)
   (format-spec-valid? (skip-number spec)))

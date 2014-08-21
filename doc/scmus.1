@@ -1,4 +1,4 @@
-.TH SCMUS 1 09/03/2014 scmus "scmus Manual"
+.TH SCMUS 1 20/08/2014 scmus "scmus Manual"
 .nh
 .ad l
 .SH NAME
@@ -960,6 +960,12 @@ start align right (use at most once)
 literal \fB~\fR
 .RE
 
+Arbitrary scheme code can be embedded in a format string inside of ~[].  The
+code should evaluate to a function taking a track object as its sole
+argument, and returning a string.  The expression will be evaluated once, when
+the option is set.  However, it is not advisable to use an expression that has
+side-effects.
+
 You can use printf style formatting (width, alignment, padding).  As an
 extension, the width can have a %\-suffix, to specify a precentage of the
 terminal width.
@@ -970,6 +976,7 @@ Examples
 .nf
 (set\-option! 'format\-current "~a \- ~l ~n. ~t~= ~y")
 (set\-option! 'format\-queue "~\-25%a ~3n. ~t~= ~\-4y ~d")
+(set\-option! 'format\-queue "~[(lambda (x) (track-file x))]"
 .fi
 .RE
 .SH FILES
