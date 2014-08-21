@@ -961,10 +961,10 @@ literal \fB~\fR
 .RE
 
 Arbitrary scheme code can be embedded in a format string inside of ~[].  The
-code should evaluate to a function taking a track object as its sole
-argument, and returning a string.  The expression will be evaluated once, when
-the option is set.  However, it is not advisable to use an expression that has
-side-effects.
+code will be evaluated and the result substituted for the ~[] specifier, as if
+formatted by (format "~a" <code>).  If the code evaluates to a function, the
+function is called with a track object as its argument, and the return value
+is substituted.
 
 You can use printf style formatting (width, alignment, padding).  As an
 extension, the width can have a %\-suffix, to specify a precentage of the

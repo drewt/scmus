@@ -171,7 +171,7 @@
   (assert (string? str) "user-eval" str)
   (condition-case (safe-eval (read (open-input-string str))
                              environment: *user-env*)
-    (e () (error-set! e))))
+    (e () (error-set! e) e)))
 
 (define (user-load path)
   (assert (string? path) "user-load" path)
