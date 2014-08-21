@@ -99,7 +99,7 @@
   (if (string? value)
     (let ((fmt (string->list value)))
       (when (format-string-valid? fmt)
-        (option-value-set! option (cons (string-append "\"" value "\"")
+        (option-value-set! option (cons (format "~s" value)
                                         (process-format fmt)))
         (register-event! 'format-changed)))))
 
@@ -114,7 +114,7 @@
     (format "~s" value)))
 
 (define (format-value fmt)
-  (cons (string-append "\"" fmt "\"") (process-format (string->list fmt))))
+  (cons (format "~s" fmt) (process-format (string->list fmt))))
 
 ;; generates an alist entry for *options*
 (define (option-spec name accessor mutator #!optional (stringifier stringify))
