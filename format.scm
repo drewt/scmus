@@ -62,14 +62,13 @@
     (cons (string-append (car pair) e) (cdr pair))))
 
 (define (format-replace e track len)
-  (assert (or (procedure? e) (symbol? e) (pair? e) (char? e)) "format-replace" e)
   (assert (list? track) "format-replace" track)
   (assert (integer? len) "format-replace" len)
   (cond
     ((procedure? e) (interp-format-function e track))
-    ((symbol? e) e)
+    ((or (string? e) (symbol? e)) e)
     ((pair? e) (interp-format-list e track len))
-    ((char? e) (string e))))
+    (else (assert #f "format-replace" e))))
 
 (define (interp-format-function fun track)
   (handle-exceptions e
@@ -321,18 +320,31 @@
 ;; chars is assumed valid.
 (define (process-format chars)
   (assert (list? chars) "process-format" chars)
-  (define (*process-format in out)
-    (cond
-      ((null? in)
-        out)
-      ((not (char=? (car in) #\~))
-        (*process-format (cdr in)
-                         (cons (car in) out)))
-      (else
-        (*process-format (format-next (cdr in))
-                         (cons (parse-format-spec (cdr in)) out)))))
-  ; if the format string didn't contain "~=", 'align is added at the end
-  (let ((processed (*process-format chars '())))
-    (reverse (if (member 'align processed)
-               processed
-               (cons 'align processed)))))
+  ; first pass: parse format specifiers from list of chars
+  (define (parse-format in)
+    (let loop ((in in) (out '()))
+      (cond
+        ((null? in)
+          ; if the format string didn't contain "~=", 'align is added at the end
+          (reverse (if (member 'align out)
+                     out
+                     (cons 'align out))))
+        ((not (char=? (car in) #\~))
+          (loop (cdr in) (cons (car in) out)))
+        (else
+          (loop (format-next (cdr in))
+                (cons (parse-format-spec (cdr in)) out))))))
+  ; second pass: convert consecutive chars to strings
+  (define (stringify-format fmt)
+    (let loop ((rest (cdr fmt))
+               (last (if (char? (car fmt)) (string (car fmt)) (car fmt)))
+               (rv '()))
+      (cond
+        ((null? rest) (reverse (cons last rv)))
+        ((and (string? last) (char? (car rest)))
+          (loop (cdr rest) (string-append last (string (car rest))) rv))
+        ((char? (car rest))
+          (loop (cdr rest) (string (car rest)) (cons last rv)))
+        (else
+          (loop (cdr rest) (car rest) (cons last rv))))))
+  (stringify-format (parse-format chars)))
