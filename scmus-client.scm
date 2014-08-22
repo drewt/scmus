@@ -181,6 +181,10 @@
 (define (track-duration track)
   (car (*track-duration track)))
 
+(define (track-meta track meta #!optional (default ""))
+  (let ((e (alist-ref meta track)))
+    (if e e default)))
+
 (define (current-track)
   *current-track*)
 

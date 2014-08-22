@@ -23,7 +23,7 @@
 (require-extension srfi-1)
 
 (declare (unit format)
-         (uses scmus-client)
+         (uses option scmus-client)
          (export scmus-format process-format format-string-valid?))
 
 (define (swap pair)
@@ -149,18 +149,23 @@
     ((#\C) format-consume)
     ((#\{) (parse-braced-spec (cdr spec)))
     ((#\[) (parse-code-spec (cdr spec)))
+    ((#\<) (parse-option-spec (cdr spec)))
     ((#\-) (cons 'pad-right (parse-format-spec (cdr spec))))
     ((#\0) (cons 'pad-zero (parse-format-spec (cdr spec))))
     ((#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
       (parse-numbered-spec spec))))
 
+(define (take-until->symbol chars delim)
+  (string->symbol
+    (list->string
+      (take-while
+        (lambda (x) (not (char=? x delim)))
+        chars))))
+
 (define (parse-braced-spec spec)
   (assert (and (list? spec) (not (null? spec))) "parse-braced-spec" spec)
-  (case (string->symbol
-          (list->string
-            (take-while
-              (lambda (x) (not (char=? #\} x)))
-              spec)))
+  (let ((meta (take-until->symbol spec #\})))
+   (case meta
     ((artist)       track-artist)
     ((album)        track-album)
     ((albumartist)  track-albumartist)
@@ -181,7 +186,8 @@
     ((repeat)       format-repeat)
     ((random)       format-random)
     ((single)       format-single)
-    ((consume)      format-consume)))
+    ((consume)      format-consume)
+    (else           (lambda (track) (track-meta track meta))))))
 
 ;; Split a code spec <code>]<rest> into (values <code> <rest>), handling
 ;; escaped characters in <code>.
@@ -204,6 +210,11 @@
       obj
       (lambda (x) obj))))
 
+(define (parse-option-spec spec)
+  (assert (and (list? spec) (not (null? spec))) "parse-option-spec" spec)
+  (let ((name (take-until->symbol spec #\>)))
+    (lambda (track) (get-option name))))
+
 (define (parse-numbered-spec spec)
   (assert (and (list? spec) (not (null? spec))) "parse-numbered-spec" spec)
   (define (*parse-spec spec n)
@@ -225,6 +236,7 @@
   (cond
     ((char=? (car spec) #\{) (braced-next (cdr spec)))
     ((char=? (car spec) #\[) (code-next (cdr spec)))
+    ((char=? (car spec) #\<) (option-next (cdr spec)))
     ((char=? (car spec) #\-) (format-next (cdr spec)))
     ((char-numeric? (car spec)) (numbered-next spec))
     (else (cdr spec))))
@@ -246,6 +258,11 @@
     (skip-number (cdr spec))
     spec))
 
+(define (option-next spec)
+  (if (char=? (car spec) #\>)
+    (cdr spec)
+    (option-next (cdr spec))))
+
 (define (numbered-next spec)
   (assert (and (list? spec) (not (null? spec)) (char? (car spec)))
           "numbered-next" spec)
@@ -263,44 +280,23 @@
         #\R #\r #\S #\C) #t)
       ((#\{) (braced-spec-valid? (cdr spec)))
       ((#\[) (code-spec-valid? (cdr spec)))
+      ((#\<) (option-spec-valid? (cdr spec)))
       ((#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\0) (numbered-spec-valid? spec))
       ((#\-) (format-spec-valid? (cdr spec)))
       (else #f))))
 
 (define (braced-spec-valid? spec)
-  (memv (string->symbol
-          (list->string
-            (take-while
-              (lambda (x) (not (char=? #\} x)))
-              spec)))
-        '(artist
-          album
-          albumartist
-          discnumber
-          tracknumber
-          title
-          genre
-          comment
-          date
-          duration
-          path
-          filename
-          playing
-          current
-          db-playtime
-          volume
-          queue-length
-          repeat
-          random
-          single
-          consume)))
+  (memv #\} spec))
 
 (define (code-spec-valid? spec)
-  (condition-case
-    (let* ((str (list->string (code-split spec)))
-           (body (read (open-input-string str))))
-      #t)
-    (e () (error-set! e) #f)))
+  (let-values (((code rest) (code-split spec)))
+    (handle-exceptions e
+      (begin (error-set! e) #f)
+      (read (open-input-string (list->string code)))
+      rest)))
+
+(define (option-spec-valid? spec)
+  (memv #\> spec))
 
 (define (numbered-spec-valid? spec)
   (format-spec-valid? (skip-number spec)))
