@@ -17,7 +17,7 @@
 
 (declare (unit option)
          (uses format ncurses ui-curses)
-         (export get-option set-option! *options* option-get option-set!
+         (export get-option set-option! options option-get option-set!
                  option-string write-config!))
 
 ;; An option is a value with associated get/set! functions.
@@ -175,6 +175,8 @@
     (option-spec 'format-library format-get format-set! format-stringify)
     (option-spec 'format-queue format-get format-set! format-stringify)
     (option-spec 'format-queue-title format-get format-set! format-stringify)))
+
+(define (options) *options*)
 
 (define (write-config! path)
   (call-with-output-file path

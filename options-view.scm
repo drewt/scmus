@@ -53,7 +53,7 @@
                                 (lambda (e) (set-input-mode! 'normal-mode))
                                 option-changed!
                                 (option-string (cdr pair)))))
-  (map option->row *options*))
+  (map option->row (options)))
 
 (define (make-options-view)
   (make-view (make-window (make-options-data)
