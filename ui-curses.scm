@@ -501,7 +501,7 @@
                           (lambda (w) (scmus-play-track! (window-selected w)))
                           void
                           track-match)
-             "Queue"
+             "Queue - ~{queue-length} tracks"
              (lambda (window track line-nr)
                (track-print-line line-nr (get-option 'format-queue) track))
              trackwin-cursed-set!))

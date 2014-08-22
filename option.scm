@@ -146,9 +146,7 @@
     (cons 'format-library
           (format-value "~-25%a ~3n. ~t~= ~-4y ~d"))
     (cons 'format-queue
-          (format-value "~-25%a ~3n. ~t~= ~-4y ~d"))
-    (cons 'format-queue-title
-          (format-value "Play Queue - ~{queue-length} tracks"))))
+          (format-value "~-25%a ~3n. ~t~= ~-4y ~d"))))
 
 ;; alist associating option names with options
 (define *options*
@@ -171,8 +169,7 @@
     (option-spec 'format-current format-get format-set! format-stringify)
     (option-spec 'format-status format-get format-set! format-stringify)
     (option-spec 'format-library format-get format-set! format-stringify)
-    (option-spec 'format-queue format-get format-set! format-stringify)
-    (option-spec 'format-queue-title format-get format-set! format-stringify)))
+    (option-spec 'format-queue format-get format-set! format-stringify)))
 
 (define (options) *options*)
 
