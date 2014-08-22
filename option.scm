@@ -96,12 +96,10 @@
     (register-event! 'color-changed)))
 
 (define (format-set! option value)
-  (if (string? value)
-    (let ((fmt (string->list value)))
-      (when (format-string-valid? fmt)
-        (option-value-set! option (cons (format "~s" value)
-                                        (process-format fmt)))
-        (register-event! 'format-changed)))))
+  (when (and (string? value) (format-string-valid? value))
+    (option-value-set! option (cons (format "~s" value)
+                                    (process-format value)))
+    (register-event! 'format-changed)))
 
 (define (format-get option)
   (cdr (option-value option)))
@@ -114,7 +112,7 @@
     (format "~s" value)))
 
 (define (format-value fmt)
-  (cons (format "~s" fmt) (process-format (string->list fmt))))
+  (cons (format "~s" fmt) (process-format fmt)))
 
 ;; generates an alist entry for *options*
 (define (option-spec name accessor mutator #!optional (stringifier stringify))

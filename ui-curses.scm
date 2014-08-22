@@ -140,7 +140,7 @@
   (cursed view-cursed-fn))
 
 (define (make-view window title print-line #!optional (cursed generic-cursed-set!))
-  (*make-view window (process-format (string->list title)) print-line cursed))
+  (*make-view window (process-format title) print-line cursed))
 
 (define (view-window view-name)
   (*view-window (alist-ref view-name *views*)))

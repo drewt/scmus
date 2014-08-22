@@ -306,20 +306,21 @@
   (format-spec-valid? (skip-number spec)))
 
 ;; this should be called on any user-entered format string
-(define (format-string-valid? chars)
-  (assert (list? chars) "format-string-valid?" chars)
-  (cond
-    ((null? chars) #t)
-    ((not (char=? (car chars) #\~))
-      (format-string-valid? (cdr chars)))
-    ((format-spec-valid? (cdr chars))
-      (format-string-valid? (format-next (cdr chars))))
-    (else #f)))
+(define (format-string-valid? str)
+  (assert (string? str) "format-string-valid?" str)
+  (let loop ((chars (string->list str)))
+    (cond
+      ((null? chars) #t)
+      ((not (char=? (car chars) #\~))
+        (loop (cdr chars)))
+      ((format-spec-valid? (cdr chars))
+        (loop (format-next (cdr chars))))
+      (else #f))))
 
 ;; replaces format specifiers with symbols.
-;; chars is assumed valid.
-(define (process-format chars)
-  (assert (list? chars) "process-format" chars)
+;; str is assumed valid.
+(define (process-format str)
+  (assert (string? str) "process-format" str)
   ; first pass: parse format specifiers from list of chars
   (define (parse-format in)
     (let loop ((in in) (out '()))
@@ -347,4 +348,4 @@
           (loop (cdr rest) (string (car rest)) (cons last rv)))
         (else
           (loop (cdr rest) (car rest) (cons last rv))))))
-  (stringify-format (parse-format chars)))
+  (stringify-format (parse-format (string->list str))))
