@@ -182,4 +182,8 @@
     (pretty-print (condition->list error) out)
     (verbose-printf "~a~n"(get-output-string out))
     (set! *scmus-error* (get-output-string out)))
+  (if ((condition-predicate 'exn) error)
+    (command-line-print-error!
+      (format "~a: ~s" (get-condition-property error 'exn 'message)
+                       (get-condition-property error 'exn 'arguments))))
   (register-event! 'error-changed))
