@@ -297,8 +297,10 @@
 
 (define (update-cursor)
   (if *current-editable*
-    (move (car *editable-pos*) (+ (cdr *editable-pos*)
-                                  (editable-cursor-pos *current-editable*)))))
+    (move (car *editable-pos*)
+          (min (+ (cdr *editable-pos*)
+                  (editable-cursor-pos *current-editable*))
+               (- (COLS) 1)))))
 
 (define (redraw-ui)
   (for-each (lambda (x) (window-nr-lines-set! (*view-window (cdr x))
