@@ -46,11 +46,16 @@
   (assert (list? fmt) "scmus-format" fmt)
   (assert (integer? len) "scmus-format" len)
   (assert (list? track) "scmus-format" track)
-  (let ((pair (foldl format-concatenate
-                     '("" . "")
-                     (map (lambda (x) (format-replace x track len)) fmt))))
-    (cons (string-truncate (cdr pair) len #f)
-          (string-truncate (car pair) len #t))))
+  (let* ((pair (*scmus-format fmt len track))
+         (right-len (min (string-length (car pair)) len))
+         (left-len (- len right-len)))
+    (string-append (string-stretch (cdr pair) #\space left-len #t)
+                   (string-stretch (car pair) #\space right-len))))
+
+(define (*scmus-format fmt len track)
+  (foldl format-concatenate
+         '("" . "")
+         (map (lambda (x) (format-replace x track len)) fmt)))
 
 (define (format-concatenate pair e)
   (assert (pair? pair) "format-concatenate" pair)

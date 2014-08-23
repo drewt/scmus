@@ -18,10 +18,19 @@
 (require-extension sandbox srfi-13)
  
 (declare (unit eval-mode)
-         (uses keys ncurses option scmus-client ui-curses window)
+         (uses format keys ncurses option scmus-client ui-curses window)
          (export init-sandbox user-eval user-load))
 
 ;; user functions {{{
+
+(define (user-format fmt #!optional (track '()) (len (- (COLS) 2)))
+  (if (format-string-valid? fmt)
+    (scmus-format (process-format fmt) len track)
+    (abort
+      (make-composite-condition
+        (make-property-condition 'exn 'message "invalid format string"
+                                 'arguments fmt)
+        (make-property-condition 'scmus)))))
 
 (define (user-bind! keys context thunk #!optional (force #f))
   (let ((key-list (string-tokenize keys)))
@@ -112,6 +121,7 @@
   (user-export! 'random-set! scmus-random-set!)
   (user-export! 'repeat-set! scmus-repeat-set!)
   (user-export! 'rescan! rescan!)
+  (user-export! 'scmus-format user-format)
   (user-export! 'seek! scmus-seek!)
   (user-export! 'set-option! set-option!)
   (user-export! 'set-view! set-view!)

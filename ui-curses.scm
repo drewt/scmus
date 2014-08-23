@@ -180,15 +180,9 @@
   (assert (integer? line) "track-print-line" line)
   (assert (list? fmt) "track-print-line" fmt)
   (assert (list? track) "track-print-line" track)
-  (let* ((left-right (scmus-format fmt (- (COLS) 2) track))
-         (left (car left-right))
-         (right (cdr left-right)))
-    (mvaddch line 0 #\space)
-    (addstr left)
-    (clrtoeol)
-    (mvaddstr line
-              (- (COLS) (string-length right) 1)
-              right)))
+  (mvaddch line 0 #\space)
+  (addstr (scmus-format fmt (- (COLS) 2) track))
+  (clrtoeol))
 
 (define (print-view! view)
   (view-print-title! view)
