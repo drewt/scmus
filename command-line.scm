@@ -110,12 +110,16 @@
 ;; history }}}
 
 (define (command-line-print-info! str)
-  (editable-text-set! *command-line* str)
-  (set! *command-line-mode* 'info))
+  (case *command-line-mode*
+    ((eval search) (void))
+    (else (editable-text-set! *command-line* str)
+          (set! *command-line-mode* 'info))))
 
 (define (command-line-print-error! str)
-  (editable-text-set! *command-line* str)
-  (set! *command-line-mode* 'error))
+  (case *command-line-mode*
+    ((eval search) (void))
+    (else (editable-text-set! *command-line* str)
+          (set! *command-line-mode* 'error))))
 
 (define (command-line-changed!)
   (register-event! 'command-line-changed))
