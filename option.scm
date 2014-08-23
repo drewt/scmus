@@ -18,7 +18,7 @@
 (declare (unit option)
          (uses format ncurses ui-curses)
          (export get-option set-option! options option-get option-set!
-                 option-string write-config!))
+                 option-string get-format write-config!))
 
 ;; An option is a value with associated get/set! functions.
 ;; The get/set! functions may be set to option-value and
@@ -97,22 +97,25 @@
 
 (define (format-set! option value)
   (when (and (string? value) (format-string-valid? value))
-    (option-value-set! option (cons (format "~s" value)
-                                    (process-format value)))
+    (option-value-set! option (format-values value))
     (register-event! 'format-changed)))
 
 (define (format-get option)
-  (cdr (option-value option)))
+  (let ((pair (option-value option)))
+    (values (car pair) (cdr pair))))
 
 (define (format-stringify option)
-  (car (option-value option)))
+  (format "~s" (car (option-value option))))
+
+(define (format-values fmt)
+  (cons fmt (process-format fmt)))
+
+(define (get-format name)
+  (nth-value 1 (get-option name)))
 
 (define (stringify option)
   (let ((value (option-get option)))
     (format "~s" value)))
-
-(define (format-value fmt)
-  (cons (format "~s" fmt) (process-format fmt)))
 
 ;; generates an alist entry for *options*
 (define (option-spec name accessor mutator #!optional (stringifier stringify))
@@ -140,13 +143,13 @@
     (cons 'color-win-marked               '(default blue white))
     (cons 'color-win-title                '(default blue white))
     (cons 'format-current
-          (format-value "~a - ~l ~n. ~t~= ~y"))
+          (format-values "~a - ~l ~n. ~t~= ~y"))
     (cons 'format-status
-          (format-value "~P ~p / ~d - ~T vol: ~v~= ~S~R~r~C"))
+          (format-values "~P ~p / ~d - ~T vol: ~v~= ~S~R~r~C"))
     (cons 'format-library
-          (format-value "~-25%a ~3n. ~t~= ~-4y ~d"))
+          (format-values "~-25%a ~3n. ~t~= ~-4y ~d"))
     (cons 'format-queue
-          (format-value "~-25%a ~3n. ~t~= ~-4y ~d"))))
+          (format-values "~-25%a ~3n. ~t~= ~-4y ~d"))))
 
 ;; alist associating option names with options
 (define *options*

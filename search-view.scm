@@ -129,7 +129,7 @@
       (format-print-line line-nr " * ~a" (editable-text row)))
     ((separator? row) (move line-nr 0) (clrtoeol))
     (else
-      (track-print-line line-nr (get-option 'format-library) row))))
+      (track-print-line line-nr (get-format 'format-library) row))))
 
 (define (make-search-view)
   (make-view (make-window (list (make-search-field) '(separator . ""))

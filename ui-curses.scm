@@ -258,13 +258,13 @@
 (define (update-current-line)
   (cursed-set! CURSED-TITLELINE)
   (track-print-line (- (LINES) 3)
-                     (get-option 'format-current)
+                     (get-format 'format-current)
                      *current-track*))
 
 (define (update-status-line)
   (cursed-set! CURSED-STATUSLINE)
   (track-print-line (- (LINES) 2)
-                     (get-option 'format-status)
+                     (get-format 'format-status)
                      *current-track*))
 
 (define (update-status)
@@ -499,7 +499,7 @@
                           track-match)
              "Queue - ~{queue-length} tracks"
              (lambda (window track line-nr)
-               (track-print-line line-nr (get-option 'format-queue) track))
+               (track-print-line line-nr (get-format 'format-queue) track))
              trackwin-cursed-set!))
 
 (define (make-status-view)
