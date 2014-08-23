@@ -84,6 +84,7 @@
   (user-export! 'colorscheme! colorscheme!)
   (user-export! 'connect! scmus-connect!)
   (user-export! 'consume-set! scmus-consume-set!)
+  (user-export! 'current-elapsed scmus-elapsed)
   (user-export! 'current-track current-track)
   (user-export! 'disconnect! scmus-disconnect!)
   (user-export! 'echo! echo!)

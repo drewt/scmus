@@ -115,8 +115,8 @@
         (e () (error-set! e)
               (scmus-try-reconnect))))))
 
-(define (scmus-elapsed)
-  (seconds->string (inexact->exact (round (scmus-elapsed-ms)))))
+(define (scmus-elapsed-string)
+  (seconds->string (inexact->exact (round (scmus-elapsed)))))
 
 (define-syntax status-selector
   (syntax-rules ()
@@ -160,7 +160,7 @@
 (status-selector scmus-next-song 'nextsong 0)
 (status-selector scmus-next-song-id 'nextsongid 0)
 (status-selector scmus-elapsed-time 'time '(0))
-(status-selector scmus-elapsed-ms 'elapsed 0)
+(status-selector scmus-elapsed 'elapsed 0)
 (status-selector scmus-bitrate 'bitrate 0)
 (status-selector scmus-xfade 'xfade 0)
 (status-selector scmus-mixrampdb 'mixrampdb 0.0)

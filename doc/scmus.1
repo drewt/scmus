@@ -974,8 +974,8 @@ option's name between the angle brackets.
 Arbitrary scheme code can be embedded in a format string inside of ~[].  The
 code will be evaluated and the result substituted for the ~[] specifier, as if
 formatted by (format "~a" <code>).  If the code evaluates to a function, the
-function is called with a track object as its argument, and the return value
-is substituted.
+function is called with a track object and the formatted string's max width as
+arguments, and the return value is substituted.
 
 You can use printf style formatting (width, alignment, padding).  As an
 extension, the width can have a %\-suffix, to specify a precentage of the
