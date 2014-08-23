@@ -187,6 +187,8 @@
     ((random)       format-random)
     ((single)       format-single)
     ((consume)      format-consume)
+    ((host)         (lambda (track) (scmus-hostname)))
+    ((port)         (lambda (track) (scmus-port)))
     (else           (lambda (track) (track-meta track meta))))))
 
 ;; Split a code spec <code>]<rest> into (values <code> <rest>), handling

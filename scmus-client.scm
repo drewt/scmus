@@ -64,6 +64,16 @@
 (define (scmus-connected?)
   (and *mpd-connection* (mpd:connected? *mpd-connection*)))
 
+(define (scmus-hostname)
+  (if (scmus-connected?)
+    (mpd-host *mpd-connection*)
+    "<none>"))
+
+(define (scmus-port)
+  (if (scmus-connected?)
+    (mpd-port *mpd-connection*)
+    0))
+
 (define (exit-client)
   (if *mpd-connection*
     (mpd:disconnect *mpd-connection*)))
