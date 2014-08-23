@@ -65,9 +65,15 @@
 (define (browser-window-print-row window row line-nr)
   (if (pair? (car row))
     (case (caar row)
-      ((directory) (simple-print-line line-nr (format "~a/"  (cdar row))))
-      ((playlist)  (simple-print-line line-nr (format "[~a]" (cdar row))))
-      ((file)      (simple-print-line line-nr (format "~a"   (cdar row)))))
+      ((directory) (track-print-line line-nr
+                                     (get-format 'format-browser-dir)
+                                     row))
+      ((playlist)  (track-print-line line-nr
+                                     (get-format 'format-browser-playlist)
+                                     row))
+      ((file)      (track-print-line line-nr
+                                     (get-format 'format-browser-file)
+                                     row)))
     (alist-print-line window row line-nr)))
 
 (define (make-browser-window prev-win data)

@@ -124,6 +124,12 @@
                           stringifier
                           (alist-ref name *default-options*))))
 
+(define (color-option name)
+  (option-spec name option-value color-set!))
+
+(define (format-option name)
+  (option-spec name format-get format-set! format-stringify))
+
 ;; alist associating option names with default values
 (define *default-options*
   (list
@@ -149,30 +155,39 @@
     (cons 'format-library
           (format-values "~-25%a ~3n. ~t~= ~-4y ~d"))
     (cons 'format-queue
-          (format-values "~-25%a ~3n. ~t~= ~-4y ~d"))))
+          (format-values "~-25%a ~3n. ~t~= ~-4y ~d"))  
+    (cons 'format-browser-file
+          (format-values "~{path}"))
+    (cons 'format-browser-dir
+          (format-values "~{directory}/"))
+    (cons 'format-browser-playlist
+          (format-values "[~{playlist}]"))))
 
 ;; alist associating option names with options
 (define *options*
   (list
-    (option-spec 'mpd-address option-value mpd-address-set!)
-    (option-spec 'mpd-port option-value mpd-port-set!)
-    (option-spec 'mpd-password option-value mpd-password-set!)
-    (option-spec 'status-update-interval option-value update-interval-set!)
-    (option-spec 'color-cmdline option-value color-set!)
-    (option-spec 'color-error option-value color-set!)
-    (option-spec 'color-info option-value color-set!)
-    (option-spec 'color-statusline option-value color-set!)
-    (option-spec 'color-titleline option-value color-set!)
-    (option-spec 'color-win option-value color-set!)
-    (option-spec 'color-win-cur option-value color-set!)
-    (option-spec 'color-win-cur-sel option-value color-set!)
-    (option-spec 'color-win-sel option-value color-set!)
-    (option-spec 'color-win-marked option-value color-set!)
-    (option-spec 'color-win-title option-value color-set!)
-    (option-spec 'format-current format-get format-set! format-stringify)
-    (option-spec 'format-status format-get format-set! format-stringify)
-    (option-spec 'format-library format-get format-set! format-stringify)
-    (option-spec 'format-queue format-get format-set! format-stringify)))
+    (option-spec   'mpd-address option-value mpd-address-set!)
+    (option-spec   'mpd-port option-value mpd-port-set!)
+    (option-spec   'mpd-password option-value mpd-password-set!)
+    (option-spec   'status-update-interval option-value update-interval-set!)
+    (color-option  'color-cmdline)
+    (color-option  'color-error)
+    (color-option  'color-info)
+    (color-option  'color-statusline)
+    (color-option  'color-titleline)
+    (color-option  'color-win)
+    (color-option  'color-win-cur)
+    (color-option  'color-win-cur-sel)
+    (color-option  'color-win-sel)
+    (color-option  'color-win-marked)
+    (color-option  'color-win-title)
+    (format-option 'format-current)
+    (format-option 'format-status)
+    (format-option 'format-library)
+    (format-option 'format-queue)
+    (format-option 'format-browser-file)
+    (format-option 'format-browser-dir)
+    (format-option 'format-browser-playlist)))
 
 (define (options) *options*)
 
