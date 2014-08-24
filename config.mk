@@ -1,0 +1,2 @@
+CONFIG_WIDE_CHAR = y
+NCURSES_LIBS = -lncursesw

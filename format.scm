@@ -176,6 +176,7 @@
     ((#\{) (parse-braced-spec (cdr spec)))
     ((#\[) (parse-code-spec (cdr spec)))
     ((#\<) (parse-option-spec (cdr spec)))
+    ((#\() (parse-group-spec (cdr spec)))
     ((#\-) (cons 'pad-right (parse-format-spec (cdr spec))))
     ((#\0) (cons 'pad-zero (parse-format-spec (cdr spec))))
     ((#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
@@ -230,6 +231,24 @@
           ((#\\ ) (loop (cdr rest) code #t))
           (else   (loop (cdr rest) (cons (car rest) code) #f)))))))
 
+(define (parend-split spec open close)
+  (let loop ((rest spec) (group '()) (count 0) (escaping #f))
+    (cond
+      ((null? rest) (values (reverse group) #f))
+      (escaping? (loop (cdr rest) (cons (car rest) group) count #f))
+      (else
+        (cond
+          ((char=? (car rest) open)
+            (loop (cdr rest) (cons (car rest) group) (+ count 1) #f))
+          ((char=? (car rest) close)
+            (if (> count 0)
+              (loop (cdr rest) (cons (car rest) group) (- count 1) #f)
+              (values (reverse group) (cdr rest))))
+          ((char=? (car rest) #\\ )
+            (loop (cdr rest) group count #t))
+          (else
+            (loop (cdr rest) (cons (car rest) group) group #f)))))))
+
 (define (parse-code-spec spec)
   (assert (and (list? spec) (not (null? spec))) "parse-code-spec" spec)
   (let* ((str (list->string (code-split spec)))
@@ -242,6 +261,11 @@
   (assert (and (list? spec) (not (null? spec))) "parse-option-spec" spec)
   (let ((name (take-until->symbol spec #\>)))
     (lambda (track len) (get-option name))))
+
+;(define (parse-group-spec spec)
+;  (assert (and (list? spec) (not (null? spec))) "parse-group-spec" spec)
+;  (let ((group (take-until->symbol spec #\)))))
+;  )
 
 (define (parse-numbered-spec spec)
   (assert (and (list? spec) (not (null? spec))) "parse-numbered-spec" spec)

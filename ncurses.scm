@@ -494,9 +494,17 @@ EOF
 (define use_default_colors
   (foreign-lambda* integer () "return(use_default_colors());"))
 
-(define (get-wch)
-  (let ((*get-wch (foreign-lambda integer "get_wch" (c-pointer unsigned-int))))
-    (let-location ((ch unsigned-int))
-      (let ((rc (*get-wch (location ch))))
-        (values ch rc)))))
- 
+(define (get-char)
+  (cond-expand
+    (wide-char
+      (let ((*get-wch (foreign-lambda integer "get_wch" (c-pointer unsigned-int))))
+        (let-location ((ch unsigned-int))
+          (let ((rc (*get-wch (location ch))))
+            (values ch rc)))))
+    (else
+      (let ((r (char->integer (getch))))
+        (cond
+          ((= r ERR) (values 0 ERR))
+          ((> r 255) (values r KEY_CODE_YES))
+          (else      (values r OK)))))))
+

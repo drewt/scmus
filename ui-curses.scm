@@ -348,7 +348,7 @@
     ((edit-mode)   (editable-char *current-editable* ch))))
 
 (define (handle-input)
-  (let-values (((ch rc) (get-wch)))
+  (let-values (((ch rc) (get-char)))
     (cond
       ((= rc KEY_CODE_YES) (handle-key ch))
       ((= rc ERR) #f)
