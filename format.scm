@@ -46,25 +46,29 @@
   (assert (list? fmt) "scmus-format" fmt)
   (assert (integer? len) "scmus-format" len)
   (assert (list? track) "scmus-format" track)
-  (let* ((pair (*scmus-format fmt len track))
-         (right-len (min (string-length (car pair)) len))
-         (left-len (- len right-len)))
-    (string-append (string-stretch (cdr pair) #\space left-len #t)
-                   (string-stretch (car pair) #\space right-len))))
+  (let ((r (*scmus-format fmt len track)))
+    (if (string? r)
+      (string-truncate r len)
+      (let* ((right-len (min (string-length (cdr r)) len))
+             (left-len (- len right-len)))
+        (string-append (string-stretch (car r) #\space left-len #t)
+                       (string-stretch (cdr r) #\space right-len))))))
 
 (define (*scmus-format fmt len track)
   (foldl format-concatenate
-         '("" . "")
+         ""
          (map (lambda (x) (format-replace x track len)) fmt)))
 
-(define (format-concatenate pair e)
-  (assert (pair? pair) "format-concatenate" pair)
-  (assert (string? (car pair)) "format-concatenate" (car pair))
-  (assert (string? (cdr pair)) "format-concatenate" (cdr pair))
-  (assert (or (eqv? e 'align) (string? e)) "format-concatenate" e)
-  (if (eqv? e 'align)
-    (swap pair)
-    (cons (string-append (car pair) e) (cdr pair))))
+(define (format-concatenate acc x)
+  (assert (or (pair? acc) (string? acc)) "format-concatenate" acc)
+  (cond
+    ((and (string? acc) (eqv? x 'align))
+      (cons acc ""))
+    ((string? acc)
+      (string-append acc x))
+    ((string? x)
+      (cons (car acc) (string-append (cdr acc) x)))
+    (else acc)))
 
 (define (format-replace e track len)
   (assert (list? track) "format-replace" track)
@@ -347,10 +351,7 @@
     (let loop ((in in) (out '()))
       (cond
         ((null? in)
-          ; if the format string didn't contain "~=", 'align is added at the end
-          (reverse (if (member 'align out)
-                     out
-                     (cons 'align out))))
+          (reverse out))
         ((not (char=? (car in) #\~))
           (loop (cdr in) (cons (car in) out)))
         (else
