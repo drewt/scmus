@@ -1,17 +1,16 @@
-prefix = /usr/local
-bindir = $(prefix)/bin
-datadir = $(prefix)/share
-mandir = $(prefix)/share/man
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+datarootdir = @datarootdir@
+bindir = @bindir@
+datadir = @datadir@
+mandir = @mandir@
 
-version := $(shell git rev-parse --verify --short HEAD 2>/dev/null)-git
+LIBS = @NCURSES_LIBS@
+
+features-@CONFIG_WIDE_CHAR@ += -feature wide-char
 
 prelude = '"(define *scmus-dir* \"$(datadir)/scmus\")\
-	    (define *version* \"$(version)\")"'
-
-include config.mk
-features-$(CONFIG_WIDE_CHAR) += -feature wide-char
-
-LIBS = $(NCURSES_LIBS)
+	    (define *version*   \"@PACKAGE_VERSION@\")"'
 
 CSC      = csc
 CSCFLAGS = -scrutinize -C -Wno-int-to-pointer-cast -uses lib \
