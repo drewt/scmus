@@ -74,6 +74,11 @@
     (mpd-port *mpd-connection*)
     0))
 
+(define (scmus-address)
+  (if (scmus-connected?)
+    (mpd:address *mpd-connection*)
+    "<none>"))
+
 (define (exit-client)
   (if *mpd-connection*
     (mpd:disconnect *mpd-connection*)))

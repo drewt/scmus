@@ -106,6 +106,10 @@
 (define (mpd:connected? con)
   (if (in-port con) #t #f))
 
+(define (mpd:address con)
+  (if (in-port con)
+    (nth-value 1 (tcp-addresses (in-port con)))))
+
 (define (check-connection con)
   (let ((in (in-port con)))
     (if (and (char-ready? in)
