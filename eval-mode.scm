@@ -88,6 +88,9 @@
   (safe-environment-set! *user-env* name obj))
 
 (define (init-sandbox)
+  (safe-environment-macro-set! *user-env* (string->symbol "\u03bb")
+    (lambda (args)
+      (cons 'lambda args)))
   (user-export! 'bind! user-bind!)
   (user-export! 'clear-queue! scmus-clear!)
   (user-export! 'colorscheme! colorscheme!)
