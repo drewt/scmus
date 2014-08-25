@@ -104,6 +104,8 @@
   (user-export! 'load user-load)
   (user-export! 'mixramp-db scmus-mixrampdb)
   (user-export! 'mixramp-delay scmus-mixrampdelay)
+  (user-export! 'mpd-host scmus-hostname)
+  (user-export! 'mpd-port scmus-port)
   (user-export! 'next! scmus-next!)
   (user-export! 'next-id scmus-next-song-id)
   (user-export! 'next-pos scmus-next-song)
