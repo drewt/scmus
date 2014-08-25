@@ -237,6 +237,13 @@ the values of the mpd-address, mpd-port and mpd-password options if they are
 not provided as arguments.
 .RE
 
+;; consume? : void \-> boolean
+.br
+(consume?)
+.RS
+Returns #t if MPD is currently in consume mode, otherwise #f.
+.RE
+
 ;; consume\-set! : boolean \-> void
 .br
 (consume\-set! <value>)
@@ -244,11 +251,32 @@ not provided as arguments.
 Sets the value of the \fBconsume\fR MPD option.
 .RE
 
+;; current\-bitrate : void \-> integer
+.br
+(current\-bitrate)
+.RS
+Returns the current bitrate of the playing audio.
+.RE
+
+;; current\-elapsed : void \-> float
+.br
+(current\-elapsed)
+.RS
+Returns the position within the current track as a number of seconds.
+.RE
+
 ;; current\-track : void \-> track
 .br
 (current\-track)
 .RS
 Returns the track object for the currently playing track.
+.RE
+
+;; current\-volume: void \-> integer
+.br
+(current\-volume)
+.RS
+Returns the current volume.
 .RE
 
 ;; disconnect! : void \-> void
@@ -272,7 +300,7 @@ Prints the given string to the command line.
 Returns the value of the option \fIname\fR.
 .RE
 
-;; load : string -> void
+;; load : string \-> void
 .br
 (load <filename>)
 .RS
@@ -280,11 +308,39 @@ Loads the given file into the current environment.  This differs from the
 standard \fBload\fR function in that exceptions are ignored.
 .RE
 
+;; mixramp\-db : void \-> float
+.br
+(mixramp\-db)
+.RS
+Returns the current value of the mixrampdb MPD setting.
+.RE
+
+;; mixramp\-delay : void \-> float
+.br
+(mixramp\-delay)
+.RS
+Returns the current value of the mixrampdelay MPD setting.
+.RE
+
 ;; next! : void \-> void
 .br
 (next!)
 .RS
 Skip to the next track.
+.RE
+
+;; next\-id : void \-> integer
+.br
+(next\-id)
+.RS
+Returns the ID of the next track.
+.RE
+
+;; next\-pos : void \-> integer
+.br
+(next\-pos)
+.RS
+Returns the position of the next track.
 .RE
 
 ;; pause! : void \-> void
@@ -387,6 +443,13 @@ Removes the given pos/range from the play queue.
 Removes \fIsongid\fR from the play queue.
 .RE
 
+;; queue\-length : void \-> integer
+.br
+(queue\-length)
+.RS
+Returns the length of the play queue (number of tracks).
+.RE
+
 ;; queue\-move! : (or integer range) integer \-> void
 .br
 (queue\-move! <from> <to>)
@@ -416,11 +479,32 @@ Swaps the tracks at positions \fItrack1\fR and \fItrack2\fR in the play queue.
 Swaps the tracks with ids \fItrack1\fR and \fItrack2\fR in the play queue.
 .RE
 
+;; queue\-version : void \-> integer
+.br
+(queue\-version)
+.RS
+Returns the current version of the queue.
+.RE
+
+;; random? : void \-> boolean
+.br
+(random?)
+.RS
+Returns #t if MPD is currently in random mode, otherwise #f.
+.RE
+
 ;; random\-set! : boolean \-> void
 .br
 (random\-set! <value>)
 .RS
 Sets the value of the \fBrandom\fR MPD option.
+.RE
+
+;; repeat? : void \-> boolean
+.br
+(repeat?)
+.RS
+Returns #t if MPD is currently in repeat mode, otherwise #f.
 .RE
 
 ;; repeat\-set! : boolean \-> void
@@ -435,6 +519,16 @@ Sets the value of the \fBrepeat\fR MPD option.
 (rescan! [path])
 .RS
 Like update!, but also rescans unmodified files.
+.RE
+
+;; scmus\-format : string [track] integer \-> string
+.br
+(scmus\-format <format> [track] [length])
+.RS
+Returns a string formatted according to the given format string, track and
+maximum length.  If [track] is not given, it defaults to the null track.  If
+length is not given, it defaults to the current terminal width minus two.  See
+the \fBFormat Strings\fR section for information on format strings in scmus.
 .RE
 
 ;; seek! : integer \-> void
@@ -485,6 +579,14 @@ Shuffles the order of tracks in the play queue.
 (single\-set! <value>)
 .RS
 Sets the value of the \fBsingle\fR MPD option.
+.RE
+
+;; state : void \-> symbol
+.br
+(state)
+.RS
+Returns one of 'pause 'play 'stop 'unknown if MPD is paused, playing, stopped
+or in an unknown state, respectively.
 .RE
 
 ;; toggle\-consume! : void \-> void
@@ -774,6 +876,13 @@ Moves the cursor to the first line in the current window.
 Writes the current options to \fIfilename\fR, such that a subsequent call to
 \fBload\fR on the same file would restore scmus's options to their current
 values.
+.RE
+
+;; xfade : void \-> integer
+.br
+(xfade)
+.RS
+Returns the current value of the xfade MPD option.
 .RE
 .SH CONFIGURATION OPTIONS
 This section describes scmus's options that can be altered with the
