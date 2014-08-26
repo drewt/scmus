@@ -114,12 +114,12 @@
   (set-window! 'library (make-library-window))
   (register-event! 'library-data-changed))
 
-(define (library-window-print-row window row line-nr)
+(define (library-window-print-row window row line-nr cursed)
   (case (car row)
     ((separator playlist artist) (simple-print-line line-nr (cdr row)))
     ((album) (simple-print-line line-nr (cdr row)))
     ((track) (track-print-line line-nr (get-format 'format-library) (cdr row)))
-    ((metadata) (alist-print-line window (cdr row) line-nr))))
+    ((metadata) (alist-print-line window (cdr row) line-nr cursed))))
 
 (define (make-library-window)
   (make-window #f

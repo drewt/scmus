@@ -70,7 +70,7 @@
       (else #f))
     #f))
 
-(define (browser-window-print-row window row line-nr)
+(define (browser-window-print-row window row line-nr cursed)
   (if (pair? (car row))
     (case (caar row)
       ((directory) (track-print-line line-nr
@@ -82,7 +82,7 @@
       ((file)      (track-print-line line-nr
                                      (get-format 'format-browser-file)
                                      row)))
-    (alist-print-line window row line-nr)))
+    (alist-print-line window row line-nr cursed)))
 
 (define (make-browser-window prev-win data)
   (make-window (cons prev-win data)

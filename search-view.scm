@@ -123,7 +123,7 @@
 (define (search-match row query)
   (and (pair? row) (track-match row query)))
 
-(define (search-window-print-row window row line-nr)
+(define (search-window-print-row window row line-nr cursed)
   (cond
     ((editable? row)
       (format-print-line line-nr " * ~a" (editable-text row)))

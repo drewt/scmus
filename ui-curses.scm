@@ -152,8 +152,8 @@
   (cursed-set! CURSED-WIN-TITLE)
   (track-print-line 0 (view-title-fmt view) '()))
 
-(define (view-print-line! view row line-nr)
-  ((*view-print-line view) (*view-window view) row line-nr))
+(define (view-print-line! view row line-nr cursed)
+  ((*view-print-line view) (*view-window view) row line-nr cursed))
 
 (define (view-cursed-set! view row line-nr)
   ((view-cursed-fn view) (*view-window view) row line-nr))
@@ -176,14 +176,6 @@
 ;; windows }}}
 ;; screen updates {{{
 
-(define (track-print-line line fmt track)
-  (assert (integer? line) "track-print-line" line)
-  (assert (list? fmt) "track-print-line" fmt)
-  (assert (list? track) "track-print-line" track)
-  (mvaddch line 0 #\space)
-  (addstr (scmus-format fmt (- (COLS) 2) track))
-  (clrtoeol))
-
 (define (print-view! view)
   (view-print-title! view)
   (let* ((window (*view-window view))
@@ -195,9 +187,17 @@
             (begin (cursed-set! CURSED-WIN)
                    (move line-nr 0)
                    (clrtoeol))
-            (begin (view-cursed-set! view (car rows) line-nr)
-                   (view-print-line! view (car rows) line-nr)))
+            (let ((cursed (view-cursed-set! view (car rows) line-nr)))
+              (view-print-line! view (car rows) line-nr cursed)))
           (loop (if (null? rows) '() (cdr rows)) (- lines 1)))))))
+
+(define (track-print-line line fmt track)
+  (assert (integer? line) "track-print-line" line)
+  (assert (list? fmt) "track-print-line" fmt)
+  (assert (list? track) "track-print-line" track)
+  (mvaddch line 0 #\space)
+  (addstr (scmus-format fmt (- (COLS) 2) track))
+  (clrtoeol))
 
 (define (simple-print-line line-nr str)
   (mvaddstr line-nr 0
@@ -212,13 +212,13 @@
   (clrtoeol))
 
 ;; Generic function to print an alist entry, for use with print-window.
-(define (alist-print-line window row line-nr)
+(define (alist-print-line window row line-nr cursed)
   (simple-print-line line-nr (car row))
   (mvaddstr line-nr (- (quotient (COLS) 2) 1)
             (string-truncate (format " ~a" (cdr row))
                              (- (COLS) 2))))
 
-(define (list-window-print-row window row line-nr)
+(define (list-window-print-row window row line-nr cursed)
   (simple-print-line line-nr row))
 
 (define (separator? row)
@@ -448,7 +448,8 @@
 
 (define (cursed-set! cursed)
   (bkgdset (bitwise-ior (COLOR_PAIR (cursed-pair cursed))
-                        (cursed-attr cursed))))
+                        (cursed-attr cursed)))
+  cursed)
 
 ;; colors }}}
 
@@ -498,7 +499,7 @@
                           void
                           track-match)
              "Queue - ~{queue-length} tracks"
-             (lambda (window track line-nr)
+             (lambda (window track line-nr cursed)
                (track-print-line line-nr (get-format 'format-queue) track))
              trackwin-cursed-set!))
 

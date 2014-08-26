@@ -37,10 +37,11 @@
                      (cons (+ 1 (window-sel-pos window))
                            (quotient (COLS) 2)))))
 
-(define (options-window-print-row window row line-nr)
+(define (options-window-print-row window row line-nr cursed)
   (alist-print-line window
                     (cons (car row) (editable-text (cdr row)))
-                    line-nr))
+                    line-nr
+                    cursed))
 
 (define (option-commit-edit! editable)
   (set-option! (car (window-selected (view-window 'options)))
