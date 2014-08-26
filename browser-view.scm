@@ -62,6 +62,14 @@
     (set-window! 'browser (browser-prev-window window))
     (register-event! 'browser-data-changed)))
 
+(define (browser-match row query)
+  (if (pair? (car row))
+    (case (caar row)
+      ((directory playlist) (string-contains-ci (cdar row) query))
+      ((file) (track-match row query))
+      (else #f))
+    #f))
+
 (define (browser-window-print-row window row line-nr)
   (if (pair? (car row))
     (case (caar row)
@@ -82,7 +90,7 @@
                (lambda (w) (register-event! 'browser-changed))
                browser-activate!
                browser-deactivate!
-               (lambda (e q) #f)))
+               browser-match))
 
 (define (make-browser-view)
   (make-view (make-browser-window #f (scmus-lsinfo "/"))
