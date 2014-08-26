@@ -26,3 +26,14 @@
       (if (= key choice)
         (begin first rest ...)
         (key-case key ((choices ...) first rest ...) others ...)))))
+
+(define-syntax without-curses
+  (syntax-rules ()
+    ((without-curses first rest ...)
+      (if *ui-initialized*
+        (begin
+          (endwin)
+          (let ((r (begin first rest ...)))
+            (refresh)
+            r))
+        (begin first rest ...)))))

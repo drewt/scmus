@@ -74,12 +74,7 @@
   (nth-value 2 (process-wait (apply shell! command args))))
 
 (define (shell-term! command . args)
-  (if *ui-initialized*
-    (begin
-      (endwin)
-      (let ((r (apply shell-sync! command args)))
-        (refresh)
-        r))
+  (without-curses
     (apply shell-sync! command args)))
 
 (define (update! #!optional (path #f))

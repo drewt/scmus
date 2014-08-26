@@ -39,19 +39,11 @@
     (console-pp sexp)))
 
 (define (console-printf . args)
-  (if *ui-initialized*
-    (begin
-      (endwin)
-      (apply printf args)
-      (refresh))
+  (without-curses
     (apply printf args)))
 
 (define (console-pp sexp)
-  (if *ui-initialized*
-    (begin
-      (endwin)
-      (pp sexp)
-      (refresh))
+  (without-curses
     (pp sexp)))
 
 (define (separator? obj)
