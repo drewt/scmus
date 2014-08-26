@@ -588,6 +588,14 @@ Like \fBshell!\fR, except that this function waits for the process to exit and
 returns its exit status.
 .RE
 
+;; shell\-term! : string . strings \-> integer
+.br
+(shell\-term! <command> . <args>)
+.RS
+Like \fBshell-sync!\fR, except that curses is temporarily disabled while the
+command runs.
+.RE
+
 ;; shuffle! : void \-> void
 .br
 (shuffle!)

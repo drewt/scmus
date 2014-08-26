@@ -73,6 +73,15 @@
 (define (shell-sync! command . args)
   (nth-value 2 (process-wait (apply shell! command args))))
 
+(define (shell-term! command . args)
+  (if *ui-initialized*
+    (begin
+      (endwin)
+      (let ((r (apply shell-sync! command args)))
+        (refresh)
+        r))
+    (apply shell-sync! command args)))
+
 (define (update! #!optional (path #f))
   (scmus-update! path))
 
@@ -144,6 +153,7 @@
   (user-export! 'set-view! set-view!)
   (user-export! 'shell! shell!)
   (user-export! 'shell-sync! shell-sync!)
+  (user-export! 'shell-term! shell-term!)
   (user-export! 'shuffle! scmus-shuffle!)
   (user-export! 'single? scmus-single?)
   (user-export! 'single-set! scmus-single-set!)
