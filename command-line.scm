@@ -155,7 +155,9 @@
         (mode *command-line-mode*))
     (command-line-leave editable)
     (if (eqv? mode 'eval)
-      (user-eval cmdline)
+      (let ((r (user-eval cmdline)))
+        (if (and (not (condition? r)) (get-option 'eval-mode-print))
+          (command-line-print-info! (format "~s" r))))
       (win-search! cmdline))))
 
 (define (command-line-char editable ch)
