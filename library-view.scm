@@ -80,7 +80,7 @@
                library-changed!
                album-activate!
                library-deactivate!
-               (match-function string-contains-ci)))
+               (match-function substring-match)))
 
 (define (artist-activate! window artist)
   (let ((albums (scmus-list-tags 'album (cons 'artist artist))))
@@ -125,7 +125,7 @@
                library-changed!
                toplevel-activate!
                void
-               (match-function string-contains-ci)))
+               (match-function substring-match)))
 
 (define (make-library-view)
   (make-view (make-library-window)

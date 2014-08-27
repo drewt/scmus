@@ -93,6 +93,10 @@
 (define (color->char color)
   (integer->char (+ color +unicode-private-base+ 2)))
 
+;; substitute for broken utf8#string-contains-ci
+(define (substring-match str sub)
+  (string-contains (string-downcase str) (string-downcase sub)))
+
 (define (string-width str)
   (foldl + 0 (map char-width (string->list str))))
 

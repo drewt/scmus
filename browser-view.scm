@@ -63,7 +63,7 @@
 (define (browser-match row query)
   (if (pair? (car row))
     (case (caar row)
-      ((directory playlist) (string-contains-ci (cdar row) query))
+      ((directory playlist) (substring-match (cdar row) query))
       ((file) (track-match row query))
       (else #f))
     #f))
