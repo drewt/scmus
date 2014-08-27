@@ -56,7 +56,7 @@
     (option-value-set! option value)))
 
 (define (mpd-port-set! option value)
-  (when (port-valid? value)
+  (when (or (not value) (port-valid? value))
     (option-value-set! option value)))
 
 (define (mpd-password-set! option value)

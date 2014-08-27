@@ -37,6 +37,9 @@
         (mkopt 'port '("-p" "--port") '("PORT")
                "port number of the MPD server"
                store-number port-valid?)
+        (mkopt 'unix '("-u" "--unix") '("PATH")
+               "path to UNIX domain socket"
+               store-one)
         (mkopt 'password '("--password") '("PASS")
                "password for the MPD server"
                store-one)
@@ -79,6 +82,9 @@
   (if (alist-ref 'version opts) (version))
   (if (alist-ref 'verbose opts) (set! *verbose* #t))
   (if (alist-ref 'command opts) (command opts))
+  (if (alist-ref 'unix opts)
+    (set! opts (alist-update! 'address (alist-ref 'unix opts)
+                              (alist-update! 'port #f opts))))
   (handle-exceptions exn
     (begin (print "Failed to initialize scmus.  Exiting.")
            (debug-printf "~a~n" (condition->list exn))
@@ -96,11 +102,13 @@
     (handle-exceptions x
       (verbose-printf "failed to load ~a~n" *scmusrc-path*)
       (user-load *scmusrc-path*))
+    (printf "address=~a~n" (alist-ref 'address opts))
+    (printf "port=~a~n" (alist-ref 'port opts))
     (verbose-printf "Initializing curses...~n")
     (init-curses)
     (scmus-connect! (alist-ref 'address opts)
-                    (alist-ref 'port opts)
-                    (alist-ref 'password opts))))
+                    (alist-ref 'port opts eqv? 'default)
+                    (alist-ref 'password opts eqv? 'default))))
 
 ;; enter main loop, and clean up on exit
 (let ((code (call/cc main)))

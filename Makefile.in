@@ -19,7 +19,7 @@ LD       = csc
 LDFLAGS  =
 INSTALL  = @scripts/install
 
-eggs = easyffi sandbox utf8
+eggs = easyffi sandbox unix-sockets utf8
 
 objects = browser-view.o config.o command-line.o editable.o eval-mode.o \
 	  format.o getopt.o keys.o lib.o library-view.o main.o mpd-client.o \

@@ -42,7 +42,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension regex srfi-1 tcp)
+(require-extension regex srfi-1 tcp unix-sockets)
 
 (declare (unit mpd-client)
          (hide make-connection mpd-host-set! mpd-port-set! in-port in-port-set!
@@ -81,10 +81,15 @@
   (in-port-set! con #f)
   (void))
 
+(define (socket-connect con)
+  (if (mpd-port con)
+    (tcp-connect (mpd-host con) (mpd-port con))
+    (unix-connect (mpd-host con))))
+
 (define (mpd:reconnect con)
   (if (in-port con)
     (mpd:disconnect con))
-  (let-values (((in out) (tcp-connect (mpd-host con) (mpd-port con))))
+  (let-values (((in out) (socket-connect con)))
     (let ((l (read-line in)))
       (cond
         ((eof-object? l)
@@ -108,7 +113,9 @@
 
 (define (mpd:address con)
   (if (in-port con)
-    (nth-value 1 (tcp-addresses (in-port con)))))
+    (if (mpd-port con)
+      (nth-value 1 (tcp-addresses (in-port con)))
+      (mpd-host con))))
 
 (define (check-connection con)
   (let ((in (in-port con)))
