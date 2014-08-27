@@ -15,13 +15,18 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension sandbox srfi-13)
+(require-extension sandbox)
  
 (declare (unit eval-mode)
          (uses format keys ncurses option scmus-client ui-curses window)
          (export init-sandbox user-eval user-load))
 
 ;; user functions {{{
+
+(define (user-color->char color)
+  (cond
+    ((*->color-code color) => (lambda (ch) (color->char ch)))
+    (else #f)))
 
 (define (user-format fmt #!optional (track '()) (len (- (COLS) 2)))
   (if (format-string-valid? fmt)
@@ -95,8 +100,18 @@
   (safe-environment-macro-set! *user-env* (string->symbol "\u03bb")
     (lambda (args)
       (cons 'lambda args)))
+  (user-export! 'string-length string-length)
+  (user-export! 'string-ref string-ref)
+  (user-export! 'string-set! string-set!)
+  (user-export! 'make-string make-string)
+  (user-export! 'string string)
+  (user-export! 'substring substring)
+  (user-export! 'string->list string->list)
+  (user-export! 'list->string list->string)
+  (user-export! 'string-fill! string-fill!)
   (user-export! 'bind! user-bind!)
   (user-export! 'clear-queue! scmus-clear!)
+  (user-export! 'color->char user-color->char)
   (user-export! 'colorscheme! colorscheme!)
   (user-export! 'connect! scmus-connect!)
   (user-export! 'consume? scmus-consume?)

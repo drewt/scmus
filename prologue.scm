@@ -1,4 +1,4 @@
-(require-extension utf8 utf8-srfi-13)
+(require-extension srfi-1 utf8 utf8-srfi-13)
 
 (import
   (except scheme

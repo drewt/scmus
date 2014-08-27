@@ -15,8 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-1 srfi-13)
-
 (declare (unit options-view)
          (uses editable ncurses option ui-curses window)
          (export make-options-view option-edit! update-options-data))

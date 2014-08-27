@@ -15,7 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-13 srfi-18)
+(require-extension srfi-18)
 
 (declare (unit scmus-client)
          (uses mpd-client option)

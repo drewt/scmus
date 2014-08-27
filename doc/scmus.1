@@ -1127,8 +1127,10 @@ If the string inside a ~{} specifier is not one of the predefined values above,
 scmus will still try to find a metadata field with that name.  So ~{} can be
 used to display arbitrary metadata, so long as the metadata is reported by MPD.
 
-Options may be displayed in formatted text using the ~<> specifier with the
-option's name between the angle brackets.
+Colors may be specified in format strings with the ~<> specifier.  Numbers
+between \-1 and 255 as well as color names (e.g. "green") are supported.
+~<reset> or ~<!> is used to reset the color to the default after using color
+specifiers.
 
 Arbitrary scheme code can be embedded in a format string inside of ~[].  The
 code will be evaluated and the result substituted for the ~[] specifier, as if
@@ -1152,7 +1154,7 @@ Examples
 (set\-option! 'format\-current "~a \- ~l ~n. ~t~= ~y")
 (set\-option! 'format\-queue "~\-25%a ~3n. ~t~= ~\-4y ~d")
 (set\-option! 'format\-queue "~{musicbrainz_trackid}")
-(set\-option! 'format\-status "~<mpd\-address>:~<mpd\-port>")
+(set\-option! 'format\-queue "~~<5>\-25%a~<!> ~3n. ~t~= ~\-4y ~d")
 (set\-option! 'format\-queue "~[(lambda (x) (track\-file x))]")
 (set\-option! 'format\-queue "~25%(Artist: ~a)")
 .fi

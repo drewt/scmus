@@ -52,7 +52,46 @@
 (define (port-valid? port)
   (and (integer? port) (positive? port) (< port 65536)))
 
+(define (*->color-code x)
+  (cond
+    ((string? x) (or (*->color-code (string->number x))
+                     (*->color-code (string->symbol x))))
+    ((and (integer? x) (>= x -1) (< x 256)) x)
+    (else (case x
+            ((reset !)       -2)
+            ((default)       -1)
+            ((black)         COLOR_BLACK)
+            ((red)           COLOR_RED)
+            ((green)         COLOR_GREEN)
+            ((yellow)        COLOR_YELLOW)
+            ((blue)          COLOR_BLUE)
+            ((magenta)       COLOR_MAGENTA)
+            ((cyan)          COLOR_CYAN)
+            ((white)         COLOR_WHITE)
+            ((dark-gray)     8)
+            ((light-red)     9)
+            ((light-green)   10)
+            ((light-yellow)  11)
+            ((light-blue)    12)
+            ((light-magenta) 13)
+            ((light-cyan)    14)
+            ((gray)          15)
+            (else            #f)))))
+
 ;; unicode stuff {{{
+
+(define-constant +unicode-private-base+ #xE000)
+
+(define (color-code? ch)
+  (let ((u (char->integer ch)))
+    (and (>= u +unicode-private-base+)
+         (< u (+ 258 +unicode-private-base+)))))
+
+(define (ch->color-code ch)
+  (- (char->integer ch) +unicode-private-base+ 2))
+
+(define (color->char color)
+  (integer->char (+ color +unicode-private-base+ 2)))
 
 (define (string-width str)
   (foldl + 0 (map char-width (string->list str))))
@@ -77,6 +116,9 @@
       ((= u #x309a) 1)
       ; CJK ... Yi
       ((<= u #xa4cf) 2)
+      ; color codes (private area)
+      ((and (>= u +unicode-private-base+)
+            (< u (+ 256 +unicode-private-base+))) 0)
       ; Hangul Syllables
       ((and (>= u #xac00) (<= u #xd7a3)) 2)
       ; CJK Compatibility Ideographs

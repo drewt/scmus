@@ -15,8 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-13)
-
 (declare (unit ui-curses)
          (uses scmus-client eval-mode command-line keys format ncurses
                option window search-view library-view options-view
@@ -31,17 +29,17 @@
                  register-event! curses-update cursor-on cursor-off
                  set-input-mode! handle-input init-curses exit-curses))
 
-(define-constant CURSED-CMDLINE 0)
-(define-constant CURSED-ERROR 1)
-(define-constant CURSED-INFO 2)
-(define-constant CURSED-STATUSLINE 3)
-(define-constant CURSED-TITLELINE 4)
-(define-constant CURSED-WIN 5)
-(define-constant CURSED-WIN-CUR 6)
-(define-constant CURSED-WIN-CUR-SEL 7)
-(define-constant CURSED-WIN-SEL 8)
-(define-constant CURSED-WIN-MARKED 9)
-(define-constant CURSED-WIN-TITLE 10)
+(define-constant CURSED-CMDLINE 1)
+(define-constant CURSED-ERROR 2)
+(define-constant CURSED-INFO 3)
+(define-constant CURSED-STATUSLINE 4)
+(define-constant CURSED-TITLELINE 5)
+(define-constant CURSED-WIN 6)
+(define-constant CURSED-WIN-CUR 7)
+(define-constant CURSED-WIN-CUR-SEL 8)
+(define-constant CURSED-WIN-SEL 9)
+(define-constant CURSED-WIN-MARKED 10)
+(define-constant CURSED-WIN-TITLE 11)
 (define-constant NR-CURSED 11)
 
 (define *ui-initialized* #f)
@@ -150,7 +148,7 @@
 
 (define (view-print-title! view)
   (cursed-set! CURSED-WIN-TITLE)
-  (track-print-line 0 (view-title-fmt view) '()))
+  (track-print-line 0 (view-title-fmt view) '() CURSED-WIN-TITLE))
 
 (define (view-print-line! view row line-nr cursed)
   ((*view-print-line view) (*view-window view) row line-nr cursed))
@@ -191,12 +189,25 @@
               (view-print-line! view (car rows) line-nr cursed)))
           (loop (if (null? rows) '() (cdr rows)) (- lines 1)))))))
 
-(define (track-print-line line fmt track)
+(define (format-addstr! str cursed)
+  (let loop ((str str))
+    (let ((i (string-index str color-code?)))
+      (if i
+        (let ((code (ch->color-code (string-ref str i))))
+          (addstr (string-take str i))
+          ;(cursed-aux-set! code)
+          (if (= code -2)
+            (cursed-set! cursed)
+            (cursed-temp-set! cursed code))
+          (loop (substring/shared str (+ i 1))))
+        (addstr str)))))
+
+(define (track-print-line line fmt track cursed)
   (assert (integer? line) "track-print-line" line)
   (assert (list? fmt) "track-print-line" fmt)
   (assert (list? track) "track-print-line" track)
   (mvaddch line 0 #\space)
-  (addstr (scmus-format fmt (- (COLS) 2) track))
+  (format-addstr! (scmus-format fmt (- (COLS) 2) track) cursed)
   (clrtoeol))
 
 (define (simple-print-line line-nr str)
@@ -248,24 +259,19 @@
 ;; cursed-set! for track windows (e.g. queue)
 (define trackwin-cursed-set! (win-cursed-fn current-track?))
 
-(define (update-track-window window title-fmt track-fmt)
-  (print-window-title title-fmt)
-  (print-window window
-                (lambda (window track line-nr)
-                  (track-print-line line-nr track-fmt track))
-                trackwin-cursed-set!))
-
 (define (update-current-line)
   (cursed-set! CURSED-TITLELINE)
   (track-print-line (- (LINES) 3)
                      (get-format 'format-current)
-                     *current-track*))
+                     *current-track*
+                     CURSED-TITLELINE))
 
 (define (update-status-line)
   (cursed-set! CURSED-STATUSLINE)
   (track-print-line (- (LINES) 2)
                      (get-format 'format-status)
-                     *current-track*))
+                     *current-track*
+                     CURSED-STATUSLINE))
 
 (define (update-status)
   (update-status-line)
@@ -357,7 +363,7 @@
 ;; colors {{{
 
 (define (color->number color)
-  (if (number? color)
+  (if (and (integer? color) (>= color -1) (< color 256))
     color
     (case color
       ((default)       -1)
@@ -377,10 +383,10 @@
       ((light-magenta) 13)
       ((light-cyan)    14)
       ((gray)          15)
-      (else            -1))))
+      (else            #f))))
 
 (define (attr->number attr)
-  (if (number? attr)
+  (if (integer? attr)
     attr
     (case attr
       ((default)    0)
@@ -401,36 +407,38 @@
       ((right)      A_RIGHT)
       ((low)        A_LOW)
       ((top)        A_TOP)
-      ((vertical)   A_VERTICAL))))
-
+      ((vertical)   A_VERTICAL)
+      (else         #f))))
+ 
 (define *colors* (make-vector NR-CURSED))
 
 (define (get-color-option name)
   (let ((option (get-option name)))
+    (assert (list? option))
     (list (attr->number (car option))
           (color->number (cadr option))
           (color->number (caddr option)))))
 
-(define (cursed-pair cursed)
-  (+ 1 cursed))
+(define (cursed-i cursed)
+  (- cursed 1))
 
 (define (cursed-attr cursed)
-  (car (vector-ref *colors* cursed)))
+  (car (vector-ref *colors* (cursed-i cursed))))
 
 (define (cursed-bg cursed)
-  (cadr (vector-ref *colors* cursed)))
+  (cadr (vector-ref *colors* (cursed-i cursed))))
 
 (define (cursed-fg cursed)
-  (caddr (vector-ref *colors* cursed)))
+  (caddr (vector-ref *colors* (cursed-i cursed))))
 
 (define (init-cursed! cursed color)
-  (vector-set! *colors* cursed (get-color-option color)))
+  (vector-set! *colors* (cursed-i cursed) (get-color-option color)))
 
 (define (update-colors!)
   (define (*update-colors!)
-    (let loop ((i 0))
-      (when (< i NR-CURSED)
-        (init_pair (cursed-pair i) (cursed-fg i) (cursed-bg i))
+    (let loop ((i 1))
+      (when (<= i NR-CURSED)
+        (init_pair i (cursed-fg i) (cursed-bg i))
         (loop (+ i 1)))))
   (init-cursed! CURSED-CMDLINE     'color-cmdline)
   (init-cursed! CURSED-ERROR       'color-error)
@@ -447,9 +455,36 @@
   (cursed-set! CURSED-WIN))
 
 (define (cursed-set! cursed)
-  (bkgdset (bitwise-ior (COLOR_PAIR (cursed-pair cursed))
+  (bkgdset (bitwise-ior (COLOR_PAIR cursed)
                         (cursed-attr cursed)))
   cursed)
+
+(define (find-pair fg bg)
+  (let loop ((i 1))
+    (if (< i (COLOR_PAIRS))
+      (let-values (((p-fg p-bg) (pair_content i)))
+        (if (and (= p-fg fg)
+                 (= p-bg bg))
+          i
+          (loop (+ i 1))))
+      #f)))
+
+(define cursed-temp-set!
+  (let ((next (+ NR-CURSED 1)))
+    (define (cursed-set! pair attr)
+      (bkgdset (bitwise-ior (COLOR_PAIR pair) attr)))
+    (lambda (base #!optional (fg (cursed-fg base))
+                             (bg (cursed-bg base))
+                             (attr (cursed-attr base)))
+      (cond
+        ((find-pair fg bg) => (lambda (x) (cursed-set! x attr)))
+        (else
+          (let ((this next))
+            (set! next (if (< next (- (COLOR_PAIRS) 1))
+                         (+ next 1)
+                         (+ NR-CURSED 1)))
+            (init_pair this fg bg)
+            (cursed-set! this attr)))))))
 
 ;; colors }}}
 
@@ -500,7 +535,7 @@
                           track-match)
              "Queue - ~{queue-length} tracks"
              (lambda (window track line-nr cursed)
-               (track-print-line line-nr (get-format 'format-queue) track))
+               (track-print-line line-nr (get-format 'format-queue) track cursed))
              trackwin-cursed-set!))
 
 (define (make-status-view)

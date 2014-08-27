@@ -15,8 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-1 srfi-13)
-
 (declare (unit search-view)
          (uses editable ncurses scmus-client window ui-curses)
          (export make-search-view search-edit! search-clear! search-add!
@@ -129,7 +127,7 @@
       (format-print-line line-nr " * ~a" (editable-text row)))
     ((separator? row) (move line-nr 0) (clrtoeol))
     (else
-      (track-print-line line-nr (get-format 'format-library) row))))
+      (track-print-line line-nr (get-format 'format-library) row cursed))))
 
 (define (make-search-view)
   (make-view (make-window (list (make-search-field) '(separator . ""))

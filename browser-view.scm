@@ -15,8 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-1 srfi-13)
-
 (declare (unit browser-view)
          (uses ncurses scmus-client ui-curses window)
          (export browser-add-selected! make-browser-view update-browser!))
@@ -75,13 +73,16 @@
     (case (caar row)
       ((directory) (track-print-line line-nr
                                      (get-format 'format-browser-dir)
-                                     row))
+                                     row
+                                     cursed))
       ((playlist)  (track-print-line line-nr
                                      (get-format 'format-browser-playlist)
-                                     row))
+                                     row
+                                     cursed))
       ((file)      (track-print-line line-nr
                                      (get-format 'format-browser-file)
-                                     row)))
+                                     row
+                                     cursed)))
     (alist-print-line window row line-nr cursed)))
 
 (define (make-browser-window prev-win data)

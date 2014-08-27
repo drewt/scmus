@@ -15,8 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-1 srfi-13)
-
 (declare (unit library-view)
          (uses ncurses scmus-client ui-curses window)
          (export library-add-selected! make-library-view update-library!))
@@ -118,7 +116,7 @@
   (case (car row)
     ((separator playlist artist) (simple-print-line line-nr (cdr row)))
     ((album) (simple-print-line line-nr (cdr row)))
-    ((track) (track-print-line line-nr (get-format 'format-library) (cdr row)))
+    ((track) (track-print-line line-nr (get-format 'format-library) (cdr row) cursed))
     ((metadata) (alist-print-line window (cdr row) line-nr cursed))))
 
 (define (make-library-window)

@@ -177,7 +177,7 @@
     ((#\C) format-consume)
     ((#\{) (parse-braced-spec (cdr spec)))
     ((#\[) (parse-code-spec (cdr spec)))
-    ((#\<) (parse-option-spec (cdr spec)))
+    ((#\<) (parse-color-spec (cdr spec)))
     ((#\() (parse-group-spec (cdr spec)))
     ((#\-) (cons 'pad-right (parse-format-spec (cdr spec))))
     ((#\0) (cons 'pad-zero (parse-format-spec (cdr spec))))
@@ -213,6 +213,9 @@
 
 (define (parend->symbol spec open close)
   (string->symbol (list->string (parend-split spec open close))))
+
+(define (parend->string spec open close)
+  (list->string (parend-split spec open close)))
 
 (define (parse-braced-spec spec)
   (assert (and (list? spec) (not (null? spec))) "parse-braced-spec" spec)
@@ -251,10 +254,9 @@
       obj
       (lambda (track len) obj))))
 
-(define (parse-option-spec spec)
-  (assert (and (list? spec) (not (null? spec))) "parse-option-spec" spec)
-  (let ((name (parend->symbol spec #\< #\>)))
-    (lambda (track len) (get-option name))))
+(define (parse-color-spec spec)
+  (assert (and (list? spec) (not (null? spec))) "parse-color-spec" spec)
+  (string (color->char (*->color-code (parend->string spec #\< #\>)))))
 
 (define (parse-group-spec spec)
   (assert (and (list? spec) (not (null? spec))) "parse-group-spec" spec)
@@ -282,7 +284,7 @@
   (cond
     ((char=? (car spec) #\{) (braced-next (cdr spec)))
     ((char=? (car spec) #\[) (code-next   (cdr spec)))
-    ((char=? (car spec) #\<) (option-next (cdr spec)))
+    ((char=? (car spec) #\<) (color-next (cdr spec)))
     ((char=? (car spec) #\-) (format-next (cdr spec)))
     ((char=? (car spec) #\() (group-next  (cdr spec)))
     ((char-numeric? (car spec)) (numbered-next spec))
@@ -294,7 +296,7 @@
 (define (code-next spec)
   (nth-value 1 (parend-split spec #\[ #\])))
 
-(define (option-next spec)
+(define (color-next spec)
   (nth-value 1 (parend-split spec #\< #\>)))
 
 (define (group-next spec)
@@ -325,7 +327,7 @@
         #\R #\r #\S #\C) #t)
       ((#\{) (braced-spec-valid? (cdr spec)))
       ((#\[) (code-spec-valid?   (cdr spec)))
-      ((#\<) (option-spec-valid? (cdr spec)))
+      ((#\<) (color-spec-valid? (cdr spec)))
       ((#\() (group-spec-valid?  (cdr spec)))
       ((#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\0) (numbered-spec-valid? spec))
       ((#\-) (format-spec-valid? (cdr spec)))
@@ -341,9 +343,9 @@
       (read (open-input-string (list->string code)))
       rest)))
 
-(define (option-spec-valid? spec)
-  (let-values (((opt rest) (parend-split spec #\< #\>)))
-    rest))
+(define (color-spec-valid? spec)
+  (let-values (((color rest) (parend-split spec #\< #\>)))
+    (*->color-code (list->string color))))
 
 (define (group-spec-valid? spec)
   (let-values (((group rest) (parend-split spec #\( #\))))
