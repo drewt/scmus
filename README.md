@@ -27,6 +27,7 @@ scmus depends on a few "eggs".  To install them:
 
 To build scmus:
 
+    $ ./configure
     $ make
 
 
