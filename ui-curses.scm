@@ -385,6 +385,12 @@
       ((gray)          15)
       (else            #f))))
 
+(define (safe-color->number color)
+  (let ((n (color->number color)))
+    (if (< n (COLORS))
+      n
+      -1)))
+
 (define (attr->number attr)
   (if (integer? attr)
     attr
@@ -416,8 +422,8 @@
   (let ((option (get-option name)))
     (assert (list? option))
     (list (attr->number (car option))
-          (color->number (cadr option))
-          (color->number (caddr option)))))
+          (safe-color->number (cadr option))
+          (safe-color->number (caddr option)))))
 
 (define (cursed-i cursed)
   (- cursed 1))
@@ -477,6 +483,7 @@
                              (bg (cursed-bg base))
                              (attr (cursed-attr base)))
       (cond
+        ((or (>= fg (COLORS)) (>= bg (COLORS))) (void))
         ((find-pair fg bg) => (lambda (x) (cursed-set! x attr)))
         (else
           (let ((this next))
