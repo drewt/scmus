@@ -31,6 +31,9 @@
         (mkopt 'help '("-h" "--help") '()
                "print this message and exit"
                store-true)
+        (mkopt 'config '("--config") '("FILE")
+               "use alternate config file"
+               store-one)
         (mkopt 'address '("-a" "--address") '("ADDR")
                "IP address or hostname of the MPD server"
                store-one)
@@ -99,11 +102,10 @@
     (handle-exceptions x
       (printf "WARNING: failed to load ~a~n" *sysrc-path*)
       (user-load *sysrc-path*))
-    (handle-exceptions x
-      (verbose-printf "failed to load ~a~n" *scmusrc-path*)
-      (user-load *scmusrc-path*))
-    (printf "address=~a~n" (alist-ref 'address opts))
-    (printf "port=~a~n" (alist-ref 'port opts))
+    (let ((config (alist-ref 'config opts eqv? *scmusrc-path*)))
+      (handle-exceptions x
+        (verbose-printf "failed to load ~a~n" config)
+        (user-load config)))
     (verbose-printf "Initializing curses...~n")
     (init-curses)
     (scmus-connect! (alist-ref 'address opts)
