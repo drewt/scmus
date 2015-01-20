@@ -144,6 +144,7 @@
   (*view-window (alist-ref view-name *views*)))
 
 (define (set-window! view-name window)
+  (window-nr-lines-set! window (- (LINES) 4))
   (*view-window-set! (alist-ref view-name *views*) window))
 
 (define (view-print-title! view)
