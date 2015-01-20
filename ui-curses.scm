@@ -144,7 +144,7 @@
   (*view-window (alist-ref view-name *views*)))
 
 (define (set-window! view-name window)
-  (window-nr-lines-set! window (- (LINES) 4))
+  (window-nr-lines-set! window (max 0 (- (LINES) 4)))
   (*view-window-set! (alist-ref view-name *views*) window))
 
 (define (view-print-title! view)
@@ -176,19 +176,20 @@
 ;; screen updates {{{
 
 (define (print-view! view)
-  (view-print-title! view)
-  (let* ((window (*view-window view))
-         (nr-lines (window-nr-lines window)))
-    (let loop ((rows (window-top window)) (lines nr-lines))
-      (when (> lines 0)
-        (let ((line-nr (- nr-lines (- lines 1))))
-          (if (null? rows)
-            (begin (cursed-set! CURSED-WIN)
-                   (move line-nr 0)
-                   (clrtoeol))
-            (let ((cursed (view-cursed-set! view (car rows) line-nr)))
-              (view-print-line! view (car rows) line-nr cursed)))
-          (loop (if (null? rows) '() (cdr rows)) (- lines 1)))))))
+  (when (> (LINES) 3)
+    (view-print-title! view)
+    (let* ((window (*view-window view))
+           (nr-lines (window-nr-lines window)))
+      (let loop ((rows (window-top window)) (lines nr-lines))
+        (when (> lines 0)
+          (let ((line-nr (- nr-lines (- lines 1))))
+            (if (null? rows)
+              (begin (cursed-set! CURSED-WIN)
+                     (move line-nr 0)
+                     (clrtoeol))
+              (let ((cursed (view-cursed-set! view (car rows) line-nr)))
+                (view-print-line! view (car rows) line-nr cursed)))
+            (loop (if (null? rows) '() (cdr rows)) (- lines 1))))))))
 
 (define (format-addstr! str cursed)
   (let loop ((str str))
@@ -261,18 +262,20 @@
 (define trackwin-cursed-set! (win-cursed-fn current-track?))
 
 (define (update-current-line)
-  (cursed-set! CURSED-TITLELINE)
-  (track-print-line (- (LINES) 3)
-                     (get-format 'format-current)
-                     *current-track*
-                     CURSED-TITLELINE))
+  (when (> (LINES) 2)
+    (cursed-set! CURSED-TITLELINE)
+    (track-print-line (- (LINES) 3)
+                      (get-format 'format-current)
+                      *current-track*
+                      CURSED-TITLELINE)))
 
 (define (update-status-line)
-  (cursed-set! CURSED-STATUSLINE)
-  (track-print-line (- (LINES) 2)
-                     (get-format 'format-status)
-                     *current-track*
-                     CURSED-STATUSLINE))
+  (when (> (LINES) 1)
+    (cursed-set! CURSED-STATUSLINE)
+    (track-print-line (- (LINES) 2)
+                      (get-format 'format-status)
+                      *current-track*
+                      CURSED-STATUSLINE)))
 
 (define (update-status)
   (update-status-line)
@@ -311,7 +314,7 @@
 
 (define (redraw-ui)
   (for-each (lambda (x) (window-nr-lines-set! (*view-window (cdr x))
-                                              (- (LINES) 4)))
+                                              (max 0 (- (LINES) 4))))
             *views*)
   (print-view! (alist-ref *current-view* *views*))
   (update-current)
