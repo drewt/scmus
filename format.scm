@@ -149,6 +149,8 @@
   (if (scmus-single?) "S" " "))
 (define (format-consume track len)
   (if (scmus-consume?) "C" " "))
+(define (format-bitrate track len)
+  (number->string (scmus-bitrate)))
 
 (define (parse-format-spec spec)
   (assert (and (list? spec) (not (null? spec)) (char? (car spec)))
@@ -242,6 +244,7 @@
     ((random)       format-random)
     ((single)       format-single)
     ((consume)      format-consume)
+    ((bitrate)      format-bitrate)
     ((host)         (lambda (track len) (scmus-hostname)))
     ((port)         (lambda (track len) (scmus-port)))
     (else           (lambda (track len) (track-meta track meta))))))
