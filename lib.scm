@@ -78,6 +78,9 @@
             ((gray)          15)
             (else            #f)))))
 
+(define (alist-update key value alist #!optional (test eqv?))
+  (alist-update! key value (list-copy alist) test))
+
 ;; unicode stuff {{{
 
 (define-constant +unicode-private-base+ #xE000)
