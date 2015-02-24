@@ -55,11 +55,11 @@
                        (string-stretch (cdr r) #\space right-len))))))
 
 (define (*scmus-format fmt len track)
-  (foldl format-concatenate
+  (fold format-concatenate
          ""
          (map (lambda (x) (format-replace x track len)) fmt)))
 
-(define (format-concatenate acc x)
+(define (format-concatenate x acc)
   (assert (or (pair? acc) (string? acc)) "format-concatenate" acc)
   (cond
     ((and (string? acc) (eqv? x 'align))

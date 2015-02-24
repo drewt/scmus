@@ -98,7 +98,7 @@
   (string-contains (string-downcase str) (string-downcase sub)))
 
 (define (string-width str)
-  (foldl + 0 (map char-width (string->list str))))
+  (fold + 0 (map char-width (string->list str))))
 
 (define (char-width c)
   (let ((u (char->integer c)))
