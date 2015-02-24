@@ -7,7 +7,7 @@
   (except chicken
     reverse-list->string print print*)
   (except data-structures
-    ->string conc string-chop string-split string-translate
+    conc string-chop string-split string-translate
     substring=? substring-ci=? substring-index substring-index-ci)
   (except extras
     read-string write-string read-token))
