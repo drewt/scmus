@@ -32,7 +32,8 @@
          (editable (cdr selected)))
     (set-input-mode! 'edit-mode
                      editable
-                     (cons (+ 1 (window-sel-pos window))
+                     (cons (+ 1 (- (window-sel-pos window)
+                                   (window-top-pos window)))
                            (quotient (COLS) 2)))))
 
 (define (options-window-print-row window row line-nr cursed)

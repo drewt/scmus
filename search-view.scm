@@ -31,7 +31,9 @@
     (if (editable? selected)
       (set-input-mode! 'edit-mode
                        selected
-                       (cons (+ 1 (window-sel-pos window)) 3)))))
+                       (cons (+ 1 (- (window-sel-pos window)
+                                     (window-top-pos window)))
+                             3)))))
 
 (define (add-search-field! window)
   (let-values (((queries results) (search-window-data window)))
