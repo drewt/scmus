@@ -227,9 +227,10 @@
 ;; Generic function to print an alist entry, for use with print-window.
 (define (alist-print-line window row line-nr cursed)
   (simple-print-line line-nr (car row))
-  (mvaddstr line-nr (- (quotient (COLS) 2) 1)
-            (string-truncate (format " ~a" (cdr row))
-                             (- (COLS) 2))))
+  (let ((col (- (quotient (COLS) 2) 1)))
+    (mvaddstr line-nr col
+              (string-truncate (format " ~a" (cdr row))
+                               (- (COLS) col)))))
 
 (define (list-window-print-row window row line-nr cursed)
   (simple-print-line line-nr row))
