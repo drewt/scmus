@@ -14,18 +14,27 @@ fi
 # libraries
 AC_CHECK_LIB(ncurses, getch)
 AC_CHECK_LIB(ncursesw, get_wch)
-if test "$ac_cv_lib_ncurses_getch" == no -a "$ac_cv_lib_ncursesw_get_wch" == no
+AC_CHECK_LIB(tinfo, cbreak)
+
+# determine which libs to use for ncurses
+NCURSES_LIBS=""
+if test "$ac_cv_lib_ncursesw_get_wch" == yes
 then
+	NCURSES_LIBS="-lncursesw"
+elif test "$ac_cv_lib_ncurses_getch" == yes
+then
+	NCURSES_LIBS="-lncurses"
+	AC_MSG_WARN([configuring without wide character support])
+else
 	AC_MSG_ERROR([ncurses not found])
 fi
 
-if test "$ac_cv_lib_ncursesw_get_wch" == yes
+# sometimes we have some functions split off into libtinfo
+if test "$ac_cv_lib_tinfo_cbreak" == yes
 then
-	AC_SUBST(CONFIG_WIDE_CHAR, y)
-	AC_SUBST(NCURSES_LIBS, -lncursesw)
-else
-	AC_MSG_WARN([configuring without wide character support])
-	AC_SUBST(NCURSES_LIBS, -lncurses)
+	NCURSES_LIBS+=" -ltinfo"
 fi
+
+AC_SUBST([NCURSES_LIBS])
 
 AC_OUTPUT(Makefile)
