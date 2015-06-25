@@ -42,7 +42,15 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension regex srfi-1 tcp unix-sockets)
+(require-extension regex srfi-1 tcp)
+
+(cond-expand
+  (windows
+    (define (unix-connect usock)
+      (abort (make-property-condition 'exn
+                'message "UNIX domain sockets not supported on this platform"
+                'arguments '()))))
+  (else (require-extension unix-sockets)))
 
 (declare (unit mpd-client)
          (hide make-connection mpd-host-set! mpd-port-set! in-port in-port-set!
