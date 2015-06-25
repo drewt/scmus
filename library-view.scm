@@ -35,7 +35,7 @@
   (case (car selected)
     ((playlist) (scmus-playlist-load! (cdr selected)))
     ((artist album) (scmus-search-songs #t #t selected))
-    ((track) (scmus-add! (track-file (cdr selected)) #f))))
+    ((track) (scmus-add! (track-file (cdr selected))))))
 
 (define (library-add-selected! window)
   (for-each library-add! (window-all-selected window)))
