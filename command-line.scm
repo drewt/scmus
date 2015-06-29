@@ -166,7 +166,7 @@
       (command-line-commit! editable))
     ((#\esc)
       (command-line-leave editable))
-    ((#\backspace)
+    ((#\backspace #\delete)
       (if (= 0 (editable-length editable))
         (command-line-leave editable)
         (editable-default-char-handler editable ch)))

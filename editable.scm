@@ -36,9 +36,9 @@
 
 (define (editable-default-char-handler editable ch)
   (case ch
-    ((#\backspace) (editable-backspace! editable))
-    ((#\x4)        (editable-delete-char! editable))
-    (else          (editable-insert! editable ch))))
+    ((#\backspace #\delete) (editable-backspace! editable))
+    ((#\x4)                 (editable-delete-char! editable))
+    (else                   (editable-insert! editable ch))))
 
 (define (editable-default-key-handler editable key)
   (key-case key
