@@ -19,7 +19,7 @@
  
 (declare (unit eval-mode)
          (uses format keys ncurses option scmus-client ui-curses window)
-         (export init-sandbox user-eval user-load))
+         (export init-sandbox user-eval user-eval-string user-load))
 
 ;; user functions {{{
 
@@ -37,13 +37,13 @@
                                  'arguments fmt)
         (make-property-condition 'scmus)))))
 
-(define (user-bind! keys context thunk #!optional (force #f))
+(define (user-bind! keys context expr #!optional (force #f))
   (let ((key-list (string-tokenize keys)))
     (if (binding-keys-valid? key-list)
       (begin
         (if force
           (unbind! key-list context))
-        (make-binding! key-list context thunk))
+        (make-binding! key-list context expr))
       #f)))
 
 (define (user-unbind! keys context)
@@ -59,7 +59,8 @@
                        ((#\newline #\linefeed) #t)
                        (else #f)))
                    text))
-  (command-line-print-info! (clean-text (format #f "~a" arg))))
+  (command-line-print-info! (clean-text (format #f "~a" arg)))
+  arg)
 
 (define (colorscheme! str)
   (cond
@@ -218,8 +219,12 @@
   (user-export! 'write-config! write-config!)
   (user-export! 'xfade scmus-xfade))
 
-(define (user-eval str)
-  (assert (string? str) "user-eval" str)
+(define (user-eval expr)
+  (condition-case (safe-eval expr environment: *user-env*)
+    (e () (error-set! e) e)))
+
+(define (user-eval-string str)
+  (assert (string? str) "user-eval-string" str)
   (condition-case (safe-eval (read (open-input-string str))
                              environment: *user-env*)
     (e () (error-set! e) e)))

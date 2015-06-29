@@ -16,14 +16,15 @@
 ;;
 
 ;;
-;; A "binding list" is an alist associating keys with thunks or other binding
-;; lists.  If a key is associated with a thunk, then the thunk is evaluated
-;; when the key is pressed.  If a key is associated with a binding list, then
-;; scmus enters the context given by that binding list when the key is pressed.
+;; A "binding list" is an alist associating keys with expressions or other
+;; binding lists.  If a key is associated with an expression then the
+;; expression is evaluated when the key is pressed.  If a key is associated
+;; with a binding list, then scmus enters the context given by that binding
+;; list when the key is pressed.
 ;; 
 ;; A "context" is a binding list.  When scmus is in the context of a particular
 ;; binding list, key-presses are interpreted relative to that list.  When a
-;; key-press results in a thunk being evaluated or a failure to locate a
+;; key-press results in an expression being evaluated or a failure to locate a
 ;; binding, scmus returns to the top-level context from which it came.
 ;; 
 ;; The "top-level" contexts are enumerated in the *bindings* alist.  Before any
@@ -33,7 +34,7 @@
 (require-extension srfi-1)
 
 (declare (unit keys)
-         (uses command-line ncurses ui-curses)
+         (uses command-line eval-mode ncurses ui-curses)
          (export make-binding! unbind! binding-keys-valid? enter-normal-mode
                  normal-mode-char normal-mode-key))
 
@@ -45,45 +46,46 @@
 (define *current-context* #f)
 (define *common-context* #f)
 
+(define (binding-expression? binding)
+  (and (pair? binding) (eqv? (car binding) 'binding)))
+
 (define (get-binding key bindings)
   (assert (string? key) "get-binding" key)
   (assert (list? bindings) "get-binding" bindings)
   (alist-ref key bindings string=?))
 
-;; Non-destructive binding update.  Binds thunk to keys in key-list.
-(define (make-binding keys key-list thunk)
+;; Non-destructive binding update.  Binds expr to keys in key-list.
+(define (make-binding keys key-list expr)
   (assert (and (list? keys) (not (null? keys)) (string? (car keys)))
           "make-binding" keys)
   (assert (list? key-list) "make-binding" key-list)
-  (assert (procedure? thunk) "make-binding" thunk)
   (let ((binding (get-binding (car keys) key-list)))
     (cond
       ; last key and no conflict: do bind
       ((and (null? (cdr keys))
             (not binding))
-        (alist-update (car keys) thunk key-list string=?))
+        (alist-update (car keys) (cons 'binding expr) key-list string=?))
       ; binding conflict
       ((or (null? (cdr keys))
-           (procedure? binding))
+           (binding-expression? binding))
         #f)
       ; recursive case
       (else
         (let ((new-bindings (make-binding (cdr keys)
                                           (if binding binding '())
-                                          thunk)))
+                                          expr)))
           (if new-bindings
             (alist-update (car keys) new-bindings key-list string=?)
             #f))))))
 
-;; Destructive binding update.  Binds thunk to keys in the given context.
-(define (make-binding! keys context thunk)
+;; Destructive binding update.  Binds expr to keys in the given context.
+(define (make-binding! keys context expr)
   (assert (and (list? keys) (not (null? keys)) (string? (car keys)))
           "make-binding!" keys)
   (assert (and (symbol? context)
                (memv context (cons 'common *view-names*)))
           "make-binding!" context)
-  (assert (procedure? thunk) "make-binding!" thunk)
-  (let ((new (make-binding keys (alist-ref context *bindings*) thunk)))
+  (let ((new (make-binding keys (alist-ref context *bindings*) expr)))
     (if new
       (alist-update! context new *bindings*)
       #f)))
@@ -101,7 +103,7 @@
     (cond
       ; base case: remove binding
       ((or (null? (cdr keys))
-           (procedure? binding))
+           (binding-expression? binding))
         (keybind-remove (car keys) key-list))
       ; not bound: do nothing
       ((not binding)
@@ -526,11 +528,11 @@
       (let ((view-binding (get-binding keystr *current-context*))
             (common-binding (get-binding keystr *common-context*))) 
         (cond
-          ((procedure? view-binding)
-            (view-binding) ; TODO: eval in sandbox
+          ((binding-expression? view-binding)
+            (user-eval (cdr view-binding))
             (clear-context!))
-          ((procedure? common-binding)
-            (common-binding) ; TODO: eval in sandbox
+          ((binding-expression? common-binding)
+            (user-eval (cdr common-binding))
             (clear-context!))
           ((or (list? view-binding)
                (list? common-binding))

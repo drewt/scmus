@@ -252,7 +252,7 @@
 (define (parse-code-spec spec)
   (assert (and (list? spec) (not (null? spec))) "parse-code-spec" spec)
   (let* ((str (list->string (parend-split spec #\[ #\])))
-         (obj (user-eval str)))
+         (obj (user-eval-string str)))
     (if (procedure? obj)
       obj
       (lambda (track len) obj))))

@@ -138,9 +138,8 @@ Consume means that tracks are removed from the play queue when they are
 finished.
 .SH KEY BINDINGS
 
-In scmus, a key or sequence of keys can be bound to a thunk (a function with
-zero arguments).  When that key or sequence of keys is pressed, the thunk is
-evaluated.
+In scmus, a key or sequence of keys can be bound to an expression.  When that
+key or sequence of keys is pressed, the expression is evaluated.
 
 Here's a list of default keybindings.  See the \fBbind!\fR and \fBunbind!\fR
 functions in the SCHEME ENVIRONMENT section for a description of how keys
@@ -202,14 +201,14 @@ This section describes the functions and variables available in eval mode.
 Optional parameters are in brackets.  Obligatory parameters are in angle
 brackets.
 
-;; bind! : string symbol thunk [boolean] \-> boolean
+;; bind! : string symbol any [boolean] \-> boolean
 .br
-(bind! <keys> <context> <thunk> [force])
+(bind! <keys> <context> <expression> [force])
 .RS
-Bind \fIkeys\fR to \fIthunk\fR in \fIcontext\fR.  If \fIforce\fR is \fB#t\fR,
-then any binding conflicting with \fIkeys\fR is first unbound.  Otherwise, if
-there is a conflicting binding, this function fail to bind \fIkeys\fR and
-returns \fB#f\fR.
+Bind \fIkeys\fR to \fIexpression\fR in \fIcontext\fR.  If \fIforce\fR is
+\fB#t\fR, then any binding conflicting with \fIkeys\fR is first unbound.
+Otherwise, if there is a conflicting binding, this function fail to bind
+\fIkeys\fR and returns \fB#f\fR.
 .RE
 
 ;; clear\-queue! : void \-> void
