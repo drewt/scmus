@@ -15,10 +15,14 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
+;;
+;; This unit contains the core UI code and collects a number of generally
+;; useful functions for use in the *-view units.
+;;
 (declare (unit ui-curses)
          (uses scmus-client eval-mode command-line keys format ncurses
                option window search-view library-view options-view
-               browser-view bindings-view)
+               browser-view bindings-view queue-view)
          (export *ui-initialized* *current-input-mode* *current-view*
                  simple-print-line format-print-line track-print-line
                  alist-print-line separator? view-window update-view!
@@ -27,7 +31,8 @@
                  win-move-tracks! win-clear-marked! win-search!
                  win-search-next! win-search-prev! win-edit! make-view
                  register-event! curses-update cursor-on cursor-off
-                 set-input-mode! handle-input init-curses exit-curses))
+                 set-input-mode! handle-input init-curses exit-curses
+                 win-cursed-fn))
 
 (define-constant CURSED-CMDLINE 1)
 (define-constant CURSED-ERROR 2)
@@ -264,9 +269,6 @@
 
 ;; cursed-set! suitable for any window (CURSED-CUR[-SEL] is never chosen)
 (define generic-cursed-set! (win-cursed-fn (lambda (x) #f)))
-
-;; cursed-set! for track windows (e.g. queue)
-(define trackwin-cursed-set! (win-cursed-fn current-track?))
 
 (define (update-current-line)
   (when (> (LINES) 2)
@@ -545,18 +547,6 @@
             *events*)
   (update-cursor)
   (set! *events* '()))
-
-(define (make-queue-view)
-  (make-view (make-window #f
-                          (lambda (w) *queue*)
-                          (lambda (w) (register-event! 'queue-changed))
-                          (lambda (w) (scmus-play-track! (window-selected w)))
-                          void
-                          track-match)
-             "Queue - ~{queue-length} tracks"
-             (lambda (window track line-nr cursed)
-               (track-print-line line-nr (get-format 'format-queue) track cursed))
-             cursed: trackwin-cursed-set!))
 
 (define (make-status-view)
   (make-view (make-window #f

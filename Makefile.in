@@ -23,7 +23,7 @@ eggs = easyffi sandbox unix-sockets utf8
 
 units = bindings-view browser-view config command-line editable eval-mode \
 	format getopt keys lib library-view main mpd-client ncurses option \
-	options-view search-view scmus-client ui-curses window
+	options-view queue-view search-view scmus-client ui-curses window
 objects = $(foreach unit,$(units),$(addsuffix .@OBJEXT@,$(unit)))
 target = scmus@EXEEXT@
 
