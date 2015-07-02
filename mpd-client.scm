@@ -315,7 +315,7 @@
   (read-response con))
 (define-simple-command 1 mpd:delete-id! "deleteid")
 (define (mpd:move! con from to)
-  (send-command con "delete" (range-or-number from) to)
+  (send-command con "move" (range-or-number from) to)
   (read-response con))
 (define-simple-command 2 mpd:move-id! "moveid")
 (define-simple-command 2 mpd:playlist-find "playlistfind")
