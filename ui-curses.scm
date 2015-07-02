@@ -86,9 +86,8 @@
     ((view-remove view) (*view-window view))))
 
 (define (win-clear!)
-  (case *current-view*
-    ((queue) (scmus-clear!))
-    ((search) (search-clear! (current-window)))))
+  (let ((view (current-view)))
+    ((view-clear view) (*view-window view))))
 
 (define (win-move-tracks!)
   (case *current-view*
@@ -128,21 +127,23 @@
 ;; windows {{{
 
 (define-record-type view
-  (*make-view window title-fmt print-line cursed add! remove!)
+  (*make-view window title-fmt print-line cursed add! remove! clear!)
   view?
   (window *view-window *view-window-set!)
   (title-fmt view-title-fmt view-title-fmt-set!)
   (print-line *view-print-line)
   (cursed view-cursed-fn)
   (add! view-add)
-  (remove! view-remove))
+  (remove! view-remove)
+  (clear! view-clear))
 
 (define (make-view window title print-line
                    #!key
                    (cursed generic-cursed-set!)
                    (add void)
-                   (remove void))
-  (*make-view window (process-format title) print-line cursed add remove))
+                   (remove void)
+                   (clear void))
+  (*make-view window (process-format title) print-line cursed add remove clear))
 
 (define (view-window view-name)
   (*view-window (alist-ref view-name *views*)))

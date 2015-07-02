@@ -37,4 +37,5 @@
              (lambda (window track line-nr cursed)
                (track-print-line line-nr (get-format 'format-queue) track cursed))
              cursed: (win-cursed-fn current-track?)
-             remove: queue-remove!))
+             remove: queue-remove!
+             clear:  (lambda (w) (scmus-clear!))))
