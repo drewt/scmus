@@ -107,7 +107,8 @@
                           void
                           (lambda (e q) #f))
              "Key Bindings"
-             bindings-window-print-row))
+             bindings-window-print-row
+             edit: binding-edit!))
 
 (define (update-bindings-data window)
   (*window-data-set! window (make-bindings-data))

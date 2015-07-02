@@ -118,16 +118,14 @@
       (window-select! (current-window) i))))
 
 (define (win-edit!)
-  (case *current-view*
-    ((search) (search-edit! (current-window)))
-    ((options) (option-edit! (current-window)))
-    ((bindings) (binding-edit! (current-window)))))
+  (let ((view (current-view)))
+    ((view-edit view) (*view-window view))))
 
 ;; user functions }}}
 ;; windows {{{
 
 (define-record-type view
-  (*make-view window title-fmt print-line cursed add! remove! clear!)
+  (*make-view window title-fmt print-line cursed add! remove! clear! edit!)
   view?
   (window *view-window *view-window-set!)
   (title-fmt view-title-fmt view-title-fmt-set!)
@@ -135,15 +133,18 @@
   (cursed view-cursed-fn)
   (add! view-add)
   (remove! view-remove)
-  (clear! view-clear))
+  (clear! view-clear)
+  (edit! view-edit))
 
 (define (make-view window title print-line
                    #!key
                    (cursed generic-cursed-set!)
                    (add void)
                    (remove void)
-                   (clear void))
-  (*make-view window (process-format title) print-line cursed add remove clear))
+                   (clear void)
+                   (edit void))
+  (*make-view window (process-format title) print-line cursed add remove clear
+              edit))
 
 (define (view-window view-name)
   (*view-window (alist-ref view-name *views*)))

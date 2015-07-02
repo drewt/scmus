@@ -142,4 +142,5 @@
              search-window-print-row
              add:    search-add!
              remove: search-remove!
-             clear:  search-clear!))
+             clear:  search-clear!
+             edit:   search-edit!))

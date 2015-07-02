@@ -61,7 +61,8 @@
                           void
                           (lambda (e q) #f))
              "Options"
-             options-window-print-row))
+             options-window-print-row
+             edit: option-edit!))
 
 (define (update-options-data window)
   (*window-data-set! window (make-options-data))
