@@ -22,10 +22,6 @@
 (define (option-changed!)
   (register-event! 'option-changed))
 
-(define (editable-read editable)
-  (condition-case (with-input-from-string (editable-text editable) read)
-    (e () (error-set! e))))
-
 (define (option-edit! window)
   (let* ((selected (window-selected window))
          (name (car selected))
@@ -43,8 +39,10 @@
                     cursed))
 
 (define (option-commit-edit! editable)
-  (set-option! (car (window-selected (view-window 'options)))
-               (editable-read editable)))
+  (handle-exceptions e (begin (error-set! e) #f)
+    (set-option! (car (window-selected (view-window 'options)))
+                 (editable-read editable))
+    #t))
 
 (define (make-options-data)
   (define (option->row pair)
@@ -58,7 +56,7 @@
 (define (make-options-view)
   (make-view (make-window (make-options-data)
                           *window-data
-                          (lambda (w) (register-event! 'option-changed))
+                          (lambda (w) (option-changed!))
                           option-edit!
                           void
                           (lambda (e q) #f))

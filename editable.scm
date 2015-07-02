@@ -25,14 +25,16 @@
          (uses ncurses))
 
 (define-record-type editable
-  (*make-editable char-handler key-handler init char-list cursor-pos text-length)
+  (*make-editable char-handler key-handler init char-list cursor-pos
+                  text-length data)
   editable?
   (char-handler editable-char-handler editable-char-handler-set!)
   (key-handler editable-key-handler editable-key-handler-set!)
   (init *editable-init editable-init-set!)
   (char-list editable-list editable-set-list!)
   (cursor-pos editable-pos editable-set-pos!)
-  (text-length editable-length editable-set-length!))
+  (text-length editable-length editable-set-length!)
+  (data editable-data editable-set-data!))
 
 (define (editable-default-char-handler editable ch)
   (case ch
@@ -49,45 +51,76 @@
     ((KEY_END)       (editable-move-end! editable))
     ((KEY_DC)        (editable-delete-char! editable))))
 
-(define (make-editable text #!optional
+(define (make-editable text
+                       #!optional
                        (char-handler editable-default-char-handler)
                        (key-handler editable-default-key-handler)
-                       (init editable-move-end!))
+                       (init editable-move-end!)
+                       (data #f))
   (*make-editable char-handler
                   key-handler
                   init
                   (reverse (string->list text))
                   0
-                  (string-length text)))
+                  (string-length text)
+                  data))
 
-(define (simple-char-handler activate leave changed)
-  (lambda (editable ch)
-    (case ch
-      ((#\newline)
-        (activate editable)
-        (leave editable))
-      ((#\esc)
-        (leave editable))
-      (else
-        (editable-default-char-handler editable ch)))
-    (changed)))
+;;
+;; Simple editables
+;;
+;; A simple editable has "activate", "leave" and "changed" callbacks.  The
+;; activate callback is called when enter is pressed.  The leave callback is
+;; called when either enter or escape is pressed.  The changed callback is
+;; called whenever any key is pressed.
+;;
+;; If the activate call returns #f, then the editable reverts its text back to
+;; the value it had after the last call to activate (or the initial text).
+;;
+;; The leave callback should always end in a call to set-input-mode!.
+;;
+;; The changed callback should probably register an event to trigger a screen
+;; update.
+;;
 
-(define (simple-key-handler activate leave changed)
-  (lambda (editable key)
-    (key-case key
-      ((KEY_ENTER)
-        (activate editable)
-        (leave editable))
-      (else (editable-default-key-handler editable key)))
-    (changed)))
+(define (simple-char-handler activate leave changed text)
+  (let ((chars (reverse (string->list text))))
+    (lambda (editable ch)
+      (case ch
+        ((#\newline)
+          (if (activate editable)
+            (set! chars (editable-list editable))
+            (editable-set-list! editable chars))
+          (leave editable))
+        ((#\esc)
+          (editable-set-list! editable chars)
+          (leave editable))
+        (else
+          (editable-default-char-handler editable ch)))
+      (changed))))
 
-(define (make-simple-editable activate leave changed #!optional (text ""))
-  (*make-editable (simple-char-handler activate leave changed)
-                  (simple-key-handler activate leave changed)
+(define (simple-key-handler activate leave changed text)
+  (let ((chars (reverse (string->list text))))
+    (lambda (editable key)
+      (key-case key
+        ((KEY_ENTER)
+          (if (activate editable)
+            (set! chars (editable-list editable))
+            (editable-set-list! editable chars))
+          (leave editable))
+        (else (editable-default-key-handler editable key)))
+      (changed))))
+
+(define (make-simple-editable activate leave changed
+                              #!optional
+                              (text "")
+                              (data #f))
+  (*make-editable (simple-char-handler activate leave changed text)
+                  (simple-key-handler activate leave changed text)
                   editable-move-end!
                   (reverse (string->list text))
                   0
-                  (string-length text)))
+                  (string-length text)
+                  data))
 
 (define (editable-text editable)
   (list->string (reverse (editable-list editable))))
@@ -170,3 +203,6 @@
 
 (define (editable-init editable)
   ((*editable-init editable) editable))
+
+(define (editable-read editable)
+  (with-input-from-string (editable-text editable) read))

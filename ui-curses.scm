@@ -18,7 +18,7 @@
 (declare (unit ui-curses)
          (uses scmus-client eval-mode command-line keys format ncurses
                option window search-view library-view options-view
-               browser-view)
+               browser-view bindings-view)
          (export *ui-initialized* *current-input-mode* *current-view*
                  simple-print-line format-print-line track-print-line
                  alist-print-line separator? view-window update-view!
@@ -124,7 +124,8 @@
 (define (win-edit!)
   (case *current-view*
     ((search) (search-edit! (current-window)))
-    ((options) (option-edit! (current-window)))))
+    ((options) (option-edit! (current-window)))
+    ((bindings) (binding-edit! (current-window)))))
 
 ;; user functions }}}
 ;; windows {{{
@@ -523,6 +524,8 @@
         (cons 'error-changed (view-update-data-fn 'error))
         (cons 'option-data-changed (lambda () (update-options-data (view-window 'options))))
         (cons 'option-changed (view-update-fn 'options))
+        (cons 'binding-changed (view-update-fn 'bindings))
+        (cons 'binding-data-changed (lambda () (update-bindings-data (view-window 'bindings))))
         (cons 'color-changed update-colors!)
         (cons 'format-changed redraw-ui)
         (cons 'db-changed update-db)))
@@ -577,7 +580,8 @@
   (alist-update! 'browser (make-browser-view) *views*)
   (alist-update! 'status (make-status-view) *views*)
   (alist-update! 'error (make-error-view) *views*)
-  (alist-update! 'options (make-options-view) *views*))
+  (alist-update! 'options (make-options-view) *views*)
+  (alist-update! 'bindings (make-bindings-view) *views*))
 
 (define (init-curses)
   (initscr)

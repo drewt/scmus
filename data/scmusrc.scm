@@ -1,11 +1,12 @@
 ;; views
-(bind! "1" 'common '(set-view! 'library) #t)
-(bind! "2" 'common '(set-view! 'queue)   #t)
-(bind! "3" 'common '(set-view! 'search)  #t)
-(bind! "4" 'common '(set-view! 'browser) #t)
-(bind! "5" 'common '(set-view! 'status)  #t)
-(bind! "6" 'common '(set-view! 'error)   #t)
-(bind! "7" 'common '(set-view! 'options) #t)
+(bind! "1" 'common '(set-view! 'library)  #t)
+(bind! "2" 'common '(set-view! 'queue)    #t)
+(bind! "3" 'common '(set-view! 'search)   #t)
+(bind! "4" 'common '(set-view! 'browser)  #t)
+(bind! "5" 'common '(set-view! 'status)   #t)
+(bind! "6" 'common '(set-view! 'error)    #t)
+(bind! "7" 'common '(set-view! 'options)  #t)
+(bind! "8" 'common '(set-view! 'bindings) #t)
 
 ;; hjkl
 (bind! "j" 'common '(win-move!  1) #t)

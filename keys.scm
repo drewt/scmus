@@ -35,8 +35,10 @@
 
 (declare (unit keys)
          (uses command-line eval-mode ncurses ui-curses)
-         (export make-binding! unbind! binding-keys-valid? enter-normal-mode
-                 normal-mode-char normal-mode-key))
+         (export binding-context-valid? binding-data binding-expression
+                 binding-expression? binding-key binding-keys-valid? bindings
+                 enter-normal-mode key-list->string make-binding!
+                 normal-mode-char normal-mode-key unbind!))
 
 ;; alist associating key-contexts with binding alists
 (define *bindings*
@@ -46,8 +48,19 @@
 (define *current-context* #f)
 (define *common-context* #f)
 
+(define (bindings) *bindings*)
+
 (define (binding-expression? binding)
   (and (pair? binding) (eqv? (car binding) 'binding)))
+
+(define (binding-key binding)
+  (car binding))
+
+(define (binding-data binding)
+  (cdr binding))
+
+(define (binding-expression binding)
+  (cdr (binding-data binding)))
 
 (define (get-binding key bindings)
   (assert (string? key) "get-binding" key)
@@ -82,12 +95,14 @@
 (define (make-binding! keys context expr)
   (assert (and (list? keys) (not (null? keys)) (string? (car keys)))
           "make-binding!" keys)
-  (assert (and (symbol? context)
-               (memv context (cons 'common *view-names*)))
+  (assert (and (symbol? context) (binding-context-valid? context))
           "make-binding!" context)
   (let ((new (make-binding keys (alist-ref context *bindings*) expr)))
     (if new
-      (alist-update! context new *bindings*)
+      (begin
+        (alist-update! context new *bindings*)
+        (register-event! 'binding-data-changed)
+        #t)
       #f)))
 
 (define (keybind-remove key blist)
@@ -118,13 +133,23 @@
 (define (unbind! keys context)
   (assert (and (list? keys) (not (null? keys)) (string? (car keys)))
           "unbind!" keys)
-  (assert (and (symbol? context)
-               (memv context (cons 'common *view-names*)))
+  (assert (and (symbol? context) (binding-context-valid? context))
           "unbind!" context)
   (let ((new (unbind keys (alist-ref context *bindings*))))
     (if new
-      (alist-update! context new *bindings*)
+      (begin
+        (alist-update! context new *bindings*)
+        (register-event! 'binding-data-changed)
+        #t)
       #f)))
+
+(define (key-list->string keys)
+  (fold (lambda (str acc)
+          (if acc
+            (string-append acc " " str)
+            str))
+        #f
+        keys))
 
 ;; Converts an ncurses keypress event to a string.
 ;; Argument may be either a character or an integer.
@@ -505,8 +530,12 @@
   (assert (list keys) "binding-keys-valid?" keys)
   (if (null? keys)
     #t
-    (and (key-valid? (car keys))
+    (and (string? (car keys))
+         (key-valid? (car keys))
          (binding-keys-valid? (cdr keys)))))
+
+(define (binding-context-valid? context)
+  (memv context (cons 'common *view-names*)))
 
 ;; Abandons the current key context.
 (define (clear-context!)

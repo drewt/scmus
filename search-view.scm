@@ -116,7 +116,7 @@
   (search-changed!))
 
 (define (make-search-field)
-  (make-simple-editable void
+  (make-simple-editable (lambda (e) #t)
                         (lambda (e) (set-input-mode! 'normal-mode))
                         search-changed!))
 

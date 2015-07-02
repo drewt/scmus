@@ -19,7 +19,7 @@
  
 (declare (unit eval-mode)
          (uses format keys ncurses option scmus-client ui-curses window)
-         (export init-sandbox user-eval user-eval-string user-load))
+         (export init-sandbox user-bind! user-eval user-eval-string user-load))
 
 ;; user functions {{{
 
@@ -38,10 +38,10 @@
         (make-property-condition 'scmus)))))
 
 (define (user-bind! keys context expr #!optional (force #f))
-  (let ((key-list (string-tokenize keys)))
+  (let ((key-list (if (list? keys) keys (string-tokenize keys))))
     (if (binding-keys-valid? key-list)
       (begin
-        (if force
+        (when force
           (unbind! key-list context))
         (make-binding! key-list context expr))
       #f)))
@@ -225,7 +225,7 @@
 
 (define (user-eval-string str)
   (assert (string? str) "user-eval-string" str)
-  (condition-case (safe-eval (read (open-input-string str))
+  (condition-case (safe-eval (with-input-from-string str read)
                              environment: *user-env*)
     (e () (error-set! e) e)))
 
