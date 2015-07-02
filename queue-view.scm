@@ -26,6 +26,14 @@
       (loop (cdr marked))))
   (window-clear-marked! window))
 
+(define (queue-move! window)
+  (let loop ((marked (sort (*window-marked window) <))
+             (pos (window-sel-pos window)))
+    (unless (null? marked)
+      (scmus-move! (car marked) pos)
+      (loop (cdr marked) (+ pos 1))))
+  (window-clear-marked! window))
+
 (define (make-queue-view)
   (make-view (make-window #f
                           (lambda (w) *queue*)
@@ -38,4 +46,5 @@
                (track-print-line line-nr (get-format 'format-queue) track cursed))
              cursed: (win-cursed-fn current-track?)
              remove: queue-remove!
-             clear:  (lambda (w) (scmus-clear!))))
+             clear:  (lambda (w) (scmus-clear!))
+             move:   queue-move!))

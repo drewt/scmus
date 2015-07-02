@@ -90,14 +90,8 @@
     ((view-clear view) (*view-window view))))
 
 (define (win-move-tracks!)
-  (case *current-view*
-    ((queue) (let loop ((marked (sort (*window-marked (current-window))
-                                       <))
-                        (pos (window-sel-pos (current-window))))
-               (unless (null? marked)
-                 (scmus-move! (car marked) pos)
-                 (loop (cdr marked) (+ pos 1))))
-             (window-clear-marked! (current-window)))))
+  (let ((view (current-view)))
+    ((view-move view) (*view-window view))))
 
 (define (win-clear-marked!)
   (window-clear-marked! (current-window))
@@ -125,7 +119,8 @@
 ;; windows {{{
 
 (define-record-type view
-  (*make-view window title-fmt print-line cursed add! remove! clear! edit!)
+  (*make-view window title-fmt print-line cursed add! remove! clear! edit!
+              move!)
   view?
   (window *view-window *view-window-set!)
   (title-fmt view-title-fmt view-title-fmt-set!)
@@ -134,7 +129,8 @@
   (add! view-add)
   (remove! view-remove)
   (clear! view-clear)
-  (edit! view-edit))
+  (edit! view-edit)
+  (move! view-move))
 
 (define (make-view window title print-line
                    #!key
@@ -142,9 +138,10 @@
                    (add void)
                    (remove void)
                    (clear void)
-                   (edit void))
+                   (edit void)
+                   (move void))
   (*make-view window (process-format title) print-line cursed add remove clear
-              edit))
+              edit move))
 
 (define (view-window view-name)
   (*view-window (alist-ref view-name *views*)))
