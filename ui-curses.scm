@@ -73,10 +73,8 @@
   (window-select! (current-window) 0))
 
 (define (win-add!)
-  (case *current-view*
-    ((library) (library-add-selected! (current-window)))
-    ((search)  (search-add! (current-window)))
-    ((browser) (browser-add-selected! (current-window)))))
+  (let ((view (current-view)))
+    ((view-add view) (*view-window view))))
 
 (define (win-remove!)
   (case *current-view*
@@ -131,15 +129,19 @@
 ;; windows {{{
 
 (define-record-type view
-  (*make-view window title-fmt print-line cursed)
+  (*make-view window title-fmt print-line cursed add)
   view?
   (window *view-window *view-window-set!)
   (title-fmt view-title-fmt view-title-fmt-set!)
   (print-line *view-print-line)
-  (cursed view-cursed-fn))
+  (cursed view-cursed-fn)
+  (add view-add))
 
-(define (make-view window title print-line #!optional (cursed generic-cursed-set!))
-  (*make-view window (process-format title) print-line cursed))
+(define (make-view window title print-line
+                   #!key
+                   (cursed generic-cursed-set!)
+                   (add void))
+  (*make-view window (process-format title) print-line cursed add))
 
 (define (view-window view-name)
   (*view-window (alist-ref view-name *views*)))
@@ -161,6 +163,9 @@
 (define (update-view! view-name)
   (if (current-view? view-name)
     (print-view! (alist-ref view-name *views*))))
+
+(define (current-view)
+  (alist-ref *current-view* *views*))
 
 (define (current-window)
   (view-window *current-view*))
@@ -551,7 +556,7 @@
              "Queue - ~{queue-length} tracks"
              (lambda (window track line-nr cursed)
                (track-print-line line-nr (get-format 'format-queue) track cursed))
-             trackwin-cursed-set!))
+             cursed: trackwin-cursed-set!))
 
 (define (make-status-view)
   (make-view (make-window #f

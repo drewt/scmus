@@ -130,4 +130,5 @@
 (define (make-library-view)
   (make-view (make-library-window)
              "Library"
-             library-window-print-row))
+             library-window-print-row
+             add: library-add-selected!))

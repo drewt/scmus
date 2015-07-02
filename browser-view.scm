@@ -96,7 +96,8 @@
 (define (make-browser-view)
   (make-view (make-browser-window #f (scmus-lsinfo "/"))
              "Browser"
-             browser-window-print-row))
+             browser-window-print-row
+             add: browser-add-selected!))
 
 (define (update-browser!)
   (set-window! 'browser (make-browser-window #f (scmus-lsinfo "/")))

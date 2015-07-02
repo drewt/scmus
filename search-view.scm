@@ -139,4 +139,5 @@
                           void
                           search-match)
              "Search"
-             search-window-print-row))
+             search-window-print-row
+             add: search-add!))
