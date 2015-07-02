@@ -113,13 +113,15 @@
   (case *command-line-mode*
     ((eval search) (void))
     (else (editable-text-set! *command-line* str)
-          (set! *command-line-mode* 'info))))
+          (set! *command-line-mode* 'info)
+          (command-line-changed!))))
 
 (define (command-line-print-error! str)
   (case *command-line-mode*
     ((eval search) (void))
     (else (editable-text-set! *command-line* str)
-          (set! *command-line-mode* 'error))))
+          (set! *command-line-mode* 'error)
+          (command-line-changed!))))
 
 (define (command-line-changed!)
   (register-event! 'command-line-changed))
