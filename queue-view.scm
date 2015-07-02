@@ -19,6 +19,13 @@
   (uses scmus-client ui-curses window)
   (export make-queue-view))
 
+(define (queue-remove! window)
+  (let loop ((marked (sort (window-marked window) >)))
+    (unless (null? marked)
+      (scmus-delete! (car marked))
+      (loop (cdr marked))))
+  (window-clear-marked! window))
+
 (define (make-queue-view)
   (make-view (make-window #f
                           (lambda (w) *queue*)
@@ -29,4 +36,5 @@
              "Queue - ~{queue-length} tracks"
              (lambda (window track line-nr cursed)
                (track-print-line line-nr (get-format 'format-queue) track cursed))
-             cursed: (win-cursed-fn current-track?)))
+             cursed: (win-cursed-fn current-track?)
+             remove: queue-remove!))

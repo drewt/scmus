@@ -140,4 +140,5 @@
                           search-match)
              "Search"
              search-window-print-row
-             add: search-add!))
+             add: search-add!
+             remove: search-remove!))
