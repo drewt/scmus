@@ -16,7 +16,7 @@
 ;;
 
 (declare (unit queue-view)
-  (uses scmus-client ui-curses window)
+  (uses event option scmus-client ui-lib view window)
   (export make-queue-view))
 
 (define (queue-remove! window)
@@ -34,7 +34,7 @@
       (loop (cdr marked) (+ pos 1))))
   (window-clear-marked! window))
 
-(define (make-queue-view)
+(define-view queue
   (make-view (make-window #f
                           (lambda (w) *queue*)
                           (lambda (w) (register-event! 'queue-changed))
@@ -48,3 +48,10 @@
              remove: queue-remove!
              clear:  (lambda (w) (scmus-clear!))
              move:   queue-move!))
+
+(define-event (queue-changed)
+  (update-view! 'queue))
+
+(define-event (queue-data-changed)
+  (window-data-len-update! (get-window 'queue))
+  (update-view! 'queue))

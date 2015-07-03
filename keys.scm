@@ -34,7 +34,7 @@
 (require-extension srfi-1)
 
 (declare (unit keys)
-         (uses command-line eval-mode ncurses ui-curses)
+         (uses eval-mode ncurses)
          (export binding-context-valid? binding-data binding-expression
                  binding-expression? binding-key binding-keys-valid? bindings
                  enter-normal-mode key-list->string make-binding!
@@ -545,13 +545,13 @@
 ;; Begins a new key context.  This can be delayed until a key is
 ;; pressed so that new bindings and view changes are taken into
 ;; account.
-(define (start-context!)
-  (set! *current-context* (alist-ref *current-view* *bindings*))
+(define (start-context! view)
+  (set! *current-context* (alist-ref view *bindings*))
   (set! *common-context* (alist-ref 'common *bindings*)))
 
-(define (handle-user-key key)
+(define (handle-user-key view key)
   (if (not *current-context*)
-    (start-context!))
+    (start-context! view))
   (let ((keystr (key->string key)))
     (if keystr
       (let ((view-binding (get-binding keystr *current-context*))
@@ -573,17 +573,17 @@
 (define (enter-normal-mode)
   (cursor-off))
 
-(define (normal-mode-char ch)
+(define (normal-mode-char view ch)
   (case ch
     ((#\:) (enter-eval-mode))
     ((#\/) (enter-search-mode))
     ((#\q) (scmus-exit 0))
-    (else (handle-user-key ch))))
+    (else (handle-user-key view ch))))
 
-(define (normal-mode-key key)
+(define (normal-mode-key view key)
   (case key
     ((KEY_UP #f))
     ((KEY_DOWN #f))
     ((KEY_LEFT #f))
     ((KEY_RIGHT #f))
-    (else (handle-user-key key)))) 
+    (else (handle-user-key view key)))) 

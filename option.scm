@@ -16,7 +16,7 @@
 ;;
 
 (declare (unit option)
-         (uses format ncurses ui-curses)
+         (uses event format ncurses)
          (export get-option set-option! options option-get option-set!
                  option-string get-format write-config!))
 

@@ -16,8 +16,8 @@
 ;;
 
 (declare (unit options-view)
-         (uses editable ncurses option ui-curses window)
-         (export make-options-view option-edit! update-options-data))
+         (uses editable event input ncurses option ui-lib view window)
+         (export make-options-view option-edit!))
 
 (define (option-changed!)
   (register-event! 'option-changed))
@@ -40,7 +40,7 @@
 
 (define (option-commit-edit! editable)
   (handle-exceptions e (begin (error-set! e) #f)
-    (set-option! (car (window-selected (view-window 'options)))
+    (set-option! (editable-data editable)
                  (editable-read editable))
     #t))
 
@@ -50,10 +50,11 @@
           (make-simple-editable option-commit-edit!
                                 (lambda (e) (set-input-mode! 'normal-mode))
                                 option-changed!
-                                (option-string (cdr pair)))))
+                                (option-string (cdr pair))
+                                (car pair))))
   (map option->row (options)))
 
-(define (make-options-view)
+(define-view options
   (make-view (make-window (make-options-data)
                           *window-data
                           (lambda (w) (option-changed!))
@@ -64,7 +65,11 @@
              options-window-print-row
              edit: option-edit!))
 
-(define (update-options-data window)
-  (*window-data-set! window (make-options-data))
-  (window-data-len-update! window)
+(define-event (option-changed)
   (update-view! 'options))
+
+(define-event (option-data-changed)
+  (let ((window (get-window 'options)))
+    (*window-data-set! window (make-options-data))
+    (window-data-len-update! window)
+    (update-view! 'options)))

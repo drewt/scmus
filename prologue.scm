@@ -30,10 +30,37 @@
 (define-syntax without-curses
   (syntax-rules ()
     ((without-curses first rest ...)
-      (if *ui-initialized*
+      (if (ui-initialized?)
         (begin
           (endwin)
           (let ((r (begin first rest ...)))
             (refresh)
             r))
         (begin first rest ...)))))
+
+(define-syntax define-view
+  (syntax-rules ()
+    ((define-view name first rest ...)
+       (register-view! (quote name) (lambda () first rest ...)))))
+
+(define-syntax define-event
+  (syntax-rules ()
+    ((define-event (name) first rest ...)
+       (register-event-handler! 'name (lambda () first rest ...)))
+    ((define-event name handler)
+       (register-event-handler! 'name handler))))
+
+(define-constant CURSED-CMDLINE 1)
+(define-constant CURSED-ERROR 2)
+(define-constant CURSED-INFO 3)
+(define-constant CURSED-STATUSLINE 4)
+(define-constant CURSED-TITLELINE 5)
+(define-constant CURSED-WIN 6)
+(define-constant CURSED-WIN-CUR 7)
+(define-constant CURSED-WIN-CUR-SEL 8)
+(define-constant CURSED-WIN-SEL 9)
+(define-constant CURSED-WIN-MARKED 10)
+(define-constant CURSED-WIN-TITLE 11)
+(define-constant NR-CURSED 11)
+
+

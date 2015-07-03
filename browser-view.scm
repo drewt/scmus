@@ -16,7 +16,7 @@
 ;;
 
 (declare (unit browser-view)
-         (uses ncurses scmus-client ui-curses window)
+         (uses event ncurses option scmus-client ui-lib view window)
          (export browser-add-selected! make-browser-view update-browser!))
 
 (define (browser-window-data window)
@@ -93,12 +93,19 @@
                browser-deactivate!
                browser-match))
 
-(define (make-browser-view)
+(define (update-browser!)
+  (set-window! 'browser (make-browser-window #f (scmus-lsinfo "/")))
+  (register-event! 'browser-data-changed))
+
+(define-view browser
   (make-view (make-browser-window #f (scmus-lsinfo "/"))
              "Browser"
              browser-window-print-row
              add: browser-add-selected!))
 
-(define (update-browser!)
-  (set-window! 'browser (make-browser-window #f (scmus-lsinfo "/")))
-  (register-event! 'browser-data-changed))
+(define-event (browser-changed)
+  (update-view! 'browser))
+
+(define-event (browser-data-changed)
+  (window-data-len-update! (get-window 'browser))
+  (update-view! 'browser))

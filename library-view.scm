@@ -16,7 +16,7 @@
 ;;
 
 (declare (unit library-view)
-         (uses ncurses scmus-client ui-curses window)
+         (uses event ncurses option scmus-client ui-lib view window)
          (export library-add-selected! make-library-view update-library!))
 
 (define (library-window-data window)
@@ -127,8 +127,15 @@
                void
                (match-function substring-match)))
 
-(define (make-library-view)
+(define-view library
   (make-view (make-library-window)
              "Library"
              library-window-print-row
              add: library-add-selected!))
+
+(define-event (library-changed)
+  (update-view! 'library))
+
+(define-event (library-data-changed)
+  (window-data-len-update! (get-window 'library))
+  (update-view! 'library))

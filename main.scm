@@ -72,12 +72,19 @@
     (let loop ()
       (scmus-update-client!)
       (curses-update)
-      (handle-input)
       (loop))))
 
 (define (exit-all)
   (exit-curses)
   (exit-client))
+
+(define-syntax initialize
+  (syntax-rules ()
+    ((initialize message first rest ...)
+       (handle-exceptions exn (begin (verbose-printf "FAIL~n") (signal exn))
+         (verbose-printf "~a... " message)
+         (begin first rest ...)
+         (verbose-printf "OK~n")))))
 
 ;; initialize scmus
 (let ((opts (process-opts (command-line-arguments) *cmdline-opts*)))
@@ -89,28 +96,31 @@
     (set! opts (alist-update! 'address (alist-ref 'unix opts)
                               (alist-update! 'port #f opts))))
   (handle-exceptions exn
-    (begin (print "Failed to initialize scmus.  Exiting.")
-           (debug-printf "~a~n" (condition->list exn))
+    (begin (console-printf "~nFailed to initialize scmus.  Exiting.~n")
+           (debug-pp (condition->list exn))
            (exit-all)
            (exit 1))
-    (set-signal-handler! signal/chld void)
-    (foreign-code "setlocale(LC_CTYPE, \"\");")
-    (foreign-code "setlocale(LC_COLLATE, \"\");")
-    (verbose-printf "Initializing environment...~n")
-    (init-sandbox)
-    (verbose-printf "Loading config files...~n")
-    (handle-exceptions x
-      (printf "WARNING: failed to load ~a~n" *sysrc-path*)
-      (user-load *sysrc-path*))
-    (let ((config (alist-ref 'config opts eqv? *scmusrc-path*)))
+    (initialize "Initializing signals"
+      (set-signal-handler! signal/chld void))
+    (initialize "Initializing locale"
+      (foreign-code "setlocale(LC_CTYPE, \"\");")
+      (foreign-code "setlocale(LC_COLLATE, \"\");"))
+    (initialize "Initializing environment"
+      (init-sandbox))
+    (initialize "Loading config files"
       (handle-exceptions x
-        (verbose-printf "failed to load ~a~n" config)
-        (user-load config)))
-    (verbose-printf "Initializing curses...~n")
-    (init-curses)
-    (scmus-connect! (alist-ref 'address opts)
-                    (alist-ref 'port opts eqv? 'default)
-                    (alist-ref 'password opts eqv? 'default))))
+        (printf "WARNING: failed to load ~a~n" *sysrc-path*)
+        (user-load *sysrc-path*))
+      (let ((config (alist-ref 'config opts eqv? *scmusrc-path*)))
+        (handle-exceptions x
+          (verbose-printf "failed to load ~a~n" config)
+          (user-load config))))
+    (initialize "Initializing curses"
+      (init-curses))
+    (initialize "Connecting to server"
+      (scmus-connect! (alist-ref 'address opts)
+                      (alist-ref 'port opts eqv? 'default)
+                      (alist-ref 'password opts eqv? 'default)))))
 
 ;; enter main loop, and clean up on exit
 (let ((code (call/cc main)))

@@ -16,7 +16,8 @@
 ;;
 
 (declare (unit search-view)
-         (uses editable ncurses scmus-client window ui-curses)
+         (uses editable event input ncurses option scmus-client ui-lib view
+               window)
          (export make-search-view search-edit! search-clear! search-add!
                  search-remove!))
 
@@ -131,7 +132,7 @@
     (else
       (track-print-line line-nr (get-format 'format-library) row cursed))))
 
-(define (make-search-view)
+(define-view search
   (make-view (make-window (list (make-search-field) '(separator . ""))
                           *window-data
                           (lambda (w) (search-changed!))
@@ -144,3 +145,6 @@
              remove: search-remove!
              clear:  search-clear!
              edit:   search-edit!))
+
+(define-event (search-changed)
+  (update-view! 'search))

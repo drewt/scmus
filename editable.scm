@@ -22,7 +22,7 @@
 ;; reversed list of characters, and can be converted to a string on demand.
 ;;
 (declare (unit editable)
-         (uses ncurses))
+         (uses input ncurses))
 
 (define-record-type editable
   (*make-editable char-handler key-handler init char-list cursor-pos

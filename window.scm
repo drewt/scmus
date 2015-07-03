@@ -18,7 +18,7 @@
 (require-extension srfi-1)
 
 (declare (unit window)
-         (uses ncurses ui-curses))
+         (uses ncurses))
 
 ;; A "window" is a view of a list
 (define-record-type window

@@ -16,8 +16,8 @@
 ;;
 
 (declare (unit bindings-view)
-  (uses editable keys ncurses ui-curses window)
-  (export make-bindings-view binding-edit! update-bindings-data))
+  (uses editable event input keys ncurses ui-lib view window)
+  (export make-bindings-view binding-edit!))
 
 (define-record-type binding-row
   (*make-binding-row context keys editable)
@@ -99,7 +99,7 @@
             (sort! (binding-list->rows (cdr context)) binding-row<?))))
   (apply append (map context->rows (sort (bindings) context<?))))
 
-(define (make-bindings-view)
+(define-view bindings
   (make-view (make-window (make-bindings-data)
                           *window-data
                           (lambda (w) (binding-changed!))
@@ -110,7 +110,11 @@
              bindings-window-print-row
              edit: binding-edit!))
 
-(define (update-bindings-data window)
-  (*window-data-set! window (make-bindings-data))
-  (window-data-len-update! window)
+(define-event (binding-changed)
   (update-view! 'bindings))
+
+(define-event (binding-data-changed)
+  (let ((window (get-window 'bindings)))
+    (*window-data-set! window (make-bindings-data))
+    (window-data-len-update! window)
+    (update-view! 'bindings)))

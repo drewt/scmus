@@ -22,8 +22,9 @@ INSTALL  = @scripts/install
 eggs = easyffi sandbox unix-sockets utf8
 
 units = bindings-view browser-view config command-line editable eval-mode \
-	format getopt keys lib library-view main mpd-client ncurses option \
-	options-view queue-view search-view scmus-client ui-curses window
+	event format getopt input keys lib library-view main mpd-client \
+	ncurses option options-view queue-view search-view scmus-client \
+	ui-curses ui-lib view window
 objects = $(foreach unit,$(units),$(addsuffix .@OBJEXT@,$(unit)))
 target = scmus@EXEEXT@
 
