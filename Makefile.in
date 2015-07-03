@@ -19,7 +19,7 @@ LD       = csc
 LDFLAGS  =
 INSTALL  = @scripts/install
 
-eggs = easyffi sandbox unix-sockets utf8
+eggs = sandbox unix-sockets utf8
 
 units = bindings-view browser-view config command-line editable eval-mode \
 	event format getopt input keys lib library-view main mpd-client \
