@@ -25,7 +25,11 @@
 
 (define (register-event! event)
   (assert (symbol? event) "register-event!" event)
-  (set! *events* (cons event *events*)))
+  (if (alist-ref event *event-handlers*)
+    (set! *events* (cons event *events*))
+    (error-set! (make-property-condition 'exn
+                  'message "No event handler registered for event"
+                  'arguments event))))
 
 (define (register-event-handler! event handler)
   (set! *event-handlers* (cons (cons event handler) *event-handlers*)))
