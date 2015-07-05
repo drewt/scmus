@@ -49,24 +49,22 @@
   (lambda (e q) (fn (cdr e) q)))
 
 (define (make-meta-window prev-win metadata)
-  (make-window (cons (list-of 'metadata metadata) prev-win)
-               library-window-data
-               library-changed!
-               void
-               library-deactivate!
-               (lambda (e q) #f)))
+  (make-window data:       (cons (list-of 'metadata metadata) prev-win)
+               get-data:   library-window-data
+               changed:    library-changed!
+               deactivate: library-deactivate!))
 
 (define (track-activate! window)
   (set-window! 'library (make-meta-window window (cdr (window-selected window))))
   (register-event! 'library-data-changed))
 
 (define (make-tracks-window prev-win tracks)
-  (make-window (cons (list-of 'track tracks) prev-win)
-               library-window-data
-               library-changed!
-               track-activate!
-               library-deactivate!
-               (match-function track-match)))
+  (make-window data:       (cons (list-of 'track tracks) prev-win)
+               get-data:   library-window-data
+               changed:    library-changed!
+               activate:   track-activate!
+               deactivate: library-deactivate!
+               match:      (match-function track-match)))
 
 (define (album-activate! window)
   (let* ((album (cdr (window-selected window)))
@@ -75,12 +73,12 @@
     (register-event! 'library-data-changed)))
 
 (define (make-albums-window prev-win albums)
-  (make-window (cons albums prev-win)
-               library-window-data
-               library-changed!
-               album-activate!
-               library-deactivate!
-               (match-function substring-match)))
+  (make-window data:       (cons albums prev-win)
+               get-data:   library-window-data
+               changed:    library-changed!
+               activate:   album-activate!
+               deactivate: library-deactivate!
+               match:      (match-function substring-match)))
 
 (define (artist-activate! window artist)
   (let ((albums (scmus-list-tags 'album (cons 'artist artist))))
@@ -99,7 +97,7 @@
       ((playlist) (playlist-activate! window (cdr selected))))))
 
 (define (toplevel-get-data window)
-  (unless (*window-data window)
+  (when (null? (*window-data window))
     (*window-data-set! window (cons (append! (cons '(separator . "Playlists")
                                                    (scmus-list-playlists))
                                              (cons '(separator . "Artists")
@@ -120,12 +118,10 @@
     ((metadata) (alist-print-line window (cdr row) line-nr cursed))))
 
 (define (make-library-window)
-  (make-window #f
-               toplevel-get-data
-               library-changed!
-               toplevel-activate!
-               void
-               (match-function substring-match)))
+  (make-window get-data: toplevel-get-data
+               changed:  library-changed!
+               activate: toplevel-activate!
+               match:    (match-function substring-match)))
 
 (define-view library
   (make-view (make-library-window)

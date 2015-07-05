@@ -55,12 +55,9 @@
   (map option->row (options)))
 
 (define-view options
-  (make-view (make-window (make-options-data)
-                          *window-data
-                          (lambda (w) (option-changed!))
-                          option-edit!
-                          void
-                          (lambda (e q) #f))
+  (make-view (make-window data:     (make-options-data)
+                          changed:  (lambda (w) (option-changed!))
+                          activate: option-edit!)
              "Options"
              options-window-print-row
              edit: option-edit!))

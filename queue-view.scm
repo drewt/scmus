@@ -35,12 +35,10 @@
   (window-clear-marked! window))
 
 (define-view queue
-  (make-view (make-window #f
-                          (lambda (w) *queue*)
-                          (lambda (w) (register-event! 'queue-changed))
-                          (lambda (w) (scmus-play-track! (window-selected w)))
-                          void
-                          track-match)
+  (make-view (make-window get-data: (lambda (w) *queue*)
+                          changed:  (lambda (w) (register-event! 'queue-changed))
+                          activate: (lambda (w) (scmus-play-track! (window-selected w)))
+                          match:    track-match)
              "Queue - ~{queue-length} tracks"
              (lambda (window track line-nr cursed)
                (track-print-line line-nr (get-format 'format-queue) track cursed))

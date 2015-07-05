@@ -233,22 +233,14 @@
     (endwin)))
 
 (define-view status
-  (make-view (make-window #f
-                          (lambda (w) *mpd-status*)
-                          (lambda (w) (register-event! 'status-changed))
-                          void
-                          void
-                          (lambda (e q) #f))
+  (make-view (make-window get-data: (lambda (w) *mpd-status*)
+                          changed:  (lambda (w) (register-event! 'status-changed)))
              "MPD Status"
              alist-print-line))
 
 (define-view error
-  (make-view (make-window #f
-                          (lambda (w) (string-split-lines *scmus-error*))
-                          (lambda (w) (register-event! 'error-changed))
-                          void
-                          void
-                          (lambda (e q) #f))
+  (make-view (make-window get-data: (lambda (w) (string-split-lines *scmus-error*))
+                          changed:  (lambda (w) (register-event! 'error-changed)))
              "Error"
              list-window-print-row))
 

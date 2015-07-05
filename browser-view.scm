@@ -86,12 +86,12 @@
     (alist-print-line window row line-nr cursed)))
 
 (define (make-browser-window prev-win data)
-  (make-window (cons prev-win data)
-               browser-window-data
-               (lambda (w) (register-event! 'browser-changed))
-               browser-activate!
-               browser-deactivate!
-               browser-match))
+  (make-window data:       (cons prev-win data)
+               get-data:   browser-window-data
+               changed:    (lambda (w) (register-event! 'browser-changed))
+               activate:   browser-activate!
+               deactivate: browser-deactivate!
+               match:      browser-match))
 
 (define (update-browser!)
   (set-window! 'browser (make-browser-window #f (scmus-lsinfo "/")))

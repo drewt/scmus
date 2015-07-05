@@ -54,7 +54,13 @@
   ;; active search query
   (query window-query window-query-set!))
 
-(define (make-window data get-data changed activate deactivate match)
+(define (make-window #!key
+                     (data '())
+                     (get-data *window-data)
+                     (changed void)
+                     (activate void)
+                     (deactivate void)
+                     (match (lambda (e q) #f)))
   (let ((window (*make-window data
                               get-data
                               0
