@@ -145,8 +145,9 @@
         (else (editable-default-key-handler editable key)))
       (changed))))
 
-(: make-simple-editable ((editable -> boolean) thunk thunk #!optional string *
-                         -> editable))
+(: make-simple-editable ((editable -> boolean) (editable -> undefined) thunk
+                         #!optional string *
+                           -> editable))
 (define (make-simple-editable activate leave changed
                               #!optional
                               (text "")

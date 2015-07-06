@@ -52,7 +52,7 @@
     (set-window! 'library (library-prev-window window))
     (register-event! 'library-data-changed)))
 
-(: match-function ((* string -> boolean) -> (pair string -> boolean)))
+(: match-function ((* string -> *) -> (pair string -> boolean)))
 (define (match-function fn)
   (lambda (e q) (fn (cdr e) q)))
 

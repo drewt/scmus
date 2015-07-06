@@ -38,6 +38,9 @@ run: all
 %.o: %.scm
 	$(call cmd,csc)
 
+%.types: %.scm
+	$(call cmd,types)
+
 .%.d: %.c
 	$(call cmd,dep)
 
@@ -48,6 +51,9 @@ quiet_cmd_cc    = CC      $@
 # scheme compile for object files
 quiet_cmd_csc   = CSC     $@
       cmd_csc   = $(CSC) -c $(CSCFLAGS) -o $@ $<
+
+quiet_cmd_types = TYPES   $@
+      cmd_types = $(CSC) -c $(TFLAGS) -analyze-only -emit-type-file $@ $<
 
 # LD for programs; optional parameter: libraries
 quiet_cmd_ld    = LD      $@
@@ -65,6 +71,8 @@ quiet_cmd_smake = MAKE    $@
 quiet_cmd_groff = GROFF   $@
       cmd_groff = groff -man -Tascii $< | col -bx > $@
 
+quiet_cmd_cat   = CAT     $@
+      cmd_cat   = cat $^ > $@
 # cmd macro (taken from kbuild)
 cmd = @$(if $($(quiet)cmd_$(1)),echo '  $(call $(quiet)cmd_$(1),$(2))' &&) $(call cmd_$(1),$(2))
 

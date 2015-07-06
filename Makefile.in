@@ -9,12 +9,16 @@ LIBS = @NCURSES_LIBS@
 
 features-@CONFIG_WIDE_CHAR@ += -feature wide-char
 
+types-cflags-$(typed) = -types all.types
+types-prereq-$(typed) = all.types
+
 prelude = '"(define *scmus-dir* \"$(datadir)/scmus\")\
 	    (define *version*   \"@PACKAGE_VERSION@\")"'
 
 CSC      = csc
-CSCFLAGS = -scrutinize -C -Wno-int-to-pointer-cast -C -Wno-cpp -uses lib \
-	   -prologue prologue.scm $(features-y)
+TFLAGS   = -uses lib -prologue prologue.scm $(features-y) 
+CSCFLAGS = -scrutinize -C -Wno-int-to-pointer-cast -C -Wno-cpp $(TFLAGS) \
+	   $(types-cflags-y)
 LD       = csc
 LDFLAGS  =
 INSTALL  = @scripts/install
@@ -26,9 +30,10 @@ units = bindings-view browser-view config command-line editable eval-mode \
 	mpd-client ncurses option options-view queue-view search-view \
 	scmus-client ui-curses ui-lib view window
 objects = $(foreach unit,$(units),$(addsuffix .@OBJEXT@,$(unit)))
+types   = $(foreach unit,$(units),$(addsuffix .types,$(unit)))
 target = scmus@EXEEXT@
 
-clean = $(objects) $(target)
+clean = $(objects) $(types) $(target) all.types
 
 all: $(target)
 
@@ -36,8 +41,13 @@ include rules.mk
 
 config.o: CSCFLAGS += -prelude $(prelude)
 
+$(objects): $(types-prereq-y)
+
 $(target): $(objects)
 	$(call cmd,ld,$(LIBS))
+
+all.types: $(types)
+	$(call cmd,cat)
 
 eggs:
 	chicken-install $(eggs)
