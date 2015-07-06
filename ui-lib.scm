@@ -20,6 +20,7 @@
 
 ;; colors {{{
 
+(: color->number (* -> (or boolean fixnum)))
 (define (color->number color)
   (if (and (integer? color) (>= color -1) (< color 256))
     color
@@ -43,12 +44,14 @@
       ((gray)          15)
       (else            #f))))
 
+(: safe-color->number (* -> fixnum))
 (define (safe-color->number color)
   (let ((n (color->number color)))
-    (if (< n (COLORS))
+    (if (and n (< n (COLORS)))
       n
       -1)))
 
+(: attr->number (* -> (or boolean fixnum)))
 (define (attr->number attr)
   (if (integer? attr)
     attr
@@ -74,8 +77,10 @@
       ((vertical)   A_VERTICAL)
       (else         #f))))
  
+(: *colors* vector)
 (define *colors* (make-vector NR-CURSED))
 
+(: get-color-option (symbol -> (list-of fixnum)))
 (define (get-color-option name)
   (let ((option (get-option name)))
     (assert (list? option))
@@ -83,21 +88,27 @@
           (safe-color->number (cadr option))
           (safe-color->number (caddr option)))))
 
+(: cursed-i (fixnum -> fixnum))
 (define (cursed-i cursed)
   (- cursed 1))
 
+(: cursed-attr (fixnum -> fixnum))
 (define (cursed-attr cursed)
   (car (vector-ref *colors* (cursed-i cursed))))
 
+(: cursed-bg (fixnum -> fixnum))
 (define (cursed-bg cursed)
   (cadr (vector-ref *colors* (cursed-i cursed))))
 
+(: cursed-fg (fixnum -> fixnum))
 (define (cursed-fg cursed)
   (caddr (vector-ref *colors* (cursed-i cursed))))
 
+(: init-cursed! (fixnum symbol -> undefined))
 (define (init-cursed! cursed color)
   (vector-set! *colors* (cursed-i cursed) (get-color-option color)))
 
+(: update-colors! thunk)
 (define (update-colors!)
   (define (*update-colors!)
     (let loop ((i 1))
@@ -116,13 +127,16 @@
   (init-cursed! CURSED-WIN-MARKED  'color-win-marked)
   (init-cursed! CURSED-WIN-TITLE   'color-win-title)
   (*update-colors!)
-  (cursed-set! CURSED-WIN))
+  (cursed-set! CURSED-WIN)
+  (void))
 
+(: cursed-set! (fixnum -> fixnum))
 (define (cursed-set! cursed)
   (bkgdset (bitwise-ior (COLOR_PAIR cursed)
                         (cursed-attr cursed)))
   cursed)
 
+(: find-pair (fixnum fixnum -> (or fixnum boolean)))
 (define (find-pair fg bg)
   (let loop ((i 1))
     (if (< i (COLOR_PAIRS))
@@ -133,6 +147,7 @@
           (loop (+ i 1))))
       #f)))
 
+(: cursed-temp-set! (fixnum #!optional fixnum fixnum fixnum -> undefined))
 (define cursed-temp-set!
   (let ((next (+ NR-CURSED 1)))
     (define (cursed-set! pair attr)
@@ -155,6 +170,7 @@
 ;; cursed-set! {{{
 ;; Generates a function to call cursed-set! with the appropriate value given
 ;; a window, row, and line number.
+(: win-cursed-fn ((* -> boolean) -> (window * fixnum -> fixnum)))
 (define (win-cursed-fn current?)
   (lambda (window row line-nr)
     (let* ((current (current? row))
@@ -172,9 +188,11 @@
           (else                   CURSED-WIN))))))
 
 ;; cursed-set! suitable for any window (CURSED-CUR[-SEL] is never chosen)
+(: generic-cursed-set! (window * fixnum -> fixnum))
 (define generic-cursed-set! (win-cursed-fn (lambda (x) #f)))
 ;; cursed-set! }}}
 ;; print-line {{{
+(: format-addstr! (string fixnum -> undefined))
 (define (format-addstr! str cursed)
   (let loop ((str str))
     (let ((i (string-index str color-code?)))
@@ -188,20 +206,20 @@
           (loop (substring/shared str (+ i 1))))
         (addstr str)))))
 
+(: track-print-line (fixnum list track fixnum -> undefined))
 (define (track-print-line line fmt track cursed)
-  (assert (integer? line) "track-print-line" line)
-  (assert (list? fmt) "track-print-line" fmt)
-  (assert (list? track) "track-print-line" track)
   (mvaddch line 0 #\space)
   (format-addstr! (scmus-format fmt (- (COLS) 2) track) cursed)
   (clrtoeol))
 
+(: simple-print-line (fixnum * -> undefined))
 (define (simple-print-line line-nr str)
   (mvaddstr line-nr 0
             (string-truncate (format " ~a" str)
                              (- (COLS) 2)))
   (clrtoeol))
 
+(: format-print-line (fixnum string #!rest * -> undefined))
 (define (format-print-line line-nr fmt . args)
   (mvaddstr line-nr 0
             (string-truncate (apply format fmt args)
@@ -209,6 +227,7 @@
   (clrtoeol))
 
 ;; Generic function to print an alist entry, for use with print-window.
+(: alist-print-line (window pair fixnum fixnum -> undefined))
 (define (alist-print-line window row line-nr cursed)
   (simple-print-line line-nr (car row))
   (let ((col (- (quotient (COLS) 2) 1)))
@@ -216,9 +235,11 @@
               (string-truncate (format " ~a" (cdr row))
                                (- (COLS) col)))))
 
+(: list-window-print-row (window * fixnum fixnum -> undefined))
 (define (list-window-print-row window row line-nr cursed)
   (simple-print-line line-nr row))
 
+(: separator? (* -> boolean))
 (define (separator? row)
   (and (pair? row) (eqv? (car row) 'separator)))
 ;; print-line }}}

@@ -19,6 +19,7 @@
   (uses editable event input keys ncurses ui-lib view window)
   (export make-bindings-view binding-edit!))
 
+(define-type binding-row (struct binding-row))
 (define-record-type binding-row
   (*make-binding-row context keys editable)
   binding-row?
@@ -26,6 +27,7 @@
   (keys binding-row-keys)
   (editable binding-row-editable))
 
+(: make-binding-row (symbol (list-of string) * -> binding-row))
 (define (make-binding-row context keys expr)
   (*make-binding-row context keys
     (make-simple-editable binding-commit-edit!
@@ -36,12 +38,14 @@
                           (cons keys context))))
 
 ;; For sorting rows within a context.
+(: binding-row<? (binding-row binding-row -> boolean))
 (define (binding-row<? a b)
   (string<? (key-list->string (binding-row-keys a))
             (key-list->string (binding-row-keys b))))
 
 ;; For sorting contexts.  We want the common context to come first; the rest
 ;; should be in alphabetical order.
+(: context<? ((pair symbol *) (pair symbol *) -> boolean))
 (define (context<? a b)
   (let ((a-name (car a))
         (b-name (car b)))
@@ -51,9 +55,11 @@
       (else (string<? (symbol->string a-name)
                       (symbol->string b-name))))))
 
+(: binding-changed! thunk)
 (define (binding-changed!)
   (register-event! 'binding-changed))
 
+(: binding-edit! (window -> undefined))
 (define (binding-edit! window)
   (let ((selected (window-selected window)))
     (when (binding-row? selected)
@@ -63,6 +69,7 @@
                                      (window-top-pos window)))
                              (quotient (COLS) 2))))))
 
+(: binding-window-print-row (window * fixnum fixnum -> undefined))
 (define (bindings-window-print-row window row line-nr cursed)
   (cond
     ((separator? row) (simple-print-line line-nr (cdr row)))
@@ -73,6 +80,7 @@
                          line-nr
                          cursed))))
 
+(: binding-commit-edit! (editable -> boolean))
 (define (binding-commit-edit! editable)
   (handle-exceptions e (begin (error-set! e) #f)
     (user-bind! (car (editable-data editable))
@@ -84,6 +92,7 @@
 ;; The bindings are stored as trees, where each node represents one key in a
 ;; key sequence.  We want to display this data as a list of key sequences, so
 ;; we use this function to flatten and append the trees.
+(: make-bindings-data (-> (list-of binding-row)))
 (define (make-bindings-data)
   (define (context->rows context)
     (define (binding-list->rows blist)

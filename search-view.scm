@@ -21,12 +21,15 @@
          (export make-search-view search-edit! search-clear! search-add!
                  search-remove!))
 
+(: search-result? (* -> boolean))
 (define (search-result? row)
   (and (pair? row) (not (separator? row))))
 
+(: search-changed! (#!rest * -> undefined))
 (define (search-changed! . ignore)
   (register-event! 'search-changed))
 
+(: search-edit! (window -> undefined))
 (define (search-edit! window)
   (let ((selected (window-selected window)))
     (if (editable? selected)
@@ -36,6 +39,7 @@
                                      (window-top-pos window)))
                              3)))))
 
+(: add-search-field! (window -> undefined))
 (define (add-search-field! window)
   (let-values (((queries results) (search-window-data window)))
     (*window-data-set! window (append queries
@@ -47,16 +51,19 @@
       (window-sel-pos-set! window (+ 1 (window-sel-pos window))))
     (search-changed!)))
 
+(: add-selected-tracks! (window -> undefined))
 (define (add-selected-tracks! window)
   (for-each (lambda (x) (if (pair? x) (scmus-add! (track-file x))))
             (window-all-selected window)))
 
+(: search-add! (window -> undefined))
 (define (search-add! window)
   (let ((selected (window-selected window)))
     (cond
       ((editable? selected) (add-search-field! window))
       ((search-result? selected) (add-selected-tracks! window)))))
 
+(: search-remove! (window -> undefined))
 (define (search-remove! window)
   (let-values (((prev rest) (split-at (*window-data window)
                                       (window-sel-pos window))))
@@ -70,6 +77,7 @@
                                          (window-sel-pos window)))))
     (search-changed!)))
 
+(: search-clear! (window -> undefined))
 (define (search-clear! window)
   (let loop ((data (window-data window)) (result '()))
     (if (or (null? data) (search-result? (car data)))
@@ -82,12 +90,14 @@
       (loop (cdr data) (cons (car data) result))))
   (search-changed!))
 
+(: search-window-data (window -> *))
 (define (search-window-data window)
   (let loop ((data (window-data window)) (result '()))
     (if (not (editable? (car data)))
       (values (reverse result) (cdr data))
       (loop (cdr data) (cons (car data) result)))))
 
+(: string->tag (string -> (or symbol boolean)))
 (define (string->tag str)
   (let ((tag (string->symbol (string-downcase str))))
     (if (memv tag
@@ -96,6 +106,7 @@
       tag
       #f)))
 
+(: parse-constraint (string -> (pair symbol string)))
 (define (parse-constraint str)
   (let ((index (string-index str #\:)))
     (if index
@@ -105,6 +116,7 @@
           (cons 'any str)))
       (cons 'any str))))
 
+(: search-activate! (window -> undefined))
 (define (search-activate! window)
   (define (gather-constraints)
     (map (lambda (e) (parse-constraint (editable-text e)))
@@ -116,14 +128,17 @@
                                     (length results))))
   (search-changed!))
 
+(: make-search-field (-> editable))
 (define (make-search-field)
   (make-simple-editable (lambda (e) #t)
                         (lambda (e) (set-input-mode! 'normal-mode))
                         search-changed!))
 
+(: search-match (* string -> boolean))
 (define (search-match row query)
   (and (pair? row) (track-match row query)))
 
+(: search-window-print-row (window * fixnum fixnum -> undefined))
 (define (search-window-print-row window row line-nr cursed)
   (cond
     ((editable? row)

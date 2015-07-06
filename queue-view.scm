@@ -19,6 +19,7 @@
   (uses event option scmus-client ui-lib view window)
   (export make-queue-view))
 
+(: queue-remove! (window -> undefined))
 (define (queue-remove! window)
   (let loop ((marked (sort (window-marked window) >)))
     (unless (null? marked)
@@ -26,6 +27,7 @@
       (loop (cdr marked))))
   (window-clear-marked! window))
 
+(: queue-move! (window -> undefined))
 (define (queue-move! window)
   (let loop ((marked (sort (*window-marked window) <))
              (pos (window-sel-pos window)))

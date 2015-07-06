@@ -22,15 +22,31 @@
          (hide scmus-try-reconnect status-selector track-selector stat-selector
                scmus-command))
 
+(: *mpd-connection* (or boolean mpd-connection))
 (define *mpd-connection* #f)
+
+(: *mpd-status* (list-of (pair symbol *)))
 (define *mpd-status* '())
+
+(: *mpd-stats* (list-of (pair symbol *)))
 (define *mpd-stats* '())
+
+(: *current-track* track)
 (define *current-track* '())
+
+(: *queue* (list-of (pair symbol *)))
 (define *queue* '())
 
+(: *max-retries* fixnum)
 (define *max-retries* 2)
+
+(: *last-update* number)
 (define *last-update* -1.0)
 
+(: scmus-connect! (#!optional (or boolean string)
+                              (or boolean symbol fixnum)
+                              (or boolean symbol string)
+                    -> boolean))
 (define (scmus-connect! #!optional (host #f) (port 'default) (pass 'default))
   (let ((host (if host host (get-option 'mpd-address)))
         (port (if (eqv? port 'default) (get-option 'mpd-port) port))
@@ -48,9 +64,16 @@
         (register-event! 'db-changed)
         #t))))
 
+(: scmus-disconnect! thunk)
 (define (scmus-disconnect!)
   (mpd:disconnect *mpd-connection*))
 
+(: scmus-oneshot ((or boolean string)
+                  (or boolean fixnum)
+                  (or boolean string)
+                  string
+                  #!rest *
+                    -> *))
 (define (scmus-oneshot host port pass cmd . args)
   (condition-case
     (let* ((con (mpd:connect (if host host (get-option 'mpd-address))
@@ -61,49 +84,60 @@
       res)
     (e () (condition->list e))))
 
+(: scmus-connected? (-> boolean))
 (define (scmus-connected?)
   (and *mpd-connection* (mpd:connected? *mpd-connection*)))
 
+(: scmus-hostname (-> string))
 (define (scmus-hostname)
   (if (scmus-connected?)
     (mpd-host *mpd-connection*)
     "<none>"))
 
+(: scmus-port (-> (or fixnum boolean)))
 (define (scmus-port)
   (if (scmus-connected?)
     (mpd-port *mpd-connection*)
     0))
 
+(: scmus-address (-> string))
 (define (scmus-address)
   (if (scmus-connected?)
     (mpd:address *mpd-connection*)
     "<none>"))
 
+(: exit-client thunk)
 (define (exit-client)
   (if *mpd-connection*
     (mpd:disconnect *mpd-connection*)))
 
+(: scmus-try-reconnect thunk)
 (define (scmus-try-reconnect)
   (condition-case
     (begin (set! *mpd-connection* (mpd:reconnect *mpd-connection*)) #t)
     (e () (error-set! e) #f)))
 
+(: scmus-update-stats! thunk)
 (define (scmus-update-stats!)
   (set! *mpd-stats* (scmus-stats)))
 
+(: scmus-update-status! thunk)
 (define (scmus-update-status!)
   (set! *mpd-status* (scmus-status))
   (register-event! 'status-changed))
 
+(: scmus-update-current-song! thunk)
 (define (scmus-update-current-song!)
   (set! *current-track* (scmus-current-song))
   (register-event! 'queue-changed)
   (register-event! 'current-line-changed))
 
+(: scmus-update-queue! thunk)
 (define (scmus-update-queue!)
   (set! *queue* (scmus-playlist-info))
   (register-event! 'queue-data-changed))
 
+(: scmus-update-client! thunk)
 (define (scmus-update-client!)
   (let ((ct (time->seconds (current-time)))
         (version (scmus-queue-version)))
@@ -120,6 +154,7 @@
         (e () (error-set! e)
               (scmus-try-reconnect))))))
 
+(: scmus-elapsed-string (-> string))
 (define (scmus-elapsed-string)
   (seconds->string (inexact->exact (round (scmus-elapsed)))))
 
@@ -193,22 +228,28 @@
 (track-selector track-id 'id -1)
 (track-selector track-prio 'prio 0)
 
+(: track-duration (track -> number))
 (define (track-duration track)
   (car (*track-duration track)))
 
+(: track-meta (track symbol #!optional * -> *))
 (define (track-meta track meta #!optional (default ""))
   (let ((e (alist-ref meta track)))
     (if e e default)))
 
+(: current-track (-> track))
 (define (current-track)
   *current-track*)
 
+(: current-track? (track -> boolean))
 (define (current-track? track)
   (track= track *current-track*))
 
+(: track= (track track -> boolean))
 (define (track= a b)
   (string=? (track-file a) (track-file b)))
 
+(: track-match (track string -> boolean))
 (define (track-match track query)
   (or (substring-match (track-title track) query)
       (substring-match (track-album track) query)
@@ -223,11 +264,13 @@
 (stat-selector scmus-db-playtime 'db_playtime)
 (stat-selector scmus-db-update 'db_update)
 
+(: scmus-bail! (* -> null))
 (define (scmus-bail! e)
   (scmus-disconnect!)
   (error-set! e)
   '())
 
+(: *scmus-command ((mpd-connection #!rest * -> *) #!rest * -> list))
 (define (*scmus-command mpd-fn . args)
   (if (scmus-connected?)
     (condition-case (apply mpd-fn *mpd-connection* args)
@@ -310,29 +353,37 @@
 (scmus-command scmus-update! mpd:update!)
 (scmus-command scmus-rescan! mpd:rescan!)
 
+(: scmus-list-playlists (-> list))
 (define (scmus-list-playlists)
   (filter (lambda (x) (eqv? (car x) 'playlist))
           (*scmus-list-playlists)))
 
+(: scmus-play-track! (track -> undefined))
 (define (scmus-play-track! track)
   (assert (>= (track-id track) 0) "scmus-play-track!" (track-id track))
   (scmus-play-id! (track-id track)))
 
+(: scmus-seek! (fixnum -> undefined))
 (define (scmus-seek! seconds)
   (assert (integer? seconds) "scmus-seek!" seconds)
   (scmus-seek-id! (track-id *current-track*)
                   (min (track-duration *current-track*)
                        (max 0 (+ (car (scmus-elapsed-time)) seconds)))))
 
+(: scmus-toggle-repeat! thunk)
 (define (scmus-toggle-repeat!)
   (scmus-repeat-set! (if (scmus-repeat?) #f #t)))
+(: scmus-toggle-random! thunk)
 (define (scmus-toggle-random!)
   (scmus-random-set! (if (scmus-random?) #f #t)))
+(: scmus-toggle-single! thunk)
 (define (scmus-toggle-single!)
   (scmus-single-set! (if (scmus-single?) #f #t)))
+(: scmus-toggle-consume thunk)
 (define (scmus-toggle-consume!)
   (scmus-consume-set! (if (scmus-consume?) #f #t)))
 
+(: scmus-searech-songs (boolean boolean #!rest (pair symbol *) -> list))
 (define (scmus-search-songs exact add . constraints)
   (if (null? constraints)
     '()

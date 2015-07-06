@@ -20,20 +20,25 @@
                  register-event!
                  register-event-handler!))
 
+(: *events* (list-of symbol))
 (define *events* '())
+
+(: *event-handlers* (list-of (pair symbol thunk)))
 (define *event-handlers* '())
 
+(: register-event! (symbol -> undefined))
 (define (register-event! event)
-  (assert (symbol? event) "register-event!" event)
   (if (alist-ref event *event-handlers*)
     (set! *events* (cons event *events*))
     (error-set! (make-property-condition 'exn
                   'message "No event handler registered for event"
                   'arguments event))))
 
+(: register-event-handler! (symbol thunk -> undefined))
 (define (register-event-handler! event handler)
   (set! *event-handlers* (cons (cons event handler) *event-handlers*)))
 
+(: handle-events! thunk)
 (define (handle-events!)
   (for-each (lambda (x)
               ((alist-ref x *event-handlers*)))

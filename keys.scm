@@ -40,38 +40,49 @@
                  enter-normal-mode key-list->string make-binding!
                  normal-mode-char normal-mode-key unbind!))
 
+(define-type binding-node (pair string pair))
+(define-type binding-list (list-of binding-node))
+(define-type binding-terminal (pair symbol *))
+(define-type binding-data (or binding-list binding-terminal))
+
 ;; alist associating key-contexts with binding alists
+(: *bindings* (list-of (pair symbol binding-list)))
 (define *bindings*
   (map (lambda (x) (cons x '())) (cons 'common *view-names*)))
 
 ;; evil global state
+(: *current-context* (or boolean binding-list))
 (define *current-context* #f)
+
+(: *common-context* (or boolean binding-list))
 (define *common-context* #f)
 
+(: bindings (-> (list-of (pair symbol binding-list))))
 (define (bindings) *bindings*)
 
+(: binding-expression? (* -> boolean))
 (define (binding-expression? binding)
   (and (pair? binding) (eqv? (car binding) 'binding)))
 
+(: binding-key (pair -> string))
 (define (binding-key binding)
   (car binding))
 
+(: binding-data (pair -> binding-data))
 (define (binding-data binding)
   (cdr binding))
 
+(: binding-expression (pair -> *))
 (define (binding-expression binding)
   (cdr (binding-data binding)))
 
+(: get-binding (string binding-list -> binding-data))
 (define (get-binding key bindings)
-  (assert (string? key) "get-binding" key)
-  (assert (list? bindings) "get-binding" bindings)
   (alist-ref key bindings string=?))
 
 ;; Non-destructive binding update.  Binds expr to keys in key-list.
+(: make-binding ((list-of string) binding-list * -> binding-list))
 (define (make-binding keys key-list expr)
-  (assert (and (list? keys) (not (null? keys)) (string? (car keys)))
-          "make-binding" keys)
-  (assert (list? key-list) "make-binding" key-list)
   (let ((binding (get-binding (car keys) key-list)))
     (cond
       ; last key and no conflict: do bind
@@ -92,11 +103,9 @@
             #f))))))
 
 ;; Destructive binding update.  Binds expr to keys in the given context.
+(: make-binding! ((list-of string) symbol * -> boolean))
 (define (make-binding! keys context expr)
-  (assert (and (list? keys) (not (null? keys)) (string? (car keys)))
-          "make-binding!" keys)
-  (assert (and (symbol? context) (binding-context-valid? context))
-          "make-binding!" context)
+  (assert (binding-context-valid? context) "make-binding!" context)
   (let ((new (make-binding keys (alist-ref context *bindings*) expr)))
     (if new
       (begin
@@ -105,15 +114,12 @@
         #t)
       #f)))
 
+(: keybind-remove (string binding-list -> binding-list))
 (define (keybind-remove key blist)
-  (assert (string? key) "keybind-remove" key)
-  (assert (list? blist) "keybind-remove" blist)
   (remove (lambda (x) (string=? (car x) key)) blist))
 
+(: unbind ((list-of string) binding-list -> binding-list))
 (define (unbind keys key-list)
-  (assert (and (list? keys) (not (null? keys)) (string? (car keys)))
-          "unbind" keys)
-  (assert (list key-list) "unbind" key-list)
   (let ((binding (get-binding (car keys) key-list)))
     (cond
       ; base case: remove binding
@@ -130,11 +136,9 @@
             (keybind-remove (car keys) key-list)
             (alist-update (car keys) new-bindings key-list string=?)))))))
 
+(: unbind! ((list-of string) symbol -> boolean))
 (define (unbind! keys context)
-  (assert (and (list? keys) (not (null? keys)) (string? (car keys)))
-          "unbind!" keys)
-  (assert (and (symbol? context) (binding-context-valid? context))
-          "unbind!" context)
+  (assert (binding-context-valid? context) "unbind!" context)
   (let ((new (unbind keys (alist-ref context *bindings*))))
     (if new
       (begin
@@ -143,6 +147,7 @@
         #t)
       #f)))
 
+(: key-list->string ((list-of string) -> string))
 (define (key-list->string keys)
   (fold (lambda (str acc)
           (if acc
@@ -153,26 +158,29 @@
 
 ;; Converts an ncurses keypress event to a string.
 ;; Argument may be either a character or an integer.
+(: key->string ((or char fixnum) -> string))
 (define (key->string key)
-  (assert (or (char? key) (integer? key)) "key->string" key)
   (find-key-name (if (char? key)
                    (char->integer key)
                    key)))
 
+(: key-valid? (* -> boolean))
 (define key-valid? find-key-code)
 
+(: binding-keys-valid? (list -> boolean))
 (define (binding-keys-valid? keys)
-  (assert (list keys) "binding-keys-valid?" keys)
   (if (null? keys)
     #t
     (and (string? (car keys))
          (key-valid? (car keys))
          (binding-keys-valid? (cdr keys)))))
 
+(: binding-context-valid? (symbol -> boolean))
 (define (binding-context-valid? context)
   (memv context (cons 'common *view-names*)))
 
 ;; Abandons the current key context.
+(: clear-context! thunk)
 (define (clear-context!)
   (set! *current-context* #f)
   (set! *common-context* #f))
@@ -180,10 +188,12 @@
 ;; Begins a new key context.  This can be delayed until a key is
 ;; pressed so that new bindings and view changes are taken into
 ;; account.
+(: start-context! (symbol -> undefined))
 (define (start-context! view)
   (set! *current-context* (alist-ref view *bindings*))
   (set! *common-context* (alist-ref 'common *bindings*)))
 
+(: handle-user-key (symbol fixnum -> undefined))
 (define (handle-user-key view key)
   (if (not *current-context*)
     (start-context! view))
@@ -205,9 +215,11 @@
           (else ; no binding
             (clear-context!)))))))
 
+(: enter-normal-mode thunk)
 (define (enter-normal-mode)
   (cursor-off))
 
+(: normal-mode-char (symbol char -> undefined))
 (define (normal-mode-char view ch)
   (case ch
     ((#\:) (enter-eval-mode))
@@ -215,6 +227,7 @@
     ((#\q) (scmus-exit 0))
     (else (handle-user-key view ch))))
 
+(: normal-mode-key (symbol fixnum -> undefined))
 (define (normal-mode-key view key)
   (case key
     ((KEY_UP #f))

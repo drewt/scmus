@@ -219,18 +219,19 @@
   (user-export! 'write-config! write-config!)
   (user-export! 'xfade scmus-xfade))
 
+(: user-eval procedure)
 (define (user-eval expr)
   (condition-case (safe-eval expr environment: *user-env*)
     (e () (error-set! e) e)))
 
+(: user-eval-string (string -> *))
 (define (user-eval-string str)
-  (assert (string? str) "user-eval-string" str)
   (condition-case (safe-eval (with-input-from-string str read)
                              environment: *user-env*)
     (e () (error-set! e) e)))
 
+(: user-load (string -> *))
 (define (user-load path)
-  (assert (string? path) "user-load" path)
   (call-with-input-file path
     (lambda (in)
       (let loop ()

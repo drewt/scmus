@@ -19,12 +19,15 @@
          (uses event ncurses option scmus-client ui-lib view window)
          (export browser-add-selected! make-browser-view update-browser!))
 
+(: browser-window-data (window -> list))
 (define (browser-window-data window)
   (cdr (*window-data window)))
 
+(: browser-prev-window (window -> window))
 (define (browser-prev-window window)
   (car (*window-data window)))
 
+(: browser-add! (* -> undefined))
 (define (browser-add! selected)
   (if (pair? (car selected))
     (case (caar selected)
@@ -32,21 +35,26 @@
       ((playlist)  (scmus-playlist-load! (cdar selected)))
       ((file)      (scmus-add! (cdar selected))))))
 
+(: browser-add-selected! (window -> undefined))
 (define (browser-add-selected! window)
   (for-each browser-add! (window-all-selected window)))
 
+(: directory-activate! (window string -> undefined))
 (define (directory-activate! window dir)
   (set-window! 'browser (make-browser-window window (scmus-lsinfo dir)))
   (register-event! 'browser-data-changed))
 
+(: playlist-activate! (window string -> undefined))
 (define (playlist-activate! window playlist)
   (set-window! 'browser (make-browser-window window (scmus-list-playlist playlist)))
   (register-event! 'browser-data-changed))
 
+(: file-activate! (window list -> undefined))
 (define (file-activate! window file)
   (set-window! 'browser (make-browser-window window file))
   (register-event! 'browser-data-changed))
 
+(: browser-activate! (window -> undefined))
 (define (browser-activate! window)
   (let ((selected (window-selected window)))
     (if (pair? (car selected))
@@ -55,11 +63,13 @@
         ((playlist) (playlist-activate! window (cdar selected)))
         ((file) (file-activate! window selected))))))
 
+(: browser-deactivate! (window -> undefined))
 (define (browser-deactivate! window)
   (when (browser-prev-window window)
     (set-window! 'browser (browser-prev-window window))
     (register-event! 'browser-data-changed)))
 
+(: browser-match (* string -> boolean))
 (define (browser-match row query)
   (if (pair? (car row))
     (case (caar row)
@@ -68,6 +78,7 @@
       (else #f))
     #f))
 
+(: browser-window-print-row (window * fixnum fixnum -> undefined))
 (define (browser-window-print-row window row line-nr cursed)
   (if (pair? (car row))
     (case (caar row)
@@ -85,6 +96,7 @@
                                      cursed)))
     (alist-print-line window row line-nr cursed)))
 
+(: make-browser-window ((or window boolean) list -> window))
 (define (make-browser-window prev-win data)
   (make-window data:       (cons prev-win data)
                get-data:   browser-window-data
@@ -93,6 +105,7 @@
                deactivate: browser-deactivate!
                match:      browser-match))
 
+(: update-browser! thunk)
 (define (update-browser!)
   (set-window! 'browser (make-browser-window #f (scmus-lsinfo "/")))
   (register-event! 'browser-data-changed))

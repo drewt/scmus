@@ -16,16 +16,13 @@
 
 (define-syntax key-case
   (syntax-rules (else)
+    ((key-case key) (void))
     ((key-case key (else first rest ...))
       (begin first rest ...))
-    ((key-case key (() first rest ...))
-      (void))
-    ((key-case key (() first rest ...) others ...)
-      (key-case key others ...))
-    ((key-case key ((choice choices ...) first rest ...) others ...)
-      (if (= key choice)
+    ((key-case key ((choices ...) first rest ...) others ...)
+      (if (member key (list choices ...))
         (begin first rest ...)
-        (key-case key ((choices ...) first rest ...) others ...)))))
+        (key-case key others ...)))))
 
 (define-syntax without-curses
   (syntax-rules ()
@@ -63,4 +60,13 @@
 (define-constant CURSED-WIN-TITLE 11)
 (define-constant NR-CURSED 11)
 
+(define-type format-spec list)
+(define-type predicate (* -> boolean))
+(define-type thunk (-> undefined))
+(define-type track (list-of (pair symbol *)))
 
+(define-type editable (struct editable))
+(define-type mpd-connection (struct mpd-connection))
+(define-type option (struct option))
+(define-type view (struct view))
+(define-type window (struct window))

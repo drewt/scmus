@@ -19,20 +19,27 @@
          (uses editable keys ncurses)
          (export current-editable cursor-pos handle-input set-input-mode!))
 
+(: *current-input-mode* symbol)
 (define *current-input-mode* 'normal-mode)
+
+(: *current-editable* (or boolean editable))
 (define *current-editable* #f)
+
+(: *editable-pos* (or boolean pair))
 (define *editable-pos* #f)
 
+(: current-editable (-> (or boolean editable)))
 (define (current-editable) *current-editable*)
 
+(: cursor-pos (-> pair))
 (define (cursor-pos)
   (cons (car *editable-pos*)
         (min (+ (cdr *editable-pos*)
                 (editable-cursor-pos *current-editable*))
              (- (COLS) 1))))
 
+(: set-input-mode! (symbol #!optional * * -> undefined))
 (define (set-input-mode! mode #!optional (arg0 #f) (arg1 #f))
-  (assert (symbol? mode) "set-input-mode!" mode)
   (assert (memv mode '(normal-mode edit-mode)) "set-input-mode!" mode)
   (case mode
     ((normal-mode) (enter-normal-mode))
@@ -46,6 +53,7 @@
                    (editable-init arg0)))
   (set! *current-input-mode* mode))
 
+(: handle-key (symbol fixnum -> undefined))
 (define (handle-key view key)
   (cond
     ((= key KEY_RESIZE) (redraw-ui))
@@ -54,11 +62,13 @@
         ((normal-mode) (normal-mode-key view key))
         ((edit-mode)   (editable-key *current-editable* key))))))
 
+(: handle-char (symbol char -> undefined))
 (define (handle-char view ch)
   (case *current-input-mode*
     ((normal-mode) (normal-mode-char view ch))
     ((edit-mode)   (editable-char *current-editable* ch))))
 
+(: handle-input (symbol -> undefined))
 (define (handle-input view)
   (let-values (((ch rc) (get-char)))
     (cond

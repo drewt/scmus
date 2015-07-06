@@ -31,12 +31,13 @@
 
 ;; user functions {{{
 
+(: push! (string -> undefined))
 (define (push! str)
   (enter-eval-mode)
   (command-line-text-set! str))
 
+(: win-move! (fixnum #!optional boolean -> undefined))
 (define (win-move! nr #!optional (relative #f))
-  (assert (integer? nr) "win-move!" nr)
   (let ((nr-lines (if relative
                     (integer-scale (window-nr-lines (current-window)) nr)
                     nr)))
@@ -44,47 +45,58 @@
       (window-move-down! (current-window) nr-lines)
       (window-move-up! (current-window) (abs nr-lines)))))
 
+(: win-bottom! thunk)
 (define (win-bottom!)
   (let ((window (current-window)))
     (window-select! window (- (window-data-len window) 1))))
 
+(: win-top! thunk)
 (define (win-top!)
   (window-select! (current-window) 0))
 
+(: win-clear-marked! thunk)
 (define (win-clear-marked!)
   (window-clear-marked! (current-window))
   (redraw-ui))
 
+(: win-search! (string -> undefined))
 (define (win-search! query)
   (window-search-init! (current-window) query)
   (win-search-next!))
 
+(: win-search-next! thunk)
 (define (win-search-next!)
   (let ((i (window-next-match! (current-window))))
     (when i
       (window-select! (current-window) i))))
 
+(: win-search-prev! thunk)
 (define (win-search-prev!)
   (let ((i (window-prev-match! (current-window))))
     (when i
       (window-select! (current-window) i))))
 
+(: win-add! thunk)
 (define (win-add!)
   (let ((view (current-view)))
     ((view-add view) (view-window view))))
 
+(: win-remove! thunk)
 (define (win-remove!)
   (let ((view (current-view)))
     ((view-remove view) (view-window view))))
 
+(: win-clear! thunk)
 (define (win-clear!)
   (let ((view (current-view)))
     ((view-clear view) (view-window view))))
 
+(: win-move-tracks! thunk)
 (define (win-move-tracks!)
   (let ((view (current-view)))
     ((view-move view) (view-window view))))
 
+(: win-edit! thunk)
 (define (win-edit!)
   (let ((view (current-view)))
     ((view-edit view) (view-window view))))
@@ -92,30 +104,38 @@
 ;; user functions }}}
 ;; windows {{{
 
+(: get-window (symbol -> window))
 (define (get-window view-name)
   (view-window (alist-ref view-name *views*)))
 
+(: set-window! (symbol window -> undefined))
 (define (set-window! view-name window)
   (window-nr-lines-set! window (max 0 (- (LINES) 4)))
   (view-window-set! (alist-ref view-name *views*) window))
 
+(: view-print-title! (view -> undefined))
 (define (view-print-title! view)
   (cursed-set! CURSED-WIN-TITLE)
   (track-print-line 0 (view-title-fmt view) '() CURSED-WIN-TITLE))
 
+(: update-view! (symbol -> undefined))
 (define (update-view! view-name)
   (if (current-view? view-name)
     (print-view! (alist-ref view-name *views*))))
 
+(: current-view (-> view))
 (define (current-view)
   (alist-ref *current-view* *views*))
 
+(: current-window (-> window))
 (define (current-window)
   (get-window *current-view*))
 
+(: current-view? (symbol -> boolean))
 (define (current-view? view-name)
   (eqv? view-name *current-view*))
 
+(: set-view! (symbol -> undefined))
 (define (set-view! view-name)
   (when (memv view-name *view-names*)
     (set! *current-view* view-name)
@@ -124,6 +144,7 @@
 ;; windows }}}
 ;; screen updates {{{
 
+(: print-view! (view -> undefined))
 (define (print-view! view)
   (when (> (LINES) 3)
     (view-print-title! view)
@@ -140,6 +161,7 @@
                 (view-print-line! view (car rows) line-nr cursed)))
             (loop (if (null? rows) '() (cdr rows)) (- lines 1))))))))
 
+(: update-current-line thunk)
 (define (update-current-line)
   (when (> (LINES) 2)
     (cursed-set! CURSED-TITLELINE)
@@ -148,6 +170,7 @@
                       *current-track*
                       CURSED-TITLELINE)))
 
+(: update-status-line thunk)
 (define (update-status-line)
   (when (> (LINES) 1)
     (cursed-set! CURSED-STATUSLINE)
@@ -156,13 +179,16 @@
                       *current-track*
                       CURSED-STATUSLINE)))
 
+(: update-status thunk)
 (define (update-status)
   (update-status-line)
   (update-view! 'status))
 
+(: update-current thunk)
 (define (update-current)
   (update-current-line))
 
+(: update-command-line thunk)
 (define (update-command-line)
   (cursed-set! CURSED-CMDLINE)
   (cursed-set! (case (command-line-mode)
@@ -178,17 +204,20 @@
   (addstr (string-truncate (command-line-text)
                            (- (COLS) 2))))
 
+(: update-db thunk)
 (define (update-db)
   (scmus-update-stats!)
   (update-library!)
   (update-browser!)
   (update-view! 'library))
 
+(: update-cursor thunk)
 (define (update-cursor)
   (if (current-editable)
     (let ((pos (cursor-pos)))
       (move (car pos) (cdr pos)))))
 
+(: redraw-ui thunk)
 (define (redraw-ui)
   (for-each (lambda (x) (window-nr-lines-set! (view-window (cdr x))
                                               (max 0 (- (LINES) 4))))
@@ -200,19 +229,24 @@
 
 ;; screen updates }}}
 
+(: ui-initialized? (-> boolean))
 (define (ui-initialized?) *ui-initialized*)
 
+(: cursor-on thunk)
 (define (cursor-on)
   (curs_set 1))
 
+(: cursor-off thunk)
 (define (cursor-off)
   (curs_set 0))
 
+(: curses-update thunk)
 (define (curses-update)
   (handle-events!)
   (update-cursor)
   (handle-input *current-view*))
 
+(: init-curses thunk)
 (define (init-curses)
   (initscr)
   (set! *ui-initialized* #t)
@@ -228,6 +262,7 @@
   (redraw-ui)
   (set-input-mode! 'normal-mode))
 
+(: exit-curses thunk)
 (define (exit-curses)
   (handle-exceptions exn (void)
     (endwin)))

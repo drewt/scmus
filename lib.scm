@@ -21,37 +21,50 @@
 ;; the exit routine; initially (exit), becomes a continuation
 (define scmus-exit exit)
 
+(: *scmus-error* string)
 (define *scmus-error* "")
 
+(: *view-names* (list-of symbol))
 (define *view-names*
   '(library queue search browser status error options bindings))
 
+(define-type printf (#!rest * -> undefined))
+(define-type pp (* -> undefined))
+
+(: verbose-printf printf)
 (define (verbose-printf . args)
   (if *verbose*
     (apply console-printf args)))
 
+(: debug-printf printf)
 (define (debug-printf . args)
   (if *debug*
     (apply console-printf args)))
 
+(: debug-pp pp)
 (define (debug-pp sexp)
   (if *debug*
     (console-pp sexp)))
 
+(: console-printf printf)
 (define (console-printf . args)
   (without-curses
     (apply printf args)))
 
+(: console-pp pp)
 (define (console-pp sexp)
   (without-curses
     (pp sexp)))
 
+(: separator? (* -> boolean))
 (define (separator? obj)
   (and (pair? obj) (eq? (car obj) 'separator)))
 
+(: port-valid? (* -> boolean))
 (define (port-valid? port)
   (and (integer? port) (positive? port) (< port 65536)))
 
+(: *->color-code (* -> fixnum))
 (define (*->color-code x)
   (cond
     ((string? x) (or (*->color-code (string->number x))
@@ -78,31 +91,39 @@
             ((gray)          15)
             (else            #f)))))
 
+(: alist-update (* * (list-of pair) #!optional (* * -> boolean) -> (list-of pair)))
 (define (alist-update key value alist #!optional (test eqv?))
   (alist-update! key value (list-copy alist) test))
 
 ;; unicode stuff {{{
 
+(: +unicode-private-base+ fixnum)
 (define-constant +unicode-private-base+ #xE000)
 
+(: color-code? (char -> boolean))
 (define (color-code? ch)
   (let ((u (char->integer ch)))
     (and (>= u +unicode-private-base+)
          (< u (+ 258 +unicode-private-base+)))))
 
+(: ch->color-code (char -> fixnum))
 (define (ch->color-code ch)
   (- (char->integer ch) +unicode-private-base+ 2))
 
+(: color->char (fixnum -> char))
 (define (color->char color)
   (integer->char (+ color +unicode-private-base+ 2)))
 
 ;; substitute for broken utf8#string-contains-ci
+(: substring-match (string string -> fixnum))
 (define (substring-match str sub)
   (string-contains (string-downcase str) (string-downcase sub)))
 
+(: string-width (string -> fixnum))
 (define (string-width str)
   (fold + 0 (map char-width (string->list str))))
 
+(: char-width (char -> fixnum))
 (define (char-width c)
   (let ((u (char->integer c)))
     (cond
@@ -141,8 +162,8 @@
       ((and (>= u #x30000) (<= u #x3fffd)) 2)
       (else 1))))
 
+(: ustring-take (string fixnum -> string))
 (define (ustring-take str width)
-  (assert (string? str) "ustring-take" str)
   (let loop ((result '()) (rest (string->list str)) (r-width 0))
     (let* ((c (car rest))
            (c-width (char-width c)))
@@ -150,6 +171,7 @@
         (list->string (reverse result))
         (loop (cons c result) (cdr rest) (+ r-width c-width))))))
 
+(: ustring-take-right (string fixnum -> string))
 (define (ustring-take-right str width)
   (let loop ((result '()) (rest (reverse (string->list str))) (r-width 0))
     (let* ((c (car rest))
@@ -158,6 +180,7 @@
         (list->string result)
         (loop (cons c result) (cdr rest) (+ r-width c-width))))))
 
+(: string-truncate (string fixnum #!optional boolean -> string))
 (define (string-truncate s len #!optional (left #f))
   (let ((width (string-width s)))
     (if (> width len)
@@ -166,25 +189,24 @@
         (ustring-take s len))
       s)))
 
+(: ustring-pad (string fixnum char #!optional boolean -> string))
 (define (ustring-pad str len c #!optional (right #f))
   (if right
     (string-append str (make-string (- len (string-width str)) c))
     (string-append (make-string (- len (string-width str)) c) str)))
 
+(: string-stretch (string char fixnum #!optional boolean -> string))
 (define (string-stretch str c len #!optional (right #f))
-  (assert (string? str) "string-stretch" str)
-  (assert (char? c) "string-stretch" c)
-  (assert (integer? len) "string-stretch" len)
   (if (> len (string-width str))
     (ustring-pad str len c right)
     (string-truncate str len)))
 
+(: integer-scale (fixnum fixnum -> fixnum))
 (define (integer-scale len percent)
-  (assert (integer? len) "integer-scale" len)
-  (assert (integer? percent) "integer-scale" percent)
   (assert (>= len 0) "integer-scale" len)
   (inexact->exact (round (* len (/ percent 100)))))
 
+(: string-split-lines (string -> (list-of string)))
 (define (string-split-lines str)
   (let loop ((result '()) (substr '()) (rest (string->list str)))
     (if (null? rest)
@@ -195,9 +217,8 @@
         (loop (cons (list->string (reverse substr)) result) '() (cdr rest))
         (loop result (cons (car rest) substr) (cdr rest))))))
 
+(: seconds->string (fixnum -> string))
 (define (seconds->string total-seconds)
-  (assert (number? total-seconds) "seconds->string" total-seconds)
-  (assert (integer? total-seconds) "seconds->string" total-seconds)
   (assert (>= total-seconds 0) "seconds->string" total-seconds)
   (let* ((total-minutes (quotient total-seconds 60))
          (seconds (modulo total-seconds 60))
@@ -213,11 +234,12 @@
                      (format "0~a" seconds)
                      (number->string seconds)))))
 
+(: clean-nr (string -> string))
 (define (clean-nr str)
-  (assert (string? str) "clean-nr" str)
   (let ((i (string-index str #\/)))
     (if i (string-take str i) str)))
 
+(: error-set! (condition -> undefined))
 (define (error-set! error)
   (let ((out (open-output-string)))
     (pretty-print (condition->list error) out)

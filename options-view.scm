@@ -19,9 +19,11 @@
          (uses editable event input ncurses option ui-lib view window)
          (export make-options-view option-edit!))
 
+(: option-changed! thunk)
 (define (option-changed!)
   (register-event! 'option-changed))
 
+(: option-edit! (window -> undefined))
 (define (option-edit! window)
   (let* ((selected (window-selected window))
          (name (car selected))
@@ -32,18 +34,21 @@
                                    (window-top-pos window)))
                            (quotient (COLS) 2)))))
 
+(: options-window-print-row (window * fixnum fixnum -> undefined))
 (define (options-window-print-row window row line-nr cursed)
   (alist-print-line window
                     (cons (car row) (editable-text (cdr row)))
                     line-nr
                     cursed))
 
+(: option-commit-edit! (editable -> boolean))
 (define (option-commit-edit! editable)
   (handle-exceptions e (begin (error-set! e) #f)
     (set-option! (editable-data editable)
                  (editable-read editable))
     #t))
 
+(: make-options-data (-> list))
 (define (make-options-data)
   (define (option->row pair)
     (cons (car pair)

@@ -23,9 +23,11 @@
 (declare (unit key-table)
          (hide *key-table*))
 
+(: find-key-code (string -> fixnum))
 (define (find-key-code name)
   (hash-table-ref/default *key-table* name #f))
 
+(: find-key-name (fixnum -> string))
 (define (find-key-name code)
   (hash-table-fold *key-table*
                    (lambda (key value acc)
@@ -34,6 +36,7 @@
                        acc))
                    #f))
 
+(: *key-table* hash-table)
 (define *key-table*
   (alist->hash-table 
     `(( "!"              . 33)

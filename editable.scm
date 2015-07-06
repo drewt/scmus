@@ -24,6 +24,30 @@
 (declare (unit editable)
          (uses input ncurses))
 
+(: *make-editable ((editable char -> undefined)
+                   (editable fixnum -> undefined)
+                   (editable -> undefined)
+                   (list-of char)
+                   fixnum
+                   fixnum
+                   *
+                     -> editable))
+(: editable-char-handler (editable -> (editable char -> undefined)))
+(: editable-char-handler-set! (editable (editable char -> undefined)
+                                -> undefined))
+(: editable-key-handler (editable -> (editable fixnum -> undefined)))
+(: editable-key-handler-set! (editable (editable fixnum -> undefined)
+                                -> undefined))
+(: *editable-init (editable -> (editable -> undefined)))
+(: editable-init-set! (editable (editable -> undefined) -> undefined))
+(: editable-list (editable -> (list-of char)))
+(: editable-set-list! (editable (list-of char) -> undefined))
+(: editable-pos (editable -> fixnum))
+(: editable-set-pos! (editable fixnum -> undefined))
+(: editable-length (editable -> fixnum))
+(: editable-set-length! (editable fixnum -> undefined))
+(: editable-data (editable -> *))
+(: editable-set-data! (editable * -> undefined))
 (define-record-type editable
   (*make-editable char-handler key-handler init char-list cursor-pos
                   text-length data)
@@ -36,12 +60,14 @@
   (text-length editable-length editable-set-length!)
   (data editable-data editable-set-data!))
 
+(: editable-default-char-handler (editable char -> undefined))
 (define (editable-default-char-handler editable ch)
   (case ch
     ((#\backspace #\delete) (editable-backspace! editable))
     ((#\x4)                 (editable-delete-char! editable))
     (else                   (editable-insert! editable ch))))
 
+(: editable-default-key-handler (editable fixnum -> undefined))
 (define (editable-default-key-handler editable key)
   (key-case key
     ((KEY_LEFT)      (editable-move-left! editable))
@@ -51,6 +77,11 @@
     ((KEY_END)       (editable-move-end! editable))
     ((KEY_DC)        (editable-delete-char! editable))))
 
+(: make-editable (string #!optional (editable char -> undefined)
+                                    (editable fixnum -> undefined)
+                                    (editable -> undefined)
+                                    *
+                   -> editable))
 (define (make-editable text
                        #!optional
                        (char-handler editable-default-char-handler)
@@ -82,6 +113,8 @@
 ;; update.
 ;;
 
+(: simple-char-handler ((editable -> boolean) thunk thunk string
+                          -> (editable char -> undefined)))
 (define (simple-char-handler activate leave changed text)
   (let ((chars (reverse (string->list text))))
     (lambda (editable ch)
@@ -98,6 +131,8 @@
           (editable-default-char-handler editable ch)))
       (changed))))
 
+(: simple-key-handler ((editable -> boolean) thunk thunk string
+                         -> (editable fixnum -> undefined)))
 (define (simple-key-handler activate leave changed text)
   (let ((chars (reverse (string->list text))))
     (lambda (editable key)
@@ -110,6 +145,8 @@
         (else (editable-default-key-handler editable key)))
       (changed))))
 
+(: make-simple-editable ((editable -> boolean) thunk thunk #!optional string *
+                         -> editable))
 (define (make-simple-editable activate leave changed
                               #!optional
                               (text "")
@@ -122,9 +159,11 @@
                   (string-length text)
                   data))
 
+(: editable-text (editable -> string))
 (define (editable-text editable)
   (list->string (reverse (editable-list editable))))
 
+(: editable-insert! (editable char -> undefined))
 (define (editable-insert! editable ch)
   (define (list-insert l pos elm)
     (append (take l pos)
@@ -135,6 +174,7 @@
                                    ch))
   (editable-set-length! editable (+ (editable-length editable) 1)))
 
+(: editable-backspace! (editable -> undefined))
 (define (editable-backspace! editable)
   (define (list-delete l pos)
     (append (take l pos)
@@ -147,11 +187,13 @@
     (editable-set-length! editable
                           (- (editable-length editable) 1))))
 
+(: editable-delete-char! (editable -> undefined))
 (define (editable-delete-char! editable)
   (when (> (editable-pos editable) 0)
     (editable-move-right! editable)
     (editable-backspace! editable)))
 
+(: editable-text-set! (editable string -> undefined))
 (define (editable-text-set! editable text)
   (editable-set-list! editable
                       (reverse (string->list text)))
@@ -159,29 +201,35 @@
                         (string-length text))
   (editable-set-pos! editable 0))
 
+(: editable-clear! (editable -> undefined))
 (define (editable-clear! editable)
   (editable-set-list! editable '())
   (editable-set-length! editable 0)
   (editable-set-pos! editable 0))
  
+(: editable-move-left! (editable -> undefined))
 (define (editable-move-left! editable)
   (if (< (editable-pos editable)
          (editable-length editable))
     (editable-set-pos! editable
                        (+ (editable-pos editable) 1))))
 
+(: editable-move-right! (editable -> undefined))
 (define (editable-move-right! editable)
   (if (> (editable-pos editable) 0)
     (editable-set-pos! editable
                        (- (editable-pos editable) 1))))
 
+(: editable-move-home! (editable -> undefined))
 (define (editable-move-home! editable)
   (editable-set-pos! editable
                      (editable-length editable)))
 
+(: editable-move-end! (editable -> undefined))
 (define (editable-move-end! editable)
   (editable-set-pos! editable 0))
 
+(: editable-cursor-pos (editable -> fixnum))
 (define (editable-cursor-pos editable)
   (let loop ((chars (reverse (editable-list editable)))
              (pos (- (editable-length editable)
@@ -191,18 +239,18 @@
       (+ (char-width (car chars))
          (loop (cdr chars) (- pos 1))))))
 
+(: editable-char (editable char ->  undefined))
 (define (editable-char editable ch)
-  (assert (editable? editable) "editable-char" editable)
-  (assert (char? ch) "editable-char" ch)
   ((editable-char-handler editable) editable ch))
 
+(: editable-key (editable fixnum -> undefined))
 (define (editable-key editable key)
-  (assert (editable? editable) "editable-key" editable)
-  (assert (integer? key) "editable-key" key)
   ((editable-key-handler editable) editable key))
 
+(: editable-init (editable -> undefined))
 (define (editable-init editable)
   ((*editable-init editable) editable))
 
+(: editable-read (editable -> *))
 (define (editable-read editable)
   (with-input-from-string (editable-text editable) read))

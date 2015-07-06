@@ -20,9 +20,19 @@
          (export get-option set-option! options option-get option-set!
                  option-string get-format write-config!))
 
+(define-type option-getter (option -> *))
+(define-type option-setter (option * -> undefined))
+
 ;; An option is a value with associated get/set! functions.
 ;; The get/set! functions may be set to option-value and
 ;; option-value-set! if no extra processing is needed.
+(: make-option (option-getter option-setter (option -> string) * -> option))
+(: option? predicate)
+(: option-accessor (option -> option-getter))
+(: option-mutator (option -> option-setter))
+(: option-stringifier (option -> (option -> string)))
+(: option-value option-getter)
+(: option-value-set! option-setter)
 (define-record-type option
   (make-option accessor mutator stringifier value)
   option?
@@ -31,43 +41,53 @@
   (stringifier option-stringifier)
   (value option-value option-value-set!))
 
+(: option-get option-getter)
 (define (option-get option)
   ((option-accessor option) option))
 
+(: option-set! option-setter)
 (define (option-set! option value)
   ((option-mutator option) option value)
   (register-event! 'option-data-changed))
 
+(: option-string (option -> string))
 (define (option-string option)
   ((option-stringifier option) option))
 
+(: get-option (symbol -> *))
 (define (get-option name)
   (let ((option (alist-ref name *options*)))
     (if option
       (option-get option))))
 
+(: set-option! (symbol * -> undefined))
 (define (set-option! name value)
   (let ((option (alist-ref name *options*)))
     (if option
       (option-set! option value))))
 
+(: mpd-address-set! option-setter)
 (define (mpd-address-set! option value)
   (when (string? value)
     (option-value-set! option value)))
 
+(: mpd-port-set! option-setter)
 (define (mpd-port-set! option value)
   (when (or (not value) (port-valid? value))
     (option-value-set! option value)))
 
+(: mpd-password-set! option-setter)
 (define (mpd-password-set! option value)
   (when (or (not value) (string? value))
     (option-value-set! option value)))
 
+(: update-interval-set! option-setter)
 (define (update-interval-set! option value)
   (when (and (number? value)
              (positive? value))
     (option-value-set! option value)))
 
+(: color-symbol? predicate)
 (define (color-symbol? sym)
   (case sym
     ((default black red green yellow blue magenta cyan gray dark-gray
@@ -75,6 +95,7 @@
       white) #t)
     (else    #f)))
 
+(: attr-valid? predicate)
 (define (attr-valid? attr)
   (case attr
     ((default normal underline reverse blink bold dim altcharset invis
@@ -82,10 +103,12 @@
           #t)
     (else #f)))
 
+(: color-valid? predicate)
 (define (color-valid? value)
   (or (and (integer? value) (< value 256))
       (and (symbol? value) (color-symbol? value))))
 
+(: color-set! option-setter)
 (define (color-set! option value)
   (when (and (list? value)
              (= (length value) 3)
@@ -95,47 +118,62 @@
     (option-value-set! option value)
     (register-event! 'color-changed)))
 
+(: format-set! option-setter)
 (define (format-set! option value)
   (when (and (string? value) (format-string-valid? value))
     (option-value-set! option (format-values value))
     (register-event! 'format-changed)))
 
+(: format-get (option -> string format-spec))
 (define (format-get option)
   (let ((pair (option-value option)))
     (values (car pair) (cdr pair))))
 
+(: format-stringify (option -> string))
 (define (format-stringify option)
   (format "~s" (car (option-value option))))
 
+(: format-values (string -> (pair string format-spec)))
 (define (format-values fmt)
   (cons fmt (process-format fmt)))
 
+(: get-format (symbol -> format-spec))
 (define (get-format name)
   (nth-value 1 (get-option name)))
 
+(: stringify (option -> string))
 (define (stringify option)
   (let ((value (option-get option)))
     (format "~s" value)))
 
-;; generates an alist entry for *options*
+(define-type option-spec (pair symbol option))
+;; Generates an alist entry for *options*.
+;; XXX: CHICKEN doesn't like that format-get returns multiple values, so the
+;;      accessor type is specified as procedure.
+(: option-spec (symbol procedure option-setter #!optional (option -> string)
+                  -> option-spec))
 (define (option-spec name accessor mutator #!optional (stringifier stringify))
   (cons name (make-option accessor
                           mutator
                           stringifier
                           (alist-ref name *default-options*))))
 
+(: color-option (symbol -> option-spec))
 (define (color-option name)
   (option-spec name option-value color-set!))
 
+(: format-option (symbol -> option-spec))
 (define (format-option name)
   (option-spec name format-get format-set! format-stringify))
 
+(: boolean-option (symbol -> option-spec))
 (define (boolean-option name)
   (option-spec name option-value
                (lambda (option value)
                  (option-value-set! option (if value #t #f)))))
 
 ;; alist associating option names with default values
+(: *default-options* (list-of (pair symbol *)))
 (define *default-options*
   (list
     (cons 'mpd-address                    "localhost")
@@ -170,6 +208,7 @@
           (format-values "[~{playlist}]"))))
 
 ;; alist associating option names with options
+(: *options* (list-of option-spec))
 (define *options*
   (list
     (option-spec    'mpd-address option-value mpd-address-set!)
@@ -196,13 +235,17 @@
     (format-option  'format-browser-dir)
     (format-option  'format-browser-playlist)))
 
+(: options (-> (list-of option-spec)))
 (define (options) *options*)
 
+(: write-config! (string -> undefined))
 (define (write-config! path)
   (call-with-output-file path
     (lambda (out)
       (let loop ((options *options*))
         (unless (null? options)
-          (display `(set-option! ',(caar options) ,(option-string (cdar options))) out)
+          (display `(set-option! ',(caar options)
+                                 ,(option-string (cdar options)))
+                   out)
           (newline out)
           (loop (cdr options)))))))

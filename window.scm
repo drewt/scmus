@@ -77,23 +77,23 @@
     (window-data-len-update! window)
     window))
 
+(: window-data (window -> list))
 (define (window-data window)
-  (assert (window? window) "window-data" window)
   ((window-data-thunk window) window))
 
+(: window-top (window -> list))
 (define (window-top window)
-  (assert (window? window) "window-top" window)
   (assert (>= (length (window-data window)) (window-top-pos window)))
   (list-tail (window-data window) (window-top-pos window)))
 
+(: window-selected (window -> *))
 (define (window-selected window)
-  (assert (window? window) "window-selected" window)
   (assert (> (length (window-data window)) (window-sel-pos window))
           "window-selected")
   (list-ref (window-data window) (window-sel-pos window)))
 
+(: window-all-selected (window -> list))
 (define (window-all-selected window)
-  (assert (window? window) "window-all-selected" window)
   (define (select-from indices lst)
     (cdr (fold (lambda (x acc)
                  (if (member (car acc) indices)
@@ -107,36 +107,36 @@
          (marked (window-marked window)))
     (reverse (select-from marked (window-data window)))))
 
+(: window-changed! (window -> undefined))
 (define (window-changed! window)
-  (assert (window? window) "window-changed!" window)
   ((*window-changed! window) window))
 
 ;; XXX: selected row counts as marked
+(: window-marked (window -> list))
 (define (window-marked window)
-  (assert (window? window) "window-marked" window)
   (let ((sel-pos (window-sel-pos window))
         (marked (*window-marked window)))
     (if (member sel-pos marked)
       marked
       (cons sel-pos marked))))
 
+(: window-mark! (window -> undefined))
 (define (window-mark! window)
-  (assert (window? window) "window-mark!" window)
   (let ((sel-pos (window-sel-pos window))
         (marked (*window-marked window)))
     (unless (or (<= (window-data-len window) 0) (member sel-pos marked))
       (window-marked-set! window (cons sel-pos marked)))))
 
+(: window-unmark! (window -> undefined))
 (define (window-unmark! window)
-  (assert (window? window) "window-unmark!" window)
   (let ((sel-pos (window-sel-pos window))
         (marked (*window-marked window)))
     (if (and (positive? (window-data-len window)) (member sel-pos marked))
       (window-marked-set! window (remove (lambda (x) (= x sel-pos)) marked)))))
 
 ;; toggles the 'marked' status of the selected row
+(: window-toggle-mark! (window -> undefined))
 (define (window-toggle-mark! window)
-  (assert (window? window) "window-toggle-mark!" window)
   (let ((sel-pos (window-sel-pos window))
         (marked (*window-marked window)))
     (when (positive? (window-data-len window))
@@ -144,22 +144,22 @@
         (window-marked-set! window (remove (lambda (x) (= x sel-pos)) marked))
         (window-marked-set! window (cons sel-pos marked))))))
 
+(: window-clear-marked! (window -> undefined))
 (define (window-clear-marked! window)
-  (assert (window? window) "window-clear-marked!" window)
   (window-marked-set! window '()))
 
+(: window-activate! (window -> undefined))
 (define (window-activate! window)
-  (assert (window? window) "window-activate!" window)
   (when (positive? (window-data-len window))
     ((*window-activate! window) window)))
 
+(: window-deactivate! (window -> undefined))
 (define (window-deactivate! window)
-  (assert (window? window) "window-deactivate!" window)
   (when (positive? (window-data-len window))
     ((*window-deactivate! window) window)))
 
+(: window-data-len-update! (window -> undefined))
 (define (window-data-len-update! window)
-  (assert (window? window) "window-data-len-update!" window)
   (let ((top-pos (window-top-pos window))
         (sel-pos (window-sel-pos window))
         (nr-lines (window-nr-lines window))
@@ -170,8 +170,8 @@
     (if (>= sel-pos new-len)
       (window-sel-pos-set! window (max 0 (- new-len 1))))))
 
+(: window-move-down! (window fixnum -> undefined))
 (define (window-move-down! window n)
-  (assert (window? window) "window-move-down!" window)
   (let* ((top-pos (window-top-pos window))
          (sel-pos (window-sel-pos window))
          (data-len (window-data-len window))
@@ -183,8 +183,8 @@
     (window-sel-pos-set! window (+ sel-pos can-move))
     (window-changed! window)))
 
+(: window-move-up! (window fixnum -> undefined))
 (define (window-move-up! window n)
-  (assert (window? window) "window-move-up!" window)
   (let* ((top-pos (window-top-pos window))
          (sel-pos (window-sel-pos window))
          (can-move (min n sel-pos))
@@ -194,9 +194,8 @@
     (window-sel-pos-set! window (- sel-pos can-move))
     (window-changed! window)))
 
+(: window-nr-lines-set! (window fixnum -> undefined))
 (define (window-nr-lines-set! window nr-lines)
-  (assert (window? window) "window-nr-lines-set!" window)
-  (assert (>= nr-lines 0) "window-nr-lines-set!" nr-lines)
   (let ((top-pos (window-top-pos window))
         (sel-pos (window-sel-pos window)))
     (when (<= nr-lines (- sel-pos top-pos))
@@ -206,6 +205,7 @@
                                  nr-lines)))))
   (*window-nr-lines-set! window nr-lines))
 
+(: window-select! (window fixnum -> undefined))
 (define (window-select! window i)
   (let* ((sel-pos (window-sel-pos window))
          (diff (- sel-pos i)))
@@ -213,10 +213,12 @@
       ((> diff 0) (window-move-up! window diff))
       ((< diff 0) (window-move-down! window (abs diff))))))
 
+(: window-search-init! (window string -> undefined))
 (define (window-search-init! window query)
   (window-query-set! window query)
   (window-match-pos-set! window (window-sel-pos window)))
 
+(: window-next-match! (window -> (or fixnum boolean)))
 (define (window-next-match! window)
   (let* ((query (window-query window))
          (last-pos (window-match-pos window))
@@ -235,6 +237,7 @@
           pos)
         (else (loop (+ pos 1) (cdr rest)))))))
 
+(: window-prev-match! (window -> (or fixnum boolean)))
 (define (window-prev-match! window)
   (let ((orig-pos (window-match-pos window)))
     (let loop ((last-pos orig-pos))
