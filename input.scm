@@ -49,7 +49,7 @@
                            "set-input-mode!" (car arg1) (cdr arg1))
                    (set! *current-editable* arg0)
                    (set! *editable-pos* arg1)
-                   (cursor-on)
+                   (cursor-on arg1)
                    (editable-init arg0)))
   (set! *current-input-mode* mode))
 

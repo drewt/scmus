@@ -232,8 +232,10 @@
 (: ui-initialized? (-> boolean))
 (define (ui-initialized?) *ui-initialized*)
 
-(: cursor-on thunk)
-(define (cursor-on)
+(: cursor-on (#!optional (pair fixnum fixnum) -> undefined))
+(define (cursor-on #!optional (pos #f))
+  (when pos
+    (move (car pos) (cdr pos)))
   (curs_set 1))
 
 (: cursor-off thunk)
