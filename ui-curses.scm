@@ -20,7 +20,7 @@
                input keys library-view ncurses option options-view queue-view
                scmus-client search-view ui-lib view window)
          (export current-window curses-update cursor-off cursor-on exit-curses
-                 get-window init-curses push! set-view! set-window!
+                 get-window init-curses push! redraw-ui set-view! set-window!
                  ui-initialized? update-view! win-add! win-bottom! win-clear!
                  win-clear-marked! win-edit! win-move! win-move-tracks!
                  win-remove! win-search! win-search-next! win-search-prev!
