@@ -58,6 +58,10 @@
       ""
       (iter-data iter))))
 
+(: history-reset! (-> undefined))
+(define (history-reset!)
+  (set! (history) (iter-head (history))))
+
 ;; history }}}
 
 (: command-line-print-info! (string -> undefined))
@@ -108,6 +112,7 @@
 (: command-line-leave (editable -> undefined))
 (define (command-line-leave editable)
   (history-add! (editable-text editable))
+  (history-reset!)
   (editable-clear! editable)
   (set! *command-line-mode* 'normal)
   (set-input-mode! 'normal-mode))
