@@ -89,6 +89,12 @@
 (define (rescan! #!optional (path #f))
   (scmus-rescan! path))
 
+(define (set-volume! val #!optional (relative #f))
+  (scmus-volume-set!
+    (if relative
+      (+ (scmus-volume) val)
+      val)))
+
 ;; user functions }}}
 
 (define *user-env* (make-safe-environment parent: default-safe-environment
@@ -162,6 +168,7 @@
   (user-export! 'seek! scmus-seek!)
   (user-export! 'set-option! set-option!)
   (user-export! 'set-view! set-view!)
+  (user-export! 'set-volume! set-volume!)
   (user-export! 'shell! shell!)
   (user-export! 'shell-sync! shell-sync!)
   (user-export! 'shell-term! shell-term!)
