@@ -30,8 +30,7 @@
          (editable (cdr selected)))
     (set-input-mode! 'edit-mode
                      editable
-                     (cons (+ 1 (- (window-sel-pos window)
-                                   (window-top-pos window)))
+                     (cons (+ 1 (window-sel-offset window))
                            (quotient (COLS) 2)))))
 
 (: options-window-print-row (window * fixnum fixnum -> undefined))

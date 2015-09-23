@@ -35,8 +35,7 @@
     (if (editable? selected)
       (set-input-mode! 'edit-mode
                        selected
-                       (cons (+ 1 (- (window-sel-pos window)
-                                     (window-top-pos window)))
+                       (cons (+ 1 (window-sel-offset window))
                              3)))))
 
 (: add-search-field! (window -> undefined))
@@ -47,8 +46,8 @@
                                             '(separator . ""))
                                       results))
     (window-data-len-set! window (+ 1 (window-data-len window)))
-    (if (>= (window-sel-pos window) (length queries))
-      (window-sel-pos-set! window (+ 1 (window-sel-pos window))))
+    (when (>= (window-sel-pos window) (length queries))
+      (window-move-down! window 1))
     (search-changed!)))
 
 (: add-selected-tracks! (window -> undefined))
@@ -72,9 +71,7 @@
       ((separator? (car rest)) (void))
       (else
         (*window-data-set! window (append prev (cdr rest)))
-        (window-data-len-set! window (- (window-data-len window) 1))
-        (window-sel-pos-set! window (min (- (window-data-len window) 1)
-                                         (window-sel-pos window)))))
+        (window-data-len-set! window (- (window-data-len window) 1))))
     (search-changed!)))
 
 (: search-clear! (window -> undefined))
@@ -83,10 +80,7 @@
     (if (or (null? data) (search-result? (car data)))
       (begin
         (*window-data-set! window (reverse result))
-        (window-data-len-update! window)
-        (window-sel-pos-set! window
-                             (min (window-sel-pos window)
-                                  (- (window-data-len window) 1))))
+        (window-data-len-update! window))
       (loop (cdr data) (cons (car data) result))))
   (search-changed!))
 

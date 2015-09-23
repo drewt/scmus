@@ -32,7 +32,7 @@
   ;; thunk to retrieve the list
   (data-thunk window-data-thunk)
   ;; length of the list
-  (data-len window-data-len window-data-len-set!)
+  (data-len window-data-len *window-data-len-set!)
   ;; position of the first visible row
   (top-pos window-top-pos window-top-pos-set!)
   ;; position of the selected row
@@ -80,6 +80,21 @@
 (: window-data (window -> list))
 (define (window-data window)
   ((window-data-thunk window) window))
+
+;; Whenever the length of the window data changes, we need to make sure that
+;; the values of top-pos and sel-pos still make sense.
+(: window-data-len-set! (window fixnum -> undefined))
+(define (window-data-len-set! window len)
+  (*window-data-len-set! window len)
+  (when (>= (window-sel-pos window) len)
+    (window-sel-pos-set! window (max 0 (- len 1))))
+  (when (>= (window-top-pos window) len)
+    (window-top-pos-set! window (max 0 (- len 1)))))
+
+(: window-sel-offset (window -> fixnum))
+(define (window-sel-offset window)
+  (- (window-sel-pos window)
+     (window-top-pos window)))
 
 (: window-top (window -> list))
 (define (window-top window)
@@ -160,15 +175,7 @@
 
 (: window-data-len-update! (window -> undefined))
 (define (window-data-len-update! window)
-  (let ((top-pos (window-top-pos window))
-        (sel-pos (window-sel-pos window))
-        (nr-lines (window-nr-lines window))
-        (new-len (length (window-data window))))
-    (window-data-len-set! window new-len)
-    (if (>= top-pos new-len)
-      (window-top-pos-set! window (max 0 (- new-len 1))))
-    (if (>= sel-pos new-len)
-      (window-sel-pos-set! window (max 0 (- new-len 1))))))
+  (window-data-len-set! window (length (window-data window))))
 
 (: window-move-down! (window fixnum -> undefined))
 (define (window-move-down! window n)

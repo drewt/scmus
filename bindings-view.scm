@@ -65,8 +65,7 @@
     (when (binding-row? selected)
       (set-input-mode! 'edit-mode
                        (binding-row-editable selected)
-                       (cons (+ 1 (- (window-sel-pos window)
-                                     (window-top-pos window)))
+                       (cons (+ 1 (window-sel-offset window))
                              (quotient (COLS) 2))))))
 
 (: binding-window-print-row (window * fixnum fixnum -> undefined))
