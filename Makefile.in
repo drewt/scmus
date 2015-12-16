@@ -5,6 +5,10 @@ bindir = @bindir@
 datadir = @datadir@
 mandir = @mandir@
 
+_ver0   = $(shell git rev-parse --verify --short HEAD 2>/dev/null)-git
+_ver1   = @PACKAGE_VERSION@
+VERSION = $(or $(_ver0),$(_ver1))
+
 LIBS = @NCURSES_LIBS@
 
 features-@CONFIG_WIDE_CHAR@ += -feature wide-char
@@ -13,7 +17,7 @@ types-cflags-$(typed) = -types all.types
 types-prereq-$(typed) = all.types
 
 prelude = '"(define *scmus-dir* \"$(datadir)/scmus\")\
-	    (define *version*   \"@PACKAGE_VERSION@\")"'
+	    (define *version*   \"$(VERSION)\")"'
 
 CSC      = csc
 TFLAGS   = -uses lib -prologue prologue.scm $(features-y) 
