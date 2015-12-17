@@ -147,11 +147,11 @@
                           activate: search-activate!
                           match:    search-match)
              "Search"
-             search-window-print-row
-             add:    search-add!
-             remove: search-remove!
-             clear:  search-clear!
-             edit:   search-edit!))
+             print-line: search-window-print-row
+             add:        search-add!
+             remove:     search-remove!
+             clear:      search-clear!
+             edit:       search-edit!))
 
 (define-event (search-changed)
   (update-view! 'search))

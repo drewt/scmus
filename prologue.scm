@@ -14,6 +14,23 @@
 
 ;; Macros
 
+(define-syntax define-record/initform
+  (syntax-rules (initialize)
+    ((define-record/initform name ctor pred?
+                             (slot initform . accessors) ...
+                             (initialize (instance) fst . rest))
+       (begin
+         (define-record-type name (name slot ...) pred?
+           (slot . accessors) ...)
+         (define (ctor #!key (slot initform) ...)
+           (let ((instance (name slot ...)))
+             (begin fst . rest)
+             instance))))
+    ((define-record/initform name ctor pred? (slot initform . accessors) ...)
+       (define-record/initform name ctor pred?
+                               (slot initform . accessors) ...
+                               (initialize (instance) (void))))))
+
 (define-syntax key-case
   (syntax-rules (else)
     ((key-case key) (void))

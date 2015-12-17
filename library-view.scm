@@ -59,7 +59,7 @@
 (: make-meta-window (window list -> window))
 (define (make-meta-window prev-win metadata)
   (make-window data:       (cons (list-of 'metadata metadata) prev-win)
-               get-data:   library-window-data
+               data-thunk: library-window-data
                changed:    library-changed!
                deactivate: library-deactivate!))
 
@@ -71,7 +71,7 @@
 (: make-tracks-window (window (list-of track) -> window))
 (define (make-tracks-window prev-win tracks)
   (make-window data:       (cons (list-of 'track tracks) prev-win)
-               get-data:   library-window-data
+               data-thunk: library-window-data
                changed:    library-changed!
                activate:   track-activate!
                deactivate: library-deactivate!
@@ -87,7 +87,7 @@
 (: make-albums-window (window list -> window))
 (define (make-albums-window prev-win albums)
   (make-window data:       (cons albums prev-win)
-               get-data:   library-window-data
+               data-thunk: library-window-data
                changed:    library-changed!
                activate:   album-activate!
                deactivate: library-deactivate!
@@ -138,16 +138,16 @@
 
 (: make-library-window (-> window))
 (define (make-library-window)
-  (make-window get-data: toplevel-get-data
-               changed:  library-changed!
-               activate: toplevel-activate!
-               match:    (match-function substring-match)))
+  (make-window data-thunk: toplevel-get-data
+               changed:    library-changed!
+               activate:   toplevel-activate!
+               match:      (match-function substring-match)))
 
 (define-view library
   (make-view (make-library-window)
              "Library"
-             library-window-print-row
-             add: library-add-selected!))
+             print-line: library-window-print-row
+             add:        library-add-selected!))
 
 (define-event (library-changed)
   (update-view! 'library))

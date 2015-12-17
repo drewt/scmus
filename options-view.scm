@@ -63,8 +63,8 @@
                           changed:  (lambda (w) (option-changed!))
                           activate: option-edit!)
              "Options"
-             options-window-print-row
-             edit: option-edit!))
+             print-line: options-window-print-row
+             edit:       option-edit!))
 
 (define-event (option-changed)
   (update-view! 'options))

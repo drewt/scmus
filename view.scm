@@ -40,30 +40,21 @@
 (: view-clear (view -> (window -> undefined)))
 (: view-edit (view -> (window -> undefined)))
 (: view-move (view -> (window -> undefined)))
-(define-record-type view
-  (*make-view window title-fmt print-line cursed add! remove! clear! edit!
-              move!)
-  view?
-  (window view-window view-window-set!)
-  (title-fmt view-title-fmt view-title-fmt-set!)
-  (print-line *view-print-line)
-  (cursed view-cursed-fn)
-  (add! view-add)
-  (remove! view-remove)
-  (clear! view-clear)
-  (edit! view-edit)
-  (move! view-move))
+(define-record/initform view *make-view view?
+  (window #f view-window view-window-set!)
+  (title-fmt #f view-title-fmt view-title-fmt-set!)
+  (print-line list-window-print-row *view-print-line)
+  (cursed generic-cursed-set! view-cursed-fn)
+  (add void view-add)
+  (remove void view-remove)
+  (clear void view-clear)
+  (edit void iew-edit)
+  (move void view-move))
 
-(define (make-view window title print-line
-                   #!key
-                   (cursed generic-cursed-set!)
-                   (add void)
-                   (remove void)
-                   (clear void)
-                   (edit void)
-                   (move void))
-  (*make-view window (process-format title) print-line cursed add remove clear
-              edit move))
+(define (make-view window title . kwargs)
+  (apply *make-view window:    window
+                    title-fmt: (process-format title)
+                    kwargs))
 
 (: view-print-line! (view * fixnum fixnum -> undefined))
 (define (view-print-line! view row line-nr cursed)

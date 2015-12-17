@@ -27,8 +27,8 @@
       (loop (cdr marked))))
   (window-clear-marked! window))
 
-(: queue-move! (window -> undefined))
-(define (queue-move! window)
+(: queue-move! (window boolean -> undefined))
+(define (queue-move! window before)
   (let loop ((marked (sort (*window-marked window) <))
              (pos (window-sel-pos window)))
     (unless (null? marked)
@@ -36,18 +36,21 @@
       (loop (cdr marked) (+ pos 1))))
   (window-clear-marked! window))
 
+(: queue-print-line (window track fixnum fixnum -> undefined))
+(define (queue-print-line window track line-nr cursed)
+  (track-print-line line-nr (get-format 'format-queue) track cursed))
+
 (define-view queue
-  (make-view (make-window get-data: (lambda (w) *queue*)
-                          changed:  (lambda (w) (register-event! 'queue-changed))
-                          activate: (lambda (w) (scmus-play-track! (window-selected w)))
-                          match:    track-match)
+  (make-view (make-window data-thunk: (lambda (w) *queue*)
+                          changed:    (lambda (w) (register-event! 'queue-changed))
+                          activate:   (lambda (w) (scmus-play-track! (window-selected w)))
+                          match:      track-match)
              "Queue - ~{queue-length} tracks"
-             (lambda (window track line-nr cursed)
-               (track-print-line line-nr (get-format 'format-queue) track cursed))
-             cursed: (win-cursed-fn current-track?)
-             remove: queue-remove!
-             clear:  (lambda (w) (scmus-clear!))
-             move:   queue-move!))
+             print-line: queue-print-line
+             cursed:     (win-cursed-fn current-track?)
+             remove:     queue-remove!
+             clear:      (lambda (w) (scmus-clear!))
+             move:       queue-move!))
 
 (define-event (queue-changed)
   (update-view! 'queue))

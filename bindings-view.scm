@@ -112,8 +112,8 @@
                           changed:  (lambda (w) (binding-changed!))
                           activate: binding-edit!)
              "Key Bindings"
-             bindings-window-print-row
-             edit: binding-edit!))
+             print-line: bindings-window-print-row
+             edit:       binding-edit!))
 
 (define-event (binding-changed)
   (update-view! 'bindings))

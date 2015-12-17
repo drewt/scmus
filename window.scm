@@ -17,65 +17,78 @@
 
 (require-extension srfi-1)
 
-(declare (unit window)
-         (uses ncurses))
+(declare (unit window))
 
-;; A "window" is a view of a list
-(define-record-type window
-  (*make-window data data-thunk data-len
-               top-pos sel-pos marked nr-lines match-pos
-               changed activate deactivate
-               match query)
-  window?
+;;
+;; A window is a list with a visible section and a cursor.  The visible
+;; section follows the cursor.
+;;
+;;              ,+- - - - - - - - - - - -+ <--- 0
+;;             / |                       |
+;;            |  +- - - - - - - - - - - -+
+;;            |  |                       |
+;;            |  +=======================+,<--- top-pos
+;;            |  |                       | \
+;;            |  +-----------------------+<-|-- sel-pos
+;; data-len -<   |#######################|  |
+;;            |  +-----------------------+   >- nr-lines
+;;            |  |                       |  |
+;;            |  +-----------------------+  |
+;;            |  |                       | /
+;;            |  +=======================+`
+;;             \ |                       |
+;;              `+- - - - - - - - - - - -+
+;;
+;; By default, the list is given by the @data slot of the window object.
+;;
+;; If the @data-thunk slot is set to something other than the default, then
+;; the @data slot is ignored and the return value of @data-thunk is used
+;; instead.  This can be used to track a list which is stored outside of the
+;; window, for example.  It is not advisable to do any expensive computations
+;; in @data-thunk, as it is called often.
+;;
+;; A window can be searched.  This works by calling the function in the @match
+;; slot on each row of the window; if @match returns true, then the row is
+;; considered to be a match for the query.
+;;
+;; When the visible part of a window changes, the function in the @changed
+;; slot is called.
+;;
+;; Windows have @activate and @deactivate slots which store functions to be
+;; called on particular events.  They don't belong here (TODO: move these to
+;; view.scm).
+;;
+
+(define-record/initform window make-window window?
   ;; private data member for internal use
-  (data *window-data *window-data-set!)
+  (data '() *window-data *window-data-set!)
   ;; thunk to retrieve the list
-  (data-thunk window-data-thunk)
+  (data-thunk *window-data window-data-thunk)
   ;; length of the list
-  (data-len window-data-len *window-data-len-set!)
+  (data-len 0 window-data-len *window-data-len-set!)
   ;; position of the first visible row
-  (top-pos window-top-pos window-top-pos-set!)
+  (top-pos 0 window-top-pos window-top-pos-set!)
   ;; position of the selected row
-  (sel-pos window-sel-pos window-sel-pos-set!)
+  (sel-pos 0 window-sel-pos window-sel-pos-set!)
   ;; list of 'marked' rows
-  (marked *window-marked window-marked-set!)
+  (marked '() *window-marked window-marked-set!)
   ;; number of visible rows
-  (nr-lines window-nr-lines *window-nr-lines-set!)
+  (nr-lines 0 window-nr-lines *window-nr-lines-set!)
   ;; position of the last match
-  (match-pos window-match-pos window-match-pos-set!)
+  (match-pos 0 window-match-pos window-match-pos-set!)
   ;; called when visible part of list has changed
-  (changed *window-changed! window-changed-set!)
+  (changed void *window-changed! window-changed-set!)
   ;; function to call when the user "activates" the window
-  (activate *window-activate! window-activate-set!)
+  (activate void *window-activate! window-activate-set!)
   ;; function to call when the user "deactivates" the window
-  (deactivate *window-deactivate! window-deactivate-set!)
+  (deactivate void *window-deactivate! window-deactivate-set!)
   ;; function to match a search query against a row
-  (match window-match window-match-set!)
+  (match (lambda (e q) #f) window-match window-match-set!)
   ;; active search query
-  (query window-query window-query-set!))
+  (query "" window-query window-query-set!)
 
-(define (make-window #!key
-                     (data '())
-                     (get-data *window-data)
-                     (changed void)
-                     (activate void)
-                     (deactivate void)
-                     (match (lambda (e q) #f)))
-  (let ((window (*make-window data
-                              get-data
-                              0
-                              0
-                              0
-                              '()
-                              (- (LINES) 4)
-                              0
-                              changed
-                              activate
-                              deactivate
-                              match
-                              "")))
-    (window-data-len-update! window)
-    window))
+  (initialize (window)
+    (window-data-len-update! window)))
 
 (: window-data (window -> list))
 (define (window-data window)
@@ -161,7 +174,8 @@
 
 (: window-clear-marked! (window -> undefined))
 (define (window-clear-marked! window)
-  (window-marked-set! window '()))
+  (window-marked-set! window '())
+  (window-changed! window))
 
 (: window-activate! (window -> undefined))
 (define (window-activate! window)

@@ -99,7 +99,7 @@
 (: make-browser-window ((or window boolean) list -> window))
 (define (make-browser-window prev-win data)
   (make-window data:       (cons prev-win data)
-               get-data:   browser-window-data
+               data-thunk: browser-window-data
                changed:    (lambda (w) (register-event! 'browser-changed))
                activate:   browser-activate!
                deactivate: browser-deactivate!
@@ -113,8 +113,8 @@
 (define-view browser
   (make-view (make-browser-window #f (scmus-lsinfo "/"))
              "Browser"
-             browser-window-print-row
-             add: browser-add-selected!))
+             print-line: browser-window-print-row
+             add:        browser-add-selected!))
 
 (define-event (browser-changed)
   (update-view! 'browser))
