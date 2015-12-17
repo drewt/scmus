@@ -27,13 +27,26 @@
       (loop (cdr marked))))
   (window-clear-marked! window))
 
+(define (*queue-move! marked pos)
+  (unless (null? marked)
+    (if (< (car marked) pos)
+      (begin
+        (scmus-move! (car marked) pos)
+        (*queue-move! (map (lambda (x)
+                             (if (< x pos)
+                               (- x 1)
+                               x))
+                           (cdr marked))
+                      pos))
+      (begin
+        (scmus-move! (car marked) (+ 1 pos))
+        (*queue-move! (cdr marked) (+ 1 pos))))))
+
 (: queue-move! (window boolean -> undefined))
 (define (queue-move! window before)
-  (let loop ((marked (sort (*window-marked window) <))
-             (pos (window-sel-pos window)))
-    (unless (null? marked)
-      (scmus-move! (car marked) pos)
-      (loop (cdr marked) (+ pos 1))))
+  (*queue-move! (sort (*window-marked window) <)
+                (- (window-sel-pos window)
+                   (if before 1 0)))
   (window-clear-marked! window))
 
 (: queue-print-line (window track fixnum fixnum -> undefined))
