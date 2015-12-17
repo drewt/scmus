@@ -14,6 +14,11 @@
 
 ;; Macros
 
+(define-syntax thunk
+  (syntax-rules ()
+    ((thunk body ...)
+       (lambda () body ... (void)))))
+
 (define-syntax define-record/initform
   (syntax-rules (initialize)
     ((define-record/initform name ctor pred?
