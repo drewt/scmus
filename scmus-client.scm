@@ -123,8 +123,12 @@
 
 (: scmus-update-status! thunk)
 (define (scmus-update-status!)
-  (set! *mpd-status* (scmus-status))
-  (register-event! 'status-changed))
+  (let ((new-status (scmus-status)))
+    (when (and (alist-ref 'updating_db *mpd-status*)
+               (not (alist-ref 'updating_db new-status)))
+      (register-event! 'db-changed))
+    (set! *mpd-status* new-status)
+    (register-event! 'status-changed)))
 
 (: scmus-update-current-song! thunk)
 (define (scmus-update-current-song!)
@@ -205,6 +209,7 @@
 (status-selector scmus-xfade 'xfade 0)
 (status-selector scmus-mixrampdb 'mixrampdb 0.0)
 (status-selector scmus-mixrampdelay 'mixrampdelay 0.0)
+(status-selector scmus-updating-db 'updating_db)
 ;(status-selector scmus-total-time 'total-time 0)
 ;(status-selector scmus-audio 'audio '(0 0 0))
 

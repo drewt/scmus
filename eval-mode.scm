@@ -159,6 +159,7 @@
   (user-export! 'queue-swap! scmus-swap!)
   (user-export! 'queue-swap-id! scmus-swap-id!)
   (user-export! 'queue-version scmus-queue-version)
+  (user-export! 'refresh-library! (thunk (register-event! 'db-changed)))
   (user-export! 'random? scmus-random?)
   (user-export! 'random-set! scmus-random-set!)
   (user-export! 'repeat? scmus-repeat?)
