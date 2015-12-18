@@ -69,6 +69,10 @@
 (bind! "l"     'library '(win-activate!)   #t)
 (bind! "right" 'library '(win-activate!)   #t)
 
+;; queue view
+(bind! "p" 'queue '(win-move-tracks!))
+(bind! "P" 'queue '(win-move-tracks! #t))
+
 ;; browser view
 (bind! "h"     'browser '(win-deactivate!) #t)
 (bind! "left"  'browser '(win-deactivate!) #t)
