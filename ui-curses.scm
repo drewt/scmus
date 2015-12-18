@@ -78,28 +78,23 @@
 
 (: win-add! thunk)
 (define (win-add!)
-  (let ((view (current-view)))
-    ((view-add view) (view-window view))))
+  (view-add! (current-view)))
 
 (: win-remove! thunk)
 (define (win-remove!)
-  (let ((view (current-view)))
-    ((view-remove view) (view-window view))))
+  (view-remove! (current-view)))
 
 (: win-clear! thunk)
 (define (win-clear!)
-  (let ((view (current-view)))
-    ((view-clear view) (view-window view))))
+  (view-clear! (current-view)))
 
 (: win-move-tracks! (#!optional boolean -> undefined))
 (define (win-move-tracks! #!optional (before #f))
-  (let ((view (current-view)))
-    ((view-move view) (view-window view) before)))
+  (view-move! (current-view) before))
 
 (: win-edit! thunk)
 (define (win-edit!)
-  (let ((view (current-view)))
-    ((view-edit view) (view-window view))))
+  (view-edit! (current-view)))
 
 ;; user functions }}}
 ;; windows {{{

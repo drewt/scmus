@@ -39,7 +39,7 @@
 (: view-remove (view -> (window -> undefined)))
 (: view-clear (view -> (window -> undefined)))
 (: view-edit (view -> (window -> undefined)))
-(: view-move (view -> (window -> undefined)))
+(: view-move (view -> (window boolean -> undefined)))
 (define-record/initform view *make-view view?
   (window #f view-window view-window-set!)
   (title-fmt #f view-title-fmt view-title-fmt-set!)
@@ -63,6 +63,26 @@
 (: view-cursed-set! (view * fixnum -> fixnum))
 (define (view-cursed-set! view row line-nr)
   ((view-cursed-fn view) (view-window view) row line-nr))
+
+(: view-add! (view -> undefined))
+(define (view-add! view)
+  ((view-add view) (view-window view)))
+
+(: view-remove! (view -> undefined))
+(define (view-remove! view)
+  ((view-remove view) (view-window view)))
+
+(: view-clear! (view -> undefined))
+(define (view-clear! view)
+  ((view-clear view) (view-window view)))
+
+(: view-edit! (view -> undefined))
+(define (view-edit! view)
+  ((view-edit view) (view-window view)))
+
+(: view-move! (view boolean -> undefined))
+(define (view-move! view before)
+  ((view-move view) (view-window view) before))
 
 (: *views* (list-of (pair symbol (or boolean view))))
 (define *views* (map (lambda (x) (cons x #f)) *view-names*))
