@@ -95,6 +95,53 @@
 (define (alist-update key value alist #!optional (test eqv?))
   (alist-update! key value (list-copy alist) test))
 
+(define metadata-display-names
+  '((title         . "Title")
+    (artist        . "Artist")
+    (albumartist   . "Album Artist")
+    (album         . "Album")
+    (date          . "Date")
+    (track         . "Track Number")
+    (disc          . "Disc Number")
+    (duration      . "Duration")
+    (last-modified . "Last Modified")
+    (file          . "File")))
+
+(define (metadata-name key)
+  (let ((name (alist-ref key metadata-display-names)))
+    (if name name (symbol->string key))))
+
+(: sort-metadata ((list-of (pair symbol *)) -> (list-of (pair string *))))
+(define (sort-metadata metadata)
+  ;; returns the position of key in alist, or #f.
+  (define (alist-ordinal key alist)
+    (let loop ((i 0) (rest alist))
+      (if (null? rest)
+        #f
+        (if (eqv? key (caar rest))
+          i
+          (loop (+ i 1) (cdr rest))))))
+
+  ;; Returns true if (car a) is before (car b) in model (an alist)
+  (define (alist-compare a b model)
+    (let ((ord-a (alist-ordinal (car a) model))
+          (ord-b (alist-ordinal (car b) model)))
+      (cond
+        ((and (not ord-a) (not ord-b))
+           (string<? (symbol->string (car a))
+                     (symbol->string (car b))))
+        ((not ord-a) #f)
+        ((not ord-b) #t)
+        (else (< ord-a ord-b)))))
+
+  ;; We're doing two things here.  First, we sort the metadata using
+  ;; metadata-display-names as a reference.  Then we convert the keys to
+  ;; strings, using metadata-display-names to get the name strings.
+  (map (lambda (x)
+         (cons (metadata-name (car x))
+               (cdr x)))
+       (sort metadata (lambda (a b) (alist-compare a b metadata-display-names)))))
+
 ;; unicode stuff {{{
 
 (: +unicode-private-base+ fixnum)

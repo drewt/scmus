@@ -51,7 +51,7 @@
 
 (: file-activate! (window list -> undefined))
 (define (file-activate! window file)
-  (set-window! 'browser (make-browser-window window file))
+  (set-window! 'browser (make-browser-window window (sort-metadata file)))
   (register-event! 'browser-data-changed))
 
 (: browser-activate! (window -> undefined))

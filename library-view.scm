@@ -58,7 +58,8 @@
 
 (: make-meta-window (window list -> window))
 (define (make-meta-window prev-win metadata)
-  (make-window data:       (cons (list-of 'metadata metadata) prev-win)
+  (make-window data:       (cons (list-of 'metadata (sort-metadata metadata))
+                                 prev-win)
                data-thunk: library-window-data
                changed:    library-changed!
                deactivate: library-deactivate!))
