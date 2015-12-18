@@ -27,27 +27,43 @@
       (loop (cdr marked))))
   (window-clear-marked! window))
 
-(: queue-move! (window -> undefined))
-(define (queue-move! window)
-  (let loop ((marked (sort (*window-marked window) <))
-             (pos (window-sel-pos window)))
-    (unless (null? marked)
-      (scmus-move! (car marked) pos)
-      (loop (cdr marked) (+ pos 1))))
+(define (*queue-move! marked pos)
+  (unless (null? marked)
+    (if (< (car marked) pos)
+      (begin
+        (scmus-move! (car marked) pos)
+        (*queue-move! (map (lambda (x)
+                             (if (< x pos)
+                               (- x 1)
+                               x))
+                           (cdr marked))
+                      pos))
+      (begin
+        (scmus-move! (car marked) (+ 1 pos))
+        (*queue-move! (cdr marked) (+ 1 pos))))))
+
+(: queue-move! (window boolean -> undefined))
+(define (queue-move! window before)
+  (*queue-move! (sort (*window-marked window) <)
+                (- (window-sel-pos window)
+                   (if before 1 0)))
   (window-clear-marked! window))
 
+(: queue-print-line (window track fixnum fixnum -> undefined))
+(define (queue-print-line window track line-nr cursed)
+  (track-print-line line-nr (get-format 'format-queue) track cursed))
+
 (define-view queue
-  (make-view (make-window get-data: (lambda (w) *queue*)
-                          changed:  (lambda (w) (register-event! 'queue-changed))
-                          activate: (lambda (w) (scmus-play-track! (window-selected w)))
-                          match:    track-match)
+  (make-view (make-window data-thunk: (lambda (w) *queue*)
+                          changed:    (lambda (w) (register-event! 'queue-changed))
+                          activate:   (lambda (w) (scmus-play-track! (window-selected w)))
+                          match:      track-match)
              "Queue - ~{queue-length} tracks"
-             (lambda (window track line-nr cursed)
-               (track-print-line line-nr (get-format 'format-queue) track cursed))
-             cursed: (win-cursed-fn current-track?)
-             remove: queue-remove!
-             clear:  (lambda (w) (scmus-clear!))
-             move:   queue-move!))
+             print-line: queue-print-line
+             cursed:     (win-cursed-fn current-track?)
+             remove:     queue-remove!
+             clear:      (lambda (w) (scmus-clear!))
+             move:       queue-move!))
 
 (define-event (queue-changed)
   (update-view! 'queue))

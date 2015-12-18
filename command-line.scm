@@ -16,84 +16,16 @@
 ;;
 
 (declare (unit command-line)
-         (uses editable eval-mode event input ncurses)
+         (uses editable eval-mode event input iter ncurses)
          (export command-line-text-set! command-line-mode command-line-text
                  command-line-print-info! command-line-print-error!
                  enter-eval-mode enter-search-mode))
 
 ;; history {{{
 
-;;
-;; An 'iter' is a pointer into a doubly-linked list.  The doubly-linked list
-;; is represented as a list of pairs, where the car of each pair contains the
-;; data and the cdr contains a pointer to the previous element.
-;;
-;;                +---------------+
-;;      +---------|-----+   +-----|---------+
-;;      v         v     |   v     |         |
-;;     ((a . '()) (b . [*]) (c . [*]) (d . [*]))
-;;
-(define-type iter (list-of (pair * list)))
-
-(: iter-data (iter -> *))
-(define (iter-data iter)
-  (caar iter))
-
-(: iter-next (iter -> iter))
-(define (iter-next iter)
-  (cdr iter))
-
-(: iter-prev (iter -> iter))
-(define (iter-prev iter)
-  (cdar iter))
-
-(: iter-move-next (iter -> iter))
-(define (iter-move-next iter)
-  (if (null? (iter-next iter))
-    iter
-    (iter-next iter)))
-
-(: iter-move-prev (iter -> iter))
-(define (iter-move-prev iter)
-  (if (null? (iter-prev iter))
-    iter
-    (iter-prev iter)))
-
-(: iter-reset (iter -> iter))
-(define (iter-reset iter)
-  (if (or (null? iter) (null? (iter-prev iter)))
-    iter
-    (iter-reset (iter-prev iter))))
-
-(: iter-add! (iter * -> iter))
-(define (iter-add! iter elm)
-  (let* ((head (iter-reset iter))
-         (new (cons (cons elm '()) head)))
-    (unless (null? head)
-      (set-cdr! (car head) new))
-    new))
-
-(: iter-pop! (iter -> iter))
-(define (iter-pop! iter)
-  (let* ((head (iter-reset iter))
-         (next (iter-next head)))
-    (if (null? next)
-      '()
-      (begin
-        (set-cdr! (car next) '())
-        next))))
-
-(: iter-set! (iter * -> undefined))
-(define (iter-set! iter elm)
-  (set-car! (car iter) elm))
-
-(: iter-init! (iter -> iter))
-(define (iter-init! iter)
-  (iter-add! (iter-reset iter) ""))
-
 (define history
-  (let ((eval-history '())
-        (search-history '()))
+  (let ((eval-history (iter))
+        (search-history (iter)))
     (getter-with-setter
       (lambda ()
         (case *command-line-mode*
@@ -106,35 +38,29 @@
           ((search) (set! search-history x))
           (else     (assert #f "history-setter")))))))
 
-(: history-init! (-> iter))
-(define (history-init!)
-  (set! (history) (iter-init! (history))))
-
-(: history-abort! (-> iter))
-(define (history-abort!)
-  (set! (history) (iter-pop! (history))))
-
-(: history-next! (-> iter))
+(: history-next! (-> undefined))
 (define (history-next!)
-  (set! (history) (iter-move-next (history))))
+  (set! (history) (iter-next (history))))
 
-(: history-prev! (-> iter))
+(: history-prev! (-> undefined))
 (define (history-prev!)
-  (set! (history) (iter-move-prev (history))))
+  (set! (history) (iter-prev (history))))
 
 (: history-add! (* -> undefined))
 (define (history-add! elm)
-  (if (string=? elm "")
-    (history-abort!)
-    (iter-set! (iter-reset (history)) elm)))
+  (unless (string=? elm "")
+    (iter-add-head! (history) elm)))
 
 (: history-data (-> *))
 (define (history-data)
-  (iter-data (history)))
+  (let ((iter (history)))
+    (if (iter-head? iter)
+      ""
+      (iter-data iter))))
 
-(: history-set! (* -> undefined))
-(define (history-set! elm)
-  (iter-set! (history) elm))
+(: history-reset! (-> undefined))
+(define (history-reset!)
+  (set! (history) (iter-head (history))))
 
 ;; history }}}
 
@@ -186,6 +112,7 @@
 (: command-line-leave (editable -> undefined))
 (define (command-line-leave editable)
   (history-add! (editable-text editable))
+  (history-reset!)
   (editable-clear! editable)
   (set! *command-line-mode* 'normal)
   (set-input-mode! 'normal-mode))
@@ -250,7 +177,6 @@
 (: command-line-init! thunk)
 (define (command-line-init!)
   (set-input-mode! 'edit-mode *command-line* (command-line-pos))
-  (history-init!)
   (command-line-changed!))
 
 (: enter-eval-mode thunk)

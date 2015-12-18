@@ -89,6 +89,12 @@
 (define (rescan! #!optional (path #f))
   (scmus-rescan! path))
 
+(define (set-volume! val #!optional (relative #f))
+  (scmus-volume-set!
+    (if relative
+      (+ (scmus-volume) val)
+      val)))
+
 ;; user functions }}}
 
 (define *user-env* (make-safe-environment parent: default-safe-environment
@@ -153,6 +159,7 @@
   (user-export! 'queue-swap! scmus-swap!)
   (user-export! 'queue-swap-id! scmus-swap-id!)
   (user-export! 'queue-version scmus-queue-version)
+  (user-export! 'refresh-library! (thunk (register-event! 'db-changed)))
   (user-export! 'random? scmus-random?)
   (user-export! 'random-set! scmus-random-set!)
   (user-export! 'repeat? scmus-repeat?)
@@ -162,6 +169,7 @@
   (user-export! 'seek! scmus-seek!)
   (user-export! 'set-option! set-option!)
   (user-export! 'set-view! set-view!)
+  (user-export! 'set-volume! set-volume!)
   (user-export! 'shell! shell!)
   (user-export! 'shell-sync! shell-sync!)
   (user-export! 'shell-term! shell-term!)
@@ -198,8 +206,8 @@
   (user-export! 'win-move! win-move!)
   (user-export! 'win-bottom! win-bottom!)
   (user-export! 'win-top! win-top!)
-  (user-export! 'win-activate! (lambda () (window-activate! (current-window))))
-  (user-export! 'win-deactivate! (lambda () (window-deactivate! (current-window))))
+  (user-export! 'win-activate! (thunk (window-activate! (current-window))))
+  (user-export! 'win-deactivate! (thunk (window-deactivate! (current-window))))
   (user-export! 'win-add! win-add!)
   (user-export! 'win-remove! win-remove!)
   (user-export! 'win-clear! win-clear!)
@@ -210,9 +218,9 @@
   (user-export! 'win-edit! win-edit!)
   (user-export! 'win-sel-pos (lambda () (window-sel-pos (current-window))))
   (user-export! 'win-selected (lambda () (window-selected (current-window))))
-  (user-export! 'win-mark! (lambda () (window-mark! (current-window))))
-  (user-export! 'win-unmark! (lambda () (window-unmark! (current-window))))
-  (user-export! 'win-toggle-mark! (lambda () (window-toggle-mark! (current-window))))
+  (user-export! 'win-mark! (thunk (window-mark! (current-window))))
+  (user-export! 'win-unmark! (thunk (window-unmark! (current-window))))
+  (user-export! 'win-toggle-mark! (thunk (window-toggle-mark! (current-window))))
   (user-export! 'win-clear-marked! win-clear-marked!)
   (user-export! '*win-marked (lambda () (*window-marked (current-window))))
   (user-export! 'win-marked (lambda () (window-marked (current-window))))

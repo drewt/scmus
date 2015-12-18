@@ -30,8 +30,7 @@
          (editable (cdr selected)))
     (set-input-mode! 'edit-mode
                      editable
-                     (cons (+ 1 (- (window-sel-pos window)
-                                   (window-top-pos window)))
+                     (cons (+ 1 (window-sel-offset window))
                            (quotient (COLS) 2)))))
 
 (: options-window-print-row (window * fixnum fixnum -> undefined))
@@ -64,8 +63,8 @@
                           changed:  (lambda (w) (option-changed!))
                           activate: option-edit!)
              "Options"
-             options-window-print-row
-             edit: option-edit!))
+             print-line: options-window-print-row
+             edit:       option-edit!))
 
 (define-event (option-changed)
   (update-view! 'options))

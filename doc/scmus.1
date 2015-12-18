@@ -572,6 +572,14 @@ Set the value of the option \fIname\fR to \fIvalue\fR.
 Changes the current view to the view specified by \fIname\fR.
 .RE
 
+;; set\-volume! : integer [boolean] \-> void
+.br
+(set\-volume! <value> [relative])
+.RS
+Sets MPD's volume.  If \fIrelative\fR is #t, then \fIvalue\fR is interpreted
+relative to the current volume setting.
+.RE
+
 ;; shell! : string . strings \-> void
 .br
 (shell! <command> . <args>)

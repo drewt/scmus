@@ -65,8 +65,7 @@
     (when (binding-row? selected)
       (set-input-mode! 'edit-mode
                        (binding-row-editable selected)
-                       (cons (+ 1 (- (window-sel-pos window)
-                                     (window-top-pos window)))
+                       (cons (+ 1 (window-sel-offset window))
                              (quotient (COLS) 2))))))
 
 (: binding-window-print-row (window * fixnum fixnum -> undefined))
@@ -113,8 +112,8 @@
                           changed:  (lambda (w) (binding-changed!))
                           activate: binding-edit!)
              "Key Bindings"
-             bindings-window-print-row
-             edit: binding-edit!))
+             print-line: bindings-window-print-row
+             edit:       binding-edit!))
 
 (define-event (binding-changed)
   (update-view! 'bindings))

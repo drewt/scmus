@@ -91,10 +91,10 @@
   (let ((view (current-view)))
     ((view-clear view) (view-window view))))
 
-(: win-move-tracks! thunk)
-(define (win-move-tracks!)
+(: win-move-tracks! (#!optional boolean -> undefined))
+(define (win-move-tracks! #!optional (before #f))
   (let ((view (current-view)))
-    ((view-move view) (view-window view))))
+    ((view-move view) (view-window view) before)))
 
 (: win-edit! thunk)
 (define (win-edit!)
@@ -270,16 +270,15 @@
     (endwin)))
 
 (define-view status
-  (make-view (make-window get-data: (lambda (w) *mpd-status*)
-                          changed:  (lambda (w) (register-event! 'status-changed)))
+  (make-view (make-window data-thunk: (lambda (w) *mpd-status*)
+                          changed:    (lambda (w) (register-event! 'status-changed)))
              "MPD Status"
-             alist-print-line))
+             print-line: alist-print-line))
 
 (define-view error
-  (make-view (make-window get-data: (lambda (w) (string-split-lines *scmus-error*))
-                          changed:  (lambda (w) (register-event! 'error-changed)))
-             "Error"
-             list-window-print-row))
+  (make-view (make-window data-thunk: (lambda (w) (string-split-lines *scmus-error*))
+                          changed:    (lambda (w) (register-event! 'error-changed)))
+             "Error"))
 
 (define-event command-line-changed update-command-line)
 (define-event current-line-changed update-current)

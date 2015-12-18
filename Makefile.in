@@ -30,14 +30,18 @@ INSTALL  = @scripts/install
 eggs = sandbox unix-sockets utf8
 
 units = bindings-view browser-view config command-line editable eval-mode \
-	event format getopt input key-table keys lib library-view main \
+	event format getopt input iter key-table keys lib library-view \
 	mpd-client ncurses option options-view queue-view search-view \
 	scmus-client ui-curses ui-lib view window
 objects = $(foreach unit,$(units),$(addsuffix .@OBJEXT@,$(unit)))
 types   = $(foreach unit,$(units),$(addsuffix .types,$(unit)))
 target = scmus@EXEEXT@
 
-clean = $(objects) $(types) $(target) all.types
+test-units = test/iter
+test-objects = $(foreach unit,$(test-units),$(addsuffix .@OBJEXT@,$(unit)))
+
+clean = $(objects) main.@OBJEXT@ $(test-objects) check.@OBJEXT@ $(types) \
+	$(target) all.types
 
 all: $(target)
 
@@ -45,9 +49,14 @@ include rules.mk
 
 config.o: CSCFLAGS += -prelude $(prelude)
 
-$(objects): $(types-prereq-y)
+$(objects): prologue.scm $(types-prereq-y)
 
-$(target): $(objects)
+$(target): $(objects) main.@OBJEXT@
+	$(call cmd,ld,$(LIBS))
+
+$(test-objects): prologue.scm test/test.scm
+
+check: $(objects) $(test-objects) check.@OBJEXT@
 	$(call cmd,ld,$(LIBS))
 
 all.types: $(types)
