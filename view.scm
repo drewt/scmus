@@ -48,7 +48,7 @@
   (add void view-add)
   (remove void view-remove)
   (clear void view-clear)
-  (edit void iew-edit)
+  (edit void view-edit)
   (move void view-move))
 
 (define (make-view window title . kwargs)
