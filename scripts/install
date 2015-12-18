@@ -30,7 +30,7 @@ for i in "$@"
 do
 	dest="${to}/`basename ${i}`"
 	test "$INSTALL_LOG" && echo "$dest" >> "$INSTALL_LOG"
-	if [[ -z "$verbose" ]]
+	if [ -z "$verbose" ]
 	then
 		echo "  INSTALL ${dest}"
 	else
