@@ -95,7 +95,52 @@
       (+ (scmus-volume) val)
       val)))
 
-;; user functions }}}
+(: push! (string -> undefined))
+(define (push! str)
+  (enter-eval-mode)
+  (command-line-text-set! str))
+
+(: win-move! (fixnum #!optional boolean -> undefined))
+(define (win-move! nr #!optional (relative #f))
+  (let ((nr-lines (if relative
+                    (integer-scale (window-nr-lines (current-window)) nr)
+                    nr)))
+    (if (> nr-lines 0)
+      (window-move-down! (current-window) nr-lines)
+      (window-move-up! (current-window) (abs nr-lines)))))
+
+(: win-bottom! thunk)
+(define (win-bottom!)
+  (let ((window (current-window)))
+    (window-select! window (- (window-data-len window) 1))))
+
+(: win-clear-marked! thunk)
+(define (win-clear-marked!)
+  (window-clear-marked! (current-window))
+  (redraw-ui))
+
+(: win-search! (string -> undefined))
+(define (win-search! query)
+  (window-search-init! (current-window) query)
+  (win-search-next!))
+
+(: win-search-next! thunk)
+(define (win-search-next!)
+  (let ((i (window-next-match! (current-window))))
+    (when i
+      (window-select! (current-window) i))))
+
+(: win-search-prev! thunk)
+(define (win-search-prev!)
+  (let ((i (window-prev-match! (current-window))))
+    (when i
+      (window-select! (current-window) i))))
+
+(: win-move-tracks! (#!optional boolean -> undefined))
+(define (win-move-tracks! #!optional (before #f))
+  (view-move! (current-view) before))
+
+ ;; user functions }}}
 
 (define *user-env* (make-safe-environment parent: default-safe-environment
                                           mutable: #t))
@@ -217,17 +262,17 @@
   (user-export! 'update! (return-void update!))
   (user-export! 'win-move! (return-void win-move!))
   (user-export! 'win-bottom! (return-void win-bottom!))
-  (user-export! 'win-top! (return-void win-top!))
+  (user-export! 'win-top! (thunk (window-select! (current-window) 0)))
   (user-export! 'win-activate! (thunk (window-activate! (current-window))))
   (user-export! 'win-deactivate! (thunk (window-deactivate! (current-window))))
-  (user-export! 'win-add! (return-void win-add!))
-  (user-export! 'win-remove! (return-void win-remove!))
-  (user-export! 'win-clear! (return-void win-clear!))
+  (user-export! 'win-add! (thunk (view-add! (current-view))))
+  (user-export! 'win-remove! (thunk (view-remove! (current-view))))
+  (user-export! 'win-clear! (thunk (view-clear! (current-view))))
   (user-export! 'win-move-tracks! (return-void win-move-tracks!))
   (user-export! 'win-search! (return-void win-search!))
   (user-export! 'win-search-next! (return-void win-search-next!))
   (user-export! 'win-search-prev! (return-void win-search-prev!))
-  (user-export! 'win-edit! (return-void win-edit!))
+  (user-export! 'win-edit! (thunk (view-edit! (current-view))))
   (user-export! 'win-sel-pos (lambda () (window-sel-pos (current-window))))
   (user-export! 'win-selected (lambda () (window-selected (current-window))))
   (user-export! 'win-mark! (thunk (window-mark! (current-window))))

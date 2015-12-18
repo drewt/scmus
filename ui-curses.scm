@@ -19,84 +19,13 @@
          (uses bindings-view browser-view command-line eval-mode event format
                input keys library-view ncurses option options-view queue-view
                scmus-client search-view ui-lib view window)
-         (export current-window curses-update cursor-off cursor-on exit-curses
-                 get-window init-curses push! redraw-ui set-view! set-window!
-                 ui-initialized? update-view! win-add! win-bottom! win-clear!
-                 win-clear-marked! win-edit! win-move! win-move-tracks!
-                 win-remove! win-search! win-search-next! win-search-prev!
-                 win-top!))
+         (export current-view current-window curses-update cursor-off cursor-on
+                 exit-curses get-window init-curses redraw-ui set-view!
+                 set-window! ui-initialized? update-view!))
 
 (define *ui-initialized* #f)
 (define *current-view* 'queue)
 
-;; user functions {{{
-
-(: push! (string -> undefined))
-(define (push! str)
-  (enter-eval-mode)
-  (command-line-text-set! str))
-
-(: win-move! (fixnum #!optional boolean -> undefined))
-(define (win-move! nr #!optional (relative #f))
-  (let ((nr-lines (if relative
-                    (integer-scale (window-nr-lines (current-window)) nr)
-                    nr)))
-    (if (> nr-lines 0)
-      (window-move-down! (current-window) nr-lines)
-      (window-move-up! (current-window) (abs nr-lines)))))
-
-(: win-bottom! thunk)
-(define (win-bottom!)
-  (let ((window (current-window)))
-    (window-select! window (- (window-data-len window) 1))))
-
-(: win-top! thunk)
-(define (win-top!)
-  (window-select! (current-window) 0))
-
-(: win-clear-marked! thunk)
-(define (win-clear-marked!)
-  (window-clear-marked! (current-window))
-  (redraw-ui))
-
-(: win-search! (string -> undefined))
-(define (win-search! query)
-  (window-search-init! (current-window) query)
-  (win-search-next!))
-
-(: win-search-next! thunk)
-(define (win-search-next!)
-  (let ((i (window-next-match! (current-window))))
-    (when i
-      (window-select! (current-window) i))))
-
-(: win-search-prev! thunk)
-(define (win-search-prev!)
-  (let ((i (window-prev-match! (current-window))))
-    (when i
-      (window-select! (current-window) i))))
-
-(: win-add! thunk)
-(define (win-add!)
-  (view-add! (current-view)))
-
-(: win-remove! thunk)
-(define (win-remove!)
-  (view-remove! (current-view)))
-
-(: win-clear! thunk)
-(define (win-clear!)
-  (view-clear! (current-view)))
-
-(: win-move-tracks! (#!optional boolean -> undefined))
-(define (win-move-tracks! #!optional (before #f))
-  (view-move! (current-view) before))
-
-(: win-edit! thunk)
-(define (win-edit!)
-  (view-edit! (current-view)))
-
-;; user functions }}}
 ;; windows {{{
 
 (: get-window (symbol -> window))
