@@ -245,7 +245,7 @@
       (let loop ((options *options*))
         (unless (null? options)
           (display `(set-option! ',(caar options)
-                                 ,(option-string (cdar options)))
+                                 ',(option-string (cdar options)))
                    out)
           (newline out)
           (loop (cdr options)))))))
