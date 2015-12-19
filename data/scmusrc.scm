@@ -60,8 +60,8 @@
 (bind! "enter" 'common '(win-activate!) #t)
 
 ;; push! shortcuts
-(bind! "(" 'common '(push! "(") #t)
-(bind! "!" 'common '(push! "(shell! ") #t)
+(bind! "(" 'common '(push! "()" -1) #t)
+(bind! "!" 'common '(push! "(shell! )" -1) #t)
 
 ;; library view
 (bind! "h"     'library '(win-deactivate!) #t)

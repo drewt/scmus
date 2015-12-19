@@ -90,10 +90,12 @@
       (+ (scmus-volume) val)
       val)))
 
-(: push! (string -> undefined))
-(define (push! str)
+(: push! (string #!optional fixnum -> undefined))
+(define (push! str #!optional index)
   (enter-eval-mode)
-  (command-line-text-set! str))
+  (command-line-text-set! str)
+  (when index
+    (command-line-cursor-pos-set! index)))
 
 (: win-move! (fixnum #!optional boolean -> undefined))
 (define (win-move! nr #!optional (relative #f))
@@ -230,9 +232,9 @@
     (playlist-delete!    ,(return-void scmus-playlist-delete!)
                          "Delete a track in the given playlist")
     (playlist-save!      ,(return-void scmus-playlist-save!)
-                         "Save the given playlist")
+                         "Save the current contents of the queue as a playlist")
     (playlist-load!      ,(return-void scmus-playlist-load!)
-                         "Load the given playlist")
+                         "Load the given playlist into the queue")
     (playlist-rename!    ,(return-void scmus-playlist-rename!)
                          "Rename the given playlist")
     (playlist-rm!        ,(return-void scmus-playlist-rm!)

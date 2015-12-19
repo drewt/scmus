@@ -18,6 +18,7 @@
 (declare (unit command-line)
          (uses editable eval-mode event input iter ncurses)
          (export command-line-text-set! command-line-mode command-line-text
+                 command-line-cursor-pos-set!
                  command-line-print-info! command-line-print-error!
                  enter-eval-mode enter-search-mode))
 
@@ -106,6 +107,10 @@
 (: command-line-cursor-pos (-> fixnum))
 (define (command-line-cursor-pos)
   (+ 1 (editable-cursor-pos *command-line*)))
+
+(: command-line-cursor-pos-set! (fixnum -> undefined))
+(define (command-line-cursor-pos-set! index)
+  (editable-cursor-pos-set! *command-line* index))
 
 (: command-line-length (-> fixnum))
 (define (command-line-length)

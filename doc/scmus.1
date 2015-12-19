@@ -182,14 +182,19 @@ a              (win-add!)
 d              (win-remove!)
 D              (win-clear!)
 enter          (win-activate!)
-(              (push! "(")
-!              (push! "(shell! ")
+(              (push! "()" -1)
+!              (push! "(shell! )" -1)
 .fi
 .SS Library Context
 .nf
 h,left         (win-deactivate!)
 l,right        (win-activate!)
 .fi
+.SS Queue Context
+.nf
+p              (win-move-tracks!)
+P              (win-move-tracks! #t)
+.fI
 .SS Browser Context
 .nf
 h,left         (win-deactivate!)
@@ -449,11 +454,14 @@ Removes the given playlist.
 Skip to the previous track.
 .RE
 
-;; push! : string \-> void
+;; push! : string [integer] \-> void
 .br
-(push! <text>)
+(push! <text> [index])
 .RS
-Enter eval mode with the command line pre\-set to text.
+Enter eval mode with the command line pre\-set to \fItext\fR.  If \fIindex\fR
+is provided, then the cursor will be positioned at \fIindex\fR.  If \fIindex\fR
+is negative, then the indexing is done "backwards" from the end of \fItext\fR
+rather than the beginning.
 .RE
 
 ;; queue\-delete! : (or integer range) \-> void

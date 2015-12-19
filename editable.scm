@@ -240,6 +240,19 @@
       (+ (char-width (car chars))
          (loop (cdr chars) (- pos 1))))))
 
+(: editable-cursor-pos-set! (editable fixnum -> undefined))
+(define (editable-cursor-pos-set! editable index)
+  (cond
+    ((>= index (editable-length editable))
+       (editable-move-end! editable))
+    ((and (< index 0)
+          (>= (abs index) (editable-length editable)))
+       (editable-move-home! editable))
+    ((< index 0)
+       (editable-set-pos! editable (abs index)))
+    (else
+       (editable-set-pos! editable (- (editable-length editable) index)))))
+
 (: editable-char (editable char ->  undefined))
 (define (editable-char editable ch)
   ((editable-char-handler editable) editable ch))
