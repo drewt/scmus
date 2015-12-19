@@ -70,7 +70,8 @@
     ((eval search) (void))
     (else (editable-text-set! *command-line* str)
           (set! *command-line-mode* 'info)
-          (command-line-changed!))))
+          (command-line-changed!)
+          str)))
 
 (: command-line-print-error! (string -> undefined))
 (define (command-line-print-error! str)
@@ -78,7 +79,8 @@
     ((eval search) (void))
     (else (editable-text-set! *command-line* str)
           (set! *command-line-mode* 'error)
-          (command-line-changed!))))
+          (command-line-changed!)
+          str)))
 
 (: command-line-changed! thunk)
 (define (command-line-changed!)

@@ -278,6 +278,14 @@ Returns the track object for the currently playing track.
 Returns the current volume.
 .RE
 
+;; describe : * \-> string
+.br
+(describe <object>)
+.RS
+Print a description of \fIobject\fR on the command line.  If \fIobject\fR is a
+symbol, then a description is printed for the object bound to the symbol.
+.RE
+
 ;; disconnect! : void \-> void
 .br
 (disconnect!)
@@ -518,6 +526,15 @@ Returns #t if MPD is currently in random mode, otherwise #f.
 (random\-set! <value>)
 .RS
 Sets the value of the \fBrandom\fR MPD option.
+.RE
+
+;; refresh! : void \-> void
+.br
+(refresh!)
+.RS
+Refresh the data in the library view.  Normally scmus will do this
+automatically when changes are made to the db, but in case it doesn't a
+refresh may be triggered manually with this function.
 .RE
 
 ;; repeat? : void \-> boolean
