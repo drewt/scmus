@@ -18,7 +18,7 @@
 (declare (unit command-line)
          (uses editable eval-mode event input iter ncurses)
          (export command-line-text-set! command-line-mode command-line-text
-                 command-line-cursor-pos-set!
+                 command-line-cursor-pos-set! command-line-clear!
                  command-line-print-info! command-line-print-error!
                  enter-eval-mode enter-search-mode))
 

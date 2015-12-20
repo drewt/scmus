@@ -21,7 +21,7 @@
                scmus-client search-view ui-lib view window)
          (export current-view current-window curses-update cursor-off cursor-on
                  exit-curses get-window init-curses redraw-ui set-view!
-                 set-window! ui-initialized? update-view!))
+                 set-window! connect! ui-initialized? update-view!))
 
 (define *ui-initialized* #f)
 (define *current-view* 'queue)
@@ -152,6 +152,36 @@
   (update-command-line))
 
 ;; screen updates }}}
+
+;; If an operation is likely to stall the UI, then this macro can be used to
+;; inform the user about what is going on during that time.
+(define-syntax with-info-message
+  (syntax-rules ()
+    ((with-info-message message first rest ...)
+       (call-with-info-message message (lambda () first rest ...)))))
+
+(define (call-with-info-message message thunk)
+  (command-line-print-info! message)
+  (update-command-line)
+  (refresh)
+  (let ((retval (thunk)))
+    (when (string=? (command-line-text) message)
+      (command-line-clear!))
+    retval))
+
+(: connect! (#!optional (or boolean string)
+                           (or boolean symbol fixnum)
+                           (or boolean symbol string)
+                 -> boolean))
+(define (connect! #!optional (host #f) (port 'default) (pass 'default))
+  ; host: #f means default
+  ; port: #f means UNIX socket, 'default means default
+  ; pass: #f means no password, 'default means default
+  (let ((host (if host host (get-option 'mpd-address)))
+        (port (if (eqv? port 'default) (get-option 'mpd-port) port))
+        (pass (if (eqv? pass 'default) (get-option 'mpd-password) pass)))
+    (with-info-message (format "Connecting to ~a:~a..." host port)
+      (scmus-connect! host port pass))))
 
 (: ui-initialized? (-> boolean))
 (define (ui-initialized?) *ui-initialized*)

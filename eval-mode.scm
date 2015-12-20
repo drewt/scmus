@@ -180,7 +180,7 @@
                          "Clear the queue")
     (colorscheme!        ,(return-void colorscheme!)
                          "Set the color scheme")
-    (connect!            ,scmus-connect!
+    (connect!            ,(lambda args (apply connect! args)) ; XXX: connect! not defined yet
                          "Connect to a MPD server")
     (consume?            ,scmus-consume?
                          "Check if MPD is in comsume mode")

@@ -118,9 +118,9 @@
     (initialize "Initializing curses"
       (init-curses))
     (initialize "Connecting to server"
-      (scmus-connect! (alist-ref 'address opts)
-                      (alist-ref 'port opts eqv? 'default)
-                      (alist-ref 'password opts eqv? 'default)))))
+      (connect! (alist-ref 'address opts)
+                (alist-ref 'port opts eqv? 'default)
+                (alist-ref 'password opts eqv? 'default)))))
 
 ;; enter main loop, and clean up on exit
 (let ((code (call/cc main)))
