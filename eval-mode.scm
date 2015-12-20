@@ -19,7 +19,8 @@
  
 (declare (unit eval-mode)
          (uses format keys ncurses option scmus-client ui-curses window)
-         (export init-sandbox user-bind! user-eval user-eval-string user-load))
+         (export init-sandbox win-search! user-bind! user-eval user-eval-string
+                 user-load))
 
 ;; user functions {{{
 
