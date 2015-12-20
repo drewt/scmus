@@ -15,10 +15,14 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
+(require-extension srfi-18)
+
 (declare (unit event)
          (export handle-events!
                  register-event!
-                 register-event-handler!))
+                 register-event-handler!
+                 register-timer!
+                 register-timer-event!))
 
 (: *events* (list-of symbol))
 (define *events* '())
@@ -47,6 +51,7 @@
       (unless (null? handlers)
         ((car handlers))
         (loop (cdr handlers)))))
+  (handle-timers)
   ;; XXX: Events may trigger other events, so we need to loop until the queue
   ;;      is really empty.  To avoid hanging in the case where multiple events
   ;;      endlessly trigger each other, we specify a maximum recursion depth
@@ -61,3 +66,35 @@
         (for-each handle-event events)
         (unless (null? *events*)
           (loop *events* (+ i 1)))))))
+
+(define *timers* '())
+
+(define timer-expire-time car)
+(define timer-thunk cdr)
+
+(define (register-timer! thunk seconds #!key (recurring #f))
+  (define (make-timer)
+    (cons (+ (time->seconds (current-time))
+           seconds)
+        (if recurring
+          (letrec ((recurring-thunk
+                     (lambda ()
+                       (thunk)
+                       (register-timer! recurring-thunk seconds))))
+            recurring-thunk)
+          thunk)))
+  (set! *timers* (append *timers* (list (make-timer)))))
+
+(define (register-timer-event! name . rest)
+  (apply register-timer! (lambda () (register-event! name)) rest))
+
+(define (handle-timers)
+  (let ((ct (time->seconds (current-time))))
+    (let loop ((timers *timers*) (thunks '()))
+      (if (or (null? timers)
+              (> (timer-expire-time (car timers)) ct))
+        (begin
+          (set! *timers* timers)
+          (for-each (lambda (thunk) (thunk)) (reverse thunks)))
+        (loop (cdr timers)
+              (cons (cdar timers) thunks))))))
