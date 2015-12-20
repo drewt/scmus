@@ -66,10 +66,10 @@
              print-line: options-window-print-row
              edit:       option-edit!))
 
-(define-event (option-changed)
+(define-event-handler (option-changed)
   (update-view! 'options))
 
-(define-event (option-data-changed)
+(define-event-handler (option-data-changed)
   (let ((window (get-window 'options)))
     (*window-data-set! window (make-options-data))
     (window-data-len-update! window)

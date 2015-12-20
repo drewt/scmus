@@ -153,5 +153,5 @@
              clear:      search-clear!
              edit:       search-edit!))
 
-(define-event (search-changed)
+(define-event-handler (search-changed)
   (update-view! 'search))

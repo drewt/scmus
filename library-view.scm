@@ -150,9 +150,9 @@
              print-line: library-window-print-row
              add:        library-add-selected!))
 
-(define-event (library-changed)
+(define-event-handler (library-changed)
   (update-view! 'library))
 
-(define-event (library-data-changed)
+(define-event-handler (library-data-changed)
   (window-data-len-update! (get-window 'library))
   (update-view! 'library))

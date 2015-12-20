@@ -57,11 +57,11 @@
     ((define-view name first rest ...)
        (register-view! (quote name) (lambda () first rest ...)))))
 
-(define-syntax define-event
+(define-syntax define-event-handler
   (syntax-rules ()
-    ((define-event (name) first rest ...)
+    ((define-event-handler (name) first rest ...)
        (register-event-handler! 'name (lambda () first rest ...)))
-    ((define-event name handler)
+    ((define-event-handler name handler)
        (register-event-handler! 'name handler))))
 
 (define-constant CURSED-CMDLINE 1)

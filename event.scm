@@ -36,11 +36,28 @@
 
 (: register-event-handler! (symbol thunk -> undefined))
 (define (register-event-handler! event handler)
-  (set! *event-handlers* (cons (cons event handler) *event-handlers*)))
+  (let ((handlers (alist-ref event *event-handlers* eqv? '())))
+    (set! *event-handlers*
+      (alist-update! event (cons handler handlers) *event-handlers*))))
 
 (: handle-events! thunk)
 (define (handle-events!)
-  (for-each (lambda (x)
-              ((alist-ref x *event-handlers*)))
-            *events*)
-  (set! *events* '()))
+  (define (handle-event event)
+    (let loop ((handlers (reverse (alist-ref event *event-handlers* eqv? '()))))
+      (unless (null? handlers)
+        ((car handlers))
+        (loop (cdr handlers)))))
+  ;; XXX: Events may trigger other events, so we need to loop until the queue
+  ;;      is really empty.  To avoid hanging in the case where multiple events
+  ;;      endlessly trigger each other, we specify a maximum recursion depth
+  ;;      and discard all pending events when it's reached.
+  (let loop ((events *events*) (i 0))
+    (set! *events* '())
+    (if (> i 10)
+      (error-set! (make-property-condition 'exn
+                    'message "handle-events! reached depth limit"
+                    'arguments events))
+      (begin
+        (for-each handle-event events)
+        (unless (null? *events*)
+          (loop *events* (+ i 1)))))))

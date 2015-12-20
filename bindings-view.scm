@@ -115,10 +115,10 @@
              print-line: bindings-window-print-row
              edit:       binding-edit!))
 
-(define-event (binding-changed)
+(define-event-handler (binding-changed)
   (update-view! 'bindings))
 
-(define-event (binding-data-changed)
+(define-event-handler (binding-data-changed)
   (let ((window (get-window 'bindings)))
     (*window-data-set! window (make-bindings-data))
     (window-data-len-update! window)

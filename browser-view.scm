@@ -116,9 +116,9 @@
              print-line: browser-window-print-row
              add:        browser-add-selected!))
 
-(define-event (browser-changed)
+(define-event-handler (browser-changed)
   (update-view! 'browser))
 
-(define-event (browser-data-changed)
+(define-event-handler (browser-data-changed)
   (window-data-len-update! (get-window 'browser))
   (update-view! 'browser))
