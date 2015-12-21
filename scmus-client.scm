@@ -15,8 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-18)
-
 (declare (unit scmus-client)
          (uses mpd-client option)
          (hide scmus-try-reconnect status-selector track-selector stat-selector
@@ -48,7 +46,6 @@
       (if (scmus-connected?)
         (mpd:disconnect *mpd-connection*))
       (set! *mpd-connection* con)
-      (scmus-update-client!)
       (register-event! 'db-changed)
       #t)))
 
@@ -129,22 +126,23 @@
   (set! *queue* (scmus-playlist-info))
   (register-event! 'queue-data-changed))
 
-(: scmus-update-client! thunk)
-(define (scmus-update-client!)
-  (let ((ct (time->seconds (current-time)))
-        (version (scmus-queue-version)))
-    (when (and (scmus-connected?) (> (- ct *last-update*)
-                                     (get-option 'status-update-interval)))
-      (condition-case
-        (begin
-          (scmus-update-status!)
-          (unless (= (scmus-song-id) (track-id *current-track*))
-            (scmus-update-current-song!))
-          (unless (= version (scmus-queue-version))
-            (scmus-update-queue!))
-          (set! *last-update* ct))
-        (e () (error-set! e)
-              (scmus-try-reconnect))))))
+;; Status update timer
+(register-timer!
+  (rec (scmus-update-client!)
+    (let ((version (scmus-queue-version)))
+      (when (scmus-connected?)
+        (condition-case
+          (begin
+            (scmus-update-status!)
+            (unless (= (scmus-song-id) (track-id *current-track*))
+              (scmus-update-current-song!))
+            (unless (= version (scmus-queue-version))
+              (scmus-update-queue!)))
+          (e () (error-set! e)
+                (scmus-try-reconnect)))))
+    (register-timer! scmus-update-client!
+                     (get-option 'status-update-interval)))
+  -1)
 
 (: scmus-elapsed-string (-> string))
 (define (scmus-elapsed-string)
@@ -178,7 +176,6 @@
         (let ((e (alist-ref sym *mpd-stats*)))
           (if e e default))))))
 
-(define (scmus-status) *mpd-status*)
 (status-selector scmus-volume 'volume 0)
 (status-selector scmus-repeat? 'repeat #f)
 (status-selector scmus-random? 'random #f)

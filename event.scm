@@ -77,13 +77,11 @@
     (cons (+ (time->seconds (current-time))
            seconds)
         (if recurring
-          (letrec ((recurring-thunk
-                     (lambda ()
-                       (thunk)
-                       (register-timer! recurring-thunk seconds))))
-            recurring-thunk)
+          (rec (recurring-thunk)
+            (thunk)
+            (register-timer! recurring-thunk seconds))
           thunk)))
-  (set! *timers* (append *timers* (list (make-timer)))))
+  (set! *timers* (append! *timers* (list (make-timer)))))
 
 (define (register-timer-event! name . rest)
   (apply register-timer! (lambda () (register-event! name)) rest))

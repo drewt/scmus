@@ -70,7 +70,6 @@
   (handle-exceptions exn
     (begin (set! *error* exn) 1)
     (let loop ()
-      (scmus-update-client!)
       (curses-update)
       (loop))))
 
