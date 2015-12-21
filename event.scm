@@ -32,11 +32,7 @@
 
 (: register-event! (symbol -> undefined))
 (define (register-event! event)
-  (if (alist-ref event *event-handlers*)
-    (set! *events* (cons event *events*))
-    (error-set! (make-property-condition 'exn
-                  'message "No event handler registered for event"
-                  'arguments event))))
+  (set! *events* (cons event *events*)))
 
 (: register-event-handler! (symbol thunk -> undefined))
 (define (register-event-handler! event handler)

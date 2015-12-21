@@ -536,13 +536,21 @@ Returns #t if MPD is currently in random mode, otherwise #f.
 Sets the value of the \fBrandom\fR MPD option.
 .RE
 
-;; refresh! : void \-> void
+;; refresh\-library! : void \-> void
 .br
-(refresh!)
+(refresh\-library!)
 .RS
 Refresh the data in the library view.  Normally scmus will do this
 automatically when changes are made to the db, but in case it doesn't a
 refresh may be triggered manually with this function.
+.RE
+
+;; register\-event\-handler! : symbol thunk \-> void
+.br
+(register\-event\-handler! event handler)
+.RS
+Register \fIhandler\fR as a handler for \fIevent\fR.  See the \fBEvents\fR
+section for a listing and description of the events that can be handled.
 .RE
 
 ;; repeat? : void \-> boolean
@@ -1096,6 +1104,15 @@ default normal underline reverse blink bold dim invis standout
 
 Color options are specified as 3-tuples (attribute background-color
 foreground-color).
+.SS Events
+The \fBregister\-event\-handler!\fR function can be used to associate handler
+functions with events, which scmus will fire off when cetain conditions are
+met.  The following events are available:
+
+track-changed
+.RS
+The currently playing track changed.
+.RE
 .SS Format Strings
 Format strings control the display of text throughout scmus.
 

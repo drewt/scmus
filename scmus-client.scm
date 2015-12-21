@@ -108,12 +108,16 @@
 
 (: scmus-update-status! thunk)
 (define (scmus-update-status!)
-  (let ((new-status (scmus-status)))
+  (let* ((old-status *mpd-status*)
+         (new-status (scmus-status)))
     (when (and (alist-ref 'updating_db *mpd-status*)
                (not (alist-ref 'updating_db new-status)))
       (register-event! 'db-changed))
     (set! *mpd-status* new-status)
-    (register-event! 'status-changed)))
+    (register-event! 'status-changed)
+    (unless (= (alist-ref 'songid old-status eqv? -1)
+               (alist-ref 'songid new-status eqv? -1))
+      (register-event! 'track-changed))))
 
 (: scmus-update-current-song! thunk)
 (define (scmus-update-current-song!)

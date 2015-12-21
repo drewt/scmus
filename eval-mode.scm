@@ -138,6 +138,15 @@
 (define (win-move-tracks! #!optional (before #f))
   (view-move! (current-view) before))
 
+(: *user-events* (list-of symbol))
+(define *user-events*
+  '(track-changed))
+
+(: user-register-event! (symbol thunk -> undefined))
+(define (user-register-event-handler! event handler)
+  (when (member event *user-events*)
+    (register-event-handler! event handler)))
+
 (define (describe symbol)
   (let ((info (alist-ref symbol user-api))
         (bind (safe-environment-ref *user-env* symbol)))
@@ -260,12 +269,14 @@
                          "Swap tracks in the queue by id")
     (queue-version       ,scmus-queue-version
                          "Get the queue version")
-    (refresh-library!    ,(thunk (register-event! 'db-changed))
-                         "Refresh the library view's data")
     (random?             ,scmus-random?
                          "Check if MPD is in random mode")
     (random-set!         ,(return-void scmus-random-set!)
                          "Set random mode on or off")
+    (refresh-library!    ,(thunk (register-event! 'db-changed))
+                         "Refresh the library view's data")
+    (register-event-handler! ,(return-void user-register-event-handler!)
+                         "Register an event handler")
     (repeat?             ,scmus-repeat?
                          "Check if MPD is in repeat mode")
     (repeat-set!         ,(return-void scmus-repeat-set!)
