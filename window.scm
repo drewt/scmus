@@ -15,9 +15,36 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-1)
+(require-extension srfi-1 coops)
 
 (declare (unit window))
+
+(define-class <widget> ()
+  ((parent initform: #f
+           accessor: widget-parent)))
+
+(define-class <container> (<widget>)
+  ((children accessor: container-children)))
+
+(define-class <split-pane> (<container>)
+  ((left-size reader: split-pane-left-size)))
+
+;; Ensure that left-size is between 0 and 1
+(define-method ((setter split-pane-left-size) (pane <split-pane>) size)
+  (cond
+    ((and (>= size 0)
+          (<= size 1))
+      (set! (slot-value pane 'left-size) size))
+    (else
+      #f)))
+
+;; Ensure that a split pane is always given 2 children
+(define-method ((setter container-children) (pane <split-pane>) children)
+  (cond
+    ((= (length children) 2)
+      (call-next-method))
+    (else
+      #f)))
 
 ;;
 ;; A window is a list with a visible section and a cursor.  The visible
@@ -59,36 +86,55 @@
 ;; view.scm).
 ;;
 
-(define-record/initform window make-window window?
-  ;; private data member for internal use
-  (data '() *window-data *window-data-set!)
-  ;; thunk to retrieve the list
-  (data-thunk *window-data window-data-thunk)
-  ;; length of the list
-  (data-len 0 window-data-len *window-data-len-set!)
-  ;; position of the first visible row
-  (top-pos 0 window-top-pos window-top-pos-set!)
-  ;; position of the selected row
-  (sel-pos 0 window-sel-pos window-sel-pos-set!)
-  ;; list of 'marked' rows
-  (marked '() *window-marked window-marked-set!)
-  ;; number of visible rows
-  (nr-lines 0 window-nr-lines *window-nr-lines-set!)
-  ;; position of the last match
-  (match-pos 0 window-match-pos window-match-pos-set!)
-  ;; called when visible part of list has changed
-  (changed void *window-changed! window-changed-set!)
-  ;; function to call when the user "activates" the window
-  (activate void *window-activate! window-activate-set!)
-  ;; function to call when the user "deactivates" the window
-  (deactivate void *window-deactivate! window-deactivate-set!)
-  ;; function to match a search query against a row
-  (match (lambda (e q) #f) window-match window-match-set!)
-  ;; active search query
-  (query "" window-query window-query-set!)
+ (define-class <window> (<widget>)
+  ((data       initform: '()
+               reader:   *window-data
+               writer:   *window-data-set!)
+   (data-thunk initform: *window-data
+               reader:   window-data-thunk)
+   (data-len   initform: 0
+               reader:   window-data-len
+               writer:   *window-data-len-set!)
+   (top-pos    initform: 0
+               reader:   window-top-pos
+               writer:   window-top-pos-set!)
+   (sel-pos    initform: 0
+               reader:   window-sel-pos
+               writer:   window-sel-pos-set!)
+   (marked     initform: '()
+               reader:   *window-marked
+               writer:   window-marked-set!)
+   (nr-lines   initform: 0
+               reader:   window-nr-lines
+               writer:   *window-nr-lines-set!)
+   (match-pos  initform: 0
+               reader:   window-match-pos
+               writer:   window-match-pos-set!)
+   (changed    initform: void
+               reader:   *window-changed!
+               writer:   window-changed-set!)
+   (activate   initform: void
+               reader:   *window-activate!
+               writer:   window-activate-set!)
+   (deactivate initform: void
+               reader:   *window-deactivate!
+               writer:   window-deactivate-set!)
+   (match      initform: (lambda (e q) #f)
+               reader:   window-match
+               writer:   window-match-set!)
+   (query      initform: ""
+               reader:   window-query
+               writer:   window-query-set!)))
 
-  (initialize (window)
-    (window-data-len-update! window)))
+(define-method (initialize-instance (window <window>))
+  (call-next-method)
+  (window-data-len-update! window))
+
+(define (window? obj)
+  (subclass? (class-of obj) <window>))
+
+(define (make-window . args)
+  (apply make <window> args))
 
 (: window-data (window -> list))
 (define (window-data window)

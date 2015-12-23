@@ -224,14 +224,14 @@
     (endwin)))
 
 (define-view status
-  (make-view (make-window data-thunk: (lambda (w) *mpd-status*)
-                          changed:    (lambda (w) (register-event! 'status-changed)))
+  (make-view (make-window 'data-thunk (lambda (w) *mpd-status*)
+                          'changed    (lambda (w) (register-event! 'status-changed)))
              "MPD Status"
              print-line: alist-print-line))
 
 (define-view error
-  (make-view (make-window data-thunk: (lambda (w) (string-split-lines *scmus-error*))
-                          changed:    (lambda (w) (register-event! 'error-changed)))
+  (make-view (make-window 'data-thunk (lambda (w) (string-split-lines *scmus-error*))
+                          'changed    (lambda (w) (register-event! 'error-changed)))
              "Error"))
 
 (define-event-handler command-line-changed update-command-line)

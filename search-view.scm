@@ -142,10 +142,10 @@
       (track-print-line line-nr (get-format 'format-library) row cursed))))
 
 (define-view search
-  (make-view (make-window data:     (list (make-search-field) '(separator . ""))
-                          changed:  (lambda (w) (search-changed!))
-                          activate: search-activate!
-                          match:    search-match)
+  (make-view (make-window 'data     (list (make-search-field) '(separator . ""))
+                          'changed  (lambda (w) (search-changed!))
+                          'activate search-activate!
+                          'match    search-match)
              "Search"
              print-line: search-window-print-row
              add:        search-add!

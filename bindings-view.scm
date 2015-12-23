@@ -108,9 +108,9 @@
   (apply append (map context->rows (sort (bindings) context<?))))
 
 (define-view bindings
-  (make-view (make-window data:     (make-bindings-data)
-                          changed:  (lambda (w) (binding-changed!))
-                          activate: binding-edit!)
+  (make-view (make-window 'data     (make-bindings-data)
+                          'changed  (lambda (w) (binding-changed!))
+                          'activate binding-edit!)
              "Key Bindings"
              print-line: bindings-window-print-row
              edit:       binding-edit!))

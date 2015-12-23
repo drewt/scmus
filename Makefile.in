@@ -27,7 +27,7 @@ LD       = csc
 LDFLAGS  =
 INSTALL  = @scripts/install
 
-eggs = sandbox unix-sockets utf8
+eggs = coops sandbox unix-sockets utf8
 
 units = bindings-view browser-view config command-line editable eval-mode \
 	event format getopt input iter key-table keys lib library-view \

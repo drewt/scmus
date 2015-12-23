@@ -98,12 +98,12 @@
 
 (: make-browser-window ((or window boolean) list -> window))
 (define (make-browser-window prev-win data)
-  (make-window data:       (cons prev-win data)
-               data-thunk: browser-window-data
-               changed:    (lambda (w) (register-event! 'browser-changed))
-               activate:   browser-activate!
-               deactivate: browser-deactivate!
-               match:      browser-match))
+  (make-window 'data       (cons prev-win data)
+               'data-thunk browser-window-data
+               'changed    (lambda (w) (register-event! 'browser-changed))
+               'activate   browser-activate!
+               'deactivate browser-deactivate!
+               'match      browser-match))
 
 (: update-browser! thunk)
 (define (update-browser!)

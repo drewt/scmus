@@ -58,11 +58,11 @@
 
 (: make-meta-window (window list -> window))
 (define (make-meta-window prev-win metadata)
-  (make-window data:       (cons (list-of 'metadata (sort-metadata metadata))
+  (make-window 'data       (cons (list-of 'metadata (sort-metadata metadata))
                                  prev-win)
-               data-thunk: library-window-data
-               changed:    library-changed!
-               deactivate: library-deactivate!))
+               'data-thunk library-window-data
+               'changed    library-changed!
+               'deactivate library-deactivate!))
 
 (: track-activate! (window -> undefined))
 (define (track-activate! window)
@@ -71,12 +71,12 @@
 
 (: make-tracks-window (window (list-of track) -> window))
 (define (make-tracks-window prev-win tracks)
-  (make-window data:       (cons (list-of 'track tracks) prev-win)
-               data-thunk: library-window-data
-               changed:    library-changed!
-               activate:   track-activate!
-               deactivate: library-deactivate!
-               match:      (match-function track-match)))
+  (make-window 'data       (cons (list-of 'track tracks) prev-win)
+               'data-thunk library-window-data
+               'changed    library-changed!
+               'activate   track-activate!
+               'deactivate library-deactivate!
+               'match      (match-function track-match)))
 
 (: album-activate! (window -> undefined))
 (define (album-activate! window)
@@ -87,12 +87,12 @@
 
 (: make-albums-window (window list -> window))
 (define (make-albums-window prev-win albums)
-  (make-window data:       (cons albums prev-win)
-               data-thunk: library-window-data
-               changed:    library-changed!
-               activate:   album-activate!
-               deactivate: library-deactivate!
-               match:      (match-function substring-match)))
+  (make-window 'data       (cons albums prev-win)
+               'data-thunk library-window-data
+               'changed    library-changed!
+               'activate   album-activate!
+               'deactivate library-deactivate!
+               'match      (match-function substring-match)))
 
 (: artist-activate! (window string -> undefined))
 (define (artist-activate! window artist)
@@ -139,10 +139,10 @@
 
 (: make-library-window (-> window))
 (define (make-library-window)
-  (make-window data-thunk: toplevel-get-data
-               changed:    library-changed!
-               activate:   toplevel-activate!
-               match:      (match-function substring-match)))
+  (make-window 'data-thunk toplevel-get-data
+               'changed    library-changed!
+               'activate   toplevel-activate!
+               'match      (match-function substring-match)))
 
 (define-view library
   (make-view (make-library-window)

@@ -54,10 +54,10 @@
   (track-print-line line-nr (get-format 'format-queue) track cursed))
 
 (define-view queue
-  (make-view (make-window data-thunk: (lambda (w) *queue*)
-                          changed:    (lambda (w) (register-event! 'queue-changed))
-                          activate:   (lambda (w) (scmus-play-track! (window-selected w)))
-                          match:      track-match)
+  (make-view (make-window 'data-thunk (lambda (w) *queue*)
+                          'changed    (lambda (w) (register-event! 'queue-changed))
+                          'activate   (lambda (w) (scmus-play-track! (window-selected w)))
+                          'match      track-match)
              "Queue - ~{queue-length} tracks"
              print-line: queue-print-line
              cursed:     (win-cursed-fn current-track?)
