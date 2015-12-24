@@ -142,10 +142,16 @@
 (define *user-events*
   '(track-changed))
 
-(: user-register-event! (symbol thunk -> undefined))
+(: user-register-event-handler! (symbol thunk -> undefined))
 (define (user-register-event-handler! event handler)
   (when (member event *user-events*)
     (register-event-handler! event handler)))
+
+(: user-start-timer! (thunk number #!key boolean -> undefined))
+(define (user-start-timer! thunk seconds #!key (recurring #f))
+  (let ((event (gensym)))
+    (register-event-handler! event thunk)
+    (register-timer-event! event seconds recurring: recurring)))
 
 (define (describe symbol)
   (let ((info (alist-ref symbol user-api))
@@ -305,6 +311,8 @@
                          "Check if MPD is in single mode")
     (single-set!         ,(return-void scmus-single-set!)
                          "Set single mode on or off")
+    (start-timer!        ,(return-void user-start-timer!)
+                         "Start a timer to run a thunk after a number of seconds")
     (state               ,scmus-state
                          "Get the current player state")
     (stop!               ,(return-void scmus-stop!)
