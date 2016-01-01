@@ -167,7 +167,7 @@
             (cursed-set! this attr)))))))
 
 ;; colors }}}
-;; cursed-set! {{{
+
 ;; Generates a function to call cursed-set! with the appropriate value given
 ;; a window, row, and line number.
 (: win-cursed-fn ((* -> boolean) -> (window * fixnum -> fixnum)))
@@ -177,22 +177,16 @@
            (row-pos (+ (window-top-pos window) (- line-nr 1)))
            (selected (= row-pos (window-sel-pos window)))
            (marked (member row-pos (window-marked window))))
-      (cursed-set!
-        (cond
-          ((separator? row)       CURSED-WIN-TITLE)
-          ((eqv? row 'separator)  CURSED-WIN-TITLE)
-          ((and current selected) CURSED-WIN-CUR-SEL)
-          (current                CURSED-WIN-CUR)
-          (selected               CURSED-WIN-SEL)
-          (marked                 CURSED-WIN-MARKED)
-          (else                   CURSED-WIN))))))
+      (cond
+        ((separator? row)       CURSED-WIN-TITLE)
+        ((eqv? row 'separator)  CURSED-WIN-TITLE)
+        ((and current selected) CURSED-WIN-CUR-SEL)
+        (current                CURSED-WIN-CUR)
+        (selected               CURSED-WIN-SEL)
+        (marked                 CURSED-WIN-MARKED)
+        (else                   CURSED-WIN)))))
 
-;; cursed-set! suitable for any window (CURSED-CUR[-SEL] is never chosen)
-(: generic-cursed-set! (window * fixnum -> fixnum))
-(define generic-cursed-set! (win-cursed-fn (lambda (x) #f)))
-;; cursed-set! }}}
-;; print-line {{{
-(: format-addstr! (string fixnum -> undefined))
+(: format-addstr! (string fixnum -> fixnum))
 (define (format-addstr! str cursed)
   (let loop ((str str))
     (let ((i (string-index str color-code?)))
@@ -204,42 +198,20 @@
             (cursed-set! cursed)
             (cursed-temp-set! cursed code))
           (loop (substring/shared str (+ i 1))))
-        (addstr str)))))
-
-(: track-print-line (fixnum list track fixnum -> undefined))
-(define (track-print-line line fmt track cursed)
-  (mvaddch line 0 #\space)
-  (format-addstr! (scmus-format fmt (- (COLS) 2) track) cursed)
-  (clrtoeol))
-
-(: simple-print-line (fixnum * -> undefined))
-(define (simple-print-line line-nr str)
-  (mvaddstr line-nr 0
-            (string-truncate (format " ~a" str)
-                             (- (COLS) 2)))
-  (clrtoeol))
-
-(: format-print-line (fixnum string #!rest * -> undefined))
-(define (format-print-line line-nr fmt . args)
-  (mvaddstr line-nr 0
-            (string-truncate (apply format fmt args)
-                             (- (COLS) 2)))
-  (clrtoeol))
+        (addstr str))))
+  (string-width str))
 
 ;; Generic function to print an alist entry, for use with print-window.
-(: alist-print-line (window pair fixnum fixnum -> undefined))
-(define (alist-print-line window row line-nr cursed)
-  (simple-print-line line-nr (car row))
-  (let ((col (- (quotient (COLS) 2) 1)))
-    (mvaddstr line-nr col
-              (string-truncate (format " ~a" (cdr row))
-                               (- (COLS) col)))))
-
-(: list-window-print-row (window * fixnum fixnum -> undefined))
-(define (list-window-print-row window row line-nr cursed)
-  (simple-print-line line-nr row))
+(: alist-print-line (window pair fixnum -> string))
+(define (alist-print-line window row nr-cols)
+  (let* ((quo (quotient nr-cols 2))
+         (fst (string-truncate (format "~a" (car row))
+                               (quotient nr-cols 2)))
+         (fst-len (string-length fst))
+         (snd (string-truncate (format " ~a" (cdr row))
+                               (- nr-cols quo))))
+    (string-append fst (make-string (- quo fst-len) #\space) snd)))
 
 (: separator? (* -> boolean))
 (define (separator? row)
   (and (pair? row) (eqv? (car row) 'separator)))
-;; print-line }}}

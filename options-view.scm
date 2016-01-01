@@ -31,14 +31,13 @@
     (set-input-mode! 'edit-mode
                      editable
                      (cons (+ 1 (window-sel-offset window))
-                           (quotient (COLS) 2)))))
+                           (+ 1 (quotient (COLS) 2))))))
 
-(: options-window-print-row (window * fixnum fixnum -> undefined))
-(define (options-window-print-row window row line-nr cursed)
+(: options-window-print-row (window * fixnum -> string))
+(define (options-window-print-row window row nr-cols)
   (alist-print-line window
                     (cons (car row) (editable-text (cdr row)))
-                    line-nr
-                    cursed))
+                    nr-cols))
 
 (: option-commit-edit! (editable -> boolean))
 (define (option-commit-edit! editable)
@@ -59,11 +58,11 @@
   (map option->row (options)))
 
 (define-view options
-  (make-view (make-window 'data     (make-options-data)
-                          'changed  (lambda (w) (option-changed!))
-                          'activate option-edit!)
-             "Options"
-             print-line: options-window-print-row
+  (make-view (make-window 'data       (make-options-data)
+                          'changed    (lambda (w) (option-changed!))
+                          'activate   option-edit!
+                          'print-line options-window-print-row)
+             " Options"
              edit:       option-edit!))
 
 (define-event-handler (option-changed)

@@ -132,22 +132,20 @@
 (define (search-match row query)
   (and (pair? row) (track-match row query)))
 
-(: search-window-print-row (window * fixnum fixnum -> undefined))
-(define (search-window-print-row window row line-nr cursed)
+(: search-window-print-row (window * fixnum -> string))
+(define (search-window-print-row window row nr-cols)
   (cond
-    ((editable? row)
-      (format-print-line line-nr " * ~a" (editable-text row)))
-    ((separator? row) (move line-nr 0) (clrtoeol))
-    (else
-      (track-print-line line-nr (get-format 'format-library) row cursed))))
+    ((editable? row)  (format "* ~a" (editable-text row)))
+    ((separator? row) (format "~a" (cdr row)))
+    (else             (scmus-format (get-format 'format-library) nr-cols row))))
 
 (define-view search
-  (make-view (make-window 'data     (list (make-search-field) '(separator . ""))
-                          'changed  (lambda (w) (search-changed!))
-                          'activate search-activate!
-                          'match    search-match)
-             "Search"
-             print-line: search-window-print-row
+  (make-view (make-window 'data       (list (make-search-field) '(separator . ""))
+                          'changed    (lambda (w) (search-changed!))
+                          'activate   search-activate!
+                          'match      search-match
+                          'print-line search-window-print-row)
+             " Search"
              add:        search-add!
              remove:     search-remove!
              clear:      search-clear!

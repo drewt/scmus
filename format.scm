@@ -47,7 +47,7 @@
   (let ((r (*scmus-format fmt len track)))
     (if (string? r)
       (string-truncate r len)
-      (let* ((right-len (min (string-length (cdr r)) len))
+      (let* ((right-len (min (string-width (cdr r)) len))
              (left-len (- len right-len)))
         (string-append (string-stretch (car r) #\space left-len #t)
                        (string-stretch (cdr r) #\space right-len))))))

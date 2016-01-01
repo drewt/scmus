@@ -87,3 +87,4 @@
 (define-type option (struct option))
 (define-type view (struct view))
 (define-type window (struct window))
+(define-type widget (struct widget))

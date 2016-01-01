@@ -15,13 +15,15 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
+(require-extension coops)
+
 (declare (unit ui-curses)
          (uses bindings-view browser-view command-line eval-mode event format
                input keys library-view ncurses option options-view queue-view
                scmus-client search-view ui-lib view window)
          (export current-view current-window curses-update cursor-off cursor-on
                  exit-curses get-window init-curses redraw-ui set-view!
-                 set-window! connect! ui-initialized? update-view!))
+                 connect! ui-initialized? update-view!))
 
 (define *ui-initialized* #f)
 (define *current-view* 'queue)
@@ -32,15 +34,14 @@
 (define (get-window view-name)
   (view-window (alist-ref view-name *views*)))
 
-(: set-window! (symbol window -> undefined))
-(define (set-window! view-name window)
-  (window-nr-lines-set! window (max 0 (- (LINES) 4)))
-  (view-window-set! (alist-ref view-name *views*) window))
-
 (: view-print-title! (view -> undefined))
 (define (view-print-title! view)
   (cursed-set! CURSED-WIN-TITLE)
-  (track-print-line 0 (view-title-fmt view) '() CURSED-WIN-TITLE))
+  (print-line! (scmus-format (view-title-fmt view) (COLS) '())
+               0
+               0
+               (COLS)
+               CURSED-WIN-TITLE))
 
 (: update-view! (symbol -> undefined))
 (define (update-view! view-name)
@@ -72,36 +73,77 @@
 (define (print-view! view)
   (when (> (LINES) 3)
     (view-print-title! view)
-    (let* ((window (view-window view))
-           (nr-lines (window-nr-lines window)))
-      (let loop ((rows (window-top window)) (lines nr-lines))
-        (when (> lines 0)
-          (let ((line-nr (- nr-lines (- lines 1))))
-            (if (null? rows)
-              (begin (cursed-set! CURSED-WIN)
-                     (move line-nr 0)
-                     (clrtoeol))
-              (let ((cursed (view-cursed-set! view (car rows) line-nr)))
-                (view-print-line! view (car rows) line-nr cursed)))
-            (loop (if (null? rows) '() (cdr rows)) (- lines 1))))))))
+    (print-widget! (view-widget view) 0 1 (COLS) (- (LINES) 4))))
+
+(define-method (print-widget! (separator <separator>) x y cols rows)
+  (let loop ((row y))
+    (when (< (- row y) rows)
+      (move row x)
+      (let loop ((col 0))
+        (when (< col cols)
+          (addch (separator-char separator))
+          (loop (+ col 1))))
+      (loop (+ row 1)))))
+
+(define-method (print-widget! (container <container>) x y cols rows)
+  (define (adjust-positions layout)
+    (append (list (car layout)
+                  (+ x (cadr layout))
+                  (+ y (caddr layout)))
+            (cdddr layout)))
+  (let loop ((children (compute-layout container cols rows)))
+    (unless (null? children)
+      (apply print-widget! (adjust-positions (car children)))
+      (loop (cdr children)))))
+
+(define-method (print-widget! (window <window>) x y cols rows)
+  (let loop ((rows (window-top window))
+             (lines (window-nr-lines window)))
+    (when (> lines 0)
+      (let ((line-nr (+ y (- (window-nr-lines window) lines))))
+        (if (null? rows)
+          (begin
+            (cursed-set! CURSED-WIN)
+            (print-line! "" x line-nr cols CURSED-WIN))
+          (let ((cursed (window-cursed window (car rows) line-nr)))
+            (print-line! (window-print-line window (car rows) cols)
+                         x
+                         line-nr
+                         cols
+                         cursed)))
+        (loop (if (null? rows) '() (cdr rows)) (- lines 1))))))
+
+(: print-line! (string fixnum fixnum fixnum fixnum -> undefined))
+(define (print-line! str col line nr-cols cursed)
+  (move line col)
+  (cursed-set! cursed)
+  (let ((written (format-addstr! (string-truncate str nr-cols) cursed)))
+    (when (< written nr-cols)
+      (addstr (make-string (- nr-cols written) #\space)))))
 
 (: update-current-line thunk)
 (define (update-current-line)
   (when (> (LINES) 2)
     (cursed-set! CURSED-TITLELINE)
-    (track-print-line (- (LINES) 3)
-                      (get-format 'format-current)
-                      *current-track*
-                      CURSED-TITLELINE)))
+    (print-line! (scmus-format (get-format 'format-current)
+                               (COLS)
+                               *current-track*)
+                 0
+                 (- (LINES) 3)
+                 (COLS)
+                 CURSED-TITLELINE)))
 
 (: update-status-line thunk)
 (define (update-status-line)
   (when (> (LINES) 1)
     (cursed-set! CURSED-STATUSLINE)
-    (track-print-line (- (LINES) 2)
-                      (get-format 'format-status)
-                      *current-track*
-                      CURSED-STATUSLINE)))
+    (print-line! (scmus-format (get-format 'format-status)
+                               (COLS)
+                               *current-track*)
+                 0
+                 (- (LINES) 2)
+                 (COLS)
+                 CURSED-STATUSLINE)))
 
 (: update-status thunk)
 (define (update-status)
@@ -144,9 +186,11 @@
 
 (: redraw-ui thunk)
 (define (redraw-ui)
-  (for-each (lambda (x) (window-nr-lines-set! (view-window (cdr x))
-                                              (max 0 (- (LINES) 4))))
-            *views*)
+  (define (update-geometry view)
+    (widget-geometry-set! (view-widget (cdr view))
+                          (max 0 (- (COLS) 2))
+                          (max 0 (- (LINES) 4))))
+  (for-each update-geometry *views*)
   (print-view! (alist-ref *current-view* *views*))
   (update-current)
   (update-status)
@@ -226,14 +270,14 @@
 
 (define-view status
   (make-view (make-window 'data-thunk (lambda (w) *mpd-status*)
-                          'changed    (lambda (w) (register-event! 'status-changed)))
-             "MPD Status"
-             print-line: alist-print-line))
+                          'changed    (lambda (w) (register-event! 'status-changed))
+                          'print-line alist-print-line)
+             " MPD Status"))
 
 (define-view error
   (make-view (make-window 'data-thunk (lambda (w) (string-split-lines *scmus-error*))
                           'changed    (lambda (w) (register-event! 'error-changed)))
-             "Error"))
+             " Error"))
 
 (define-event-handler command-line-changed update-command-line)
 (define-event-handler current-line-changed update-current)

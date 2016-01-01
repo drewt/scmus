@@ -66,18 +66,17 @@
       (set-input-mode! 'edit-mode
                        (binding-row-editable selected)
                        (cons (+ 1 (window-sel-offset window))
-                             (quotient (COLS) 2))))))
+                             (+ 1 (quotient (COLS) 2)))))))
 
-(: binding-window-print-row (window * fixnum fixnum -> undefined))
-(define (bindings-window-print-row window row line-nr cursed)
+(: binding-window-print-row (window * fixnum -> string))
+(define (bindings-window-print-row window row nr-cols)
   (cond
-    ((separator? row) (simple-print-line line-nr (cdr row)))
+    ((separator? row) (format "~a" (cdr row)))
     ((binding-row? row)
        (alist-print-line window
                          (cons (key-list->string (binding-row-keys row))
                                (editable-text (binding-row-editable row)))
-                         line-nr
-                         cursed))))
+                         nr-cols))))
 
 (: binding-commit-edit! (editable -> boolean))
 (define (binding-commit-edit! editable)
@@ -108,11 +107,11 @@
   (apply append (map context->rows (sort (bindings) context<?))))
 
 (define-view bindings
-  (make-view (make-window 'data     (make-bindings-data)
-                          'changed  (lambda (w) (binding-changed!))
-                          'activate binding-edit!)
-             "Key Bindings"
-             print-line: bindings-window-print-row
+  (make-view (make-window 'data       (make-bindings-data)
+                          'changed    (lambda (w) (binding-changed!))
+                          'activate   binding-edit!
+                          'print-line bindings-window-print-row)
+             " Key Bindings"
              edit:       binding-edit!))
 
 (define-event-handler (binding-changed)

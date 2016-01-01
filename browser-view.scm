@@ -17,15 +17,7 @@
 
 (declare (unit browser-view)
          (uses event ncurses option scmus-client ui-lib view window)
-         (export browser-add-selected! make-browser-view update-browser!))
-
-(: browser-window-data (window -> list))
-(define (browser-window-data window)
-  (cdr (*window-data window)))
-
-(: browser-prev-window (window -> window))
-(define (browser-prev-window window)
-  (car (*window-data window)))
+         (export update-browser!))
 
 (: browser-add! (* -> undefined))
 (define (browser-add! selected)
@@ -39,20 +31,43 @@
 (define (browser-add-selected! window)
   (for-each browser-add! (window-all-selected window)))
 
-(: directory-activate! (window string -> undefined))
-(define (directory-activate! window dir)
-  (set-window! 'browser (make-browser-window window (scmus-lsinfo dir)))
+(: browser-match (* string -> boolean))
+(define (browser-match row query)
+  (if (pair? (car row))
+    (case (caar row)
+      ((directory playlist) (substring-match (cdar row) query))
+      ((file) (track-match row query))
+      (else #f))
+    #f))
+
+(: browser-print-line (window * fixnum -> string))
+(define (browser-print-line window row nr-cols)
+  (define (format-string type)
+    (case type
+      ((directory) (get-format 'format-browser-dir))
+      ((playlist)  (get-format 'format-browser-playlist))
+      ((file)      (get-format 'format-browser-file))))
+  (if (pair? (car row))
+    (scmus-format (format-string (caar row)) nr-cols row)
+    (alist-print-line window row nr-cols)))
+
+(: update-browser! thunk)
+(define (update-browser!)
+  (let ((window (get-window 'browser)))
+    (let loop ()
+      (when (window-stack-peek window)
+        (window-stack-pop! window)
+        (loop)))
+    (*window-data-set! window #f)
+    (browser-get-data window))
   (register-event! 'browser-data-changed))
 
-(: playlist-activate! (window string -> undefined))
-(define (playlist-activate! window playlist)
-  (set-window! 'browser (make-browser-window window (scmus-list-playlist playlist)))
-  (register-event! 'browser-data-changed))
-
-(: file-activate! (window list -> undefined))
-(define (file-activate! window file)
-  (set-window! 'browser (make-browser-window window (sort-metadata file)))
-  (register-event! 'browser-data-changed))
+(: browser-get-data (window -> list))
+(define (browser-get-data window)
+  (unless (*window-data window)
+    (*window-data-set! window (scmus-lsinfo "/"))
+    (window-data-len-update! window))
+  (*window-data window))
 
 (: browser-activate! (window -> undefined))
 (define (browser-activate! window)
@@ -63,58 +78,36 @@
         ((playlist) (playlist-activate! window (cdar selected)))
         ((file) (file-activate! window selected))))))
 
-(: browser-deactivate! (window -> undefined))
-(define (browser-deactivate! window)
-  (when (browser-prev-window window)
-    (set-window! 'browser (browser-prev-window window))
-    (register-event! 'browser-data-changed)))
-
-(: browser-match (* string -> boolean))
-(define (browser-match row query)
-  (if (pair? (car row))
-    (case (caar row)
-      ((directory playlist) (substring-match (cdar row) query))
-      ((file) (track-match row query))
-      (else #f))
-    #f))
-
-(: browser-window-print-row (window * fixnum fixnum -> undefined))
-(define (browser-window-print-row window row line-nr cursed)
-  (if (pair? (car row))
-    (case (caar row)
-      ((directory) (track-print-line line-nr
-                                     (get-format 'format-browser-dir)
-                                     row
-                                     cursed))
-      ((playlist)  (track-print-line line-nr
-                                     (get-format 'format-browser-playlist)
-                                     row
-                                     cursed))
-      ((file)      (track-print-line line-nr
-                                     (get-format 'format-browser-file)
-                                     row
-                                     cursed)))
-    (alist-print-line window row line-nr cursed)))
-
-(: make-browser-window ((or window boolean) list -> window))
-(define (make-browser-window prev-win data)
-  (make-window 'data       (cons prev-win data)
-               'data-thunk browser-window-data
-               'changed    (lambda (w) (register-event! 'browser-changed))
-               'activate   browser-activate!
-               'deactivate browser-deactivate!
-               'match      browser-match))
-
-(: update-browser! thunk)
-(define (update-browser!)
-  (set-window! 'browser (make-browser-window #f (scmus-lsinfo "/")))
+(define (directory-activate! window dir)
+  (window-stack-push! window (scmus-lsinfo dir) browser-get-data)
   (register-event! 'browser-data-changed))
 
+(define (playlist-activate! window playlist)
+  (window-stack-push! window (scmus-list-playlist playlist) browser-get-data)
+  (register-event! 'browser-data-changed))
+
+(define (file-activate! window file)
+  (window-stack-push! window (sort-metadata file) browser-get-data)
+  (register-event! 'browser-data-changed))
+
+(define (browser-deactivate! window)
+  (when (window-stack-peek window)
+    (window-stack-pop! window)
+    (register-event! 'browser-data-changed)))
+
+(define (browser-changed! window)
+  (register-event! 'browser-changed))
+
 (define-view browser
-  (make-view (make-browser-window #f (scmus-lsinfo "/"))
-             "Browser"
-             print-line: browser-window-print-row
-             add:        browser-add-selected!))
+  (make-view (make-stack-window 'data #f
+                                'data-thunk browser-get-data
+                                'activate   browser-activate!
+                                'deactivate browser-deactivate!
+                                'changed    browser-changed!
+                                'match      browser-match
+                                'print-line browser-print-line)
+             " Browser"
+             add: browser-add-selected!))
 
 (define-event-handler (browser-changed)
   (update-view! 'browser))

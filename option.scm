@@ -193,13 +193,13 @@
     (cons 'color-win-marked               '(default blue white))
     (cons 'color-win-title                '(default blue white))
     (cons 'format-current
-          (format-values "~a - ~l ~n. ~t~= ~y"))
+          (format-values " ~a - ~l ~n. ~t~= ~y "))
     (cons 'format-status
-          (format-values "~P ~p / ~d - ~T vol: ~v~= ~S~R~r~C"))
+          (format-values " ~P ~p / ~d - ~T vol: ~v~= ~S~R~r~C "))
     (cons 'format-library
           (format-values "~-25%a ~3n. ~t~= ~-4y ~d"))
     (cons 'format-queue
-          (format-values "~-25%a ~3n. ~t~= ~-4y ~d"))  
+          (format-values "~-25%a ~3n. ~t~= ~-4y ~d"))
     (cons 'format-browser-file
           (format-values "~{path}"))
     (cons 'format-browser-dir

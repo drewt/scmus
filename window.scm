@@ -23,11 +23,85 @@
   ((parent initform: #f
            accessor: widget-parent)))
 
+(define-method (widget-geometry-set! (widget <widget>) cols rows)
+  (void))
+
+(define-method (widget-first (widget <widget>))
+  widget)
+
+(define-method (widget-last (widget <widget>))
+  widget)
+
+(define-method (widget-next (widget <widget>) (prev <widget>))
+  (if (widget-parent widget)
+    (widget-next (widget-parent widget) widget)
+    #f))
+
+(define-method (widget-prev (widget <widget>) (next <widget>))
+  (if (widget-parent widget)
+    (widget-prev (widget-parent widget) widget)
+    #f))
+
+(define-class <separator> (<widget>)
+  ((char initform: #\space
+         accessor: separator-char)))
+
 (define-class <container> (<widget>)
   ((children accessor: container-children)))
 
+(define-method (container-prepend-child! (container <container>) (child <widget>))
+  (set! (widget-parent child) container)
+  (set! (container-children container)
+    (cons child (container-children container))))
+
+(define-method (container-append-child! (container <container>) (child <widget>))
+  (set! (widget-parent child) container)
+  (set! (container-children container)
+    (append! (container-children container) (list child))))
+
+(define-method (widget-first (container <container>))
+  (widget-first (car (container-children container))))
+
+(define-method (widget-last (container <container>))
+  (widget-last (car (reverse (container-children container)))))
+
+(: *container-next-child (list (struct widget) -> (or boolean (struct widget))))
+(define (*container-next-child children child)
+  (let ((rest (member child children)))
+    (cond
+      ((not rest)         #f) ; FIXME: throw exception
+      ((null? (cdr rest)) (car children))
+      (else               (cadr rest)))))
+
+(define-method (widget-next (container <container>) (child <widget>))
+  (let ((next (*container-next-child (container-children container) child)))
+    (if next
+      (widget-first next)
+      #f)))
+
+(define-method (widget-prev (container <container>) (child <widget>))
+  (let ((prev (*container-next-child (reverse (container-children container)) child)))
+    (if prev
+      (widget-last prev)
+      prev)))
+
+;;
+;; Split Pane
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (define-class <split-pane> (<container>)
-  ((left-size reader: split-pane-left-size)))
+  ((left-size      initform: 0.5
+                   reader: split-pane-left-size)
+   (separator-char initform: #\space
+                   reader: split-pane-separator-char)))
+
+(define (make-split-pane left-child right-child . args)
+  (let* ((children (list left-child right-child))
+         (pane (apply make <split-pane> 'children children args)))
+    (set! (widget-parent left-child) pane)
+    (set! (widget-parent right-child) pane)
+    pane))
 
 ;; Ensure that left-size is between 0 and 1
 (define-method ((setter split-pane-left-size) (pane <split-pane>) size)
@@ -38,6 +112,12 @@
     (else
       #f)))
 
+(define-method (split-pane-left-child (pane <split-pane>))
+  (car (container-children pane)))
+
+(define-method (split-pane-right-child (pane <split-pane>))
+  (cadr (container-children pane)))
+
 ;; Ensure that a split pane is always given 2 children
 (define-method ((setter container-children) (pane <split-pane>) children)
   (cond
@@ -46,6 +126,25 @@
     (else
       #f)))
 
+(define-method (compute-layout (pane <split-pane>) cols rows)
+  (let* ((separator (make <separator> 'char (split-pane-separator-char pane)))
+         (left-cols (inexact->exact (floor (* (split-pane-left-size pane) cols))))
+         (right-cols (- cols left-cols 1)))
+    ;           WIDGET                        X               Y COLS       ROWS
+    (list (list (split-pane-left-child pane)  0               0 left-cols  rows)
+          (list separator                     left-cols       0 1          rows)
+          (list (split-pane-right-child pane) (+ left-cols 1) 0 right-cols rows))))
+
+(define-method (widget-geometry-set! (pane <split-pane>) cols rows)
+  (let loop ((children (compute-layout pane cols rows)))
+    (unless (null? children)
+      (widget-geometry-set! (first (car children))
+                            (fourth (car children))
+                            (fifth  (car children)))
+      (loop (cdr children)))))
+
+;;
+;; Window
 ;;
 ;; A window is a list with a visible section and a cursor.  The visible
 ;; section follows the cursor.
@@ -85,13 +184,15 @@
 ;; called on particular events.  They don't belong here (TODO: move these to
 ;; view.scm).
 ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
  (define-class <window> (<widget>)
   ((data       initform: '()
                reader:   *window-data
                writer:   *window-data-set!)
    (data-thunk initform: *window-data
-               reader:   window-data-thunk)
+               reader:   window-data-thunk
+               writer:   window-data-thunk-set!)
    (data-len   initform: 0
                reader:   window-data-len
                writer:   *window-data-len-set!)
@@ -124,17 +225,81 @@
                writer:   window-match-set!)
    (query      initform: ""
                reader:   window-query
-               writer:   window-query-set!)))
+               writer:   window-query-set!)
+   (cursed     initform: (win-cursed-fn (lambda (x) #f))
+               reader:   *window-cursed)
+   (print-line initform: (lambda (window row cols) (format "~a" row))
+               reader:   *window-print-line)
+   (h-border   initform: 1
+               accessor: window-h-border)))
 
 (define-method (initialize-instance (window <window>))
   (call-next-method)
   (window-data-len-update! window))
 
-(define (window? obj)
-  (subclass? (class-of obj) <window>))
+(define-syntax define-subclass-predicate
+  (syntax-rules ()
+    ((define-subclass-predicate predname classname)
+      (define (predname obj)
+        (subclass? (class-of obj) classname)))))
+
+(define-subclass-predicate widget? <widget>)
+(define-subclass-predicate container? <container>)
+(define-subclass-predicate window? <window>)
+
+(define-method (widget-geometry-set! (window <window>) cols rows)
+  (window-nr-lines-set! window rows))
 
 (define (make-window . args)
   (apply make <window> args))
+
+(define-class <window-stack> (<window>)
+  ((stack initform: '()
+          accessor: window-stack-stack)))
+
+(define-method (window-stack-push! (window <window-stack>) data data-thunk)
+  (set! (window-stack-stack window)
+    (cons `((data       . ,(*window-data window))
+            (data-thunk . ,(window-data-thunk window))
+            (data-len   . ,(window-data-len window))
+            (top-pos    . ,(window-top-pos window))
+            (sel-pos    . ,(window-sel-pos window))
+            (marked     . ,(*window-marked window))
+            (match-pos  . ,(window-match-pos window)))
+          (window-stack-stack window)))
+  (*window-data-set! window data)
+  (window-data-thunk-set! window data-thunk)
+  (window-top-pos-set! window 0)
+  (window-sel-pos-set! window 0)
+  (window-marked-set! window '())
+  (window-match-pos-set! window 0)
+  (window-data-len-update! window))
+
+(define-method (window-stack-pop! (window <window-stack>))
+  (let loop ((members (car (window-stack-stack window))))
+    (unless (null? members)
+      (let ((name  (caar members))
+            (value (cdar members)))
+        (case name
+          ((data)       (*window-data-set! window value))
+          ((data-thunk) (window-data-thunk-set! window value))
+          ((data-len)   (*window-data-len-set! window value))
+          ((top-pos)    (window-top-pos-set! window value))
+          ((sel-pos)    (window-sel-pos-set! window value))
+          ((marked)     (window-marked-set! window value))
+          ((match-pos)  (window-match-pos-set! window value))))
+      (loop (cdr members))))
+  (set! (window-stack-stack window)
+    (cdr (window-stack-stack window))))
+
+(define-method (window-stack-peek (window <window-stack>))
+  (let ((stack (window-stack-stack window)))
+    (if (null? stack)
+      #f
+      (car stack))))
+
+(define (make-stack-window . args)
+  (apply make <window-stack> args))
 
 (: window-data (window -> list))
 (define (window-data window)
@@ -232,6 +397,20 @@
 (define (window-deactivate! window)
   (when (positive? (window-data-len window))
     ((*window-deactivate! window) window)))
+
+(: window-print-line (window * fixnum -> string))
+(define (window-print-line window row nr-cols)
+  (let* ((h-border (window-h-border window))
+         (str ((*window-print-line window) window
+                                           row
+                                           (- nr-cols (* 2 h-border)))))
+    (string-append (make-string h-border #\space)
+                   str
+                   (make-string h-border #\space))))
+
+(: window-cursed (window * fixnum -> undefined))
+(define (window-cursed window row line-nr)
+  ((*window-cursed window) window row line-nr))
 
 (: window-data-len-update! (window -> undefined))
 (define (window-data-len-update! window)

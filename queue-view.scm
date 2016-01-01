@@ -49,18 +49,18 @@
                    (if before 1 0)))
   (window-clear-marked! window))
 
-(: queue-print-line (window track fixnum fixnum -> undefined))
-(define (queue-print-line window track line-nr cursed)
-  (track-print-line line-nr (get-format 'format-queue) track cursed))
+(: queue-print-line (window track fixnum -> string))
+(define (queue-print-line window track nr-cols)
+  (scmus-format (get-format 'format-queue) nr-cols track))
 
 (define-view queue
   (make-view (make-window 'data-thunk (lambda (w) *queue*)
                           'changed    (lambda (w) (register-event! 'queue-changed))
                           'activate   (lambda (w) (scmus-play-track! (window-selected w)))
-                          'match      track-match)
-             "Queue - ~{queue-length} tracks"
-             print-line: queue-print-line
-             cursed:     (win-cursed-fn current-track?)
+                          'match      track-match
+                          'print-line queue-print-line
+                          'cursed     (win-cursed-fn current-track?))
+             " Queue - ~{queue-length} tracks"
              remove:     queue-remove!
              clear:      (lambda (w) (scmus-clear!))
              move:       queue-move!))
