@@ -199,8 +199,14 @@
    (nr-lines   initform: 0
                ; complex writer below
                reader:   window-nr-lines)
-   (match-pos  initform: 0
-               accessor: window-match-pos)
+   (query      initform: ""
+               accessor: window-query) 
+   (h-border   initform: 1
+               accessor: window-h-border)
+   ;; Because COOPS does not play well across multiple compilation units, we
+   ;; use our own OOP implementation for customizing windows.  Ideally, the
+   ;; functions stored in the slots below would be defined as methods, but
+   ;; then they couldn't be specialized in another compilation unit.
    (changed    initform: void
                accessor: window-changed)
    (activate   initform: void
@@ -209,14 +215,10 @@
                accessor: window-deactivate)
    (match      initform: (lambda (e q) #f)
                accessor: window-match)
-   (query      initform: ""
-               accessor: window-query)
    (cursed     initform: (win-cursed-fn (lambda (x) #f))
                reader:   *window-cursed)
    (print-line initform: (lambda (window row cols) (format "~a" row))
-               reader:   *window-print-line)
-   (h-border   initform: 1
-               accessor: window-h-border)))
+               reader:   *window-print-line)))
 
 (define-method (initialize-instance (window <window>))
   (call-next-method)
@@ -249,15 +251,13 @@
             (data-len   . ,(window-data-len window))
             (top-pos    . ,(window-top-pos window))
             (sel-pos    . ,(window-sel-pos window))
-            (marked     . ,(*window-marked window))
-            (match-pos  . ,(window-match-pos window)))
+            (marked     . ,(*window-marked window)))
           (window-stack-stack window)))
   (set! (*window-data window) data)
   (set! (window-data-thunk window) data-thunk)
   (set! (window-top-pos window) 0)
   (set! (window-sel-pos window) 0)
   (set! (*window-marked window) '())
-  (set! (window-match-pos window) 0)
   (window-data-len-update! window))
 
 (define-method (window-stack-pop! (window <window-stack>))
@@ -271,8 +271,7 @@
           ((data-len)   (set! (window-data-len window) value))
           ((top-pos)    (set! (window-top-pos window) value))
           ((sel-pos)    (set! (window-sel-pos window) value))
-          ((marked)     (set! (*window-marked window) value))
-          ((match-pos)  (set! (window-match-pos window) value))))
+          ((marked)     (set! (*window-marked window) value))))
       (loop (cdr members))))
   (set! (window-stack-stack window)
     (cdr (window-stack-stack window))))
@@ -444,36 +443,40 @@
 
 (: window-search-init! (window string -> undefined))
 (define (window-search-init! window query)
-  (set! (window-query window) query)
-  (set! (window-match-pos window) (window-sel-pos window)))
+  (set! (window-query window) query))
+
+(: *window-search (window string list -> (or fixnum boolean)))
+(define (*window-search window query data)
+  (let loop ((data data) (i 0))
+    (cond
+      ((null? data) #f)
+      (((window-match window) (car data) query) i)
+      (else (loop (cdr data) (+ 1 i))))))
 
 (: window-next-match! (window -> (or fixnum boolean)))
 (define (window-next-match! window)
-  (let* ((query (window-query window))
-         (last-pos (window-match-pos window))
-         (last-match (list-tail (window-data window) last-pos)))
-    (let loop ((pos (+ last-pos 1))
-               (rest (if (null? last-match) '() (cdr last-match))))
-      (cond
-        ((and (= pos last-pos) (null? rest)) #f)
-        ((= pos last-pos)
-          (if ((window-match window) (car rest) query)
-            pos
-            #f))
-        ((null? rest) (loop 0 (window-data window)))
-        (((window-match window) (car rest) query)
-          (set! (window-match-pos window) pos)
-          pos)
-        (else (loop (+ pos 1) (cdr rest)))))))
+  (let* ((query    (window-query window))
+         (data     (window-data window))
+         (next-pos (+ 1 (window-sel-pos window)))
+         (next-len (- (window-data-len window) next-pos))
+         (shifted  (append (drop data next-pos)
+                           (take data next-pos)))
+         (match    (*window-search window query shifted)))
+    (cond
+      ((not match)         #f)
+      ((>= match next-len) (- match next-len))
+      (else                (+ next-pos match)))))
 
 (: window-prev-match! (window -> (or fixnum boolean)))
 (define (window-prev-match! window)
-  (let ((orig-pos (window-match-pos window)))
-    (let loop ((last-pos orig-pos))
-      (let ((rv (window-next-match! window)))
-        (cond
-          ((not rv) #f)
-          ((= rv orig-pos)
-            (set! (window-match-pos window) last-pos)
-            last-pos)
-          (else (loop rv)))))))
+  (let* ((query    (window-query window))
+         (data     (window-data window))
+         (prev-pos (- (window-sel-pos window) 1))
+         (shifted  (append (reverse (take data (+ 1 prev-pos)))
+                           (reverse (drop data (+ 1 prev-pos)))))
+         (match    (*window-search window query shifted)))
+    (cond
+      ((not match)        #f)
+      ((> match prev-pos) (- (window-data-len window)
+                             (abs (- prev-pos match))))
+      (else               (- prev-pos match)))))
