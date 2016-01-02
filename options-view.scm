@@ -70,6 +70,6 @@
 
 (define-event-handler (option-data-changed)
   (let ((window (get-window 'options)))
-    (*window-data-set! window (make-options-data))
+    (set! (*window-data window) (make-options-data))
     (window-data-len-update! window)
     (update-view! 'options)))

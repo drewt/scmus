@@ -58,14 +58,14 @@
       (when (window-stack-peek window)
         (window-stack-pop! window)
         (loop)))
-    (*window-data-set! window #f)
+    (set! (*window-data window) #f)
     (browser-get-data window))
   (register-event! 'browser-data-changed))
 
 (: browser-get-data (window -> list))
 (define (browser-get-data window)
   (unless (*window-data window)
-    (*window-data-set! window (scmus-lsinfo "/"))
+    (set! (*window-data window) (scmus-lsinfo "/"))
     (window-data-len-update! window))
   (*window-data window))
 

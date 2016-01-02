@@ -119,6 +119,6 @@
 
 (define-event-handler (binding-data-changed)
   (let ((window (get-window 'bindings)))
-    (*window-data-set! window (make-bindings-data))
+    (set! (*window-data window) (make-bindings-data))
     (window-data-len-update! window)
     (update-view! 'bindings)))

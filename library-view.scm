@@ -45,7 +45,7 @@
       (when (window-stack-peek window)
         (window-stack-pop! window)
         (loop)))
-    (*window-data-set! window #f)
+    (set! (*window-data window) #f)
     (library-get-data window))
   (register-event! 'library-data-changed))
 
@@ -63,10 +63,10 @@
 (: library-get-data (window -> list))
 (define (library-get-data window)
   (unless (*window-data window)
-    (*window-data-set! window (append! (cons '(separator . "Playlists")
-                                                   (scmus-list-playlists))
-                                             (cons '(separator . "Artists")
-                                                   (scmus-list-tags 'artist))))
+    (set! (*window-data window) (append! (cons '(separator . "Playlists")
+                                               (scmus-list-playlists))
+                                         (cons '(separator . "Artists")
+                                               (scmus-list-tags 'artist))))
     (window-data-len-update! window))
   (*window-data window))
 

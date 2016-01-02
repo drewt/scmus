@@ -180,52 +180,37 @@
 ;; When the visible part of a window changes, the function in the @changed
 ;; slot is called.
 ;;
-;; Windows have @activate and @deactivate slots which store functions to be
-;; called on particular events.  They don't belong here (TODO: move these to
-;; view.scm).
-;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
  (define-class <window> (<widget>)
   ((data       initform: '()
-               reader:   *window-data
-               writer:   *window-data-set!)
+               accessor: *window-data)
    (data-thunk initform: *window-data
-               reader:   window-data-thunk
-               writer:   window-data-thunk-set!)
+               accessor: window-data-thunk)
    (data-len   initform: 0
-               reader:   window-data-len
-               writer:   *window-data-len-set!)
+               ; complex writer below
+               reader:   window-data-len)
    (top-pos    initform: 0
-               reader:   window-top-pos
-               writer:   window-top-pos-set!)
+               accessor: window-top-pos)
    (sel-pos    initform: 0
-               reader:   window-sel-pos
-               writer:   window-sel-pos-set!)
+               accessor: window-sel-pos)
    (marked     initform: '()
-               reader:   *window-marked
-               writer:   window-marked-set!)
+               accessor: *window-marked)
    (nr-lines   initform: 0
-               reader:   window-nr-lines
-               writer:   *window-nr-lines-set!)
+               ; complex writer below
+               reader:   window-nr-lines)
    (match-pos  initform: 0
-               reader:   window-match-pos
-               writer:   window-match-pos-set!)
+               accessor: window-match-pos)
    (changed    initform: void
-               reader:   *window-changed!
-               writer:   window-changed-set!)
+               accessor: window-changed)
    (activate   initform: void
-               reader:   *window-activate!
-               writer:   window-activate-set!)
+               accessor: window-activate)
    (deactivate initform: void
-               reader:   *window-deactivate!
-               writer:   window-deactivate-set!)
+               accessor: window-deactivate)
    (match      initform: (lambda (e q) #f)
-               reader:   window-match
-               writer:   window-match-set!)
+               accessor: window-match)
    (query      initform: ""
-               reader:   window-query
-               writer:   window-query-set!)
+               accessor: window-query)
    (cursed     initform: (win-cursed-fn (lambda (x) #f))
                reader:   *window-cursed)
    (print-line initform: (lambda (window row cols) (format "~a" row))
@@ -248,7 +233,7 @@
 (define-subclass-predicate window? <window>)
 
 (define-method (widget-geometry-set! (window <window>) cols rows)
-  (window-nr-lines-set! window rows))
+  (set! (window-nr-lines window) rows))
 
 (define (make-window . args)
   (apply make <window> args))
@@ -267,12 +252,12 @@
             (marked     . ,(*window-marked window))
             (match-pos  . ,(window-match-pos window)))
           (window-stack-stack window)))
-  (*window-data-set! window data)
-  (window-data-thunk-set! window data-thunk)
-  (window-top-pos-set! window 0)
-  (window-sel-pos-set! window 0)
-  (window-marked-set! window '())
-  (window-match-pos-set! window 0)
+  (set! (*window-data window) data)
+  (set! (window-data-thunk window) data-thunk)
+  (set! (window-top-pos window) 0)
+  (set! (window-sel-pos window) 0)
+  (set! (*window-marked window) '())
+  (set! (window-match-pos window) 0)
   (window-data-len-update! window))
 
 (define-method (window-stack-pop! (window <window-stack>))
@@ -281,13 +266,13 @@
       (let ((name  (caar members))
             (value (cdar members)))
         (case name
-          ((data)       (*window-data-set! window value))
-          ((data-thunk) (window-data-thunk-set! window value))
-          ((data-len)   (*window-data-len-set! window value))
-          ((top-pos)    (window-top-pos-set! window value))
-          ((sel-pos)    (window-sel-pos-set! window value))
-          ((marked)     (window-marked-set! window value))
-          ((match-pos)  (window-match-pos-set! window value))))
+          ((data)       (set! (*window-data window) value))
+          ((data-thunk) (set! (window-data-thunk window) value))
+          ((data-len)   (set! (window-data-len window) value))
+          ((top-pos)    (set! (window-top-pos window) value))
+          ((sel-pos)    (set! (window-sel-pos window) value))
+          ((marked)     (set! (*window-marked window) value))
+          ((match-pos)  (set! (window-match-pos window) value))))
       (loop (cdr members))))
   (set! (window-stack-stack window)
     (cdr (window-stack-stack window))))
@@ -307,13 +292,12 @@
 
 ;; Whenever the length of the window data changes, we need to make sure that
 ;; the values of top-pos and sel-pos still make sense.
-(: window-data-len-set! (window fixnum -> undefined))
-(define (window-data-len-set! window len)
-  (*window-data-len-set! window len)
+(define-method ((setter window-data-len) (window <window>) len)
+  (set! (slot-value window 'data-len) len)
   (when (>= (window-sel-pos window) len)
-    (window-sel-pos-set! window (max 0 (- len 1))))
+    (set! (window-sel-pos window) (max 0 (- len 1))))
   (when (>= (window-top-pos window) len)
-    (window-top-pos-set! window (max 0 (- len 1)))))
+    (set! (window-top-pos window) (max 0 (- len 1)))))
 
 (: window-sel-offset (window -> fixnum))
 (define (window-sel-offset window)
@@ -348,7 +332,7 @@
 
 (: window-changed! (window -> undefined))
 (define (window-changed! window)
-  ((*window-changed! window) window))
+  ((window-changed window) window))
 
 ;; XXX: selected row counts as marked
 (: window-marked (window -> list))
@@ -364,14 +348,14 @@
   (let ((sel-pos (window-sel-pos window))
         (marked (*window-marked window)))
     (unless (or (<= (window-data-len window) 0) (member sel-pos marked))
-      (window-marked-set! window (cons sel-pos marked)))))
+      (set! (*window-marked window) (cons sel-pos marked)))))
 
 (: window-unmark! (window -> undefined))
 (define (window-unmark! window)
   (let ((sel-pos (window-sel-pos window))
         (marked (*window-marked window)))
     (if (and (positive? (window-data-len window)) (member sel-pos marked))
-      (window-marked-set! window (remove (lambda (x) (= x sel-pos)) marked)))))
+      (set! (*window-marked window) (remove (lambda (x) (= x sel-pos)) marked)))))
 
 ;; toggles the 'marked' status of the selected row
 (: window-toggle-mark! (window -> undefined))
@@ -380,23 +364,23 @@
         (marked (*window-marked window)))
     (when (positive? (window-data-len window))
       (if (member sel-pos marked)
-        (window-marked-set! window (remove (lambda (x) (= x sel-pos)) marked))
-        (window-marked-set! window (cons sel-pos marked))))))
+        (set! (*window-marked window) (remove (lambda (x) (= x sel-pos)) marked))
+        (set! (*window-marked window) (cons sel-pos marked))))))
 
 (: window-clear-marked! (window -> undefined))
 (define (window-clear-marked! window)
-  (window-marked-set! window '())
+  (set! (*window-marked window) '())
   (window-changed! window))
 
 (: window-activate! (window -> undefined))
 (define (window-activate! window)
   (when (positive? (window-data-len window))
-    ((*window-activate! window) window)))
+    ((window-activate window) window)))
 
 (: window-deactivate! (window -> undefined))
 (define (window-deactivate! window)
   (when (positive? (window-data-len window))
-    ((*window-deactivate! window) window)))
+    ((window-deactivate window) window)))
 
 (: window-print-line (window * fixnum -> string))
 (define (window-print-line window row nr-cols)
@@ -414,19 +398,19 @@
 
 (: window-data-len-update! (window -> undefined))
 (define (window-data-len-update! window)
-  (window-data-len-set! window (length (window-data window))))
+  (set! (window-data-len window) (length (window-data window))))
 
 (: window-move-down! (window fixnum -> undefined))
 (define (window-move-down! window n)
-  (let* ((top-pos (window-top-pos window))
-         (sel-pos (window-sel-pos window))
+  (let* ((top-pos  (window-top-pos window))
+         (sel-pos  (window-sel-pos window))
          (data-len (window-data-len window))
          (nr-lines (window-nr-lines window))
          (can-move (max 0 (min n (- data-len sel-pos 1))))
-         (scroll (max 0 (+ 1 (- (+ sel-pos can-move)
-                                (+ top-pos nr-lines))))))
-    (window-top-pos-set! window (+ top-pos scroll))
-    (window-sel-pos-set! window (+ sel-pos can-move))
+         (scroll   (max 0 (+ 1 (- (+ sel-pos can-move)
+                                  (+ top-pos nr-lines))))))
+    (set! (window-top-pos window) (+ top-pos scroll))
+    (set! (window-sel-pos window) (+ sel-pos can-move))
     (window-changed! window)))
 
 (: window-move-up! (window fixnum -> undefined))
@@ -436,20 +420,19 @@
          (can-move (min n sel-pos))
          (scroll (max 0 (- can-move
                            (- sel-pos top-pos)))))
-    (window-top-pos-set! window (- top-pos scroll))
-    (window-sel-pos-set! window (- sel-pos can-move))
+    (set! (window-top-pos window) (- top-pos scroll))
+    (set! (window-sel-pos window) (- sel-pos can-move))
     (window-changed! window)))
 
-(: window-nr-lines-set! (window fixnum -> undefined))
-(define (window-nr-lines-set! window nr-lines)
+(define-method ((setter window-nr-lines) (window <window>) nr-lines)
   (let ((top-pos (window-top-pos window))
         (sel-pos (window-sel-pos window)))
     (when (<= nr-lines (- sel-pos top-pos))
-      (window-top-pos-set! window
-                           (+ top-pos
-                              (- (window-nr-lines window)
-                                 nr-lines)))))
-  (*window-nr-lines-set! window nr-lines))
+      (set! (window-top-pos window)
+            (+ top-pos
+               (- (window-nr-lines window)
+                  nr-lines)))))
+  (set! (slot-value window 'nr-lines) nr-lines))
 
 (: window-select! (window fixnum -> undefined))
 (define (window-select! window i)
@@ -461,8 +444,8 @@
 
 (: window-search-init! (window string -> undefined))
 (define (window-search-init! window query)
-  (window-query-set! window query)
-  (window-match-pos-set! window (window-sel-pos window)))
+  (set! (window-query window) query)
+  (set! (window-match-pos window) (window-sel-pos window)))
 
 (: window-next-match! (window -> (or fixnum boolean)))
 (define (window-next-match! window)
@@ -479,7 +462,7 @@
             #f))
         ((null? rest) (loop 0 (window-data window)))
         (((window-match window) (car rest) query)
-          (window-match-pos-set! window pos)
+          (set! (window-match-pos window) pos)
           pos)
         (else (loop (+ pos 1) (cdr rest)))))))
 
@@ -491,6 +474,6 @@
         (cond
           ((not rv) #f)
           ((= rv orig-pos)
-            (window-match-pos-set! window last-pos)
+            (set! (window-match-pos window) last-pos)
             last-pos)
           (else (loop rv)))))))

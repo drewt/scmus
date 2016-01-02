@@ -41,11 +41,11 @@
 (: add-search-field! (window -> undefined))
 (define (add-search-field! window)
   (let-values (((queries results) (search-window-data window)))
-    (*window-data-set! window (append queries
-                                      (list (make-search-field)
-                                            '(separator . ""))
-                                      results))
-    (window-data-len-set! window (+ 1 (window-data-len window)))
+    (set! (*window-data window) (append queries
+                                        (list (make-search-field)
+                                              '(separator . ""))
+                                        results))
+    (set! (window-data-len window) (+ 1 (window-data-len window)))
     (when (>= (window-sel-pos window) (length queries))
       (window-move-down! window 1))
     (search-changed!)))
@@ -70,8 +70,8 @@
       ((null? prev) (editable-clear! (car rest)))
       ((separator? (car rest)) (void))
       (else
-        (*window-data-set! window (append prev (cdr rest)))
-        (window-data-len-set! window (- (window-data-len window) 1))))
+        (set! (*window-data window) (append prev (cdr rest)))
+        (set! (window-data-len window) (- (window-data-len window) 1))))
     (search-changed!)))
 
 (: search-clear! (window -> undefined))
@@ -79,7 +79,7 @@
   (let loop ((data (window-data window)) (result '()))
     (if (or (null? data) (search-result? (car data)))
       (begin
-        (*window-data-set! window (reverse result))
+        (set! (*window-data window) (reverse result))
         (window-data-len-update! window))
       (loop (cdr data) (cons (car data) result))))
   (search-changed!))
@@ -117,9 +117,9 @@
          (remove (lambda (x) (= 0 (editable-length x)))
                  (search-window-data window))))
   (let ((results (apply scmus-search-songs #f #f (gather-constraints))))
-    (*window-data-set! window (append (window-data window) results))
-    (window-data-len-set! window (+ (window-data-len window)
-                                    (length results))))
+    (set! (*window-data window) (append (window-data window) results))
+    (set! (window-data-len window) (+ (window-data-len window)
+                                      (length results))))
   (search-changed!))
 
 (: make-search-field (-> editable))
