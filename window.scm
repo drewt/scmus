@@ -42,9 +42,19 @@
     (widget-prev (widget-parent widget) widget)
     #f))
 
+(define-method (widget-root (widget <widget>))
+  (if (widget-parent widget)
+    (widget-root (widget-parent widget))
+    widget))
+
 (define-class <separator> (<widget>)
   ((char initform: #\space
          accessor: separator-char)))
+
+;;
+;; Container
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-class <container> (<widget>)
   ((children accessor: container-children)))
@@ -142,6 +152,63 @@
                             (fourth (car children))
                             (fifth  (car children)))
       (loop (cdr children)))))
+
+;;
+;; View
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-class <view> (<widget>)
+  ((widget    initform: #f
+              accessor: view-widget)
+   (window    initform: #f
+              accessor: view-window)
+   (title-fmt initform: #f
+              accessor: view-title-fmt)))
+
+(define-method (initialize-instance (view <view>))
+  (call-next-method)
+  (set! (widget-parent (view-widget view)) view))
+
+(define (make-view widget title . kwargs)
+  (apply make <view> 'widget widget
+                     'window (widget-first widget)
+                     'title-fmt (process-format title)
+                     kwargs))
+
+(: view-add! (view -> undefined))
+(define (view-add! view)
+  (window-add! (view-window view)))
+
+(: view-remove! (view -> undefined))
+(define (view-remove! view)
+  (window-remove! (view-window view)))
+
+(: view-clear! (view -> undefined))
+(define (view-clear! view)
+  (window-clear! (view-window view)))
+
+(: view-edit! (view -> undefined))
+(define (view-edit! view)
+  (window-edit! (view-window view)))
+
+(: view-move! (view boolean -> undefined))
+(define (view-move! view before)
+  (window-move! (view-window view) before))
+
+(: view-next! (view -> undefined))
+(define (view-next! view)
+  (let ((next (widget-next (view-window view)
+                           (view-window view))))
+    (when (and next (window? next))
+      (view-window-set! view next))))
+
+(: view-prev! (view -> undefined))
+(define (view-prev! view)
+  (let ((prev (widget-prev (view-window view)
+                           (view-window view))))
+    (when (and prev (window? prev))
+      (view-window-set! view prev))))
 
 ;;
 ;; Window
@@ -411,20 +478,22 @@
   (when (positive? (window-data-len window))
     ((window-edit window) window)))
 
-(: window-move! (window -> undefined))
-(define (window-move! window)
+(: window-move! (window boolean -> undefined))
+(define (window-move! window before)
   (when (positive? (window-data-len window))
-    ((window-move window) window)))
+    ((window-move window) window before)))
 
 (: window-print-line (window * fixnum -> string))
 (define (window-print-line window row nr-cols)
-  (let* ((h-border (window-h-border window))
-         (str ((*window-print-line window) window
-                                           row
-                                           (- nr-cols (* 2 h-border)))))
-    (string-append (make-string h-border #\space)
-                   str
-                   (make-string h-border #\space))))
+  (if (>= (* 2 (window-h-border window)) nr-cols)
+    (make-string nr-cols #\space)
+    (let* ((h-border (window-h-border window))
+           (str ((*window-print-line window) window
+                                             row
+                                             (- nr-cols (* 2 h-border)))))
+      (string-append (make-string h-border #\space)
+                     str
+                     (make-string h-border #\space)))))
 
 (: window-cursed (window * fixnum -> undefined))
 (define (window-cursed window row line-nr)

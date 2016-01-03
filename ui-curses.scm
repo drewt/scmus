@@ -72,8 +72,16 @@
 (: print-view! (view -> undefined))
 (define (print-view! view)
   (when (> (LINES) 3)
-    (view-print-title! view)
-    (print-widget! (view-widget view) 0 1 (COLS) (- (LINES) 4))))
+    (print-widget! view 0 0 (COLS) (- (LINES) 3))))
+
+(define-method (print-widget! (view <view>) x y cols rows)
+  (print-line! (scmus-format (view-title-fmt view) cols '())
+               x
+               y
+               cols
+               CURSED-WIN-TITLE)
+  (when (> rows 1)
+    (print-widget! (view-widget view) x (+ 1 y) cols (- rows 1))))
 
 (define-method (print-widget! (separator <separator>) x y cols rows)
   (let loop ((row y))
@@ -156,7 +164,8 @@
 
 (: update-command-line thunk)
 (define (update-command-line)
-  (let ((cursed (case (command-line-mode)
+  (when (> (COLS) 1)
+   (let ((cursed (case (command-line-mode)
                   ((info)  CURSED-INFO)
                   ((error) CURSED-ERROR)
                   (else    CURSED-CMDLINE))))
@@ -169,7 +178,7 @@
              (else #\space)))
     (format-addstr! (string-truncate (command-line-text)
                                      (- (COLS) 2))
-                    cursed)))
+                    cursed))))
 
 (: update-db thunk)
 (define (update-db)
