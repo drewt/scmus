@@ -123,9 +123,9 @@
                                 'deactivate library-deactivate!
                                 'changed    (lambda (w) (register-event! 'view-changed 'library))
                                 'match      library-match
+                                'add        library-add-selected!
                                 'print-line library-print-line)
-             " Library"
-             add: library-add-selected!))
+             " Library"))
 
 (define-event-handler (library-data-changed) ()
   (window-data-len-update! (get-window 'library))

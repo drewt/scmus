@@ -110,9 +110,9 @@
   (make-view (make-window 'data       (make-bindings-data)
                           'changed    (lambda (w) (binding-changed!))
                           'activate   binding-edit!
+                          'edit       binding-edit!
                           'print-line bindings-window-print-row)
-             " Key Bindings"
-             edit:       binding-edit!))
+             " Key Bindings"))
 
 (define-event-handler (binding-data-changed) ()
   (let ((window (get-window 'bindings)))

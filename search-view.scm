@@ -144,9 +144,9 @@
                           'changed    (lambda (w) (search-changed!))
                           'activate   search-activate!
                           'match      search-match
+                          'add        search-add!
+                          'remove     search-remove!
+                          'clear      search-clear!
+                          'edit       search-edit!
                           'print-line search-window-print-row)
-             " Search"
-             add:        search-add!
-             remove:     search-remove!
-             clear:      search-clear!
-             edit:       search-edit!))
+             " Search"))

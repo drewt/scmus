@@ -215,6 +215,16 @@
                accessor: window-deactivate)
    (match      initform: (lambda (e q) #f)
                accessor: window-match)
+   (add        initform: void
+               accessor: window-add)
+   (remove     initform: void
+               accessor: window-remove)
+   (clear      initform: void
+               accessor: window-clear)
+   (edit       initform: void
+               accessor: window-edit)
+   (move       initform: void
+               accessor: window-move)
    (cursed     initform: (win-cursed-fn (lambda (x) #f))
                reader:   *window-cursed)
    (print-line initform: (lambda (window row cols) (format "~a" row))
@@ -380,6 +390,31 @@
 (define (window-deactivate! window)
   (when (positive? (window-data-len window))
     ((window-deactivate window) window)))
+
+(: window-add! (window -> undefined))
+(define (window-add! window)
+  (when (positive? (window-data-len window))
+    ((window-add window) window)))
+
+(: window-remove! (window -> undefined))
+(define (window-remove! window)
+  (when (positive? (window-data-len window))
+    ((window-remove window) window)))
+
+(: window-clear! (window -> undefined))
+(define (window-clear! window)
+  (when (positive? (window-data-len window))
+    ((window-clear window) window)))
+
+(: window-edit! (window -> undefined))
+(define (window-edit! window)
+  (when (positive? (window-data-len window))
+    ((window-edit window) window)))
+
+(: window-move! (window -> undefined))
+(define (window-move! window)
+  (when (positive? (window-data-len window))
+    ((window-move window) window)))
 
 (: window-print-line (window * fixnum -> string))
 (define (window-print-line window row nr-cols)

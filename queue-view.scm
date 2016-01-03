@@ -58,12 +58,12 @@
                           'changed    (lambda (w) (register-event! 'view-changed 'queue))
                           'activate   (lambda (w) (scmus-play-track! (window-selected w)))
                           'match      track-match
+                          'remove     queue-remove!
+                          'clear      (lambda (w) (scmus-clear!))
+                          'move       queue-move!
                           'print-line queue-print-line
                           'cursed     (win-cursed-fn current-track?))
-             " Queue - ~{queue-length} tracks"
-             remove:     queue-remove!
-             clear:      (lambda (w) (scmus-clear!))
-             move:       queue-move!))
+             " Queue - ~{queue-length} tracks"))
 
 (define-event-handler (queue-changed) ()
   (update-view! 'queue))

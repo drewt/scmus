@@ -61,9 +61,9 @@
   (make-view (make-window 'data       (make-options-data)
                           'changed    (lambda (w) (option-changed!))
                           'activate   option-edit!
+                          'edit       option-edit!
                           'print-line options-window-print-row)
-             " Options"
-             edit:       option-edit!))
+             " Options"))
 
 (define-event-handler (option-changed) ()
   (update-view! 'options))

@@ -43,12 +43,7 @@
 (define-record/initform view *make-view view?
   (widget #f view-widget view-widget-set!)
   (window #f view-window view-window-set!)
-  (title-fmt #f view-title-fmt view-title-fmt-set!)
-  (add void view-add)
-  (remove void view-remove)
-  (clear void view-clear)
-  (edit void view-edit)
-  (move void view-move))
+  (title-fmt #f view-title-fmt view-title-fmt-set!))
 
 (define (make-view widget title . kwargs)
   (define (first-window widget)
@@ -63,23 +58,23 @@
 
 (: view-add! (view -> undefined))
 (define (view-add! view)
-  ((view-add view) (view-window view)))
+  (window-add! (view-window view)))
 
 (: view-remove! (view -> undefined))
 (define (view-remove! view)
-  ((view-remove view) (view-window view)))
+  (window-remove! (view-window view)))
 
 (: view-clear! (view -> undefined))
 (define (view-clear! view)
-  ((view-clear view) (view-window view)))
+  (window-clear! (view-window view)))
 
 (: view-edit! (view -> undefined))
 (define (view-edit! view)
-  ((view-edit view) (view-window view)))
+  (window-edit! (view-window view)))
 
 (: view-move! (view boolean -> undefined))
 (define (view-move! view before)
-  ((view-move view) (view-window view) before))
+  (window-move! (view-window view) before))
 
 (: view-next! (view -> undefined))
 (define (view-next! view)
