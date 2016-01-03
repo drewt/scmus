@@ -131,9 +131,9 @@
              " Library"
              add: library-add-selected!))
 
-(define-event-handler (library-changed)
+(define-event-handler (library-changed) ()
   (update-view! 'library))
 
-(define-event-handler (library-data-changed)
+(define-event-handler (library-data-changed) ()
   (window-data-len-update! (get-window 'library))
   (update-view! 'library))

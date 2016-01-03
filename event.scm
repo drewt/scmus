@@ -35,10 +35,13 @@
   (set! *events* (cons event *events*)))
 
 (: register-event-handler! (symbol thunk -> undefined))
-(define (register-event-handler! event handler)
-  (let ((handlers (alist-ref event *event-handlers* eqv? '())))
+(define (register-event-handler! event handler #!key (run-first #f))
+  (let* ((old-handlers (alist-ref event *event-handlers* eqv? '()))
+         (new-handlers (if run-first
+                         (cons handler old-handlers)
+                         (append! old-handlers (list handler)))))
     (set! *event-handlers*
-      (alist-update! event (cons handler handlers) *event-handlers*))))
+      (alist-update! event new-handlers *event-handlers*))))
 
 (: handle-events! thunk)
 (define (handle-events!)

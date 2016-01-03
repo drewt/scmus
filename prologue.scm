@@ -59,10 +59,10 @@
 
 (define-syntax define-event-handler
   (syntax-rules ()
-    ((define-event-handler (name) first rest ...)
-       (register-event-handler! 'name (lambda () first rest ...)))
-    ((define-event-handler name handler)
-       (register-event-handler! 'name handler))))
+    ((define-event-handler (name) (args ...) first rest ...)
+       (register-event-handler! 'name (lambda () first rest ...) args ...))
+    ((define-event-handler name (args ...) handler)
+       (register-event-handler! 'name handler args ...))))
 
 (define-constant CURSED-CMDLINE 1)
 (define-constant CURSED-ERROR 2)

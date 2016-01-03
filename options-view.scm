@@ -65,10 +65,10 @@
              " Options"
              edit:       option-edit!))
 
-(define-event-handler (option-changed)
+(define-event-handler (option-changed) ()
   (update-view! 'options))
 
-(define-event-handler (option-data-changed)
+(define-event-handler (option-data-changed) ()
   (let ((window (get-window 'options)))
     (set! (*window-data window) (make-options-data))
     (window-data-len-update! window)

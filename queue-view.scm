@@ -65,9 +65,9 @@
              clear:      (lambda (w) (scmus-clear!))
              move:       queue-move!))
 
-(define-event-handler (queue-changed)
+(define-event-handler (queue-changed) ()
   (update-view! 'queue))
 
-(define-event-handler (queue-data-changed)
+(define-event-handler (queue-data-changed) ()
   (window-data-len-update! (get-window 'queue))
   (update-view! 'queue))

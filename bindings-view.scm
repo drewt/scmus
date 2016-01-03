@@ -114,10 +114,10 @@
              " Key Bindings"
              edit:       binding-edit!))
 
-(define-event-handler (binding-changed)
+(define-event-handler (binding-changed) ()
   (update-view! 'bindings))
 
-(define-event-handler (binding-data-changed)
+(define-event-handler (binding-data-changed) ()
   (let ((window (get-window 'bindings)))
     (set! (*window-data window) (make-bindings-data))
     (window-data-len-update! window)
