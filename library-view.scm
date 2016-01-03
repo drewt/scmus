@@ -19,10 +19,6 @@
          (uses event ncurses option scmus-client ui-lib view window)
          (export update-library!))
 
-(: library-changed! (window -> undefined))
-(define (library-changed! w)
-  (register-event! 'library-changed))
-
 (: list-of (symbol list -> (list-of (pair symbol *))))
 (define (list-of type lst)
   (map (lambda (x) (cons type x)) lst))
@@ -125,14 +121,11 @@
                                 'data-thunk library-get-data
                                 'activate   library-activate!
                                 'deactivate library-deactivate!
-                                'changed    library-changed!
+                                'changed    (lambda (w) (register-event! 'view-changed 'library))
                                 'match      library-match
                                 'print-line library-print-line)
              " Library"
              add: library-add-selected!))
-
-(define-event-handler (library-changed) ()
-  (update-view! 'library))
 
 (define-event-handler (library-data-changed) ()
   (window-data-len-update! (get-window 'library))

@@ -55,7 +55,7 @@
 
 (define-view queue
   (make-view (make-window 'data-thunk (lambda (w) *queue*)
-                          'changed    (lambda (w) (register-event! 'queue-changed))
+                          'changed    (lambda (w) (register-event! 'view-changed 'queue))
                           'activate   (lambda (w) (scmus-play-track! (window-selected w)))
                           'match      track-match
                           'print-line queue-print-line

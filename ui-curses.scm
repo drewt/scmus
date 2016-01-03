@@ -270,7 +270,7 @@
 
 (define-view status
   (make-view (make-window 'data-thunk (lambda (w) *mpd-status*)
-                          'changed    (lambda (w) (register-event! 'status-changed))
+                          'changed    (lambda (w) (register-event! 'view-changed 'status))
                           'print-line alist-print-line)
              " MPD Status"))
 
@@ -278,6 +278,9 @@
   (make-view (make-window 'data-thunk (lambda (w) (string-split-lines *scmus-error*))
                           'changed    (lambda (w) (register-event! 'error-changed)))
              " Error"))
+
+(define-event-handler (view-changed view) ()
+  (update-view! view))
 
 (define-event-handler command-line-changed () update-command-line)
 (define-event-handler current-line-changed () update-current)

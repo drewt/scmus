@@ -95,22 +95,16 @@
     (window-stack-pop! window)
     (register-event! 'browser-data-changed)))
 
-(define (browser-changed! window)
-  (register-event! 'browser-changed))
-
 (define-view browser
   (make-view (make-stack-window 'data #f
                                 'data-thunk browser-get-data
                                 'activate   browser-activate!
                                 'deactivate browser-deactivate!
-                                'changed    browser-changed!
+                                'changed    (lambda (w) (register-event! 'view-changed 'browser))
                                 'match      browser-match
                                 'print-line browser-print-line)
              " Browser"
              add: browser-add-selected!))
-
-(define-event-handler (browser-changed) ()
-  (update-view! 'browser))
 
 (define-event-handler (browser-data-changed) ()
   (window-data-len-update! (get-window 'browser))

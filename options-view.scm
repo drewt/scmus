@@ -21,7 +21,7 @@
 
 (: option-changed! thunk)
 (define (option-changed!)
-  (register-event! 'option-changed))
+  (register-event! 'view-changed 'options))
 
 (: option-edit! (window -> undefined))
 (define (option-edit! window)

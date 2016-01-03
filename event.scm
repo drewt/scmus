@@ -24,15 +24,15 @@
                  register-timer!
                  register-timer-event!))
 
-(: *events* (list-of symbol))
+(: *events* (list-of (pair symbol list)))
 (define *events* '())
 
 (: *event-handlers* (list-of (pair symbol thunk)))
 (define *event-handlers* '())
 
 (: register-event! (symbol -> undefined))
-(define (register-event! event)
-  (set! *events* (cons event *events*)))
+(define (register-event! event . args)
+  (set! *events* (cons (cons event args) *events*)))
 
 (: register-event-handler! (symbol thunk -> undefined))
 (define (register-event-handler! event handler #!key (run-first #f))
@@ -46,9 +46,9 @@
 (: handle-events! thunk)
 (define (handle-events!)
   (define (handle-event event)
-    (let loop ((handlers (reverse (alist-ref event *event-handlers* eqv? '()))))
+    (let loop ((handlers (reverse (alist-ref (car event) *event-handlers* eqv? '()))))
       (unless (null? handlers)
-        ((car handlers))
+        (apply (car handlers) (cdr event))
         (loop (cdr handlers)))))
   (handle-timers)
   ;; XXX: Events may trigger other events, so we need to loop until the queue

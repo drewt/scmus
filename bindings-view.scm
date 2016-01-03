@@ -57,7 +57,7 @@
 
 (: binding-changed! thunk)
 (define (binding-changed!)
-  (register-event! 'binding-changed))
+  (register-event! 'view-changed 'bindings))
 
 (: binding-edit! (window -> undefined))
 (define (binding-edit! window)
@@ -113,9 +113,6 @@
                           'print-line bindings-window-print-row)
              " Key Bindings"
              edit:       binding-edit!))
-
-(define-event-handler (binding-changed) ()
-  (update-view! 'bindings))
 
 (define-event-handler (binding-data-changed) ()
   (let ((window (get-window 'bindings)))

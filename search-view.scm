@@ -27,7 +27,7 @@
 
 (: search-changed! (#!rest * -> undefined))
 (define (search-changed! . ignore)
-  (register-event! 'search-changed))
+  (register-event! 'view-changed 'search))
 
 (: search-edit! (window -> undefined))
 (define (search-edit! window)
@@ -150,6 +150,3 @@
              remove:     search-remove!
              clear:      search-clear!
              edit:       search-edit!))
-
-(define-event-handler (search-changed) ()
-  (update-view! 'search))
