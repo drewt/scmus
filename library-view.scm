@@ -32,7 +32,8 @@
 
 (: library-add-selected! (window -> undefined))
 (define (library-add-selected! window)
-  (for-each library-add! (window-all-selected window)))
+  (for-each library-add! (window-all-selected window))
+  (scmus-update-queue!))
 
 (: update-library! thunk)
 (define (update-library!)

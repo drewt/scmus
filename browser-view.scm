@@ -29,7 +29,8 @@
 
 (: browser-add-selected! (window -> undefined))
 (define (browser-add-selected! window)
-  (for-each browser-add! (window-all-selected window)))
+  (for-each browser-add! (window-all-selected window))
+  (scmus-update-queue!))
 
 (: browser-match (* string -> boolean))
 (define (browser-match row query)

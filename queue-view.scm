@@ -25,7 +25,8 @@
     (unless (null? marked)
       (scmus-delete! (car marked))
       (loop (cdr marked))))
-  (window-clear-marked! window))
+  (window-clear-marked! window)
+  (scmus-update-queue!))
 
 (define (*queue-move! marked pos)
   (unless (null? marked)
@@ -47,7 +48,8 @@
   (*queue-move! (sort (*window-marked window) <)
                 (- (window-sel-pos window)
                    (if before 1 0)))
-  (window-clear-marked! window))
+  (window-clear-marked! window)
+  (scmus-update-queue!))
 
 (: queue-print-line (window track fixnum -> string))
 (define (queue-print-line window track nr-cols)
