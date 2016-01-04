@@ -100,12 +100,10 @@
                                 'data-thunk browser-get-data
                                 'activate   browser-activate!
                                 'deactivate browser-deactivate!
-                                'changed    (lambda (w) (register-event! 'view-changed 'browser))
                                 'match      browser-match
                                 'add        browser-add-selected!
                                 'print-line browser-print-line)
              " Browser"))
 
 (define-event-handler (browser-data-changed) ()
-  (window-data-len-update! (get-window 'browser))
-  (update-view! 'browser))
+  (window-data-len-update! (get-window 'browser)))

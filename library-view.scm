@@ -121,12 +121,10 @@
                                 'data-thunk library-get-data
                                 'activate   library-activate!
                                 'deactivate library-deactivate!
-                                'changed    (lambda (w) (register-event! 'view-changed 'library))
                                 'match      library-match
                                 'add        library-add-selected!
                                 'print-line library-print-line)
              " Library"))
 
 (define-event-handler (library-data-changed) ()
-  (window-data-len-update! (get-window 'library))
-  (update-view! 'library))
+  (window-data-len-update! (get-window 'library)))

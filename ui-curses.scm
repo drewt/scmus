@@ -23,7 +23,7 @@
                scmus-client search-view ui-lib view window)
          (export current-view current-window curses-update cursor-off cursor-on
                  exit-curses get-window init-curses redraw-ui set-view!
-                 connect! ui-initialized? update-view!))
+                 connect! ui-initialized?))
 
 (define *ui-initialized* #f)
 (define *current-view* 'queue)
@@ -33,20 +33,6 @@
 (: get-window (symbol -> window))
 (define (get-window view-name)
   (view-window (alist-ref view-name *views*)))
-
-(: view-print-title! (view -> undefined))
-(define (view-print-title! view)
-  (cursed-set! CURSED-WIN-TITLE)
-  (print-line! (scmus-format (view-title-fmt view) (COLS) '())
-               0
-               0
-               (COLS)
-               CURSED-WIN-TITLE))
-
-(: update-view! (symbol -> undefined))
-(define (update-view! view-name)
-  (if (current-view? view-name)
-    (print-view! (alist-ref view-name *views*))))
 
 (: current-view (-> view))
 (define (current-view)
@@ -64,7 +50,7 @@
 (define (set-view! view-name)
   (when (memv view-name *view-names*)
     (set! *current-view* view-name)
-    (window-changed! (get-window view-name))))
+    (widget-damaged! (get-view view-name))))
 
 ;; windows }}}
 ;; screen updates {{{
@@ -156,7 +142,7 @@
 (: update-status thunk)
 (define (update-status)
   (update-status-line)
-  (update-view! 'status))
+  (widget-damaged! (get-view 'status)))
 
 (: update-current thunk)
 (define (update-current)
@@ -184,14 +170,19 @@
 (define (update-db)
   (scmus-update-stats!)
   (update-library!)
-  (update-browser!)
-  (update-view! 'library))
+  (update-browser!))
 
 (: update-cursor thunk)
 (define (update-cursor)
   (if (current-editable)
     (let ((pos (cursor-pos)))
       (move (car pos) (cdr pos)))))
+
+(define (update-current-view!)
+  (let ((view (current-view)))
+    (when (widget-damaged view)
+      (print-view! view)
+      (set! (widget-damaged view) #f))))
 
 (: redraw-ui thunk)
 (define (redraw-ui)
@@ -254,7 +245,8 @@
 (define (curses-update)
   (handle-events!)
   (update-cursor)
-  (handle-input *current-view*))
+  (handle-input *current-view*)
+  (update-current-view!))
 
 (: init-curses thunk)
 (define (init-curses)
@@ -279,17 +271,12 @@
 
 (define-view status
   (make-view (make-window 'data-thunk (lambda (w) *mpd-status*)
-                          'changed    (lambda (w) (register-event! 'view-changed 'status))
                           'print-line alist-print-line)
              " MPD Status"))
 
 (define-view error
-  (make-view (make-window 'data-thunk (lambda (w) (string-split-lines *scmus-error*))
-                          'changed    (lambda (w) (register-event! 'error-changed)))
+  (make-view (make-window 'data-thunk (lambda (w) (string-split-lines *scmus-error*)))
              " Error"))
-
-(define-event-handler (view-changed view) ()
-  (update-view! view))
 
 (define-event-handler command-line-changed () update-command-line)
 (define-event-handler current-line-changed () update-current)
@@ -298,5 +285,4 @@
 (define-event-handler db-changed () update-db)
 (define-event-handler status-changed () update-status)
 (define-event-handler (error-changed) ()
-  (window-data-len-update! (get-window 'error))
-  (update-view! 'error))
+  (window-data-len-update! (get-window 'error)))

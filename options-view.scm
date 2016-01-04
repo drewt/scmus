@@ -21,7 +21,7 @@
 
 (: option-changed! thunk)
 (define (option-changed!)
-  (register-event! 'view-changed 'options))
+  (widget-damaged! (get-view 'options)))
 
 (: option-edit! (window -> undefined))
 (define (option-edit! window)
@@ -59,17 +59,12 @@
 
 (define-view options
   (make-view (make-window 'data       (make-options-data)
-                          'changed    (lambda (w) (option-changed!))
                           'activate   option-edit!
                           'edit       option-edit!
                           'print-line options-window-print-row)
              " Options"))
 
-(define-event-handler (option-changed) ()
-  (update-view! 'options))
-
 (define-event-handler (option-data-changed) ()
   (let ((window (get-window 'options)))
     (set! (*window-data window) (make-options-data))
-    (window-data-len-update! window)
-    (update-view! 'options)))
+    (window-data-len-update! window)))

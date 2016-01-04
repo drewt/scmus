@@ -55,7 +55,6 @@
 
 (define-view queue
   (make-view (make-window 'data-thunk (lambda (w) *queue*)
-                          'changed    (lambda (w) (register-event! 'view-changed 'queue))
                           'activate   (lambda (w) (scmus-play-track! (window-selected w)))
                           'match      track-match
                           'remove     queue-remove!
@@ -66,8 +65,7 @@
              " Queue - ~{queue-length} tracks"))
 
 (define-event-handler (queue-changed) ()
-  (update-view! 'queue))
+  (widget-damaged! (get-view 'queue)))
 
 (define-event-handler (queue-data-changed) ()
-  (window-data-len-update! (get-window 'queue))
-  (update-view! 'queue))
+  (window-data-len-update! (get-window 'queue)))

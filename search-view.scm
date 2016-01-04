@@ -27,7 +27,7 @@
 
 (: search-changed! (#!rest * -> undefined))
 (define (search-changed! . ignore)
-  (register-event! 'view-changed 'search))
+  (widget-damaged! (get-view 'search)))
 
 (: search-edit! (window -> undefined))
 (define (search-edit! window)
@@ -141,7 +141,6 @@
 
 (define-view search
   (make-view (make-window 'data       (list (make-search-field) '(separator . ""))
-                          'changed    (lambda (w) (search-changed!))
                           'activate   search-activate!
                           'match      search-match
                           'add        search-add!

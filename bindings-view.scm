@@ -57,7 +57,7 @@
 
 (: binding-changed! thunk)
 (define (binding-changed!)
-  (register-event! 'view-changed 'bindings))
+  (widget-damaged! (get-view 'bindings)))
 
 (: binding-edit! (window -> undefined))
 (define (binding-edit! window)
@@ -108,7 +108,6 @@
 
 (define-view bindings
   (make-view (make-window 'data       (make-bindings-data)
-                          'changed    (lambda (w) (binding-changed!))
                           'activate   binding-edit!
                           'edit       binding-edit!
                           'print-line bindings-window-print-row)
@@ -117,5 +116,4 @@
 (define-event-handler (binding-data-changed) ()
   (let ((window (get-window 'bindings)))
     (set! (*window-data window) (make-bindings-data))
-    (window-data-len-update! window)
-    (update-view! 'bindings)))
+    (window-data-len-update! window)))

@@ -36,3 +36,7 @@
   (for-each (lambda (x)
               (alist-update! (car x) ((cdr x)) *views*))
             *view-ctors*))
+
+(: get-view (symbol -> view))
+(define (get-view name)
+  (alist-ref name *views*))

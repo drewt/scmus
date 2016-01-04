@@ -20,8 +20,16 @@
 (declare (unit window))
 
 (define-class <widget> ()
-  ((parent initform: #f
-           accessor: widget-parent)))
+  ((parent  initform: #f
+            accessor: widget-parent)
+   (damaged initform: #t
+            accessor: widget-damaged)))
+
+(define-method (widget-damaged! (widget <widget>))
+  ; FIXME: widgets need to store their own geometry in order to do partial
+  ;        redraws.  For now, we just mark the root widget as damaged so that
+  ;        the whole hierarchy is redrawn.
+  (set! (widget-damaged (widget-root widget)) #t))
 
 (define-method (widget-geometry-set! (widget <widget>) cols rows)
   (void))
@@ -244,27 +252,26 @@
 ;; slot on each row of the window; if @match returns true, then the row is
 ;; considered to be a match for the query.
 ;;
-;; When the visible part of a window changes, the function in the @changed
-;; slot is called.
-;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
  (define-class <window> (<widget>)
   ((data       initform: '()
-               accessor: *window-data)
+               ; writer below
+               reader:   *window-data)
    (data-thunk initform: *window-data
                accessor: window-data-thunk)
    (data-len   initform: 0
-               ; complex writer below
+               ; writer below
                reader:   window-data-len)
    (top-pos    initform: 0
                accessor: window-top-pos)
    (sel-pos    initform: 0
                accessor: window-sel-pos)
    (marked     initform: '()
-               accessor: *window-marked)
+               ; writer below
+               reader:   *window-marked)
    (nr-lines   initform: 0
-               ; complex writer below
+               ; writer below
                reader:   window-nr-lines)
    (query      initform: ""
                accessor: window-query) 
@@ -274,8 +281,6 @@
    ;; use our own OOP implementation for customizing windows.  Ideally, the
    ;; functions stored in the slots below would be defined as methods, but
    ;; then they couldn't be specialized in another compilation unit.
-   (changed    initform: void
-               accessor: window-changed)
    (activate   initform: void
                accessor: window-activate)
    (deactivate initform: void
@@ -300,6 +305,34 @@
 (define-method (initialize-instance (window <window>))
   (call-next-method)
   (window-data-len-update! window))
+
+(define-method ((setter *window-data) (window <window>) data)
+  (set! (slot-value window 'data) data)
+  (widget-damaged! window))
+
+;; Whenever the length of the window data changes, we need to make sure that
+;; the values of top-pos and sel-pos still make sense.
+(define-method ((setter window-data-len) (window <window>) len)
+  (set! (slot-value window 'data-len) len)
+  (when (>= (window-sel-pos window) len)
+    (set! (window-sel-pos window) (max 0 (- len 1))))
+  (when (>= (window-top-pos window) len)
+    (set! (window-top-pos window) (max 0 (- len 1))))
+  (widget-damaged! window))
+
+(define-method ((setter *window-marked) (window <window>) marked)
+  (set! (slot-value window 'marked) marked)
+  (widget-damaged! window))
+
+(define-method ((setter window-nr-lines) (window <window>) nr-lines)
+  (let ((top-pos (window-top-pos window))
+        (sel-pos (window-sel-pos window)))
+    (when (<= nr-lines (- sel-pos top-pos))
+      (set! (window-top-pos window)
+            (+ top-pos
+               (- (window-nr-lines window)
+                  nr-lines)))))
+  (set! (slot-value window 'nr-lines) nr-lines))
 
 (define-syntax define-subclass-predicate
   (syntax-rules ()
@@ -366,15 +399,6 @@
 (define (window-data window)
   ((window-data-thunk window) window))
 
-;; Whenever the length of the window data changes, we need to make sure that
-;; the values of top-pos and sel-pos still make sense.
-(define-method ((setter window-data-len) (window <window>) len)
-  (set! (slot-value window 'data-len) len)
-  (when (>= (window-sel-pos window) len)
-    (set! (window-sel-pos window) (max 0 (- len 1))))
-  (when (>= (window-top-pos window) len)
-    (set! (window-top-pos window) (max 0 (- len 1)))))
-
 (: window-sel-offset (window -> fixnum))
 (define (window-sel-offset window)
   (- (window-sel-pos window)
@@ -405,10 +429,6 @@
   (let* ((sel-pos (window-sel-pos window))
          (marked (window-marked window)))
     (reverse (select-from marked (window-data window)))))
-
-(: window-changed! (window -> undefined))
-(define (window-changed! window)
-  ((window-changed window) window))
 
 ;; XXX: selected row counts as marked
 (: window-marked (window -> list))
@@ -446,7 +466,7 @@
 (: window-clear-marked! (window -> undefined))
 (define (window-clear-marked! window)
   (set! (*window-marked window) '())
-  (window-changed! window))
+  (widget-damaged! window))
 
 (: window-activate! (window -> undefined))
 (define (window-activate! window)
@@ -514,7 +534,7 @@
                                   (+ top-pos nr-lines))))))
     (set! (window-top-pos window) (+ top-pos scroll))
     (set! (window-sel-pos window) (+ sel-pos can-move))
-    (window-changed! window)))
+    (widget-damaged! window)))
 
 (: window-move-up! (window fixnum -> undefined))
 (define (window-move-up! window n)
@@ -525,17 +545,7 @@
                            (- sel-pos top-pos)))))
     (set! (window-top-pos window) (- top-pos scroll))
     (set! (window-sel-pos window) (- sel-pos can-move))
-    (window-changed! window)))
-
-(define-method ((setter window-nr-lines) (window <window>) nr-lines)
-  (let ((top-pos (window-top-pos window))
-        (sel-pos (window-sel-pos window)))
-    (when (<= nr-lines (- sel-pos top-pos))
-      (set! (window-top-pos window)
-            (+ top-pos
-               (- (window-nr-lines window)
-                  nr-lines)))))
-  (set! (slot-value window 'nr-lines) nr-lines))
+    (widget-damaged! window)))
 
 (: window-select! (window fixnum -> undefined))
 (define (window-select! window i)
