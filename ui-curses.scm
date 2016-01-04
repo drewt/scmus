@@ -141,8 +141,9 @@
 
 (: update-status thunk)
 (define (update-status)
-  (update-status-line)
-  (widget-damaged! (get-view 'status)))
+  (set! (*window-data (get-window 'status)) *mpd-status*)
+  (window-data-len-update! (get-window 'status))
+  (update-status-line))
 
 (: update-current thunk)
 (define (update-current)
@@ -245,8 +246,8 @@
 (define (curses-update)
   (handle-events!)
   (update-cursor)
-  (handle-input *current-view*)
-  (update-current-view!))
+  (update-current-view!)
+  (handle-input *current-view*))
 
 (: init-curses thunk)
 (define (init-curses)
@@ -270,12 +271,12 @@
     (endwin)))
 
 (define-view status
-  (make-view (make-window 'data-thunk (lambda (w) *mpd-status*)
+  (make-view (make-window 'data *mpd-status*
                           'print-line alist-print-line)
              " MPD Status"))
 
 (define-view error
-  (make-view (make-window 'data-thunk (lambda (w) (string-split-lines *scmus-error*)))
+  (make-view (make-window 'data (string-split-lines *scmus-error*))
              " Error"))
 
 (define-event-handler command-line-changed () update-command-line)
@@ -285,4 +286,5 @@
 (define-event-handler db-changed () update-db)
 (define-event-handler status-changed () update-status)
 (define-event-handler (error-changed) ()
+  (set! (*window-data (get-window 'error)) (string-split-lines *scmus-error*))
   (window-data-len-update! (get-window 'error)))
