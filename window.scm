@@ -304,10 +304,11 @@
 
 (define-method (initialize-instance (window <window>))
   (call-next-method)
-  (window-data-len-update! window))
+  (set! (window-data-len window) (length (window-data window))))
 
 (define-method ((setter *window-data) (window <window>) data)
   (set! (slot-value window 'data) data)
+  (set! (window-data-len window) (length (window-data window)))
   (widget-damaged! window))
 
 ;; Whenever the length of the window data changes, we need to make sure that
@@ -356,19 +357,18 @@
 
 (define-method (window-stack-push! (window <window-stack>) data data-thunk)
   (set! (window-stack-stack window)
-    (cons `((data       . ,(*window-data window))
-            (data-thunk . ,(window-data-thunk window))
+    (cons `((data-thunk . ,(window-data-thunk window))
             (data-len   . ,(window-data-len window))
             (top-pos    . ,(window-top-pos window))
             (sel-pos    . ,(window-sel-pos window))
-            (marked     . ,(*window-marked window)))
+            (marked     . ,(*window-marked window))
+            (data       . ,(*window-data window)))
           (window-stack-stack window)))
-  (set! (*window-data window) data)
   (set! (window-data-thunk window) data-thunk)
   (set! (window-top-pos window) 0)
   (set! (window-sel-pos window) 0)
   (set! (*window-marked window) '())
-  (window-data-len-update! window))
+  (set! (*window-data window) data))
 
 (define-method (window-stack-pop! (window <window-stack>))
   (let loop ((members (car (window-stack-stack window))))
@@ -518,10 +518,6 @@
 (: window-cursed (window * fixnum -> undefined))
 (define (window-cursed window row line-nr)
   ((*window-cursed window) window row line-nr))
-
-(: window-data-len-update! (window -> undefined))
-(define (window-data-len-update! window)
-  (set! (window-data-len window) (length (window-data window))))
 
 (: window-move-down! (window fixnum -> undefined))
 (define (window-move-down! window n)

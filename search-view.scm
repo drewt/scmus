@@ -78,9 +78,7 @@
 (define (search-clear! window)
   (let loop ((data (window-data window)) (result '()))
     (if (or (null? data) (search-result? (car data)))
-      (begin
-        (set! (*window-data window) (reverse result))
-        (window-data-len-update! window))
+      (set! (*window-data window) (reverse result))
       (loop (cdr data) (cons (car data) result))))
   (search-changed!))
 

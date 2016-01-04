@@ -70,5 +70,4 @@
   (widget-damaged! (get-view 'queue)))
 
 (define-event-handler (queue-data-changed) ()
-  (set! (*window-data (get-window 'queue)) *queue*)
-  (window-data-len-update! (get-window 'queue)))
+  (set! (*window-data (get-window 'queue)) *queue*))

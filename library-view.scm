@@ -43,8 +43,8 @@
         (window-stack-pop! window)
         (loop)))
     (set! (*window-data window) #f)
-    (library-get-data window))
-  (register-event! 'library-data-changed))
+    (library-get-data window)
+    (void)))
 
 (: library-print-line (window pair fixnum -> string))
 (define (library-print-line window row nr-cols)
@@ -63,8 +63,7 @@
     (set! (*window-data window) (append! (cons '(separator . "Playlists")
                                                (scmus-list-playlists))
                                          (cons '(separator . "Artists")
-                                               (scmus-list-tags 'artist))))
-    (window-data-len-update! window))
+                                               (scmus-list-tags 'artist)))))
   (*window-data window))
 
 (: library-activate! (window -> undefined))
@@ -82,31 +81,26 @@
 (: playlist-activate! (window string -> undefined))
 (define (playlist-activate! window playlist)
   (let ((tracks (scmus-list-playlist playlist)))
-    (window-stack-push! window (list-of 'track tracks) library-get-data)
-    (register-event! 'library-data-changed)))
+    (window-stack-push! window (list-of 'track tracks) library-get-data)))
 
 (: artist-activate! (window string -> undefined))
 (define (artist-activate! window artist)
   (let ((albums (scmus-list-tags 'album (cons 'artist artist))))
-    (window-stack-push! window albums library-get-data)
-    (register-event! 'library-data-changed)))
+    (window-stack-push! window albums library-get-data)))
 
 (: album-activate! (window string -> undefined))
 (define (album-activate! window album)
   (let ((tracks (scmus-search-songs #t #f (cons 'album album))))
-    (window-stack-push! window (list-of 'track tracks) library-get-data)
-    (register-event! 'library-data-changed)))
+    (window-stack-push! window (list-of 'track tracks) library-get-data)))
 
 (: track-activate! (window track -> undefined))
 (define (track-activate! window track)
-  (window-stack-push! window (list-of 'metadata track) library-get-data)
-  (register-event! 'library-data-changed))
+  (window-stack-push! window (list-of 'metadata track) library-get-data))
 
 (: library-deactivate! (window -> undefined))
 (define (library-deactivate! window)
   (when (window-stack-peek window)
-    (window-stack-pop! window)
-    (register-event! 'library-data-changed)))
+    (window-stack-pop! window)))
 
 (: library-match (* string -> boolean))
 (define (library-match row query)
@@ -126,6 +120,3 @@
                                 'add        library-add-selected!
                                 'print-line library-print-line)
              " Library"))
-
-(define-event-handler (library-data-changed) ()
-  (window-data-len-update! (get-window 'library)))

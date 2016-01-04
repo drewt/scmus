@@ -142,7 +142,6 @@
 (: update-status thunk)
 (define (update-status)
   (set! (*window-data (get-window 'status)) *mpd-status*)
-  (window-data-len-update! (get-window 'status))
   (update-status-line))
 
 (: update-current thunk)
@@ -245,8 +244,8 @@
 (: curses-update thunk)
 (define (curses-update)
   (handle-events!)
-  (update-cursor)
   (update-current-view!)
+  (update-cursor)
   (handle-input *current-view*))
 
 (: init-curses thunk)
@@ -286,5 +285,4 @@
 (define-event-handler db-changed () update-db)
 (define-event-handler status-changed () update-status)
 (define-event-handler (error-changed) ()
-  (set! (*window-data (get-window 'error)) (string-split-lines *scmus-error*))
-  (window-data-len-update! (get-window 'error)))
+  (set! (*window-data (get-window 'error)) (string-split-lines *scmus-error*)))

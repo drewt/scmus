@@ -60,14 +60,13 @@
         (window-stack-pop! window)
         (loop)))
     (set! (*window-data window) #f)
-    (browser-get-data window))
-  (register-event! 'browser-data-changed))
+    (browser-get-data window)
+    (void)))
 
 (: browser-get-data (window -> list))
 (define (browser-get-data window)
   (unless (*window-data window)
-    (set! (*window-data window) (scmus-lsinfo "/"))
-    (window-data-len-update! window))
+    (set! (*window-data window) (scmus-lsinfo "/")))
   (*window-data window))
 
 (: browser-activate! (window -> undefined))
@@ -80,21 +79,17 @@
         ((file) (file-activate! window selected))))))
 
 (define (directory-activate! window dir)
-  (window-stack-push! window (scmus-lsinfo dir) browser-get-data)
-  (register-event! 'browser-data-changed))
+  (window-stack-push! window (scmus-lsinfo dir) browser-get-data))
 
 (define (playlist-activate! window playlist)
-  (window-stack-push! window (scmus-list-playlist playlist) browser-get-data)
-  (register-event! 'browser-data-changed))
+  (window-stack-push! window (scmus-list-playlist playlist) browser-get-data))
 
 (define (file-activate! window file)
-  (window-stack-push! window (sort-metadata file) browser-get-data)
-  (register-event! 'browser-data-changed))
+  (window-stack-push! window (sort-metadata file) browser-get-data))
 
 (define (browser-deactivate! window)
   (when (window-stack-peek window)
-    (window-stack-pop! window)
-    (register-event! 'browser-data-changed)))
+    (window-stack-pop! window)))
 
 (define-view browser
   (make-view (make-stack-window 'data #f
@@ -105,6 +100,3 @@
                                 'add        browser-add-selected!
                                 'print-line browser-print-line)
              " Browser"))
-
-(define-event-handler (browser-data-changed) ()
-  (window-data-len-update! (get-window 'browser)))
