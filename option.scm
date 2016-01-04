@@ -192,12 +192,22 @@
     (cons 'color-win-sel                  '(default blue white))
     (cons 'color-win-marked               '(default blue white))
     (cons 'color-win-title                '(default blue white))
+    (cons 'format-separator
+          (format-values "~{text}"))
     (cons 'format-current
           (format-values " ~a - ~l ~n. ~t~= ~y "))
     (cons 'format-status
           (format-values " ~P ~p / ~d - ~T vol: ~v~= ~S~R~r~C "))
-    (cons 'format-library
+    (cons 'format-library-playlist
+          (format-values "~{playlist}"))
+    (cons 'format-library-artist
+          (format-values "~{artist}"))
+    (cons 'format-library-album
+          (format-values "~{album}"))
+    (cons 'format-library-file
           (format-values "~-25%a ~3n. ~t~= ~-4y ~d"))
+    (cons 'format-library-metadata
+          (format-values "~-50%{tag} ~{value}"))
     (cons 'format-queue
           (format-values "~-25%a ~3n. ~t~= ~-4y ~d"))
     (cons 'format-browser-file
@@ -229,9 +239,14 @@
     (color-option   'color-win-sel)
     (color-option   'color-win-marked)
     (color-option   'color-win-title)
+    (format-option  'format-separator)
     (format-option  'format-current)
     (format-option  'format-status)
-    (format-option  'format-library)
+    (format-option  'format-library-playlist)
+    (format-option  'format-library-artist)
+    (format-option  'format-library-album)
+    (format-option  'format-library-file)
+    (format-option  'format-library-metadata)
     (format-option  'format-queue)
     (format-option  'format-browser-file)
     (format-option  'format-browser-dir)
