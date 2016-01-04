@@ -205,7 +205,9 @@
     (cons 'format-browser-dir
           (format-values "~{directory}/"))
     (cons 'format-browser-playlist
-          (format-values "[~{playlist}]"))))
+          (format-values "[~{playlist}]"))
+    (cons 'format-browser-metadata
+          (format-values "~-50%{tag} ~{value}"))))
 
 ;; alist associating option names with options
 (: *options* (list-of option-spec))
@@ -233,7 +235,8 @@
     (format-option  'format-queue)
     (format-option  'format-browser-file)
     (format-option  'format-browser-dir)
-    (format-option  'format-browser-playlist)))
+    (format-option  'format-browser-playlist)
+    (format-option  'format-browser-metadata)))
 
 (: options (-> (list-of option-spec)))
 (define (options) *options*)

@@ -21,11 +21,10 @@
 
 (: browser-add! (* -> undefined))
 (define (browser-add! selected)
-  (if (pair? (car selected))
-    (case (caar selected)
-      ((directory) (scmus-find-add! (cons 'base (cdar selected))))
-      ((playlist)  (scmus-playlist-load! (cdar selected)))
-      ((file)      (scmus-add! (cdar selected))))))
+  (case (caar selected)
+    ((directory) (scmus-find-add! (cons 'base (cdadr selected))))
+    ((playlist)  (scmus-playlist-load! (cdadr selected)))
+    ((file)      (scmus-add! (cdadr selected)))))
 
 (: browser-add-selected! (window -> undefined))
 (define (browser-add-selected! window)
@@ -34,12 +33,10 @@
 
 (: browser-match (* string -> boolean))
 (define (browser-match row query)
-  (if (pair? (car row))
-    (case (caar row)
-      ((directory playlist) (substring-match (cdar row) query))
-      ((file) (track-match row query))
-      (else #f))
-    #f))
+  (case (car row)
+    ((directory playlist) (substring-match (cdadr row) query))
+    ((file) (track-match (cdr row) query))
+    (else #f)))
 
 (: browser-print-line (window * fixnum -> string))
 (define (browser-print-line window row nr-cols)
@@ -47,10 +44,9 @@
     (case type
       ((directory) (get-format 'format-browser-dir))
       ((playlist)  (get-format 'format-browser-playlist))
-      ((file)      (get-format 'format-browser-file))))
-  (if (pair? (car row))
-    (scmus-format (format-string (caar row)) nr-cols row)
-    (alist-print-line window row nr-cols)))
+      ((file)      (get-format 'format-browser-file))
+      ((metadata)  (get-format 'format-browser-metadata))))
+  (scmus-format (format-string (car row)) nr-cols (cdr row)))
 
 (: update-browser! thunk)
 (define (update-browser!)
@@ -63,29 +59,40 @@
     (browser-get-data window)
     (void)))
 
+(: tag-data (list -> (list-of (pair symbol *))))
+(define (tag-data data)
+  (if (null? data)
+    data
+    (map (lambda (x) (cons (caar x) x)) data)))
+
 (: browser-get-data (window -> list))
 (define (browser-get-data window)
   (unless (*window-data window)
-    (set! (*window-data window) (scmus-lsinfo "/")))
+    (set! (*window-data window) (tag-data (scmus-lsinfo "/"))))
   (*window-data window))
 
 (: browser-activate! (window -> undefined))
 (define (browser-activate! window)
   (let ((selected (window-selected window)))
-    (if (pair? (car selected))
-      (case (caar selected)
-        ((directory) (directory-activate! window (cdar selected)))
-        ((playlist) (playlist-activate! window (cdar selected)))
-        ((file) (file-activate! window selected))))))
+    (case (car selected)
+      ((directory) (directory-activate! window (cdadr selected)))
+      ((playlist)  (playlist-activate! window (cdadr selected)))
+      ((file)      (file-activate! window (cdr selected))))))
 
 (define (directory-activate! window dir)
-  (window-stack-push! window (scmus-lsinfo dir) browser-get-data))
+  (window-stack-push! window (tag-data (scmus-lsinfo dir)) browser-get-data))
 
 (define (playlist-activate! window playlist)
-  (window-stack-push! window (scmus-list-playlist playlist) browser-get-data))
+  (window-stack-push! window (tag-data (scmus-list-playlist playlist)) browser-get-data))
 
 (define (file-activate! window file)
-  (window-stack-push! window (sort-metadata file) browser-get-data))
+  (define (format-metadata metadata)
+    (map (lambda (x)
+           (cons 'metadata
+                 (list (cons 'tag   (car x))
+                       (cons 'value (cdr x)))))
+         metadata))
+  (window-stack-push! window (format-metadata (sort-metadata file)) browser-get-data))
 
 (define (browser-deactivate! window)
   (when (window-stack-peek window)
