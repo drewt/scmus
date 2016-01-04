@@ -96,7 +96,7 @@
     (define (binding-list->rows blist)
       (let loop ((blist blist) (keys '()))
         (if (binding-expression? blist)
-          (list (make-binding-row (car context) keys (binding-data blist)))
+          (list (make-binding-row (car context) (reverse keys) (binding-data blist)))
           (apply append (map (lambda (x)
                                (loop (cdr x) (cons (car x) keys)))
                              blist)))))
