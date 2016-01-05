@@ -16,7 +16,7 @@
 ;;
 
 (declare (unit options-view)
-         (uses editable event input ncurses option ui-lib view window)
+         (uses editable event format input ncurses option ui-lib view window)
          (export make-options-view option-edit!))
 
 (: option-changed! thunk)
@@ -26,18 +26,18 @@
 (: option-edit! (window -> undefined))
 (define (option-edit! window)
   (let* ((selected (window-selected window))
-         (name (car selected))
-         (editable (cdr selected)))
+         (name (alist-ref 'name (cdr selected)))
+         (editable (alist-ref 'text (cdr selected))))
     (set-input-mode! 'edit-mode
                      editable
                      (cons (+ 1 (window-sel-offset window))
                            (+ 1 (quotient (COLS) 2))))))
 
+(define *option-format* (process-format "~-50%{name} ~{text}"))
+
 (: options-window-print-row (window * fixnum -> string))
 (define (options-window-print-row window row nr-cols)
-  (alist-print-line window
-                    (cons (car row) (editable-text (cdr row)))
-                    nr-cols))
+  (scmus-format *option-format* nr-cols (cdr row)))
 
 (: option-commit-edit! (editable -> boolean))
 (define (option-commit-edit! editable)
@@ -48,13 +48,15 @@
 
 (: make-options-data (-> list))
 (define (make-options-data)
+  (define (option-editable pair)
+    (make-simple-editable option-commit-edit!
+                          (lambda (e) (set-input-mode! 'normal-mode))
+                          option-changed!
+                          (option-string (cdr pair))
+                          (car pair)))
   (define (option->row pair)
-    (cons (car pair)
-          (make-simple-editable option-commit-edit!
-                                (lambda (e) (set-input-mode! 'normal-mode))
-                                option-changed!
-                                (option-string (cdr pair))
-                                (car pair))))
+    `(option . ((name . ,(car pair))
+                (text . ,(option-editable pair)))))
   (map option->row (options)))
 
 (define-view options
