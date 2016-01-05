@@ -87,22 +87,16 @@
 
 (: string->tag (string -> (or symbol boolean)))
 (define (string->tag str)
-  (let ((tag (string->symbol (string-downcase str))))
-    (if (memv tag
-            '(artist album albumartist title tracknumber name genre date
-              composer performer comment discnumber))
-      tag
-      #f)))
+  ; TODO: aliases?
+  (string->symbol (string-trim-both (string-downcase str))))
 
 (: parse-constraint (string -> (pair symbol string)))
 (define (parse-constraint str)
   (let ((index (string-index str #\:)))
     (if index
-      (let ((tag (string->tag (string-take str index))))
-        (if tag
-          (cons tag (string-drop str (+ 1 index)))
-          (cons 'any str)))
-      (cons 'any str))))
+      (cons (string->tag (string-take str index))
+            (string-trim-both (string-drop str (+ 1 index))))
+      (cons 'any (string-trim-both str)))))
 
 (: search-activate! (window -> undefined))
 (define (search-activate! window)
