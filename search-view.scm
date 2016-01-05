@@ -122,14 +122,11 @@
 
 (define *input-format* (process-format "* ~{text}"))
 
-(: search-window-print-row (window * fixnum -> string))
-(define (search-window-print-row window row nr-cols)
-  (define (row-format tag)
-    (case tag
-      ((input)     *input-format*)
-      ((separator) (get-format 'format-separator))
-      ((file)      (get-format 'format-search-file)))) 
-  (scmus-format (row-format (car row)) nr-cols (cdr row)))
+(define (search-format tag)
+  (case tag
+    ((input)     *input-format*)
+    ((separator) (get-format 'format-separator))
+    ((file)      (get-format 'format-search-file))))
 
 (define-view search
   (make-view (make-window 'data       (list (make-search-field)
@@ -140,5 +137,5 @@
                           'remove     search-remove!
                           'clear      search-clear!
                           'edit       search-edit!
-                          'print-line search-window-print-row)
+                          'format     search-format)
              " Search"))

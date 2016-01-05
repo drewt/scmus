@@ -51,10 +51,6 @@
   (window-clear-marked! window)
   (scmus-update-queue!))
 
-(: queue-print-line (window track fixnum -> string))
-(define (queue-print-line window row nr-cols)
-  (scmus-format (get-format 'format-queue) nr-cols (cdr row)))
-
 (define-view queue
   (make-view
     (make-window 'data       (list-of 'file *queue*)
@@ -63,7 +59,7 @@
                  'remove     queue-remove!
                  'clear      (lambda (w) (scmus-clear!))
                  'move       queue-move!
-                 'print-line queue-print-line
+                 'format     (lambda (tag) (get-format 'format-queue))
                  'cursed     (win-cursed-fn (lambda (row) (current-track? (cdr row)))))
     " Queue - ~{queue-length} tracks"))
 

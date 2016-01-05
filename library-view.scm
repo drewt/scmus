@@ -45,17 +45,15 @@
     (library-get-data window)
     (void)))
 
-(: library-print-line (window pair fixnum -> string))
-(define (library-print-line window row nr-cols)
-  (define (row-format tag)
-    (case tag
-      ((separator) (get-format 'format-separator))
-      ((playlist)  (get-format 'format-library-playlist))
-      ((artist)    (get-format 'format-library-artist))
-      ((album)     (get-format 'format-library-album))
-      ((file)      (get-format 'format-library-file))
-      ((metadata)  (get-format 'format-library-metadata))))
-  (scmus-format (row-format (car row)) nr-cols (cdr row)))
+(: library-format (symbol -> format-spec))
+(define (library-format tag)
+  (case tag
+    ((separator) (get-format 'format-separator))
+    ((playlist)  (get-format 'format-library-playlist))
+    ((artist)    (get-format 'format-library-artist))
+    ((album)     (get-format 'format-library-album))
+    ((file)      (get-format 'format-library-file))
+    ((metadata)  (get-format 'format-library-metadata))))
 
 (: library-get-data (window -> list))
 (define (library-get-data window)
@@ -124,5 +122,5 @@
                                 'deactivate library-deactivate!
                                 'match      library-match
                                 'add        library-add-selected!
-                                'print-line library-print-line)
+                                'format     library-format)
              " Library"))

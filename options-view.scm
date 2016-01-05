@@ -26,18 +26,12 @@
 (: option-edit! (window -> undefined))
 (define (option-edit! window)
   (let* ((selected (window-selected window))
-         (name (alist-ref 'name (cdr selected)))
-         (editable (alist-ref 'text (cdr selected))))
+         (name (alist-ref 'key (cdr selected)))
+         (editable (alist-ref 'value (cdr selected))))
     (set-input-mode! 'edit-mode
                      editable
                      (cons (+ 1 (window-sel-offset window))
                            (+ 1 (quotient (COLS) 2))))))
-
-(define *option-format* (process-format "~-50%{name} ~{text}"))
-
-(: options-window-print-row (window * fixnum -> string))
-(define (options-window-print-row window row nr-cols)
-  (scmus-format *option-format* nr-cols (cdr row)))
 
 (: option-commit-edit! (editable -> boolean))
 (define (option-commit-edit! editable)
@@ -55,15 +49,15 @@
                           (option-string (cdr pair))
                           (car pair)))
   (define (option->row pair)
-    `(option . ((name . ,(car pair))
-                (text . ,(option-editable pair)))))
+    `(option . ((key   . ,(car pair))
+                (value . ,(option-editable pair)))))
   (map option->row (options)))
 
 (define-view options
-  (make-view (make-window 'data       (make-options-data)
-                          'activate   option-edit!
-                          'edit       option-edit!
-                          'print-line options-window-print-row)
+  (make-view (make-window 'data     (make-options-data)
+                          'activate option-edit!
+                          'edit     option-edit!
+                          'format   *key-value-format*)
              " Options"))
 
 (define-event-handler (option-data-changed) ()

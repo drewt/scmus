@@ -228,8 +228,10 @@
 
 (: track-meta (track symbol #!optional * -> *))
 (define (track-meta track meta #!optional (default ""))
-  (let ((e (alist-ref meta track)))
-    (if e e default)))
+  (let ((pair (assoc meta track)))
+    (if pair
+      (cdr pair)
+      default)))
 
 (: current-track (-> track))
 (define (current-track)

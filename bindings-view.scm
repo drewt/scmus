@@ -30,8 +30,8 @@
 (: make-binding-row (symbol (list-of string) * -> binding-row))
 (define (make-binding-row context keys expr)
   `(binding . ((context . ,context)
-               (keys    . ,(make-key-list keys))
-               (text    . ,(make-simple-editable
+               (key     . ,(make-key-list keys))
+               (value   . ,(make-simple-editable
                              binding-commit-edit!
                              (lambda (e) (set-input-mode! 'normal-mode))
                              binding-changed!
@@ -46,10 +46,10 @@
   (alist-ref 'context (cdr row)))
 
 (define (binding-row-keys row)
-  (key-list-keys (alist-ref 'keys (cdr row))))
+  (key-list-keys (alist-ref 'key (cdr row))))
 
 (define (binding-row-editable row)
-  (alist-ref 'text (cdr row)))
+  (alist-ref 'value (cdr row)))
 
 ;; For sorting rows within a context.
 (: binding-row<? (binding-row binding-row -> boolean))
@@ -82,15 +82,11 @@
                        (cons (+ 1 (window-sel-offset window))
                              (+ 1 (quotient (COLS) 2)))))))
 
-(define *binding-format* (process-format "~-50%{keys} ~{text}"))
-
-(: binding-window-print-row (window * fixnum -> string))
-(define (bindings-window-print-row window row nr-cols)
-  (define (row-format tag)
-    (case tag
-      ((separator) (get-format 'format-separator))
-      ((binding)   *binding-format*)))
-  (scmus-format (row-format (car row)) nr-cols (cdr row)))
+(: binding-format (symbol -> format-spec))
+(define (binding-format tag)
+  (case tag
+    ((separator) (get-format 'format-separator))
+    ((binding)   *key-value-format*)))
 
 (: binding-commit-edit! (editable -> boolean))
 (define (binding-commit-edit! editable)
@@ -127,7 +123,7 @@
   (make-view (make-window 'data       (make-bindings-data)
                           'activate   binding-edit!
                           'edit       binding-edit!
-                          'print-line bindings-window-print-row)
+                          'format     binding-format)
              " Key Bindings"))
 
 (define-event-handler (binding-data-changed) ()

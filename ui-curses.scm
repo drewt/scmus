@@ -141,7 +141,7 @@
 
 (: update-status thunk)
 (define (update-status)
-  (set! (*window-data (get-window 'status)) *mpd-status*)
+  (set! (*window-data (get-window 'status)) (alist->kv-rows *mpd-status*))
   (update-status-line))
 
 (: update-current thunk)
@@ -270,12 +270,15 @@
     (endwin)))
 
 (define-view status
-  (make-view (make-window 'data *mpd-status*
-                          'print-line alist-print-line)
+  (make-view (make-window 'data (alist->kv-rows *mpd-status*)
+                          'format *key-value-format*)
              " MPD Status"))
 
+(define (list->rows lines)
+  (map (lambda (line) `(row . ((text . ,line)))) lines))
+
 (define-view error
-  (make-view (make-window 'data (string-split-lines *scmus-error*))
+  (make-view (make-window 'data (list->rows (string-split-lines *scmus-error*)))
              " Error"))
 
 (define-event-handler command-line-changed () update-command-line)
@@ -285,4 +288,5 @@
 (define-event-handler db-changed () update-db)
 (define-event-handler status-changed () update-status)
 (define-event-handler (error-changed) ()
-  (set! (*window-data (get-window 'error)) (string-split-lines *scmus-error*)))
+  (set! (*window-data (get-window 'error))
+    (list->rows (string-split-lines *scmus-error*))))

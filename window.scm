@@ -299,12 +299,16 @@
                accessor: window-move)
    (cursed     initform: (win-cursed-fn (lambda (x) #f))
                reader:   *window-cursed)
-   (print-line initform: (lambda (window row cols) (format "~a" row))
-               reader:   *window-print-line)))
+   (format     initform: #f
+               reader:   window-format)))
 
 (define-method (initialize-instance (window <window>))
   (call-next-method)
-  (set! (window-data-len window) (length (window-data window))))
+  (set! (window-data-len window) (length (window-data window)))
+  ; allow giving a format string directly instead of a procedure
+  (let ((format (window-format window)))
+    (if (and format (not (procedure? format)))
+      (set! (slot-value window 'format) (lambda (tag) format)))))
 
 (define-method ((setter *window-data) (window <window>) data)
   (set! (slot-value window 'data) data)
@@ -505,12 +509,17 @@
 
 (: window-print-line (window * fixnum -> string))
 (define (window-print-line window row nr-cols)
+  (define (print-row window row row-cols)
+    (let ((format (and (window-format window)
+                       ((window-format window) (car row)))))
+      (if format
+        (scmus-format format row-cols (cdr row))
+        (string-truncate (format "~a" (alist-ref 'text (cdr row) eqv? ""))
+                         row-cols))))
   (if (>= (* 2 (window-h-border window)) nr-cols)
     (make-string nr-cols #\space)
     (let* ((h-border (window-h-border window))
-           (str ((*window-print-line window) window
-                                             row
-                                             (- nr-cols (* 2 h-border)))))
+           (str      (print-row window row (- nr-cols (* 2 h-border)))))
       (string-append (make-string h-border #\space)
                      str
                      (make-string h-border #\space)))))

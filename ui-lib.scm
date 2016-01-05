@@ -16,7 +16,7 @@
 ;;
 
 (declare (unit ui-lib)
-         (uses ncurses))
+         (uses ncurses format))
 
 ;; colors {{{
 
@@ -201,17 +201,14 @@
         (addstr str))))
   (string-width str))
 
-;; Generic function to print an alist entry, for use with print-window.
-(: alist-print-line (window pair fixnum -> string))
-(define (alist-print-line window row nr-cols)
-  (let* ((quo (quotient nr-cols 2))
-         (fst (string-truncate (format "~a" (car row))
-                               (quotient nr-cols 2)))
-         (fst-len (string-length fst))
-         (snd (string-truncate (format " ~a" (cdr row))
-                               (- nr-cols quo))))
-    (string-append fst (make-string (- quo fst-len) #\space) snd)))
-
 (: separator? (* -> boolean))
 (define (separator? row)
   (and (pair? row) (eqv? (car row) 'separator)))
+
+(define (alist->kv-rows alist)
+  (map (lambda (pair)
+         `(key-value . ((key   . ,(car pair))
+                        (value . ,(cdr pair)))))
+       alist))
+
+(define *key-value-format* (process-format "~-50%{key} ~{value}"))

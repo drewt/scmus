@@ -38,15 +38,13 @@
     ((file) (track-match (cdr row) query))
     (else #f)))
 
-(: browser-print-line (window * fixnum -> string))
-(define (browser-print-line window row nr-cols)
-  (define (format-string type)
-    (case type
-      ((directory) (get-format 'format-browser-dir))
-      ((playlist)  (get-format 'format-browser-playlist))
-      ((file)      (get-format 'format-browser-file))
-      ((metadata)  (get-format 'format-browser-metadata))))
-  (scmus-format (format-string (car row)) nr-cols (cdr row)))
+(: browser-format (symbol -> format-spec))
+(define (browser-format type)
+  (case type
+    ((directory) (get-format 'format-browser-dir))
+    ((playlist)  (get-format 'format-browser-playlist))
+    ((file)      (get-format 'format-browser-file))
+    ((metadata)  (get-format 'format-browser-metadata))))
 
 (: update-browser! thunk)
 (define (update-browser!)
@@ -105,5 +103,5 @@
                                 'deactivate browser-deactivate!
                                 'match      browser-match
                                 'add        browser-add-selected!
-                                'print-line browser-print-line)
+                                'format     browser-format)
              " Browser"))
