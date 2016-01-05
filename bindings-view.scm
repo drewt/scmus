@@ -102,7 +102,7 @@
                              blist)))))
     (if (null? (cdr context))
       '()
-      (cons (cons 'separator (symbol->string (car context)))
+      (cons (cons 'separator (string-titlecase (symbol->string (car context))))
             (sort! (binding-list->rows (cdr context)) binding-row<?))))
   (apply append (map context->rows (sort (bindings) context<?))))
 
