@@ -19,23 +19,37 @@
   (uses editable event input keys ncurses ui-lib view window)
   (export make-bindings-view binding-edit!))
 
-(define-type binding-row (struct binding-row))
-(define-record-type binding-row
-  (*make-binding-row context keys editable)
-  binding-row?
-  (context binding-row-context)
-  (keys binding-row-keys)
-  (editable binding-row-editable))
+(define-record-type key-list (make-key-list keys) key-list?
+  (keys key-list-keys))
+
+(define-record-printer (key-list kl out)
+  (display (key-list->string (key-list-keys kl)) out))
+
+(define-type binding-row (pair symbol (list-of (pair symbol *))))
 
 (: make-binding-row (symbol (list-of string) * -> binding-row))
 (define (make-binding-row context keys expr)
-  (*make-binding-row context keys
-    (make-simple-editable binding-commit-edit!
-                          (lambda (e) (set-input-mode! 'normal-mode))
-                          binding-changed!
-                          (with-output-to-string
-                            (lambda () (write expr)))
-                          (cons keys context))))
+  `(binding . ((context . ,context)
+               (keys    . ,(make-key-list keys))
+               (text    . ,(make-simple-editable
+                             binding-commit-edit!
+                             (lambda (e) (set-input-mode! 'normal-mode))
+                             binding-changed!
+                             (with-output-to-string
+                               (lambda () (write expr)))
+                             (cons keys context))))))
+
+(define (binding-row? row)
+  (and (pair? row) (eqv? (car row) 'binding)))
+
+(define (binding-row-context row)
+  (alist-ref 'context (cdr row)))
+
+(define (binding-row-keys row)
+  (key-list-keys (alist-ref 'keys (cdr row))))
+
+(define (binding-row-editable row)
+  (alist-ref 'text (cdr row)))
 
 ;; For sorting rows within a context.
 (: binding-row<? (binding-row binding-row -> boolean))
@@ -68,15 +82,15 @@
                        (cons (+ 1 (window-sel-offset window))
                              (+ 1 (quotient (COLS) 2)))))))
 
+(define *binding-format* (process-format "~-50%{keys} ~{text}"))
+
 (: binding-window-print-row (window * fixnum -> string))
 (define (bindings-window-print-row window row nr-cols)
-  (cond
-    ((separator? row) (format "~a" (cdr row)))
-    ((binding-row? row)
-       (alist-print-line window
-                         (cons (key-list->string (binding-row-keys row))
-                               (editable-text (binding-row-editable row)))
-                         nr-cols))))
+  (define (row-format tag)
+    (case tag
+      ((separator) (get-format 'format-separator))
+      ((binding)   *binding-format*)))
+  (scmus-format (row-format (car row)) nr-cols (cdr row)))
 
 (: binding-commit-edit! (editable -> boolean))
 (define (binding-commit-edit! editable)
@@ -86,6 +100,9 @@
                 (editable-read editable)
                 #t)
     #t))
+
+(define (make-separator text)
+  `(separator . ((text . ,text))))
 
 ;; The bindings are stored as trees, where each node represents one key in a
 ;; key sequence.  We want to display this data as a list of key sequences, so
@@ -102,7 +119,7 @@
                              blist)))))
     (if (null? (cdr context))
       '()
-      (cons (cons 'separator (string-titlecase (symbol->string (car context))))
+      (cons (make-separator (string-titlecase (symbol->string (car context))))
             (sort! (binding-list->rows (cdr context)) binding-row<?))))
   (apply append (map context->rows (sort (bindings) context<?))))
 
