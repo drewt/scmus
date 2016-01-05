@@ -172,6 +172,8 @@
                (lambda (option value)
                  (option-value-set! option (if value #t #f)))))
 
+(define *default-track-format* "~-25%a ~3n. ~t~= ~-4y ~d")
+
 ;; alist associating option names with default values
 (: *default-options* (list-of (pair symbol *)))
 (define *default-options*
@@ -205,11 +207,11 @@
     (cons 'format-library-album
           (format-values "~{album}"))
     (cons 'format-library-file
-          (format-values "~-25%a ~3n. ~t~= ~-4y ~d"))
+          (format-values *default-track-format*))
     (cons 'format-library-metadata
           (format-values "~-50%{tag} ~{value}"))
     (cons 'format-queue
-          (format-values "~-25%a ~3n. ~t~= ~-4y ~d"))
+          (format-values *default-track-format*))
     (cons 'format-browser-file
           (format-values "~{path}"))
     (cons 'format-browser-dir
@@ -217,7 +219,9 @@
     (cons 'format-browser-playlist
           (format-values "[~{playlist}]"))
     (cons 'format-browser-metadata
-          (format-values "~-50%{tag} ~{value}"))))
+          (format-values "~-50%{tag} ~{value}"))
+    (cons 'format-search-file
+          (format-values *default-track-format*))))
 
 ;; alist associating option names with options
 (: *options* (list-of option-spec))
@@ -251,7 +255,8 @@
     (format-option  'format-browser-file)
     (format-option  'format-browser-dir)
     (format-option  'format-browser-playlist)
-    (format-option  'format-browser-metadata)))
+    (format-option  'format-browser-metadata)
+    (format-option  'format-search-file)))
 
 (: options (-> (list-of option-spec)))
 (define (options) *options*)

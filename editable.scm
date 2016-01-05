@@ -96,6 +96,9 @@
                   (string-length text)
                   data))
 
+(define-record-printer (editable e out)
+  (display (editable-text e) out))
+
 ;;
 ;; Simple editables
 ;;

@@ -56,6 +56,10 @@
   (without-curses
     (pp sexp)))
 
+(: list-of (symbol list -> (list-of (pair symbol *))))
+(define (list-of type lst)
+  (map (lambda (x) (cons type x)) lst))
+
 (: separator? (* -> boolean))
 (define (separator? obj)
   (and (pair? obj) (eq? (car obj) 'separator)))

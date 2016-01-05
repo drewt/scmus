@@ -16,14 +16,10 @@
 ;;
 
 (declare (unit search-view)
-         (uses editable event input ncurses option scmus-client ui-lib view
-               window)
+         (uses editable event format input ncurses option scmus-client ui-lib
+               view window)
          (export make-search-view search-edit! search-clear! search-add!
                  search-remove!))
-
-(: search-result? (* -> boolean))
-(define (search-result? row)
-  (and (pair? row) (not (separator? row))))
 
 (: search-changed! (#!rest * -> undefined))
 (define (search-changed! . ignore)
@@ -32,9 +28,9 @@
 (: search-edit! (window -> undefined))
 (define (search-edit! window)
   (let ((selected (window-selected window)))
-    (if (editable? selected)
+    (when (eqv? (car selected) 'input)
       (set-input-mode! 'edit-mode
-                       selected
+                       (cdadr selected)
                        (cons (+ 1 (window-sel-offset window))
                              3)))))
 
@@ -43,41 +39,41 @@
   (let-values (((queries results) (search-window-data window)))
     (set! (*window-data window) (append queries
                                         (list (make-search-field)
-                                              '(separator . ""))
+                                              '(separator . ((text . "Results"))))
                                         results))
-    (set! (window-data-len window) (+ 1 (window-data-len window)))
     (when (>= (window-sel-pos window) (length queries))
       (window-move-down! window 1))
     (search-changed!)))
 
 (: add-selected-tracks! (window -> undefined))
 (define (add-selected-tracks! window)
-  (for-each (lambda (x) (if (pair? x) (scmus-add! (track-file x))))
+  (for-each (lambda (x)
+              (if (eqv? (car x) 'file)
+                (scmus-add! (track-file (cdr x)))))
             (window-all-selected window)))
 
 (: search-add! (window -> undefined))
 (define (search-add! window)
   (let ((selected (window-selected window)))
-    (cond
-      ((editable? selected) (add-search-field! window))
-      ((search-result? selected) (add-selected-tracks! window)))))
+    (case (car selected)
+      ((input) (add-search-field! window))
+      ((file)  (add-selected-tracks! window)))))
 
 (: search-remove! (window -> undefined))
 (define (search-remove! window)
   (let-values (((prev rest) (split-at (*window-data window)
                                       (window-sel-pos window))))
     (cond
-      ((null? prev) (editable-clear! (car rest)))
+      ((null? prev) (editable-clear! (cdadar rest)))
       ((separator? (car rest)) (void))
       (else
-        (set! (*window-data window) (append prev (cdr rest)))
-        (set! (window-data-len window) (- (window-data-len window) 1))))
+        (set! (*window-data window) (append prev (cdr rest)))))
     (search-changed!)))
 
 (: search-clear! (window -> undefined))
 (define (search-clear! window)
   (let loop ((data (window-data window)) (result '()))
-    (if (or (null? data) (search-result? (car data)))
+    (if (or (null? data) (eqv? (caar data) 'file))
       (set! (*window-data window) (reverse result))
       (loop (cdr data) (cons (car data) result))))
   (search-changed!))
@@ -85,7 +81,7 @@
 (: search-window-data (window -> *))
 (define (search-window-data window)
   (let loop ((data (window-data window)) (result '()))
-    (if (not (editable? (car data)))
+    (if (not (eqv? (caar data) 'input))
       (values (reverse result) (cdr data))
       (loop (cdr data) (cons (car data) result)))))
 
@@ -111,34 +107,39 @@
 (: search-activate! (window -> undefined))
 (define (search-activate! window)
   (define (gather-constraints)
-    (map (lambda (e) (parse-constraint (editable-text e)))
-         (remove (lambda (x) (= 0 (editable-length x)))
+    (map (lambda (x) (parse-constraint (editable-text (cdadr x))))
+         (remove (lambda (x) (= 0 (editable-length (cdadr x))))
                  (search-window-data window))))
   (let ((results (apply scmus-search-songs #f #f (gather-constraints))))
-    (set! (*window-data window) (append (window-data window) results))
-    (set! (window-data-len window) (+ (window-data-len window)
-                                      (length results))))
+    (set! (*window-data window) (append (window-data window)
+                                        (list-of 'file results))))
   (search-changed!))
 
-(: make-search-field (-> editable))
+(: make-search-field (-> (pair symbol (list-of (pair symbol editable)))))
 (define (make-search-field)
-  (make-simple-editable (lambda (e) #t)
+  `(input . ((text . ,(make-simple-editable
+                        (lambda (e) #t)
                         (lambda (e) (set-input-mode! 'normal-mode))
-                        search-changed!))
+                        search-changed!)))))
 
 (: search-match (* string -> boolean))
 (define (search-match row query)
-  (and (pair? row) (track-match row query)))
+  (and (eqv? (car row) 'file) (track-match (cdr row) query)))
+
+(define *input-format* (process-format "* ~{text}"))
 
 (: search-window-print-row (window * fixnum -> string))
 (define (search-window-print-row window row nr-cols)
-  (cond
-    ((editable? row)  (format "* ~a" (editable-text row)))
-    ((separator? row) (format "~a" (cdr row)))
-    (else             (scmus-format (get-format 'format-library) nr-cols row))))
+  (define (row-format tag)
+    (case tag
+      ((input)     *input-format*)
+      ((separator) (get-format 'format-separator))
+      ((file)      (get-format 'format-search-file)))) 
+  (scmus-format (row-format (car row)) nr-cols (cdr row)))
 
 (define-view search
-  (make-view (make-window 'data       (list (make-search-field) '(separator . ""))
+  (make-view (make-window 'data       (list (make-search-field)
+                                            '(separator . ((text . "Results"))))
                           'activate   search-activate!
                           'match      search-match
                           'add        search-add!

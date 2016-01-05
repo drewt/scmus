@@ -19,10 +19,6 @@
          (uses event ncurses option scmus-client ui-lib view window)
          (export update-library!))
 
-(: list-of (symbol list -> (list-of (pair symbol *))))
-(define (list-of type lst)
-  (map (lambda (x) (cons type x)) lst))
-
 (define (tag-data data)
   (map (lambda (x) (cons (car x) (list x))) data))
 
