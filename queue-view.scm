@@ -52,22 +52,23 @@
   (scmus-update-queue!))
 
 (: queue-print-line (window track fixnum -> string))
-(define (queue-print-line window track nr-cols)
-  (scmus-format (get-format 'format-queue) nr-cols track))
+(define (queue-print-line window row nr-cols)
+  (scmus-format (get-format 'format-queue) nr-cols (cdr row)))
 
 (define-view queue
-  (make-view (make-window 'data       *queue*
-                          'activate   (lambda (w) (scmus-play-track! (window-selected w)))
-                          'match      track-match
-                          'remove     queue-remove!
-                          'clear      (lambda (w) (scmus-clear!))
-                          'move       queue-move!
-                          'print-line queue-print-line
-                          'cursed     (win-cursed-fn current-track?))
-             " Queue - ~{queue-length} tracks"))
+  (make-view
+    (make-window 'data       (list-of 'file *queue*)
+                 'activate   (lambda (w) (scmus-play-track! (cdr (window-selected w))))
+                 'match      (lambda (row query) (track-match (cdr row) query))
+                 'remove     queue-remove!
+                 'clear      (lambda (w) (scmus-clear!))
+                 'move       queue-move!
+                 'print-line queue-print-line
+                 'cursed     (win-cursed-fn (lambda (row) (current-track? (cdr row)))))
+    " Queue - ~{queue-length} tracks"))
 
 (define-event-handler (queue-changed) ()
   (widget-damaged! (get-view 'queue)))
 
 (define-event-handler (queue-data-changed) ()
-  (set! (*window-data (get-window 'queue)) *queue*))
+  (set! (*window-data (get-window 'queue)) (list-of 'file *queue*)))
