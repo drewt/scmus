@@ -44,30 +44,40 @@
 ;; justified part.
 (: scmus-format (list fixnum track -> string))
 (define (scmus-format fmt len track)
-  (let ((r (*scmus-format fmt len track)))
-    (if (string? r)
-      (string-truncate r len)
-      (let* ((right-len (min (string-width (cdr r)) len))
-             (left-len (- len right-len)))
-        (string-append (string-stretch (car r) #\space left-len #t)
-                       (string-stretch (cdr r) #\space right-len))))))
+  (let-values (((left center right) (*scmus-format fmt len track)))
+    (if (string=? center "")
+      (let* ((right-len (min (string-width right) len))
+             (left-len  (- len right-len)))
+        (string-append (string-stretch left  #\space left-len #t)
+                       (string-stretch right #\space right-len)))
+      (let* ((center-len (min (string-width center) len))
+             (center-pos (- (quotient len 2)
+                            (quotient center-len 2)))
+             (right-len  (- len (+ center-pos center-len)))
+             (left-len   center-pos))
+        (string-append (string-stretch left   #\space left-len #t)
+                       (string-stretch center #\space center-len)
+                       (string-stretch right  #\space right-len))))))
 
 (: *scmus-format (list fixnum track -> *))
 (define (*scmus-format fmt len track)
-  (fold format-concatenate
-         ""
-         (map (lambda (x) (format-replace x track len)) fmt)))
-
-(: format-concatenate (* (or pair string) -> *))
-(define (format-concatenate x acc)
-  (cond
-    ((and (string? acc) (eqv? x 'align))
-      (cons acc ""))
-    ((string? acc)
-      (string-append acc x))
-    ((string? x)
-      (cons (car acc) (string-append (cdr acc) x)))
-    (else acc)))
+  (let loop ((fmt (map (lambda (x) (format-replace x track len)) fmt))
+             (acc (make-vector 3 ""))
+             (idx 0))
+    (cond
+      ((null? fmt)
+        (values (vector-ref acc 0)
+                (vector-ref acc 1)
+                (vector-ref acc 2)))
+      ((eqv? (car fmt) 'align-center)
+        (loop (cdr fmt) acc 1))
+      ((eqv? (car fmt) 'align-right)
+        (loop (cdr fmt) acc 2))
+      ((string? (car fmt))
+        (vector-set! acc idx (string-append (vector-ref acc idx) (car fmt)))
+        (loop (cdr fmt) acc idx))
+      (else
+        (loop (cdr fmt) acc idx)))))
 
 (: format-replace ((or (track fixnum -> *) (or string symbol) pair)
                    track
@@ -167,7 +177,8 @@
     ((#\d) format-duration)
     ((#\f) format-path)
     ((#\F) format-filename)
-    ((#\=) 'align)
+    ((#\=) 'align-right)
+    ((#\^) 'align-center)
     ((#\P) format-playing)
     ((#\p) format-current)
     ((#\T) format-db-playtime)
@@ -330,8 +341,8 @@
   (if (null? spec)
     #f
     (case (car spec)
-      ((#\a #\A #\l #\D #\n #\t #\g #\c #\y #\d #\f #\F #\~ #\= #\P #\p #\T #\v
-        #\R #\r #\S #\C) #t)
+      ((#\a #\A #\l #\D #\n #\t #\g #\c #\y #\d #\f #\F #\~ #\= #\^ #\P #\p #\T
+        #\v #\R #\r #\S #\C) #t)
       ((#\{) (braced-spec-valid? (cdr spec)))
       ((#\[) (code-spec-valid?   (cdr spec)))
       ((#\<) (color-spec-valid? (cdr spec)))
