@@ -61,7 +61,7 @@
     (print-widget! view 0 0 (COLS) (- (LINES) 3))))
 
 (define-method (print-widget! (view <view>) x y cols rows)
-  (print-line! (scmus-format (view-title-fmt view) cols '())
+  (print-line! (scmus-format (view-title-fmt view) cols (view-title-data view))
                x
                y
                cols

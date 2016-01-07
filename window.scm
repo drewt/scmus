@@ -167,12 +167,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-class <view> (<widget>)
-  ((widget    initform: #f
-              accessor: view-widget)
-   (window    initform: #f
-              accessor: view-window)
-   (title-fmt initform: #f
-              accessor: view-title-fmt)))
+  ((widget     initform: #f
+               accessor: view-widget)
+   (window     initform: #f
+               accessor: view-window)
+   (title-fmt  initform: #f
+               accessor: view-title-fmt)
+   (title-data initform: (lambda (v) '())
+               accessor: view-title-data-thunk)))
 
 (define-method (initialize-instance (view <view>))
   (call-next-method)
@@ -183,6 +185,10 @@
                      'window (widget-first widget)
                      'title-fmt (process-format title)
                      kwargs))
+
+(: view-title-data (view -> list))
+(define (view-title-data view)
+  ((view-title-data-thunk view) view))
 
 (: view-add! (view -> undefined))
 (define (view-add! view)

@@ -69,6 +69,8 @@
     (set! (*window-data window) (tag-data (scmus-lsinfo "/"))))
   (*window-data window))
 
+(define *browser-location* (list "/"))
+
 (: browser-activate! (window -> undefined))
 (define (browser-activate! window)
   (let ((selected (window-selected window)))
@@ -77,12 +79,19 @@
       ((playlist)  (playlist-activate! window (cdadr selected)))
       ((file)      (file-activate! window (cdr selected))))))
 
+(: directory-activate! (window string -> undefined))
 (define (directory-activate! window dir)
+  (set! *browser-location*
+    (cons (string-append "/" dir) *browser-location*))
   (window-stack-push! window (tag-data (scmus-lsinfo dir)) browser-get-data))
 
+(: playlist-activate! (window string -> undefined))
 (define (playlist-activate! window playlist)
+  (set! *browser-location*
+    (cons (string-append "[" playlist "]") *browser-location*))
   (window-stack-push! window (tag-data (scmus-list-playlist playlist)) browser-get-data))
 
+(: file-activate! (window track -> undefined))
 (define (file-activate! window file)
   (define (format-metadata metadata)
     (map (lambda (x)
@@ -90,11 +99,18 @@
                  (list (cons 'tag   (car x))
                        (cons 'value (cdr x)))))
          metadata))
+  (set! *browser-location*
+    (cons (string-append "/" (alist-ref 'file file)) *browser-location*))
   (window-stack-push! window (format-metadata (sort-metadata file)) browser-get-data))
 
+(: browser-deactivate (window -> undefined))
 (define (browser-deactivate! window)
   (when (window-stack-peek window)
+    (set! *browser-location* (cdr *browser-location*))
     (window-stack-pop! window)))
+
+(define (browser-title-data view)
+  `((location . ,(car *browser-location*))))
 
 (define-view browser
   (make-view (make-stack-window 'data #f
@@ -104,4 +120,5 @@
                                 'match      browser-match
                                 'add        browser-add-selected!
                                 'format     browser-format)
-             " Browser"))
+             " Browser: ~{location}"
+             'title-data browser-title-data))
