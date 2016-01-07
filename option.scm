@@ -15,6 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
+(require-extension srfi-69)
 (declare (unit option)
          (uses event format ncurses)
          (export get-option set-option! options option-get option-set!
@@ -56,13 +57,13 @@
 
 (: get-option (symbol -> *))
 (define (get-option name)
-  (let ((option (alist-ref name *options*)))
+  (let ((option (hash-table-ref/default *options* name #f)))
     (if option
       (option-get option))))
 
 (: set-option! (symbol * -> undefined))
 (define (set-option! name value)
-  (let ((option (alist-ref name *options*)))
+  (let ((option (hash-table-ref/default *options* name #f)))
     (if option
       (option-set! option value))))
 
@@ -224,42 +225,46 @@
           (format-values *default-track-format*))))
 
 ;; alist associating option names with options
-(: *options* (list-of option-spec))
 (define *options*
-  (list
-    (option-spec    'mpd-address option-value mpd-address-set!)
-    (option-spec    'mpd-port option-value mpd-port-set!)
-    (option-spec    'mpd-password option-value mpd-password-set!)
-    (option-spec    'status-update-interval option-value update-interval-set!)
-    (boolean-option 'eval-mode-print)
-    (color-option   'color-cmdline)
-    (color-option   'color-error)
-    (color-option   'color-info)
-    (color-option   'color-statusline)
-    (color-option   'color-titleline)
-    (color-option   'color-win)
-    (color-option   'color-win-cur)
-    (color-option   'color-win-cur-sel)
-    (color-option   'color-win-sel)
-    (color-option   'color-win-marked)
-    (color-option   'color-win-title)
-    (format-option  'format-separator)
-    (format-option  'format-current)
-    (format-option  'format-status)
-    (format-option  'format-library-playlist)
-    (format-option  'format-library-artist)
-    (format-option  'format-library-album)
-    (format-option  'format-library-file)
-    (format-option  'format-library-metadata)
-    (format-option  'format-queue)
-    (format-option  'format-browser-file)
-    (format-option  'format-browser-dir)
-    (format-option  'format-browser-playlist)
-    (format-option  'format-browser-metadata)
-    (format-option  'format-search-file)))
+  (alist->hash-table
+    (list
+      (option-spec    'mpd-address option-value mpd-address-set!)
+      (option-spec    'mpd-port option-value mpd-port-set!)
+      (option-spec    'mpd-password option-value mpd-password-set!)
+      (option-spec    'status-update-interval option-value update-interval-set!)
+      (boolean-option 'eval-mode-print)
+      (color-option   'color-cmdline)
+      (color-option   'color-error)
+      (color-option   'color-info)
+      (color-option   'color-statusline)
+      (color-option   'color-titleline)
+      (color-option   'color-win)
+      (color-option   'color-win-cur)
+      (color-option   'color-win-cur-sel)
+      (color-option   'color-win-sel)
+      (color-option   'color-win-marked)
+      (color-option   'color-win-title)
+      (format-option  'format-separator)
+      (format-option  'format-current)
+      (format-option  'format-status)
+      (format-option  'format-library-playlist)
+      (format-option  'format-library-artist)
+      (format-option  'format-library-album)
+      (format-option  'format-library-file)
+      (format-option  'format-library-metadata)
+      (format-option  'format-queue)
+      (format-option  'format-browser-file)
+      (format-option  'format-browser-dir)
+      (format-option  'format-browser-playlist)
+      (format-option  'format-browser-metadata)
+      (format-option  'format-search-file))))
 
 (: options (-> (list-of option-spec)))
-(define (options) *options*)
+(define (options)
+  (sort! (hash-table->alist *options*)
+         (lambda (a b)
+           (string<? (symbol->string (car a))
+                     (symbol->string (car b))))))
 
 (: write-config! (string -> undefined))
 (define (write-config! path)
