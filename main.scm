@@ -19,6 +19,8 @@
 
 (foreign-declare "#include <locale.h>")
 
+(import getopt)
+
 (define *error* #f)
 
 (define *cmdline-opts*
@@ -85,6 +87,22 @@
          (begin first rest ...)
          (verbose-printf "OK~n")))))
 
+(define (read-plugins)
+  (if (file-exists? *plugins-dir*)
+    (map (lambda (dir)
+           (cons (cons 'root dir) (read-file (string-append *plugins-dir* "/" dir "/manifest"))))
+         (filter (lambda (dir) (file-exists? (string-append *plugins-dir* "/" dir "/manifest")))
+                 (directory *plugins-dir*)))
+    '()))
+
+(define (load-plugins plugins)
+  (for-each (lambda (plugin)
+              (let ((root (string-append *plugins-dir* "/" (alist-ref 'root plugin))))
+                (for-each (lambda (file)
+                            (load (string-append root "/" file)))
+                          (alist-ref 'load-order plugin))))
+            plugins))
+
 ;; initialize scmus
 (let ((opts (process-opts (command-line-arguments) *cmdline-opts*)))
   (if (alist-ref 'help opts) (usage *cmdline-opts* 0))
@@ -104,6 +122,8 @@
     (initialize "Initializing locale"
       (foreign-code "setlocale(LC_CTYPE, \"\");")
       (foreign-code "setlocale(LC_COLLATE, \"\");"))
+    (initialize "Loading plugins"
+      (load-plugins (read-plugins)))
     (initialize "Initializing environment"
       (init-sandbox))
     (initialize "Loading config files"

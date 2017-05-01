@@ -52,6 +52,10 @@ quiet_cmd_cc    = CC      $@
 quiet_cmd_csc   = CSC     $@
       cmd_csc   = $(CSC) -c $(CSCFLAGS) -o $@ $<
 
+# scheme compile for module object files
+quiet_cmd_msc   = CSC     $@
+      cmd_msc   = $(CSC) -c $(CSCFLAGS) -J -o $@ $<
+
 quiet_cmd_types = TYPES   $@
       cmd_types = $(CSC) -c $(TFLAGS) -analyze-only -emit-type-file $@ $<
 

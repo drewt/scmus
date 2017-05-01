@@ -30,10 +30,13 @@ INSTALL  = @scripts/install
 eggs = coops sandbox unix-sockets utf8
 
 units = bindings-view browser-view config command-line editable eval-mode \
-	event format getopt input iter key-table keys lib library-view \
+	event format input iter key-table keys lib library-view \
 	mpd-client ncurses option options-view queue-view search-view \
 	scmus-client ui-curses ui-lib view window
-objects = $(foreach unit,$(units),$(addsuffix .@OBJEXT@,$(unit)))
+modules = getopt
+objects = $(foreach unit,$(units),$(addsuffix .@OBJEXT@,$(unit))) \
+	  $(foreach mod,$(modules),$(addsuffix .@OBJEXT@,$(mod)))
+imports = $(foreach mod,$(modules),$(addsuffix .import.scm,$(mod)))
 types   = $(foreach unit,$(units),$(addsuffix .types,$(unit)))
 target = scmus@EXEEXT@
 
@@ -41,9 +44,17 @@ test-units = test/iter
 test-objects = $(foreach unit,$(test-units),$(addsuffix .@OBJEXT@,$(unit)))
 
 clean = $(objects) main.@OBJEXT@ $(test-objects) check.@OBJEXT@ $(types) \
-	$(target) all.types
+	$(imports) $(target) all.types
 
 all: $(target)
+
+# TODO: generate these automatically
+# XXX:  using an implicit rule doesn't work because csc's -o option doesn't
+#       work when compiling object files (only when linking executables).
+getopt.o: getopt.scm
+	$(call cmd,msc)
+
+main.o: getopt.o
 
 include rules.mk
 

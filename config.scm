@@ -29,6 +29,7 @@
   (string-append (get-env-default "XDG_CONFIG_HOME"
                                   (string-append *home-dir* "/.config"))
                  "/scmus"))
+(define *plugins-dir* (string-append *scmus-dir* "/plugins"))
 
 (define *sysrc-path* (string-append *scmus-dir* "/scmusrc.scm"))
 (define *scmusrc-path* (string-append *user-config-dir* "/rc.scm"))
