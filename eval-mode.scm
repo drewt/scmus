@@ -22,6 +22,8 @@
          (export init-sandbox win-search! user-bind! user-eval user-eval-string
                  user-load))
 
+(import ncurses)
+
 ;; user functions {{{
 
 (define (user-format fmt #!optional (track '()) (len (- (COLS) 2)))

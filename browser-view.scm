@@ -19,6 +19,8 @@
          (uses event ncurses option scmus-client ui-lib view window)
          (export update-browser!))
 
+(import ncurses)
+
 (: browser-add! (* -> undefined))
 (define (browser-add! selected)
   (case (caar selected)

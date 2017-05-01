@@ -19,6 +19,8 @@
          (uses editable event format input ncurses option ui-lib view window)
          (export make-options-view option-edit!))
 
+(import ncurses)
+
 (: option-changed! thunk)
 (define (option-changed!)
   (widget-damaged! (get-view 'options)))

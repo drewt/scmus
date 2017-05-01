@@ -30,10 +30,10 @@ INSTALL  = @scripts/install
 eggs = coops sandbox unix-sockets utf8
 
 units = bindings-view browser-view config command-line editable eval-mode \
-	event format input iter key-table keys lib library-view \
+	event format iter key-table keys lib library-view \
 	mpd-client ncurses option options-view queue-view search-view \
 	scmus-client ui-curses ui-lib view window
-modules = getopt
+modules = getopt input ncurses
 objects = $(foreach unit,$(units),$(addsuffix .@OBJEXT@,$(unit))) \
 	  $(foreach mod,$(modules),$(addsuffix .@OBJEXT@,$(mod)))
 imports = $(foreach mod,$(modules),$(addsuffix .import.scm,$(mod)))
@@ -53,8 +53,27 @@ all: $(target)
 #       work when compiling object files (only when linking executables).
 getopt.o: getopt.scm
 	$(call cmd,msc)
+input.o: input.scm
+	$(call cmd,msc)
+ncurses.o: ncurses.scm
+	$(call cmd,msc)
 
 main.o: getopt.o
+bindings-view.o: input.o ncurses.o
+browser-view.o: ncurses.o
+command-line.o: input.o ncurses.o
+editable.o: input.o ncurses.o
+eval-mode.o: ncurses.o
+input.o: ncurses.o
+key-table.o: ncurses.o
+keys.o: ncurses.o
+lib.o: ncurses.o
+library-view.o: ncurses.o
+option.o: ncurses.o
+options-view.o: input.o ncurses.o
+search-view.o: input.o ncurses.o
+ui-curses.o: ncurses.o
+ui-lib.o: ncurses.o
 
 include rules.mk
 

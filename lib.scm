@@ -18,6 +18,8 @@
 (declare (unit lib)
          (uses config ncurses))
 
+(import ncurses)
+
 ;; the exit routine; initially (exit), becomes a continuation
 (define scmus-exit exit)
 
@@ -155,15 +157,19 @@
 (define (color-code? ch)
   (let ((u (char->integer ch)))
     (and (>= u +unicode-private-base+)
-         (< u (+ 258 +unicode-private-base+)))))
+         (< u (+ 258 256 +unicode-private-base+)))))
 
 (: ch->color-code (char -> fixnum))
 (define (ch->color-code ch)
   (- (char->integer ch) +unicode-private-base+ 2))
 
-(: color->char (fixnum -> char))
-(define (color->char color)
+(: fg-color->char (fixnum -> char))
+(define (fg-color->char color)
   (integer->char (+ color +unicode-private-base+ 2)))
+
+(: bg-color->char (fixnum -> char))
+(define (bg-color->char color)
+  (integer->char (+ color +unicode-private-base+ 258)))
 
 ;; substitute for broken utf8#string-contains-ci
 (: substring-match (string string -> fixnum))

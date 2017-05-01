@@ -19,6 +19,8 @@
          (uses event ncurses option scmus-client ui-lib view window)
          (export update-library!))
 
+(import ncurses)
+
 (define (tag-data data)
   (map (lambda (x) (cons (car x) (list x))) data))
 

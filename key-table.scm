@@ -21,7 +21,10 @@
 ;;
 (require-extension srfi-69)
 (declare (unit key-table)
+         (uses ncurses)
          (hide *key-table*))
+
+(import ncurses)
 
 (: find-key-code (string -> (or fixnum boolean)))
 (define (find-key-code name)

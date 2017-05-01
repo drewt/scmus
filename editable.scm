@@ -15,14 +15,14 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-1)
-
 ;;
 ;; Simple text representation suitable for editing.  Text is stored as a
 ;; reversed list of characters, and can be converted to a string on demand.
 ;;
 (declare (unit editable)
-         (uses input ncurses))
+         (uses ncurses))
+
+(import ncurses)
 
 (: *make-editable ((editable char -> undefined)
                    (editable fixnum -> undefined)

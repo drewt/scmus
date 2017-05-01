@@ -18,6 +18,8 @@
 (declare (unit ui-lib)
          (uses ncurses format))
 
+(import ncurses)
+
 ;; colors {{{
 
 (: color->number (* -> (or boolean fixnum)))

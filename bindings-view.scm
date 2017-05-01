@@ -19,6 +19,8 @@
   (uses editable event input keys ncurses ui-lib view window)
   (export make-bindings-view binding-edit!))
 
+(import ncurses)
+
 (define-record-type key-list (make-key-list keys) key-list?
   (keys key-list-keys))
 

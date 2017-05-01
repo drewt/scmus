@@ -21,6 +21,8 @@
          (export get-option set-option! options option-get option-set!
                  option-string get-format write-config!))
 
+(import ncurses)
+
 (define-type option-getter (option -> *))
 (define-type option-setter (option * -> undefined))
 

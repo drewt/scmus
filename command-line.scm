@@ -22,6 +22,8 @@
                  command-line-print-info! command-line-print-error!
                  enter-eval-mode enter-search-mode))
 
+(import ncurses)
+
 ;; history {{{
 
 (define history

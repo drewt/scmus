@@ -25,6 +25,8 @@
                  exit-curses get-window init-curses redraw-ui set-view!
                  connect! ui-initialized?))
 
+(import ncurses)
+
 (define *ui-initialized* #f)
 (define *current-view* 'queue)
 

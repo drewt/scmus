@@ -21,6 +21,8 @@
          (export make-search-view search-edit! search-clear! search-add!
                  search-remove!))
 
+(import ncurses)
+
 (: search-changed! (#!rest * -> undefined))
 (define (search-changed! . ignore)
   (widget-damaged! (get-view 'search)))

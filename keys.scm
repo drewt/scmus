@@ -40,6 +40,8 @@
                  enter-normal-mode key-list->string make-binding!
                  normal-mode-char normal-mode-key unbind!))
 
+(import ncurses)
+
 (define-type binding-node (pair string pair))
 (define-type binding-list (list-of binding-node))
 (define-type binding-terminal (pair symbol *))
