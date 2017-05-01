@@ -22,7 +22,7 @@
          (export init-sandbox win-search! user-bind! user-eval user-eval-string
                  user-load))
 
-(import ncurses)
+(import config ncurses)
 
 ;; user functions {{{
 

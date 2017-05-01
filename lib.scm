@@ -18,7 +18,7 @@
 (declare (unit lib)
          (uses config ncurses))
 
-(import ncurses)
+(import config ncurses)
 
 ;; the exit routine; initially (exit), becomes a continuation
 (define scmus-exit exit)

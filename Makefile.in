@@ -22,6 +22,8 @@ prelude = '"(define *scmus-dir* \"$(datadir)/scmus\")\
 CSC      = csc
 TFLAGS   = -uses lib -prologue prologue.scm $(features-y) 
 CSCFLAGS = -scrutinize -C -Wno-int-to-pointer-cast -C -Wno-cpp $(TFLAGS) \
+	   -C '-DSCMUS_DIR=\"$(datadir)/scmus\"' \
+	   -C '-DVERSION=\"$(VERSION)\"' \
 	   $(types-cflags-y)
 LD       = csc
 LDFLAGS  =
@@ -29,11 +31,11 @@ INSTALL  = @scripts/install
 
 eggs = coops sandbox unix-sockets utf8
 
-units = bindings-view browser-view config command-line editable eval-mode \
+units = bindings-view browser-view command-line eval-mode \
 	event format iter key-table keys lib library-view \
 	mpd-client ncurses option options-view queue-view search-view \
 	scmus-client ui-curses ui-lib view window
-modules = getopt input ncurses
+modules = config editable getopt input ncurses
 objects = $(foreach unit,$(units),$(addsuffix .@OBJEXT@,$(unit))) \
 	  $(foreach mod,$(modules),$(addsuffix .@OBJEXT@,$(mod)))
 imports = $(foreach mod,$(modules),$(addsuffix .import.scm,$(mod)))
@@ -51,6 +53,10 @@ all: $(target)
 # TODO: generate these automatically
 # XXX:  using an implicit rule doesn't work because csc's -o option doesn't
 #       work when compiling object files (only when linking executables).
+config.o: config.scm
+	$(call cmd,msc)
+editable.o: editable.scm
+	$(call cmd,msc)
 getopt.o: getopt.scm
 	$(call cmd,msc)
 input.o: input.scm
@@ -58,20 +64,20 @@ input.o: input.scm
 ncurses.o: ncurses.scm
 	$(call cmd,msc)
 
-main.o: getopt.o
-bindings-view.o: input.o ncurses.o
+main.o: config.o getopt.o
+bindings-view.o: editable.o input.o ncurses.o
 browser-view.o: ncurses.o
-command-line.o: input.o ncurses.o
-editable.o: input.o ncurses.o
-eval-mode.o: ncurses.o
-input.o: ncurses.o
+command-line.o: editable.o input.o ncurses.o
+editable.o: ncurses.o
+eval-mode.o: config.o ncurses.o
+input.o: editable.o ncurses.o
 key-table.o: ncurses.o
 keys.o: ncurses.o
-lib.o: ncurses.o
+lib.o: config.o ncurses.o
 library-view.o: ncurses.o
 option.o: ncurses.o
-options-view.o: input.o ncurses.o
-search-view.o: input.o ncurses.o
+options-view.o: editable.o input.o ncurses.o
+search-view.o: editable.o input.o ncurses.o
 ui-curses.o: ncurses.o
 ui-lib.o: ncurses.o
 

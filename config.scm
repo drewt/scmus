@@ -17,19 +17,34 @@
 
 (declare (unit config))
 
-(define *verbose* #f)
-(define *debug* #t)
+(module config
+  (*verbose*
+   *debug*
+   *scmus-dir*
+   *version*
+   *home-dir*
+   *user-config-dir*
+   *plugins-dir*
+   *sysrc-path*
+   *scmusrc-path*)
+  (import scheme chicken foreign)
 
-(define (get-env-default name default)
-  (let ((env (get-environment-variable name)))
-   (if env env default)))
+  (define *verbose* #f)
+  (define *debug* #t)
 
-(define *home-dir* (get-env-default "HOME" "."))
-(define *user-config-dir*
-  (string-append (get-env-default "XDG_CONFIG_HOME"
-                                  (string-append *home-dir* "/.config"))
-                 "/scmus"))
-(define *plugins-dir* (string-append *scmus-dir* "/plugins"))
+  (define *scmus-dir* (foreign-value SCMUS_DIR c-string))
+  (define *version* (foreign-value VERSION c-string))
 
-(define *sysrc-path* (string-append *scmus-dir* "/scmusrc.scm"))
-(define *scmusrc-path* (string-append *user-config-dir* "/rc.scm"))
+  (define (get-env-default name default)
+    (let ((env (get-environment-variable name)))
+     (if env env default)))
+
+  (define *home-dir* (get-env-default "HOME" "."))
+  (define *user-config-dir*
+    (string-append (get-env-default "XDG_CONFIG_HOME"
+                                    (string-append *home-dir* "/.config"))
+                   "/scmus"))
+  (define *plugins-dir* (string-append *scmus-dir* "/plugins"))
+
+  (define *sysrc-path* (string-append *scmus-dir* "/scmusrc.scm"))
+  (define *scmusrc-path* (string-append *user-config-dir* "/rc.scm")))

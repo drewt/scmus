@@ -19,7 +19,7 @@
 
 (foreign-declare "#include <locale.h>")
 
-(import getopt)
+(import config getopt)
 
 (define *error* #f)
 
