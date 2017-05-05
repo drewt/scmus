@@ -1,5 +1,5 @@
 ;;
-;; Copyright 2014 Drew Thoreson
+;; Copyright 2014-2017 Drew Thoreson
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -20,6 +20,8 @@
 (declare (unit view)
          (uses ui-lib)
          (hide *view-ctors*))
+
+(import scmus-base)
 
 (: *views* (list-of (pair symbol (or boolean view))))
 (define *views* (map (lambda (x) (cons x #f)) *view-names*))

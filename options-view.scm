@@ -1,5 +1,5 @@
 ;;
-;; Copyright 2014 Drew Thoreson
+;; Copyright 2014-2017 Drew Thoreson
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -16,10 +16,10 @@
 ;;
 
 (declare (unit options-view)
-         (uses editable event format input ncurses option ui-lib view window)
+         (uses editable event format input ncurses option scmus-error ui-lib view window)
          (export make-options-view option-edit!))
 
-(import ncurses)
+(import scmus-base editable event input ncurses scmus-error)
 
 (: option-changed! thunk)
 (define (option-changed!)
@@ -37,7 +37,7 @@
 
 (: option-commit-edit! (editable -> boolean))
 (define (option-commit-edit! editable)
-  (handle-exceptions e (begin (error-set! e) #f)
+  (handle-exceptions e (begin (scmus-error-set! e) #f)
     (set-option! (editable-data editable)
                  (editable-read editable))
     #t))

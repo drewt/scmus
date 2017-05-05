@@ -1,5 +1,5 @@
 ;;
-;; Copyright 2014 Drew Thoreson
+;; Copyright 2014-2017 Drew Thoreson
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -16,13 +16,16 @@
 ;;
 
 (declare (unit input)
-         (uses editable keys ncurses)
-         (export current-editable cursor-pos handle-input set-input-mode!)
-         )
+         (uses editable ncurses))
 
-
-;(module input (current-editable cursor-pos handle-input set-input-mode!)
-  (import ncurses)
+(module input
+  (current-editable
+   cursor-off
+   cursor-on
+   cursor-pos
+   input-mode
+   set-input-mode!)
+  (import scmus-base editable ncurses)
  
   (: *current-input-mode* symbol)
   (define *current-input-mode* 'normal-mode)
@@ -43,11 +46,14 @@
                   (editable-cursor-pos *current-editable*))
                (- (COLS) 1))))
 
+  (: input-mode (-> symbol))
+  (define (input-mode) *current-input-mode*)
+
   (: set-input-mode! (symbol #!optional * * -> undefined))
   (define (set-input-mode! mode #!optional (arg0 #f) (arg1 #f))
     (assert (memv mode '(normal-mode edit-mode)) "set-input-mode!" mode)
     (case mode
-      ((normal-mode) (enter-normal-mode))
+      ((normal-mode) (cursor-off))
       ((edit-mode)   (assert (editable? arg0) "set-input-mode!" arg0)
                      (assert (pair? arg1) "set-input-mode!" arg1)
                      (assert (and (integer? (car arg1)) (integer? (cdr arg1)))
@@ -57,28 +63,13 @@
                      (cursor-on arg1)
                      (editable-init arg0)))
     (set! *current-input-mode* mode))
-
-  (: handle-key (symbol fixnum -> undefined))
-  (define (handle-key view key)
-    (cond
-      ((= key KEY_RESIZE) (redraw-ui))
-      (else
-        (case *current-input-mode*
-          ((normal-mode) (normal-mode-key view key))
-          ((edit-mode)   (editable-key *current-editable* key))))))
-
-  (: handle-char (symbol char -> undefined))
-  (define (handle-char view ch)
-    (case *current-input-mode*
-      ((normal-mode) (normal-mode-char view ch))
-      ((edit-mode)   (editable-char *current-editable* ch))))
-
-  (: handle-input (symbol -> undefined))
-  (define (handle-input view)
-    (let-values (((ch rc) (get-char)))
-      (cond
-        ((= rc KEY_CODE_YES) (handle-key view ch))
-        ((= rc ERR) #f)
-        (else (handle-char view (integer->char ch))))))
   
-;  )
+  (: cursor-on (#!optional (pair fixnum fixnum) -> undefined))
+  (define (cursor-on #!optional (pos #f))
+    (when pos
+      (move (car pos) (cdr pos)))
+    (curs_set 1))
+
+  (: cursor-off thunk)
+  (define (cursor-off)
+    (curs_set 0)))

@@ -1,5 +1,5 @@
 ;;
-;; Copyright 2014 Drew Thoreson
+;; Copyright 2014-2017 Drew Thoreson
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -21,7 +21,7 @@
          (export make-search-view search-edit! search-clear! search-add!
                  search-remove!))
 
-(import ncurses)
+(import scmus-base editable input ncurses)
 
 (: search-changed! (#!rest * -> undefined))
 (define (search-changed! . ignore)

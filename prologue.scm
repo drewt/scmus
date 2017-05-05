@@ -1,4 +1,4 @@
-(require-extension srfi-1 utf8 utf8-srfi-13)
+(require-extension srfi-1 utf8 utf8-srfi-13 utf8-srfi-14)
 
 (import
   (except scheme
@@ -30,27 +30,6 @@
        (define-record/initform name ctor pred?
                                (slot initform . accessors) ...
                                (initialize (instance) (void))))))
-
-(define-syntax key-case
-  (syntax-rules (else)
-    ((key-case key) (void))
-    ((key-case key (else first rest ...))
-      (begin first rest ...))
-    ((key-case key ((choices ...) first rest ...) others ...)
-      (if (member key (list choices ...))
-        (begin first rest ...)
-        (key-case key others ...)))))
-
-(define-syntax without-curses
-  (syntax-rules ()
-    ((without-curses first rest ...)
-      (if (ui-initialized?)
-        (begin
-          (endwin)
-          (let ((r (begin first rest ...)))
-            (refresh)
-            r))
-        (begin first rest ...)))))
 
 (define-syntax define-view
   (syntax-rules ()

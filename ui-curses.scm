@@ -1,5 +1,5 @@
 ;;
-;; Copyright 2014 Drew Thoreson
+;; Copyright 2014-2017 Drew Thoreson
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -20,14 +20,13 @@
 (declare (unit ui-curses)
          (uses bindings-view browser-view command-line eval-mode event format
                input keys library-view ncurses option options-view queue-view
-               scmus-client search-view ui-lib view window)
+               scmus-client scmus-error search-view ui-lib view window)
          (export current-view current-window curses-update cursor-off cursor-on
                  exit-curses get-window init-curses redraw-ui set-view!
-                 connect! ui-initialized?))
+                 connect!))
 
-(import ncurses)
+(import scmus-base command-line editable event input ncurses scmus-error)
 
-(define *ui-initialized* #f)
 (define *current-view* 'queue)
 
 ;; windows {{{
@@ -230,22 +229,33 @@
     (with-info-message (format "Connecting to ~a:~a..." host port)
       (scmus-connect! host port pass))))
 
-(: ui-initialized? (-> boolean))
-(define (ui-initialized?) *ui-initialized*)
+(: handle-key (symbol fixnum -> undefined))
+(define (handle-key view key)
+  (cond
+    ((= key KEY_RESIZE) (redraw-ui))
+    (else
+      (case (input-mode)
+        ((normal-mode) (normal-mode-key view key))
+        ((edit-mode)   (editable-key (current-editable) key))))))
 
-(: cursor-on (#!optional (pair fixnum fixnum) -> undefined))
-(define (cursor-on #!optional (pos #f))
-  (when pos
-    (move (car pos) (cdr pos)))
-  (curs_set 1))
+(: handle-char (symbol char -> undefined))
+(define (handle-char view ch)
+  (case (input-mode)
+    ((normal-mode) (normal-mode-char view ch))
+    ((edit-mode)   (editable-char (current-editable) ch))))
 
-(: cursor-off thunk)
-(define (cursor-off)
-  (curs_set 0))
+(: handle-input (symbol -> undefined))
+(define (handle-input view)
+  (let-values (((ch rc) (get-char)))
+    (cond
+      ((= rc KEY_CODE_YES) (handle-key view ch))
+      ((= rc ERR) #f)
+      (else (handle-char view (integer->char ch))))))
 
 (: curses-update thunk)
 (define (curses-update)
-  (handle-events!)
+  (let ((err (handle-events!)))
+    (if err (scmus-error-set! err)))
   (update-current-view!)
   (update-cursor)
   (handle-input *current-view*))
@@ -253,7 +263,7 @@
 (: init-curses thunk)
 (define (init-curses)
   (initscr)
-  (set! *ui-initialized* #t)
+  (ui-initialized!)
   (cbreak)
   (keypad (stdscr) #t)
   (halfdelay 5)
@@ -280,7 +290,7 @@
   (map (lambda (line) `(row . ((text . ,line)))) lines))
 
 (define-view error
-  (make-view (make-window 'data (list->rows (string-split-lines *scmus-error*)))
+  (make-view (make-window 'data (list->rows (string-split-lines (scmus-error))))
              " Error"))
 
 (define-event-handler command-line-changed () update-command-line)
@@ -291,4 +301,4 @@
 (define-event-handler status-changed () update-status)
 (define-event-handler (error-changed) ()
   (set! (*window-data (get-window 'error))
-    (list->rows (string-split-lines *scmus-error*))))
+    (list->rows (string-split-lines (scmus-error)))))

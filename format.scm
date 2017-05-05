@@ -1,5 +1,5 @@
 ;;
-;; Copyright 2014 Drew Thoreson
+;; Copyright 2014-2017 Drew Thoreson
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -23,8 +23,10 @@
 (require-extension srfi-1)
 
 (declare (unit format)
-         (uses option scmus-client)
+         (uses option scmus-client scmus-error)
          (export scmus-format process-format format-string-valid?))
+
+(import scmus-base scmus-error)
 
 (: swap (pair -> pair))
 (define (swap pair)
@@ -93,7 +95,7 @@
 (: interp-format-function ((track fixnum -> *) track fixnum -> string))
 (define (interp-format-function fun track len)
   (handle-exceptions e
-    (begin (error-set! e) "<error>")
+    (begin (scmus-error-set! e) "<error>")
     (format "~a" (fun track len))))
 
 (: interp-format-list (pair track fixnum -> string))
@@ -271,9 +273,27 @@
       obj
       (lambda (track len) obj))))
 
+(define (split-colors str)
+  (let loop ((chars (string->list str))
+             (word '())
+             (words '()))
+    (cond
+      ((null? chars)
+        (reverse (cons (list->string (reverse word)) words)))
+      ((char=? (car chars) #\:)
+        (loop (cdr chars) '() (cons (list->string (reverse word)) words)))
+      (else
+        (loop (cdr chars) (cons (car chars) word) words)))))
+
 (: parse-color-spec (format-spec -> *))
 (define (parse-color-spec spec)
-  (string (color->char (*->color-code (parend->string spec #\< #\>)))))
+  (let ((vals (split-colors (parend->string spec #\< #\>))))
+    (list->string
+      (map (lambda (str f)
+             (f (*->color-code str)))
+           vals
+           (list fg-color->char
+                 bg-color->char)))))
 
 (: parse-group-spec (format-spec -> *))
 (define (parse-group-spec spec)
@@ -359,14 +379,16 @@
 (define (code-spec-valid? spec)
   (let-values (((code rest) (parend-split spec #\[ #\])))
     (handle-exceptions e
-      (begin (error-set! e) #f)
+      (begin (scmus-error-set! e) #f)
       (read (open-input-string (list->string code)))
       rest)))
 
 (: color-spec-valid? (format-spec -> boolean))
 (define (color-spec-valid? spec)
-  (let-values (((color rest) (parend-split spec #\< #\>)))
-    (*->color-code (list->string color))))
+  (let-values (((str rest) (parend-split spec #\< #\>)))
+    ;(*->color-code (list->string color))
+    ; FIXME
+    #t))
 
 (: group-spec-valid? (format-spec -> boolean))
 (define (group-spec-valid? spec)

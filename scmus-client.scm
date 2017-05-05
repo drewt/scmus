@@ -1,5 +1,5 @@
 ;;
-;; Copyright 2014 Drew Thoreson
+;; Copyright 2014-2017 Drew Thoreson
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -16,9 +16,11 @@
 ;;
 
 (declare (unit scmus-client)
-         (uses mpd-client option)
+         (uses event mpd-client option scmus-error)
          (hide scmus-try-reconnect status-selector track-selector stat-selector
                scmus-command))
+
+(import scmus-base event scmus-error)
 
 (: *mpd-connection* (or boolean mpd-connection))
 (define *mpd-connection* #f)
@@ -41,7 +43,7 @@
 (: scmus-connect! (string (or boolean fixnum) (or boolean string) -> boolean))
 (define (scmus-connect! host port pass)
   (handle-exceptions e
-    (begin (error-set! e) #f)
+    (begin (scmus-error-set! e) #f)
     (let ((con (mpd:connect host port pass)))
       (if (scmus-connected?)
         (mpd:disconnect *mpd-connection*))
@@ -100,7 +102,7 @@
 (define (scmus-try-reconnect)
   (condition-case
     (begin (set! *mpd-connection* (mpd:reconnect *mpd-connection*)) #t)
-    (e () (error-set! e) #f)))
+    (e () (scmus-error-set! e) #f)))
 
 (: scmus-update-stats! thunk)
 (define (scmus-update-stats!)
@@ -142,7 +144,7 @@
               (scmus-update-current-song!))
             (unless (= version (scmus-queue-version))
               (scmus-update-queue!)))
-          (e () (error-set! e)
+          (e () (scmus-error-set! e)
                 (scmus-try-reconnect)))))
     (register-timer! scmus-update-client!
                      (get-option 'status-update-interval)))
@@ -265,14 +267,14 @@
 (: scmus-bail! (* -> null))
 (define (scmus-bail! e)
   (scmus-disconnect!)
-  (error-set! e)
+  (scmus-error-set! e)
   '())
 
 (: *scmus-command ((mpd-connection #!rest * -> *) #!rest * -> list))
 (define (*scmus-command mpd-fn . args)
   (if (scmus-connected?)
     (condition-case (apply mpd-fn *mpd-connection* args)
-      (e () (error-set! e)
+      (e () (scmus-error-set! e)
             (unless (scmus-try-reconnect)
               (scmus-disconnect!))
             '()))

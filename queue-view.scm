@@ -1,5 +1,5 @@
 ;;
-;; Copyright 2014 Drew Thoreson
+;; Copyright 2014-2017 Drew Thoreson
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -18,6 +18,8 @@
 (declare (unit queue-view)
   (uses event option scmus-client ui-lib view window)
   (export make-queue-view))
+
+(import scmus-base event)
 
 (: queue-remove! (window -> undefined))
 (define (queue-remove! window)

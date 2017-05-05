@@ -1,5 +1,5 @@
 ;;
-;; Copyright 2014 Drew Thoreson
+;; Copyright 2014-2017 Drew Thoreson
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -16,187 +16,198 @@
 ;;
 
 (declare (unit command-line)
-         (uses editable eval-mode event input iter ncurses)
-         (export command-line-text-set! command-line-mode command-line-text
-                 command-line-cursor-pos-set! command-line-clear!
-                 command-line-print-info! command-line-print-error!
-                 enter-eval-mode enter-search-mode))
+         (uses editable event input iter ncurses))
 
-(import ncurses)
+(module command-line
+  (command-line-clear! command-line-print-info!
+   command-line-cursor-pos-set!
+   command-line-get-string
+   command-line-mode
+   command-line-print-error!
+   command-line-text
+   command-line-text-set!)
 
-;; history {{{
+  (import scmus-base editable event input iter ncurses)
 
-(define history
-  (let ((eval-history (iter))
-        (search-history (iter)))
-    (getter-with-setter
-      (lambda ()
-        (case *command-line-mode*
-          ((eval)   eval-history)
-          ((search) search-history)
-          (else     (assert #f "history-getter"))))
-      (lambda (x)
-        (case *command-line-mode*
-          ((eval)   (set! eval-history x))
-          ((search) (set! search-history x))
-          (else     (assert #f "history-setter")))))))
+  ;; history {{{
 
-(: history-next! (-> undefined))
-(define (history-next!)
-  (set! (history) (iter-next (history))))
+  (define history
+    (let ((eval-history (iter))
+          (search-history (iter)))
+      (getter-with-setter
+        (lambda ()
+          (case *command-line-mode*
+            ((eval)   eval-history)
+            ((search) search-history)
+            (else     (assert #f "history-getter"))))
+        (lambda (x)
+          (case *command-line-mode*
+            ((eval)   (set! eval-history x))
+            ((search) (set! search-history x))
+            (else     (assert #f "history-setter")))))))
 
-(: history-prev! (-> undefined))
-(define (history-prev!)
-  (set! (history) (iter-prev (history))))
+  (: history-next! (-> undefined))
+  (define (history-next!)
+    (set! (history) (iter-next (history))))
 
-(: history-add! (* -> undefined))
-(define (history-add! elm)
-  (unless (string=? elm "")
-    (iter-add-head! (history) elm)))
+  (: history-prev! (-> undefined))
+  (define (history-prev!)
+    (set! (history) (iter-prev (history))))
 
-(: history-data (-> *))
-(define (history-data)
-  (let ((iter (history)))
-    (if (iter-head? iter)
-      ""
-      (iter-data iter))))
+  (: history-add! (* -> undefined))
+  (define (history-add! elm)
+    (unless (string=? elm "")
+      (iter-add-head! (history) elm)))
 
-(: history-reset! (-> undefined))
-(define (history-reset!)
-  (set! (history) (iter-head (history))))
+  (: history-data (-> *))
+  (define (history-data)
+    (let ((iter (history)))
+      (if (iter-head? iter)
+        ""
+        (iter-data iter))))
 
-;; history }}}
+  (: history-reset! (-> undefined))
+  (define (history-reset!)
+    (set! (history) (iter-head (history))))
 
-(: command-line-print-info! (string -> undefined))
-(define (command-line-print-info! str)
-  (case *command-line-mode*
-    ((eval search) (void))
-    (else (editable-text-set! *command-line* str)
-          (set! *command-line-mode* 'info)
-          (command-line-changed!)
-          str)))
+  ;; history }}}
 
-(: command-line-print-error! (string -> undefined))
-(define (command-line-print-error! str)
-  (case *command-line-mode*
-    ((eval search) (void))
-    (else (editable-text-set! *command-line* str)
-          (set! *command-line-mode* 'error)
-          (command-line-changed!)
-          str)))
+  (: command-line-print-info! (string -> undefined))
+  (define (command-line-print-info! str)
+    (case *command-line-mode*
+      ((eval search) (void))
+      (else (editable-text-set! *command-line* str)
+            (set! *command-line-mode* 'info)
+            (command-line-changed!)
+            str)))
 
-(: command-line-changed! thunk)
-(define (command-line-changed!)
-  (register-event! 'command-line-changed))
+  (: command-line-print-error! (string -> undefined))
+  (define (command-line-print-error! str)
+    (case *command-line-mode*
+      ((eval search) (void))
+      (else (editable-text-set! *command-line* str)
+            (set! *command-line-mode* 'error)
+            (command-line-changed!)
+            str)))
 
-(: command-line-empty? (-> boolean))
-(define (command-line-empty?)
-  (= 0 (command-line-length)))
+  (: command-line-changed! thunk)
+  (define (command-line-changed!)
+    (register-event! 'command-line-changed))
 
-(: command-line-clear! thunk)
-(define (command-line-clear!)
-  (editable-clear! *command-line*)
-  (command-line-changed!))
+  (: command-line-empty? (-> boolean))
+  (define (command-line-empty?)
+    (= 0 (command-line-length)))
 
-(: command-line-text (-> string))
-(define (command-line-text)
-  (editable-text *command-line*))
+  (: command-line-clear! thunk)
+  (define (command-line-clear!)
+    (editable-clear! *command-line*)
+    (command-line-changed!))
 
-(: command-line-text-set! (string -> undefined))
-(define (command-line-text-set! str)
-  (editable-text-set! *command-line* str))
+  (: command-line-text (-> string))
+  (define (command-line-text)
+    (editable-text *command-line*))
 
-(: command-line-cursor-pos (-> fixnum))
-(define (command-line-cursor-pos)
-  (+ 1 (editable-cursor-pos *command-line*)))
+  (: command-line-text-set! (string -> undefined))
+  (define (command-line-text-set! str)
+    (editable-text-set! *command-line* str))
 
-(: command-line-cursor-pos-set! (fixnum -> undefined))
-(define (command-line-cursor-pos-set! index)
-  (editable-cursor-pos-set! *command-line* index))
+  (: command-line-cursor-pos (-> fixnum))
+  (define (command-line-cursor-pos)
+    (+ 1 (editable-cursor-pos *command-line*)))
 
-(: command-line-length (-> fixnum))
-(define (command-line-length)
-  (editable-length *command-line*))
+  (: command-line-cursor-pos-set! (fixnum -> undefined))
+  (define (command-line-cursor-pos-set! index)
+    (editable-cursor-pos-set! *command-line* index))
 
-(: command-line-leave (editable -> undefined))
-(define (command-line-leave editable)
-  (history-add! (editable-text editable))
-  (history-reset!)
-  (editable-clear! editable)
-  (set! *command-line-mode* 'normal)
-  (set-input-mode! 'normal-mode))
+  (: command-line-length (-> fixnum))
+  (define (command-line-length)
+    (editable-length *command-line*))
 
-(: command-line-commit! (editable -> undefined))
-(define (command-line-commit! editable)
-  (let ((cmdline (editable-text editable))
-        (mode *command-line-mode*))
-    (command-line-leave editable)
-    (if (eqv? mode 'eval)
-      (let ((r (user-eval-string cmdline)))
-        (if (and (not (condition? r)) (get-option 'eval-mode-print))
-          (command-line-print-info! (format "~s" r))))
-      (win-search! cmdline))))
+  (: command-line-leave (editable -> undefined))
+  (define (command-line-leave editable)
+    (history-add! (editable-text editable))
+    (history-reset!)
+    (editable-clear! editable)
+    (set! *command-line-mode* 'normal)
+    (set! *command-line-callback* void)
+    (set-input-mode! 'normal-mode))
 
-(: command-line-char (editable char -> undefined))
-(define (command-line-char editable ch)
-  (case ch
-    ((#\newline)
-      (command-line-commit! editable))
-    ((#\esc)
-      (command-line-leave editable))
-    ((#\backspace #\delete)
-      (if (= 0 (editable-length editable))
-        (command-line-leave editable)
+  (: command-line-commit! (editable -> undefined))
+  (define (command-line-commit! editable)
+    (let ((cmdline (editable-text editable))
+          (callback *command-line-callback*)
+          (mode *command-line-mode*))
+      (command-line-leave editable)
+      (callback cmdline)
+      ;(if (eqv? mode 'eval)
+      ;  (let ((r (user-eval-string cmdline)))
+      ;    (if (and (not (condition? r)) (get-option 'eval-mode-print))
+      ;      (command-line-print-info! (format "~s" r))))
+      ;  (win-search! cmdline))
+      ))
+
+  (: command-line-char (editable char -> undefined))
+  (define (command-line-char editable ch)
+    (case ch
+      ((#\newline)
+        (command-line-commit! editable))
+      ((#\esc)
+        (let ((callback *command-line-callback*))
+          (command-line-leave editable)
+          (callback #f)))
+      ((#\backspace #\delete)
+        (if (= 0 (editable-length editable))
+          (command-line-leave editable)
+          (editable-default-char-handler editable ch)))
+      (else
         (editable-default-char-handler editable ch)))
-    (else
-      (editable-default-char-handler editable ch)))
-  (command-line-changed!))
+    (command-line-changed!))
 
-(: command-line-key (editable fixnum -> undefined))
-(define (command-line-key editable key)
-  (key-case key
-    ((KEY_ENTER)
-      (command-line-commit! editable))
-    ((KEY_UP)
-      (history-next!)
-      (editable-text-set! editable (history-data)))
-    ((KEY_DOWN)
-      (history-prev!)
-      (editable-text-set! editable (history-data)))
-    ((KEY_BACKSPACE)
-      (if (= 0 (editable-length editable))
-        (command-line-leave editable)
-        (editable-default-key-handler editable key)))
-    (else (editable-default-key-handler editable key)))
-  (command-line-changed!))
+  (: command-line-key (editable fixnum -> undefined))
+  (define (command-line-key editable key)
+    (key-case key
+      ((KEY_ENTER)
+        (command-line-commit! editable))
+      ((KEY_UP)
+        (history-next!)
+        (editable-text-set! editable (history-data)))
+      ((KEY_DOWN)
+        (history-prev!)
+        (editable-text-set! editable (history-data)))
+      ((KEY_BACKSPACE)
+        (if (= 0 (editable-length editable))
+          (command-line-leave editable)
+          (editable-default-key-handler editable key)))
+      (else (editable-default-key-handler editable key)))
+    (command-line-changed!))
 
-(: *command-line* editable)
-(define *command-line* (make-editable ""
-                                      command-line-char
-                                      command-line-key
-                                      editable-clear!))
+  (: *command-line* editable)
+  (define *command-line* (make-editable ""
+                                        command-line-char
+                                        command-line-key
+                                        editable-clear!))
 
-(: *command-line-mode* symbol)
-(define *command-line-mode* 'normal)
+  (: *command-line-mode* symbol)
+  (define *command-line-mode* 'normal)
 
-(: command-line-pos (-> (pair fixnum fixnum)))
-(define (command-line-pos)
-  (cons (- (LINES) 1) 1))
+  (: *command-line-callback* ((or string boolean) -> *))
+  (define *command-line-callback* void)
 
-(: command-line-init! thunk)
-(define (command-line-init!)
-  (set-input-mode! 'edit-mode *command-line* (command-line-pos))
-  (command-line-changed!))
+  (: command-line-pos (-> (pair fixnum fixnum)))
+  (define (command-line-pos)
+    (cons (- (LINES) 1) 1))
 
-(: enter-eval-mode thunk)
-(define (enter-eval-mode)
-  (set! *command-line-mode* 'eval)
-  (command-line-init!))
+  (: command-line-init! thunk)
+  (define (command-line-init!)
+    (set-input-mode! 'edit-mode *command-line* (command-line-pos))
+    (command-line-changed!))
 
-(: enter-search-mode thunk)
-(define (enter-search-mode)
-  (set! *command-line-mode* 'search)
-  (command-line-init!))
 
-(: command-line-mode (-> symbol))
-(define (command-line-mode) *command-line-mode*)
+  (: command-line-mode (-> symbol))
+  (define (command-line-mode) *command-line-mode*)
+
+  (: command-line-get-string (symbol ((or string boolean) -> *) -> undefined))
+  (define (command-line-get-string mode then)
+    (set! *command-line-mode* mode)
+    (set! *command-line-callback* then)
+    (command-line-init!)))

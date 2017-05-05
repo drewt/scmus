@@ -1,5 +1,5 @@
 ;;
-;; Copyright 2014 Drew Thoreson
+;; Copyright 2014-2017 Drew Thoreson
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -19,7 +19,7 @@
          (uses event ncurses option scmus-client ui-lib view window)
          (export update-browser!))
 
-(import ncurses)
+(import scmus-base ncurses)
 
 (: browser-add! (* -> undefined))
 (define (browser-add! selected)

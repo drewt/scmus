@@ -1,5 +1,6 @@
 *.o
 *.types
+*.import.scm
 *.swp
 *.swo
 

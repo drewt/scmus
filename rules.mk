@@ -50,7 +50,7 @@ quiet_cmd_cc    = CC      $@
 
 # scheme compile for object files
 quiet_cmd_csc   = CSC     $@
-      cmd_csc   = $(CSC) -c $(CSCFLAGS) -o $@ $<
+      cmd_csc   = $(CSC) -c $(CSCFLAGS) -J -o $@ $<
 
 # scheme compile for module object files
 quiet_cmd_msc   = CSC     $@

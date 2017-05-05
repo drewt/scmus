@@ -1,5 +1,5 @@
 ;;
-;; Copyright 2014 Drew Thoreson
+;; Copyright 2014-2017 Drew Thoreson
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -34,13 +34,13 @@
 (require-extension srfi-1)
 
 (declare (unit keys)
-         (uses eval-mode key-table ncurses)
+         (uses eval-mode event key-table ncurses)
          (export binding-context-valid? binding-data binding-expression
                  binding-expression? binding-key binding-keys-valid? bindings
-                 enter-normal-mode key-list->string make-binding!
-                 normal-mode-char normal-mode-key unbind!))
+                 key-list->string make-binding! normal-mode-char
+                 normal-mode-key unbind!))
 
-(import ncurses)
+(import scmus-base event ncurses)
 
 (define-type binding-node (pair string pair))
 (define-type binding-list (list-of binding-node))
@@ -216,10 +216,6 @@
             (set! *common-context* (if common-binding common-binding '())))
           (else ; no binding
             (clear-context!)))))))
-
-(: enter-normal-mode thunk)
-(define (enter-normal-mode)
-  (cursor-off))
 
 (: normal-mode-char (symbol char -> undefined))
 (define (normal-mode-char view ch)

@@ -1,5 +1,5 @@
 ;;
-;; Copyright 2014 Drew Thoreson
+;; Copyright 2014-2017 Drew Thoreson
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -16,10 +16,10 @@
 ;;
 
 (declare (unit bindings-view)
-  (uses editable event input keys ncurses ui-lib view window)
+  (uses editable event input keys ncurses scmus-error ui-lib view window)
   (export make-bindings-view binding-edit!))
 
-(import ncurses)
+(import scmus-base editable event input ncurses scmus-error)
 
 (define-record-type key-list (make-key-list keys) key-list?
   (keys key-list-keys))
@@ -92,7 +92,7 @@
 
 (: binding-commit-edit! (editable -> boolean))
 (define (binding-commit-edit! editable)
-  (handle-exceptions e (begin (error-set! e) #f)
+  (handle-exceptions e (begin (scmus-error-set! e) #f)
     (user-bind! (car (editable-data editable))
                 (cdr (editable-data editable))
                 (editable-read editable)

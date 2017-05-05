@@ -1,5 +1,5 @@
 ;;
-;; Copyright 2014 Drew Thoreson
+;; Copyright 2014-2017 Drew Thoreson
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -21,7 +21,7 @@
          (export get-option set-option! options option-get option-set!
                  option-string get-format write-config!))
 
-(import ncurses)
+(import scmus-base event ncurses)
 
 (define-type option-getter (option -> *))
 (define-type option-setter (option * -> undefined))

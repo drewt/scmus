@@ -1,15 +1,15 @@
 scmus - Scheme MPD Client
 =========================
 
-Copyright © 2014 Drew Thoreson
+Copyright © 2014-2017 Drew Thoreson
 
 ![screenshot of scmus](https://raw.github.com/drewt/scmus/master/screens/scmus.png "scmus - queue view")
 
 scmus is an MPD client written in the (Chicken) scheme programming language.
-scmus is quite similar to the cmus music player, with a few major differences:
+scmus is similar to the cmus music player, with a few major differences:
 
 * scmus is an MPD client
-* scmus can be controlled and scripted in scheme
+* scmus can be controlled and scripted using the Scheme programming language
 * scmus is in the early stages of development
 
 
@@ -34,7 +34,7 @@ To build scmus:
 Installation
 ------------
 
-    $ make install
+    # make install
 
 
 Manual
