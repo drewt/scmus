@@ -22,73 +22,73 @@ prelude = '"(define *scmus-dir* \"$(datadir)/scmus\")\
 CSC      = csc
 TFLAGS   = -uses scmus-base -prologue prologue.scm $(features-y) 
 CSCFLAGS = -scrutinize -C -Wno-int-to-pointer-cast -C -Wno-cpp $(TFLAGS) \
-	   -C '-DSCMUS_DIR=\"$(datadir)/scmus\"' \
-	   -C '-DVERSION=\"$(VERSION)\"' \
-	   $(types-cflags-y)
+           -C '-DSCMUS_DIR=\"$(datadir)/scmus\"' \
+           -C '-DVERSION=\"$(VERSION)\"' \
+           $(types-cflags-y)
 LD       = csc
 LDFLAGS  =
 INSTALL  = @scripts/install
 
+objfiles = $(foreach f,$(1),$(addsuffix .@OBJEXT@,$(f)))
+
 eggs = coops sandbox unix-sockets utf8
 
-units = bindings-view browser-view eval-mode \
-	format key-table keys library-view \
-	option options-view queue-view search-view \
-	scmus-client ui-curses ui-lib view window
+units   = bindings-view browser-view eval-mode \
+          format key-table keys library-view \
+          option options-view queue-view search-view \
+          scmus-client ui-curses ui-lib view window
 modules = command-line config editable event getopt input iter mpd-client \
 	  ncurses scmus-base scmus-error track
-objects = $(foreach unit,$(units) $(modules),$(addsuffix .@OBJEXT@,$(unit)))
-imports = $(foreach mod,$(modules),$(addsuffix .import.scm,$(mod)))
 types   = $(foreach unit,$(units) $(modules),$(addsuffix .types,$(unit)))
-target = scmus@EXEEXT@
+target  = scmus@EXEEXT@
 
 test-units = test/iter
-test-objects = $(foreach unit,$(test-units),$(addsuffix .@OBJEXT@,$(unit)))
 
-clean = $(objects) main.@OBJEXT@ $(test-objects) check.@OBJEXT@ $(types) \
-	$(imports) $(target) all.types
+clean = $(call objfiles,$(units) $(modules) $(test-units) main check) \
+	$(foreach mod,$(modules),$(addsuffix .import.scm,$(mod))) \
+        $(types) $(target) all.types
 
 all: $(target)
 
-main.o: scmus-base.o config.o getopt.o
-bindings-view.o: scmus-base.o editable.o event.o input.o ncurses.o scmus-error.o
-browser-view.o: scmus-base.o ncurses.o track.o
-command-line.o: scmus-base.o editable.o event.o input.o iter.o ncurses.o
-editable.o: scmus-base.o ncurses.o
-eval-mode.o: scmus-base.o command-line.o config.o event.o ncurses.o \
-             scmus-error.o track.o
-event.o: scmus-base.o
-format.o: scmus-base.o scmus-error.o track.o
-input.o: scmus-base.o editable.o ncurses.o
-keys.o: scmus-base.o event.o ncurses.o
-key-table.o: scmus-base.o ncurses.o
-library-view.o: scmus-base.o ncurses.o track.o
-option.o: scmus-base.o event.o ncurses.o
-options-view.o: scmus-base.o editable.o event.o input.o ncurses.o scmus-error.o
-queue-view.o: scmus-base.o event.o track.o
-scmus-base.o: config.o ncurses.o
-scmus-client.o: scmus-base.o event.o mpd-client.o scmus-error.o track.o
-scmus-error.o: scmus-base.o command-line.o event.o
-search-view.o: scmus-base.o editable.o input.o ncurses.o
-track.o: scmus-base.o
-ui-curses.o: scmus-base.o command-line.o editable.o event.o input.o ncurses.o \
-             scmus-error.o
-ui-lib.o: scmus-base.o ncurses.o
-view.o: scmus-base.o
-window.o: scmus-base.o
+main_deps          = scmus-base config getopt
+bindings-view_deps = scmus-base editable event input ncurses scmus-error
+browser-view_deps  = scmus-base ncurses track
+command-line_deps  = scmus-base editable event input iter ncurses
+editable_deps      = scmus-base ncurses
+eval-mode_deps     = scmus-base command-line config event ncurses scmus-error track
+event_deps         = scmus-base
+format_deps        = scmus-base scmus-error track
+input_deps         = scmus-base editable ncurses
+keys_deps          = scmus-base event ncurses
+key-table_deps     = scmus-base ncurses
+library-view_deps  = scmus-base ncurses track
+option_deps        = scmus-base event ncurses
+options-view_deps  = scmus-base editable event input ncurses scmus-error
+queue-view_deps    = scmus-base event track
+scmus-base_deps    = config ncurses
+scmus-client_deps  = scmus-base event mpd-client scmus-error track
+scmus-error_deps   = scmus-base command-line event
+search-view_deps   = scmus-base editable input ncurses
+track_deps         = scmus-base
+ui-curses_deps     = scmus-base command-line editable event input ncurses scmus-error
+ui-lib_deps        = scmus-base ncurses
+view_deps          = scmus-base
+window_deps        = scmus-base
+
+$(foreach f,$(units) $(modules) main,$(eval $(f).@OBJEXT@: $(call objfiles,$($(f)_deps))))
 
 include rules.mk
 
 config.o: CSCFLAGS += -prelude $(prelude)
 
-$(objects): prologue.scm $(types-prereq-y)
+$(call objfiles,$(units) $(modules)): prologue.scm $(types-prereq-y)
 
-$(target): $(objects) main.@OBJEXT@
+$(target): $(call objfiles,$(units) $(modules)) main.@OBJEXT@
 	$(call cmd,ld,$(LIBS))
 
-$(test-objects): prologue.scm test/test.scm
+$(call objfiles,$(test-units)): prologue.scm test/test.scm
 
-check: $(objects) $(test-objects) check.@OBJEXT@
+check: $(call objfiles,$(units) $(modules) $(test-units)) check.@OBJEXT@
 	$(call cmd,ld,$(LIBS))
 
 all.types: $(types)
