@@ -17,10 +17,11 @@
 
 ;(declare (unit user-api)
 ;         (uses eval-mode scmus-client))
+(declare (uses track))
 
 
 ;(module user-api (win-search! win-search-next! win-search-prev!)
-  (import scmus-base command-line config event ncurses)
+  (import scmus-base command-line config event ncurses track)
 
 (define-syntax define/user
   (syntax-rules ()

@@ -26,23 +26,146 @@
 ;; OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ;; ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-(require-extension regex srfi-1 tcp)
-
-(cond-expand
-  (windows
-    (define (unix-connect usock)
-      (abort (make-property-condition 'exn
-                'message "UNIX domain sockets not supported on this platform"
-                'arguments '()))))
-  (else (require-extension unix-sockets)))
+(require-extension regex srfi-1 srfi-13 tcp)
 
 (declare (unit mpd-client)
-         (hide make-connection mpd-host-set! mpd-port-set! in-port in-port-set!
-               out-port out-port-set! mpd-version-set! re-ok+version
-               re-err re-pair raise-mpd-error check-connection send-command
-               playlist-is-number? convert-type read-response parse-songs
-               flatten-constraints format-range range-or-number))
+         ;(hide make-connection mpd-host-set! mpd-port-set! in-port in-port-set!
+         ;      out-port out-port-set! mpd-version-set! re-ok+version
+         ;      re-err re-pair raise-mpd-error check-connection send-command
+         ;      playlist-is-number? convert-type read-response parse-songs
+         ;      flatten-constraints format-range range-or-number)
+         )
 
+(module mpd-client
+  (; Connection records
+   mpd-connection?
+   mpd-host
+   mpd-port
+   mpd-password
+   mpd-version
+   ; Connect/disconnect
+   mpd:connect
+   mpd:disconnect
+   mpd:reconnect
+   mpd:connected?
+   ; Send arbitrary command
+   mpd:send-command
+   ; Querying MPD's status
+   mpd:clear-error!
+   mpd:current-song
+   mpd:status
+   mpd:stats
+   ;Playback options
+   mpd:consume-set!
+   mpd:random-set!
+   mpd:repeat-set!
+   mpd:single-set!
+   mpd:crossfade-set!
+   mpd:mixrampdb-set!
+   mpd:mixrampdelay-set!
+   mpd:volume-set!
+   mpd:replay-gain-mode-set!
+   mpd:replay-gain-status
+   ; Controlling playback
+   mpd:next!
+   mpd:pause!
+   mpd:toggle-pause!
+   mpd:play!
+   mpd:play-pos!
+   mpd:play-id!
+   mpd:previous!
+   mpd:seek!
+   mpd:seek-id!
+   mpd:seek-cur!
+   mpd:stop!
+   ; The current playlist
+   mpd:add!
+   mpd:add-id!
+   mpd:add-id-at!
+   mpd:clear!
+   mpd:delete!
+   mpd:delete-id!
+   mpd:move!
+   mpd:move-id!
+   mpd:playlist-find
+   mpd:playlist-id
+   mpd:playlist-info
+   mpd:playlist-search
+   mpd:playlist-changes
+   mpd:playlist-changes-posid
+   mpd:prio-set!
+   mpd:prio-id-set!
+   mpd:shuffle!
+   mpd:swap!
+   mpd:swap-id!
+   mpd:add-tag-id!
+   mpd:clear-tag-id!
+   ; Stored playlists
+   mpd:list-playlist
+   mpd:list-playlist-info
+   mpd:list-playlists
+   mpd:playlist-load!
+   mpd:playlist-add!
+   mpd:playlist-clear!
+   mpd:playlist-delete!
+   mpd:playlist-move!
+   mpd:playlist-rename!
+   mpd:playlist-rm!
+   mpd:playlist-save!
+   ; The music database
+   mpd:count
+   mpd:find
+   mpd:find-add!
+   mpd:list-tags
+   mpd:list-all
+   mpd:list-all-info
+   mpd:list-files
+   mpd:lsinfo
+   mpd:read-comments
+   mpd:search
+   mpd:search-add!
+   *mpd:search-add-pl! ; FIXME: why the asterisk
+   mpd:update!
+   mpd:rescan!
+   ; Stickers
+   mpd:sticker-get
+   mpd:sticker-set!
+   mpd:sticker-delete!
+   mpd:sticker-delete-all!
+   mpd:sticker-list
+   mpd:sticker-find
+   ; Connection settings
+   mpd:close!
+   mpd:kill!
+   mpd:password
+   mpd:ping
+   ; Audio output devices
+   mpd:disable-output!
+   mpd:enable-output!
+   mpd:toggle-output!
+   mpd:list-outputs
+   ; Reflection
+   mpd:config
+   mpd:commands
+   mpd:not-commands
+   mpd:tag-types
+   mpd:url-handlers
+   mpd:decoders
+   ; Client to client
+   mpd:subscribe!
+   mpd:unsubscribe!
+   mpd:channels
+   mpd:read-messages
+   mpd:send-message!)
+  (import scheme chicken data-structures extras regex srfi-1 srfi-13 tcp)
+  (cond-expand
+    (windows
+      (define (unix-connect usock)
+        (abort (make-property-condition 'exn
+                  'message "UNIX domain sockets not supported on this platform"
+                  'arguments '()))))
+    (else (require-extension unix-sockets)))
+ 
 (define-record-type mpd-connection
   (make-connection hostname port password in-port out-port version)
   mpd-connection?
@@ -402,4 +525,4 @@
 (define-simple-command 1 mpd:unsubscribe! "unsubscribe")
 (define-simple-command 0 mpd:channels "channels")
 (define-simple-command 0 mpd:read-messages "readmessages")
-(define-simple-command 2 mpd:send-message! "sendmessage")
+(define-simple-command 2 mpd:send-message! "sendmessage"))

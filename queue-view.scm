@@ -16,10 +16,10 @@
 ;;
 
 (declare (unit queue-view)
-  (uses event option scmus-client ui-lib view window)
+  (uses event option scmus-client track ui-lib view window)
   (export make-queue-view))
 
-(import scmus-base event)
+(import scmus-base event track)
 
 (: queue-remove! (window -> undefined))
 (define (queue-remove! window)

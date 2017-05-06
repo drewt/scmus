@@ -33,10 +33,10 @@ eggs = coops sandbox unix-sockets utf8
 
 units = bindings-view browser-view eval-mode \
 	format key-table keys library-view \
-	mpd-client ncurses option options-view queue-view search-view \
+	option options-view queue-view search-view \
 	scmus-client ui-curses ui-lib view window
-modules = command-line config editable event getopt input iter ncurses \
-	  scmus-base scmus-error
+modules = command-line config editable event getopt input iter mpd-client \
+	  ncurses scmus-base scmus-error track
 objects = $(foreach unit,$(units) $(modules),$(addsuffix .@OBJEXT@,$(unit)))
 imports = $(foreach mod,$(modules),$(addsuffix .import.scm,$(mod)))
 types   = $(foreach unit,$(units) $(modules),$(addsuffix .types,$(unit)))
@@ -52,25 +52,27 @@ all: $(target)
 
 main.o: scmus-base.o config.o getopt.o
 bindings-view.o: scmus-base.o editable.o event.o input.o ncurses.o scmus-error.o
-browser-view.o: scmus-base.o ncurses.o
+browser-view.o: scmus-base.o ncurses.o track.o
 command-line.o: scmus-base.o editable.o event.o input.o iter.o ncurses.o
 editable.o: scmus-base.o ncurses.o
-eval-mode.o: scmus-base.o command-line.o config.o event.o ncurses.o scmus-error.o
+eval-mode.o: scmus-base.o command-line.o config.o event.o ncurses.o \
+             scmus-error.o track.o
 event.o: scmus-base.o
-format.o: scmus-base.o scmus-error.o
+format.o: scmus-base.o scmus-error.o track.o
 input.o: scmus-base.o editable.o ncurses.o
 keys.o: scmus-base.o event.o ncurses.o
 key-table.o: scmus-base.o ncurses.o
-library-view.o: scmus-base.o ncurses.o
+library-view.o: scmus-base.o ncurses.o track.o
 option.o: scmus-base.o event.o ncurses.o
 options-view.o: scmus-base.o editable.o event.o input.o ncurses.o scmus-error.o
-queue-view.o: scmus-base.o event.o
+queue-view.o: scmus-base.o event.o track.o
 scmus-base.o: config.o ncurses.o
-scmus-client.o: scmus-base.o event.o scmus-error.o
+scmus-client.o: scmus-base.o event.o mpd-client.o scmus-error.o track.o
 scmus-error.o: scmus-base.o command-line.o event.o
 search-view.o: scmus-base.o editable.o input.o ncurses.o
+track.o: scmus-base.o
 ui-curses.o: scmus-base.o command-line.o editable.o event.o input.o ncurses.o \
-	     scmus-error.o
+             scmus-error.o
 ui-lib.o: scmus-base.o ncurses.o
 view.o: scmus-base.o
 window.o: scmus-base.o

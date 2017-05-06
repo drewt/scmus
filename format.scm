@@ -23,10 +23,10 @@
 (require-extension srfi-1)
 
 (declare (unit format)
-         (uses option scmus-client scmus-error)
+         (uses scmus-client scmus-error track)
          (export scmus-format process-format format-string-valid?))
 
-(import scmus-base scmus-error)
+(import scmus-base scmus-error track)
 
 (: swap (pair -> pair))
 (define (swap pair)

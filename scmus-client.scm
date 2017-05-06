@@ -16,11 +16,11 @@
 ;;
 
 (declare (unit scmus-client)
-         (uses event mpd-client option scmus-error)
+         (uses event mpd-client option scmus-error track)
          (hide scmus-try-reconnect status-selector track-selector stat-selector
                scmus-command))
 
-(import scmus-base event scmus-error)
+(import scmus-base event mpd-client scmus-error track)
 
 (: *mpd-connection* (or boolean mpd-connection))
 (define *mpd-connection* #f)
@@ -60,7 +60,7 @@
                   (or boolean string)
                   string
                   #!rest *
-                    -> *))
+                  -> *))
 (define (scmus-oneshot host port pass cmd . args)
   (condition-case
     (let* ((con (mpd:connect (if host host (get-option 'mpd-address))
@@ -163,16 +163,6 @@
         (let ((e (alist-ref sym *mpd-status*)))
           (if e e default))))))
 
-(define-syntax track-selector
-  (syntax-rules ()
-    ((track-selector name sym)
-      (track-selector name sym ""))
-    ((track-selector name sym default)
-      (define (name song)
-        (assert (list? song) "" song)
-        (let ((e (alist-ref sym song)))
-         (if e e default))))))
-
 (define-syntax stat-selector
   (syntax-rules ()
     ((stat-selector name sym)
@@ -204,37 +194,6 @@
 ;(status-selector scmus-total-time 'total-time 0)
 ;(status-selector scmus-audio 'audio '(0 0 0))
 
-(track-selector track-file 'file)
-(track-selector track-last-modified 'last-modified 0)
-(track-selector *track-duration 'time '(0))
-(track-selector track-title 'title)
-(track-selector track-artist 'artist)
-(track-selector track-album 'album)
-(track-selector track-albumartist 'albumartist)
-(track-selector track-genre 'genre)
-(track-selector track-date 'date)
-(track-selector track-track 'track)
-(track-selector track-disc 'disc 1)
-(track-selector track-name 'name)
-(track-selector track-composer 'composer)
-(track-selector track-performer 'performer)
-(track-selector track-start 'start 0)
-(track-selector track-end 'end 0)
-(track-selector track-pos 'pos -1)
-(track-selector track-id 'id -1)
-(track-selector track-prio 'prio 0)
-
-(: track-duration (track -> number))
-(define (track-duration track)
-  (car (*track-duration track)))
-
-(: track-meta (track symbol #!optional * -> *))
-(define (track-meta track meta #!optional (default ""))
-  (let ((pair (assoc meta track)))
-    (if pair
-      (cdr pair)
-      default)))
-
 (: current-track (-> track))
 (define (current-track)
   *current-track*)
@@ -242,19 +201,6 @@
 (: current-track? (track -> boolean))
 (define (current-track? track)
   (track= track *current-track*))
-
-(: track= (track track -> boolean))
-(define (track= a b)
-  (string=? (track-file a) (track-file b)))
-
-(: track-match (track string -> boolean))
-(define (track-match track query)
-  (if (or (substring-match (track-title track) query)
-          (substring-match (track-album track) query)
-          (substring-match (track-artist track) query)
-          (substring-match (track-albumartist track) query))
-    #t
-    #f))
 
 (stat-selector scmus-uptime 'uptime)
 (stat-selector scmus-playtime 'playtime)
