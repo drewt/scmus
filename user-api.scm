@@ -17,11 +17,11 @@
 
 ;(declare (unit user-api)
 ;         (uses eval-mode scmus-client))
-(declare (uses track))
+(declare (uses status track))
 
 
 ;(module user-api (win-search! win-search-next! win-search-prev!)
-  (import scmus-base command-line config event ncurses track)
+  (import scmus-base command-line config event ncurses status track)
 
 (define-syntax define/user
   (syntax-rules ()
@@ -94,9 +94,9 @@
   "Get the elapsed time of the current track"
   scmus-elapsed)
 
-(define/user current-track
+(define/user (current-track)
   "Get the current track"
-  current-track)
+  (current-track))
 
 (define/user current-volume
   "Get the current volume"

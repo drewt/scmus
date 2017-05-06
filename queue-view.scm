@@ -16,10 +16,10 @@
 ;;
 
 (declare (unit queue-view)
-  (uses event option scmus-client track ui-lib view window)
+  (uses event option scmus-client status track ui-lib view window)
   (export make-queue-view))
 
-(import scmus-base event track)
+(import scmus-base event status track)
 
 (: queue-remove! (window -> undefined))
 (define (queue-remove! window)
@@ -55,7 +55,7 @@
 
 (define-view queue
   (make-view
-    (make-window 'data       (list-of 'file *queue*)
+    (make-window 'data       (list-of 'file (current-queue))
                  'activate   (lambda (w) (scmus-play-track! (cdr (window-selected w))))
                  'match      (lambda (row query) (track-match (cdr row) query))
                  'remove     queue-remove!
@@ -69,4 +69,4 @@
   (widget-damaged! (get-view 'queue)))
 
 (define-event-handler (queue-data-changed) ()
-  (set! (*window-data (get-window 'queue)) (list-of 'file *queue*)))
+  (set! (*window-data (get-window 'queue)) (list-of 'file (current-queue))))

@@ -38,7 +38,7 @@ units   = bindings-view browser-view eval-mode \
           option options-view queue-view search-view \
           scmus-client ui-curses ui-lib view window
 modules = command-line config editable event getopt input iter mpd-client \
-	  ncurses scmus-base scmus-error track
+	  ncurses scmus-base scmus-error status track
 types   = $(foreach unit,$(units) $(modules),$(addsuffix .types,$(unit)))
 target  = scmus@EXEEXT@
 
@@ -57,20 +57,21 @@ command-line_deps  = scmus-base editable event input iter ncurses
 editable_deps      = scmus-base ncurses
 eval-mode_deps     = scmus-base command-line config event ncurses scmus-error track
 event_deps         = scmus-base
-format_deps        = scmus-base scmus-error track
+format_deps        = scmus-base scmus-error status track
 input_deps         = scmus-base editable ncurses
 keys_deps          = scmus-base event ncurses
 key-table_deps     = scmus-base ncurses
 library-view_deps  = scmus-base ncurses track
 option_deps        = scmus-base event ncurses
 options-view_deps  = scmus-base editable event input ncurses scmus-error
-queue-view_deps    = scmus-base event track
+queue-view_deps    = scmus-base event status track
 scmus-base_deps    = config ncurses
-scmus-client_deps  = scmus-base event mpd-client scmus-error track
+scmus-client_deps  = scmus-base event mpd-client scmus-error status track
 scmus-error_deps   = scmus-base command-line event
 search-view_deps   = scmus-base editable input ncurses
+status_deps        = scmus-base track
 track_deps         = scmus-base
-ui-curses_deps     = scmus-base command-line editable event input ncurses scmus-error
+ui-curses_deps     = scmus-base command-line editable event input ncurses scmus-error status
 ui-lib_deps        = scmus-base ncurses
 view_deps          = scmus-base
 window_deps        = scmus-base

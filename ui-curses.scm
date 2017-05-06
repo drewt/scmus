@@ -20,12 +20,12 @@
 (declare (unit ui-curses)
          (uses bindings-view browser-view command-line eval-mode event format
                input keys library-view ncurses option options-view queue-view
-               scmus-client scmus-error search-view ui-lib view window)
+               scmus-client scmus-error search-view status ui-lib view window)
          (export current-view current-window curses-update cursor-off cursor-on
                  exit-curses get-window init-curses redraw-ui set-view!
                  connect!))
 
-(import scmus-base command-line editable event input ncurses scmus-error)
+(import scmus-base command-line editable event input ncurses scmus-error status)
 
 (define *current-view* 'queue)
 
@@ -122,7 +122,7 @@
     (cursed-set! CURSED-TITLELINE)
     (print-line! (scmus-format (get-format 'format-current)
                                (COLS)
-                               *current-track*)
+                               (current-track))
                  0
                  (- (LINES) 3)
                  (COLS)
@@ -134,7 +134,7 @@
     (cursed-set! CURSED-STATUSLINE)
     (print-line! (scmus-format (get-format 'format-status)
                                (COLS)
-                               *current-track*)
+                               (current-track))
                  0
                  (- (LINES) 2)
                  (COLS)
@@ -142,7 +142,7 @@
 
 (: update-status thunk)
 (define (update-status)
-  (set! (*window-data (get-window 'status)) (alist->kv-rows *mpd-status*))
+  (set! (*window-data (get-window 'status)) (alist->kv-rows (current-status)))
   (update-status-line))
 
 (: update-current thunk)
@@ -282,7 +282,7 @@
     (endwin)))
 
 (define-view status
-  (make-view (make-window 'data (alist->kv-rows *mpd-status*)
+  (make-view (make-window 'data (alist->kv-rows (current-status))
                           'format *key-value-format*)
              " MPD Status"))
 

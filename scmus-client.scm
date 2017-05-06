@@ -17,25 +17,12 @@
 
 (declare (unit scmus-client)
          (uses event mpd-client option scmus-error track)
-         (hide scmus-try-reconnect status-selector track-selector stat-selector
-               scmus-command))
+         (hide scmus-try-reconnect scmus-command))
 
-(import scmus-base event mpd-client scmus-error track)
+(import scmus-base event mpd-client scmus-error status track)
 
 (: *mpd-connection* (or boolean mpd-connection))
 (define *mpd-connection* #f)
-
-(: *mpd-status* (list-of (pair symbol *)))
-(define *mpd-status* '())
-
-(: *mpd-stats* (list-of (pair symbol *)))
-(define *mpd-stats* '())
-
-(: *current-track* track)
-(define *current-track* '())
-
-(: *queue* (list-of (pair symbol *)))
-(define *queue* '())
 
 (: *last-update* number)
 (define *last-update* -1.0)
@@ -106,16 +93,16 @@
 
 (: scmus-update-stats! thunk)
 (define (scmus-update-stats!)
-  (set! *mpd-stats* (scmus-stats)))
+  (set! (current-stats) (scmus-stats)))
 
 (: scmus-update-status! thunk)
 (define (scmus-update-status!)
-  (let* ((old-status *mpd-status*)
+  (let* ((old-status (current-status))
          (new-status (scmus-status)))
-    (when (and (alist-ref 'updating_db *mpd-status*)
+    (when (and (alist-ref 'updating_db old-status)
                (not (alist-ref 'updating_db new-status)))
       (register-event! 'db-changed))
-    (set! *mpd-status* new-status)
+    (set! (current-status) new-status)
     (register-event! 'status-changed)
     (unless (= (alist-ref 'songid old-status eqv? -1)
                (alist-ref 'songid new-status eqv? -1))
@@ -123,13 +110,13 @@
 
 (: scmus-update-current-song! thunk)
 (define (scmus-update-current-song!)
-  (set! *current-track* (scmus-current-song))
+  (set! (current-track) (scmus-current-song))
   (register-event! 'queue-changed)
   (register-event! 'current-line-changed))
 
 (: scmus-update-queue! thunk)
 (define (scmus-update-queue!)
-  (set! *queue* (scmus-playlist-info))
+  (set! (current-queue) (scmus-playlist-info))
   (register-event! 'queue-data-changed))
 
 ;; Status update timer
@@ -140,7 +127,7 @@
         (condition-case
           (begin
             (scmus-update-status!)
-            (unless (= (scmus-song-id) (track-id *current-track*))
+            (unless (= (scmus-song-id) (track-id (current-track)))
               (scmus-update-current-song!))
             (unless (= version (scmus-queue-version))
               (scmus-update-queue!)))
@@ -153,62 +140,6 @@
 (: scmus-elapsed-string (-> string))
 (define (scmus-elapsed-string)
   (seconds->string (inexact->exact (round (scmus-elapsed)))))
-
-(define-syntax status-selector
-  (syntax-rules ()
-    ((status-selector name sym)
-      (status-selector name sym ""))
-    ((status-selector name sym default)
-      (define (name)
-        (let ((e (alist-ref sym *mpd-status*)))
-          (if e e default))))))
-
-(define-syntax stat-selector
-  (syntax-rules ()
-    ((stat-selector name sym)
-      (stat-selector name sym 0))
-    ((stat-selector name sym default)
-      (define (name)
-        (let ((e (alist-ref sym *mpd-stats*)))
-          (if e e default))))))
-
-(status-selector scmus-volume 'volume 0)
-(status-selector scmus-repeat? 'repeat #f)
-(status-selector scmus-random? 'random #f)
-(status-selector scmus-single? 'single #f)
-(status-selector scmus-consume? 'consume #f)
-(status-selector scmus-queue-version 'playlist 0)
-(status-selector scmus-queue-length 'playlistlength 0)
-(status-selector scmus-state 'state 'unknown)
-(status-selector scmus-song 'song -1)
-(status-selector scmus-song-id 'songid -1)
-(status-selector scmus-next-song 'nextsong 0)
-(status-selector scmus-next-song-id 'nextsongid 0)
-(status-selector scmus-elapsed-time 'time '(0))
-(status-selector scmus-elapsed 'elapsed 0)
-(status-selector scmus-bitrate 'bitrate 0)
-(status-selector scmus-xfade 'xfade 0)
-(status-selector scmus-mixrampdb 'mixrampdb 0.0)
-(status-selector scmus-mixrampdelay 'mixrampdelay 0.0)
-(status-selector scmus-updating-db 'updating_db)
-;(status-selector scmus-total-time 'total-time 0)
-;(status-selector scmus-audio 'audio '(0 0 0))
-
-(: current-track (-> track))
-(define (current-track)
-  *current-track*)
-
-(: current-track? (track -> boolean))
-(define (current-track? track)
-  (track= track *current-track*))
-
-(stat-selector scmus-uptime 'uptime)
-(stat-selector scmus-playtime 'playtime)
-(stat-selector scmus-artists 'artists)
-(stat-selector scmus-albums 'albums)
-(stat-selector scmus-songs 'songs)
-(stat-selector scmus-db-playtime 'db_playtime)
-(stat-selector scmus-db-update 'db_update)
 
 (: scmus-bail! (* -> null))
 (define (scmus-bail! e)
@@ -312,8 +243,8 @@
 (: scmus-seek! (fixnum -> undefined))
 (define (scmus-seek! seconds)
   (assert (integer? seconds) "scmus-seek!" seconds)
-  (scmus-seek-id! (track-id *current-track*)
-                  (min (track-duration *current-track*)
+  (scmus-seek-id! (track-id (current-track))
+                  (min (track-duration (current-track))
                        (max 0 (+ (car (scmus-elapsed-time)) seconds)))))
 
 (: scmus-toggle-repeat! thunk)
