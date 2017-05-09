@@ -15,13 +15,12 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-;(declare (unit user-api)
-;         (uses eval-mode scmus-client))
-(declare (uses status track))
+(declare (unit user-api)
+         (uses command-line config eval-mode event format keys ncurses option
+               scmus-client status track ui-curses window))
 
-
-;(module user-api (win-search! win-search-next! win-search-prev!)
-  (import scmus-base command-line config event ncurses status track)
+(import scmus-base command-line config eval-mode event format ncurses option
+        status track window)
 
 (define-syntax define/user
   (syntax-rules ()
@@ -287,7 +286,7 @@
   (scmus-rescan!)
   (void))
 
-(define (scmus-format fmt #!optional (track '()) (len (- (COLS) 2)))
+(define/user (scmus-format fmt #!optional (track '()) (len (- (COLS) 2)))
   "Generate formatted text"
   (if (format-string-valid? fmt)
     (scmus-format (process-format fmt) len track)
@@ -512,6 +511,7 @@
   "Switch to the previous window in the current view"
   (thunk (view-prev! (current-view))))
 
+;; TODO: search-related stuff should go somewhere else
 (define (win-search! query)
   (window-search-init! (current-window) query)
   (win-search-next!)
@@ -528,6 +528,12 @@
     (when i
       (window-select! (current-window) i)))
   (void))
+
+(: enter-search-mode thunk)
+(define (enter-search-mode)
+  (command-line-get-string 'search
+    (lambda (s)
+      (when s (win-search! s)))))
 
 (export/user win-search!      "Search the current window")
 (export/user win-search-next! "Move the cursor to the next search result")
@@ -576,4 +582,3 @@
 (define/user xfade
   "Get the value of the xfade setting"
   scmus-xfade)
-;)

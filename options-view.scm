@@ -19,7 +19,7 @@
          (uses editable event format input ncurses option scmus-error ui-lib view window)
          (export make-options-view option-edit!))
 
-(import scmus-base editable event input ncurses scmus-error)
+(import scmus-base editable event input ncurses option scmus-error window)
 
 (: option-changed! thunk)
 (define (option-changed!)

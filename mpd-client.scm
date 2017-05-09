@@ -43,6 +43,7 @@
    mpd-port
    mpd-password
    mpd-version
+   mpd:address
    ; Connect/disconnect
    mpd:connect
    mpd:disconnect

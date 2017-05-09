@@ -12,6 +12,19 @@
   (except extras
     read-string write-string read-token))
 
+(define-constant CURSED-CMDLINE 1)
+(define-constant CURSED-ERROR 2)
+(define-constant CURSED-INFO 3)
+(define-constant CURSED-STATUSLINE 4)
+(define-constant CURSED-TITLELINE 5)
+(define-constant CURSED-WIN 6)
+(define-constant CURSED-WIN-CUR 7)
+(define-constant CURSED-WIN-CUR-SEL 8)
+(define-constant CURSED-WIN-SEL 9)
+(define-constant CURSED-WIN-MARKED 10)
+(define-constant CURSED-WIN-TITLE 11)
+(define-constant NR-CURSED 11)
+   
 ;; Macros
 
 (define-syntax define-record/initform
@@ -43,19 +56,6 @@
     ((define-event-handler name (options ...) handler)
        (register-event-handler! 'name handler options ...))))
 
-(define-constant CURSED-CMDLINE 1)
-(define-constant CURSED-ERROR 2)
-(define-constant CURSED-INFO 3)
-(define-constant CURSED-STATUSLINE 4)
-(define-constant CURSED-TITLELINE 5)
-(define-constant CURSED-WIN 6)
-(define-constant CURSED-WIN-CUR 7)
-(define-constant CURSED-WIN-CUR-SEL 8)
-(define-constant CURSED-WIN-SEL 9)
-(define-constant CURSED-WIN-MARKED 10)
-(define-constant CURSED-WIN-TITLE 11)
-(define-constant NR-CURSED 11)
-
 (define-type format-spec list)
 (define-type predicate (* -> boolean))
 (define-type thunk (-> undefined))
@@ -67,3 +67,6 @@
 (define-type view (struct view))
 (define-type window (struct window))
 (define-type widget (struct widget))
+
+(define-type option-getter (option -> *))
+(define-type option-setter (option * -> undefined))

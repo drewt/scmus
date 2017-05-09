@@ -19,13 +19,14 @@
 
 (declare (unit ui-curses)
          (uses bindings-view browser-view command-line eval-mode event format
-               input keys library-view ncurses option options-view queue-view
+               input keys library-view ncurses option options options-view queue-view
                scmus-client scmus-error search-view status ui-lib view window)
          (export current-view current-window curses-update cursor-off cursor-on
                  exit-curses get-window init-curses redraw-ui set-view!
                  connect!))
 
-(import scmus-base command-line editable event input ncurses scmus-error status)
+(import scmus-base command-line editable event format input ncurses option
+        scmus-error status window)
 
 (define *current-view* 'queue)
 

@@ -15,11 +15,11 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (uses config getopt option scmus-client ui-curses))
+(declare (uses config eval-mode user-api getopt options scmus-client ui-curses))
 
 (foreign-declare "#include <locale.h>")
 
-(import scmus-base config getopt)
+(import scmus-base config eval-mode getopt)
 
 (define *error* #f)
 
@@ -62,9 +62,6 @@
                            (alist-ref 'password opts)
                            (alist-ref 'command opts)))
   (exit 0))
-
-(define (option-setter name)
-  (lambda (x) (set-option! name x)))
 
 ;; main loop
 (define (main return)

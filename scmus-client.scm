@@ -19,10 +19,7 @@
          (uses event mpd-client option scmus-error track)
          (hide scmus-try-reconnect scmus-command))
 
-(import scmus-base event mpd-client scmus-error status track)
-
-(: *mpd-connection* (or boolean mpd-connection))
-(define *mpd-connection* #f)
+(import scmus-base event mpd-client option scmus-error status track)
 
 (: *last-update* number)
 (define *last-update* -1.0)
@@ -33,14 +30,14 @@
     (begin (scmus-error-set! e) #f)
     (let ((con (mpd:connect host port pass)))
       (if (scmus-connected?)
-        (mpd:disconnect *mpd-connection*))
-      (set! *mpd-connection* con)
+        (mpd:disconnect (current-connection)))
+      (set! (current-connection) con)
       (register-event! 'db-changed)
       #t)))
 
 (: scmus-disconnect! thunk)
 (define (scmus-disconnect!)
-  (mpd:disconnect *mpd-connection*))
+  (mpd:disconnect (current-connection)))
 
 (: scmus-oneshot ((or boolean string)
                   (or boolean fixnum)
@@ -58,37 +55,15 @@
       res)
     (e () (condition->list e))))
 
-(: scmus-connected? (-> boolean))
-(define (scmus-connected?)
-  (and *mpd-connection* (mpd:connected? *mpd-connection*)))
-
-(: scmus-hostname (-> string))
-(define (scmus-hostname)
-  (if (scmus-connected?)
-    (mpd-host *mpd-connection*)
-    "<none>"))
-
-(: scmus-port (-> (or fixnum boolean)))
-(define (scmus-port)
-  (if (scmus-connected?)
-    (mpd-port *mpd-connection*)
-    0))
-
-(: scmus-address (-> string))
-(define (scmus-address)
-  (if (scmus-connected?)
-    (mpd:address *mpd-connection*)
-    "<none>"))
-
 (: exit-client thunk)
 (define (exit-client)
-  (if *mpd-connection*
-    (mpd:disconnect *mpd-connection*)))
+  (if (current-connection)
+    (mpd:disconnect (current-connection))))
 
 (: scmus-try-reconnect thunk)
 (define (scmus-try-reconnect)
   (condition-case
-    (begin (set! *mpd-connection* (mpd:reconnect *mpd-connection*)) #t)
+    (begin (set! (current-connection) (mpd:reconnect (current-connection))) #t)
     (e () (scmus-error-set! e) #f)))
 
 (: scmus-update-stats! thunk)
@@ -137,10 +112,6 @@
                      (get-option 'status-update-interval)))
   -1)
 
-(: scmus-elapsed-string (-> string))
-(define (scmus-elapsed-string)
-  (seconds->string (inexact->exact (round (scmus-elapsed)))))
-
 (: scmus-bail! (* -> null))
 (define (scmus-bail! e)
   (scmus-disconnect!)
@@ -150,7 +121,7 @@
 (: *scmus-command ((mpd-connection #!rest * -> *) #!rest * -> list))
 (define (*scmus-command mpd-fn . args)
   (if (scmus-connected?)
-    (condition-case (apply mpd-fn *mpd-connection* args)
+    (condition-case (apply mpd-fn (current-connection) args)
       (e () (scmus-error-set! e)
             (unless (scmus-try-reconnect)
               (scmus-disconnect!))

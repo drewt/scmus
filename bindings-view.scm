@@ -16,10 +16,10 @@
 ;;
 
 (declare (unit bindings-view)
-  (uses editable event input keys ncurses scmus-error ui-lib view window)
+  (uses editable event input keys ncurses options scmus-error ui-lib view window)
   (export make-bindings-view binding-edit!))
 
-(import scmus-base editable event input ncurses scmus-error)
+(import scmus-base editable event input ncurses scmus-error window)
 
 (define-record-type key-list (make-key-list keys) key-list?
   (keys key-list-keys))

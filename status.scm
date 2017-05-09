@@ -16,13 +16,18 @@
 ;;
 
 (declare (unit status)
-         (uses track))
+         (uses mpd-client track))
 
 (module status (current-queue
                 current-status
                 current-stats
+                current-connection
                 current-track
                 current-track?
+                scmus-connected?
+                scmus-hostname
+                scmus-port
+                scmus-address
                 scmus-volume
                 scmus-repeat?
                 scmus-random?
@@ -37,6 +42,7 @@
                 scmus-next-song-id
                 scmus-elapsed-time
                 scmus-elapsed
+                scmus-elapsed-string
                 scmus-bitrate
                 scmus-xfade
                 scmus-mixrampdb
@@ -49,7 +55,7 @@
                 scmus-songs
                 scmus-db-playtime
                 scmus-db-update)
-  (import scmus-base track)
+  (import scmus-base mpd-client track)
 
   (define-syntax define/getter-setter
     (syntax-rules ()
@@ -64,10 +70,33 @@
   (define/getter-setter current-stats '())
   (define/getter-setter current-track '())
   (define/getter-setter current-queue '())
+  (define/getter-setter current-connection #f)
 
   (: current-track? (track -> boolean))
   (define (current-track? track)
     (track= track (current-track)))
+
+  (: scmus-connected? (-> boolean))
+  (define (scmus-connected?)
+    (and (current-connection) (mpd:connected? (current-connection))))
+
+  (: scmus-hostname (-> string))
+  (define (scmus-hostname)
+    (if (scmus-connected?)
+      (mpd-host (current-connection))
+      "<none>"))
+
+  (: scmus-port (-> (or fixnum boolean)))
+  (define (scmus-port)
+    (if (scmus-connected?)
+      (mpd-port (current-connection))
+      0))
+
+  (: scmus-address (-> string))
+  (define (scmus-address)
+    (if (scmus-connected?)
+      (mpd:address (current-connection))
+      "<none>"))
 
   (define-syntax status-selector
     (syntax-rules ()
@@ -108,6 +137,10 @@
   (status-selector scmus-updating-db 'updating_db)
   ;(status-selector scmus-total-time 'total-time 0)
   ;(status-selector scmus-audio 'audio '(0 0 0))
+
+  (: scmus-elapsed-string (-> string))
+  (define (scmus-elapsed-string)
+    (seconds->string (inexact->exact (round (scmus-elapsed)))))
 
   (stat-selector scmus-uptime 'uptime)
   (stat-selector scmus-playtime 'playtime)

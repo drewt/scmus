@@ -33,12 +33,12 @@ objfiles = $(foreach f,$(1),$(addsuffix .@OBJEXT@,$(f)))
 
 eggs = coops sandbox unix-sockets utf8
 
-units   = bindings-view browser-view eval-mode \
-          format key-table keys library-view \
-          option options-view queue-view search-view \
-          scmus-client ui-curses ui-lib view window
-modules = command-line config editable event getopt input iter mpd-client \
-	  ncurses scmus-base scmus-error status track
+units   = bindings-view browser-view key-table keys library-view options \
+	  options-view queue-view search-view scmus-client ui-curses ui-lib \
+	  user-api view
+modules = command-line config editable eval-mode event format getopt input \
+	  iter mpd-client ncurses option scmus-base scmus-error status track \
+	  window
 types   = $(foreach unit,$(units) $(modules),$(addsuffix .types,$(unit)))
 target  = scmus@EXEEXT@
 
@@ -50,31 +50,37 @@ clean = $(call objfiles,$(units) $(modules) $(test-units) main check) \
 
 all: $(target)
 
-main_deps          = scmus-base config getopt
-bindings-view_deps = scmus-base editable event input ncurses scmus-error
-browser-view_deps  = scmus-base ncurses track
+main_deps          = scmus-base config eval-mode getopt
+bindings-view_deps = scmus-base editable event input ncurses scmus-error window
+browser-view_deps  = scmus-base ncurses track window
 command-line_deps  = scmus-base editable event input iter ncurses
 editable_deps      = scmus-base ncurses
-eval-mode_deps     = scmus-base command-line config event ncurses scmus-error track
+eval-mode_deps     = scmus-base command-line event option scmus-error
 event_deps         = scmus-base
-format_deps        = scmus-base scmus-error status track
+format_deps        = scmus-base eval-mode scmus-error status track
 input_deps         = scmus-base editable ncurses
-keys_deps          = scmus-base event ncurses
+keys_deps          = scmus-base eval-mode event ncurses
 key-table_deps     = scmus-base ncurses
-library-view_deps  = scmus-base ncurses track
-option_deps        = scmus-base event ncurses
-options-view_deps  = scmus-base editable event input ncurses scmus-error
-queue-view_deps    = scmus-base event status track
+library-view_deps  = scmus-base ncurses track window
+option_deps        = scmus-base event
+options_deps       = scmus-base event format option
+options-view_deps  = scmus-base editable event input ncurses option \
+                     scmus-error window
+queue-view_deps    = scmus-base event status track window
 scmus-base_deps    = config ncurses
-scmus-client_deps  = scmus-base event mpd-client scmus-error status track
+scmus-client_deps  = scmus-base event mpd-client option scmus-error status \
+                     track
 scmus-error_deps   = scmus-base command-line event
-search-view_deps   = scmus-base editable input ncurses
-status_deps        = scmus-base track
+search-view_deps   = scmus-base editable input format ncurses window
+status_deps        = scmus-base mpd-client track
 track_deps         = scmus-base
-ui-curses_deps     = scmus-base command-line editable event input ncurses scmus-error status
-ui-lib_deps        = scmus-base ncurses
+ui-curses_deps     = scmus-base command-line editable event format input \
+                     ncurses option scmus-error status window
+ui-lib_deps        = scmus-base format ncurses option window
+user-api_deps      = scmus-base command-line config eval-mode event format \
+                     ncurses option status track window
 view_deps          = scmus-base
-window_deps        = scmus-base
+window_deps        = scmus-base format
 
 $(foreach f,$(units) $(modules) main,$(eval $(f).@OBJEXT@: $(call objfiles,$($(f)_deps))))
 

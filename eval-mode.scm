@@ -18,68 +18,64 @@
 (require-extension sandbox)
  
 (declare (unit eval-mode)
-         (uses command-line config event format keys ncurses option
-               scmus-client scmus-error ui-curses window)
-         (export init-sandbox win-search! user-bind! user-eval user-eval-string
-                 user-load enter-eval-mode enter-search-mode))
+         (uses command-line event option scmus-error))
 
-(import scmus-base command-line config event ncurses scmus-error)
+(module eval-mode (init-sandbox
+                   register-user-value!
+                   user-eval
+                   user-eval-string
+                   user-load
+                   enter-eval-mode)
+  (import ports sandbox)
+  (import scmus-base command-line event option scmus-error)
 
-(: enter-eval-mode thunk)
-(define (enter-eval-mode)
-  (command-line-get-string 'eval
-    (lambda (s)
-      (when s
-        (let ((r (user-eval-string s)))
-          (if (and (not (condition? r)) (get-option 'eval-mode-print))
-            (command-line-print-info! (format "~s" r))))))))
+  (: enter-eval-mode thunk)
+  (define (enter-eval-mode)
+    (command-line-get-string 'eval
+      (lambda (s)
+        (when s
+          (let ((r (user-eval-string s)))
+            (if (and (not (condition? r)) (get-option 'eval-mode-print))
+              (command-line-print-info! (format "~s" r))))))))
 
-(: enter-search-mode thunk)
-(define (enter-search-mode)
-  (command-line-get-string 'search
-    (lambda (s)
-      (when s (win-search! s)))))
+  (define *user-env* (make-safe-environment parent: default-safe-environment
+                                            mutable: #t))
 
-(define *user-env* (make-safe-environment parent: default-safe-environment
-                                          mutable: #t))
+  (define (user-export! name obj)
+    (safe-environment-set! *user-env* name obj))
 
-(define (user-export! name obj)
-  (safe-environment-set! *user-env* name obj))
+  (define *user-api* '())
 
-(define *user-api* '())
+  (: register-user-value! (symbol * string -> undefined))
+  (define (register-user-value! name value doc)
+    (set! *user-api* (cons (list name value doc) *user-api*)))
 
-(: register-user-value! (symbol * string -> undefined))
-(define (register-user-value! name value doc)
-  (set! *user-api* (cons (list name value doc) *user-api*)))
+  (define (init-sandbox)
+    (safe-environment-macro-set! *user-env* (string->symbol "\u03bb")
+      (lambda (args)
+        (cons 'lambda args)))
+    (for-each (lambda (info)
+                (user-export! (car info) (cadr info)))
+              *user-api*))
 
-(include "user-api.scm")
+  (: user-eval procedure)
+  (define (user-eval expr)
+    (condition-case (safe-eval expr environment: *user-env*)
+      (e () (scmus-error-set! e) e)))
 
-(define (init-sandbox)
-  (safe-environment-macro-set! *user-env* (string->symbol "\u03bb")
-    (lambda (args)
-      (cons 'lambda args)))
-  (for-each (lambda (info)
-              (user-export! (car info) (cadr info)))
-            *user-api*))
+  (: user-eval-string (string -> *))
+  (define (user-eval-string str)
+    (condition-case (safe-eval (with-input-from-string str read)
+                               environment: *user-env*)
+      (e () (scmus-error-set! e) e)))
 
-(: user-eval procedure)
-(define (user-eval expr)
-  (condition-case (safe-eval expr environment: *user-env*)
-    (e () (scmus-error-set! e) e)))
-
-(: user-eval-string (string -> *))
-(define (user-eval-string str)
-  (condition-case (safe-eval (with-input-from-string str read)
-                             environment: *user-env*)
-    (e () (scmus-error-set! e) e)))
-
-(: user-load (string -> *))
-(define (user-load path)
-  (call-with-input-file path
-    (lambda (in)
-      (let loop ()
-       (let ((input (read in)))
-         (unless (eqv? input #!eof)
-           (condition-case (safe-eval input environment: *user-env*)
-             (e () (scmus-error-set! e)))
-           (loop)))))))
+  (: user-load (string -> *))
+  (define (user-load path)
+    (call-with-input-file path
+      (lambda (in)
+        (let loop ()
+         (let ((input (read in)))
+           (unless (eqv? input #!eof)
+             (condition-case (safe-eval input environment: *user-env*)
+               (e () (scmus-error-set! e)))
+             (loop))))))))
