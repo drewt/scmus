@@ -1,3 +1,7 @@
+(bind! ":" 'common '(enter-eval-mode) #t)
+(bind! "/" 'common '(enter-search-mode) #t)
+(bind! "q" 'common '(exit) #t)
+
 ;; views
 (bind! "1" 'common '(set-view! 'library)  #t)
 (bind! "2" 'common '(set-view! 'queue)    #t)

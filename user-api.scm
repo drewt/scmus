@@ -19,8 +19,13 @@
          (uses command-line config eval-mode event format keys ncurses option
                scmus-client status track ui-curses window))
 
-(import scmus-base command-line config eval-mode event format ncurses option
-        status track window)
+(import scmus-base command-line config eval-mode event format keys ncurses
+        option status track window)
+
+(define-syntax export/user
+  (syntax-rules ()
+    ((export/user name doc)
+      (register-user-value! (quote name) name doc))))
 
 (define-syntax define/user
   (syntax-rules ()
@@ -29,10 +34,11 @@
     ((define/user name doc value)
       (register-user-value! (quote name) value doc))))
 
-(define-syntax export/user
+(define-syntax define+user
   (syntax-rules ()
-    ((export/user name doc)
-      (register-user-value! (quote name) name doc))))
+    ((define+user (name . args) doc first . rest)
+      (begin (define (name . args) first . rest)
+             (export/user name doc)))))
 
 ;; More succinct syntax for defining thunks, + ensuring that they return void.
 (define-syntax thunk
@@ -131,6 +137,19 @@
                    text))
   (command-line-print-info! (clean-text (format #f "~a" arg)))
   arg)
+
+(define+user (enter-eval-mode)
+  "Set the input mode to eval-mode"
+  (command-line-get-string 'eval
+    (lambda (s)
+      (when s
+        (let ((r (user-eval-string s)))
+          (if (and (not (condition? r)) (get-option 'eval-mode-print))
+            (command-line-print-info! (format "~s" r))))))))
+
+(define/user (exit)
+  "Exit the program"
+  (scmus-exit 0))
 
 (define/user get-option
   "Get the value of a configuration option"
@@ -511,6 +530,7 @@
   "Switch to the previous window in the current view"
   (thunk (view-prev! (current-view))))
 
+(import scmus-base window)
 ;; TODO: search-related stuff should go somewhere else
 (define (win-search! query)
   (window-search-init! (current-window) query)
@@ -530,7 +550,8 @@
   (void))
 
 (: enter-search-mode thunk)
-(define (enter-search-mode)
+(define+user (enter-search-mode)
+  "Set the input mode to search-mode"
   (command-line-get-string 'search
     (lambda (s)
       (when s (win-search! s)))))

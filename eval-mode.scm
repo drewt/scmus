@@ -24,19 +24,9 @@
                    register-user-value!
                    user-eval
                    user-eval-string
-                   user-load
-                   enter-eval-mode)
+                   user-load)
   (import ports sandbox)
   (import scmus-base command-line event option scmus-error)
-
-  (: enter-eval-mode thunk)
-  (define (enter-eval-mode)
-    (command-line-get-string 'eval
-      (lambda (s)
-        (when s
-          (let ((r (user-eval-string s)))
-            (if (and (not (condition? r)) (get-option 'eval-mode-print))
-              (command-line-print-info! (format "~s" r))))))))
 
   (define *user-env* (make-safe-environment parent: default-safe-environment
                                             mutable: #t))

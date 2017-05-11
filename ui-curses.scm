@@ -25,7 +25,7 @@
                  exit-curses get-window init-curses redraw-ui set-view!
                  connect!))
 
-(import scmus-base command-line editable event format input ncurses option
+(import scmus-base command-line editable event format input keys ncurses option
         scmus-error status window)
 
 (define *current-view* 'queue)
@@ -242,7 +242,7 @@
 (: handle-char (symbol char -> undefined))
 (define (handle-char view ch)
   (case (input-mode)
-    ((normal-mode) (normal-mode-char view ch))
+    ((normal-mode) (normal-mode-key view ch))
     ((edit-mode)   (editable-char (current-editable) ch))))
 
 (: handle-input (symbol -> undefined))

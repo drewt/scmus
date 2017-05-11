@@ -16,12 +16,12 @@ features-@CONFIG_WIDE_CHAR@ += -feature wide-char
 types-cflags-$(typed) = -types all.types
 types-prereq-$(typed) = all.types
 
-prelude = '"(define *scmus-dir* \"$(datadir)/scmus\")\
-	    (define *version*   \"$(VERSION)\")"'
+prelude = '"(import typed-modules)"'
 
 CSC      = csc
 TFLAGS   = -uses scmus-base -prologue prologue.scm $(features-y) 
 CSCFLAGS = -scrutinize -C -Wno-int-to-pointer-cast -C -Wno-cpp $(TFLAGS) \
+	   -prelude $(prelude) \
            -C '-DSCMUS_DIR=\"$(datadir)/scmus\"' \
            -C '-DVERSION=\"$(VERSION)\"' \
            $(types-cflags-y)
@@ -33,12 +33,12 @@ objfiles = $(foreach f,$(1),$(addsuffix .@OBJEXT@,$(f)))
 
 eggs = coops sandbox unix-sockets utf8
 
-units   = bindings-view browser-view key-table keys library-view options \
+units   = bindings-view browser-view library-view options \
 	  options-view queue-view search-view scmus-client ui-curses ui-lib \
 	  user-api view
 modules = command-line config editable eval-mode event format getopt input \
-	  iter mpd-client ncurses option scmus-base scmus-error status track \
-	  window
+	  iter keys mpd-client ncurses option scmus-base scmus-error status \
+	  track window
 types   = $(foreach unit,$(units) $(modules),$(addsuffix .types,$(unit)))
 target  = scmus@EXEEXT@
 
@@ -51,7 +51,8 @@ clean = $(call objfiles,$(units) $(modules) $(test-units) main check) \
 all: $(target)
 
 main_deps          = scmus-base config eval-mode getopt
-bindings-view_deps = scmus-base editable event input ncurses scmus-error window
+bindings-view_deps = scmus-base editable event input keys ncurses scmus-error \
+                     window
 browser-view_deps  = scmus-base ncurses track window
 command-line_deps  = scmus-base editable event input iter ncurses
 editable_deps      = scmus-base ncurses
@@ -60,7 +61,6 @@ event_deps         = scmus-base
 format_deps        = scmus-base eval-mode scmus-error status track
 input_deps         = scmus-base editable ncurses
 keys_deps          = scmus-base eval-mode event ncurses
-key-table_deps     = scmus-base ncurses
 library-view_deps  = scmus-base ncurses track window
 option_deps        = scmus-base event
 options_deps       = scmus-base event format option
@@ -74,11 +74,11 @@ scmus-error_deps   = scmus-base command-line event
 search-view_deps   = scmus-base editable input format ncurses window
 status_deps        = scmus-base mpd-client track
 track_deps         = scmus-base
-ui-curses_deps     = scmus-base command-line editable event format input \
+ui-curses_deps     = scmus-base command-line editable event format input keys \
                      ncurses option scmus-error status window
 ui-lib_deps        = scmus-base format ncurses option window
 user-api_deps      = scmus-base command-line config eval-mode event format \
-                     ncurses option status track window
+                     keys ncurses option status track window
 view_deps          = scmus-base
 window_deps        = scmus-base format
 
