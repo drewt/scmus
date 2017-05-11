@@ -20,9 +20,9 @@
                client status track ui-curses window))
 
 (import ncurses)
-(import scmus.base scmus.command-line scmus.config scmus.eval scmus.event
-        scmus.format scmus.keys scmus.option scmus.status scmus.track
-        scmus.window)
+(import scmus.base scmus.client scmus.command-line scmus.config scmus.eval
+        scmus.event scmus.format scmus.keys scmus.option scmus.status
+        scmus.track scmus.window)
 
 (define-syntax export/user
   (syntax-rules ()

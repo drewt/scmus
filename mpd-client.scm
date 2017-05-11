@@ -125,7 +125,7 @@
    mpd:read-comments
    mpd:search
    mpd:search-add!
-   *mpd:search-add-pl! ; FIXME: why the asterisk
+   mpd:search-add-pl!
    mpd:update!
    mpd:rescan!
    ; Stickers
@@ -487,7 +487,7 @@
 (define-simple-command 1   mpd:read-comments "readcomments")
 (define-constraint-command mpd:search "search")
 (define-constraint-command mpd:search-add! "searchadd")
-(define (*mpd:search-add-pl! con name first . rest)
+(define (mpd:search-add-pl! con name first . rest)
   (apply send-command con "searchaddpl" name (flatten-constraints (cons first rest)))
   (parse-songs (read-response con)))
 (define-optional-command   mpd:update! "update")

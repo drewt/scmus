@@ -20,7 +20,7 @@
          (export update-library!))
 
 (import ncurses)
-(import scmus.base scmus.track scmus.window)
+(import scmus.base scmus.client scmus.track scmus.window)
 
 (define (tag-data data)
   (map (lambda (x) (cons (car x) (list x))) data))

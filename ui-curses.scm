@@ -26,9 +26,9 @@
                  connect!))
 
 (import ncurses)
-(import scmus.base scmus.command-line scmus.editable scmus.error scmus.event
-        scmus.format scmus.input scmus.keys scmus.option scmus.status
-        scmus.window)
+(import scmus.base scmus.client scmus.command-line scmus.editable scmus.error
+        scmus.event scmus.format scmus.input scmus.keys scmus.option
+        scmus.status scmus.window)
 
 (define *current-view* 'queue)
 

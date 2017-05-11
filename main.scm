@@ -20,7 +20,7 @@
 (foreign-declare "#include <locale.h>")
 
 (import getopt)
-(import scmus.base scmus.config scmus.eval)
+(import scmus.base scmus.client scmus.config scmus.eval)
 
 (define *error* #f)
 

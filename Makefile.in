@@ -30,25 +30,28 @@ objfiles = $(foreach f,$(1),$(addsuffix .@OBJEXT@,$(f)))
 
 eggs = coops sandbox unix-sockets utf8
 
-units   = bindings-view browser-view library-view options \
-	  options-view queue-view search-view client ui-curses ui-lib \
-	  user-api view
-modules = base command-line config editable eval event format getopt input \
-	  iter keys mpd-client ncurses option error status track window
-types   = $(foreach unit,$(units) $(modules),$(addsuffix .types,$(unit)))
-target  = scmus@EXEEXT@
+units    = bindings-view browser-view library-view options \
+           options-view queue-view search-view ui-curses ui-lib \
+           user-api view
+imodules = base client command-line config editable eval event format input \
+	   keys option error status track window
+omodules = getopt iter mpd-client ncurses
+modules  = $(imodules) $(omodules)
+types    = $(foreach unit,$(units) $(modules),$(addsuffix .types,$(unit)))
+target   = scmus@EXEEXT@
 
 test-units = test/iter
 
 clean = $(call objfiles,$(units) $(modules) $(test-units) main check) \
-	$(foreach mod,$(modules),$(addsuffix .import.scm,$(mod))) \
+	$(addsuffix .import.scm,$(omodules)) \
+	$(addprefix scmus.,$(addsuffix .import.scm,$(imodules))) \
         $(types) $(target) all.types
 
 all: $(target)
 
-main_deps          = base config eval getopt
+main_deps          = base client config eval getopt
 bindings-view_deps = base editable event input keys ncurses error window
-browser-view_deps  = base ncurses track window
+browser-view_deps  = base client ncurses track window
 command-line_deps  = base editable event input iter ncurses
 editable_deps      = base ncurses
 eval_deps          = base command-line event option error
@@ -56,22 +59,22 @@ event_deps         = base
 format_deps        = base eval error status track
 input_deps         = base editable ncurses
 keys_deps          = base eval event ncurses
-library-view_deps  = base ncurses track window
+library-view_deps  = base client ncurses track window
 option_deps        = base event
 options_deps       = base event format option
 options-view_deps  = base editable event input ncurses option error window
-queue-view_deps    = base event status track window
+queue-view_deps    = base client event status track window
 base_deps          = config ncurses
 client_deps        = base event mpd-client option error status track
 error_deps         = base command-line event
-search-view_deps   = base editable input format ncurses track window
+search-view_deps   = base client editable input format ncurses track window
 status_deps        = base mpd-client track
 track_deps         = base
-ui-curses_deps     = base command-line editable event format input keys \
+ui-curses_deps     = base client command-line editable event format input keys \
                      ncurses option error status window
 ui-lib_deps        = base format ncurses option window
-user-api_deps      = base command-line config eval event format keys ncurses \
-                     option status track window
+user-api_deps      = base client command-line config eval event format keys \
+                     ncurses option status track window
 view_deps          = base
 window_deps        = base format
 

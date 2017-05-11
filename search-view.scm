@@ -22,7 +22,8 @@
                  search-remove!))
 
 (import ncurses)
-(import scmus.base scmus.editable scmus.format scmus.input scmus.track scmus.window)
+(import scmus.base scmus.client scmus.editable scmus.format scmus.input
+        scmus.track scmus.window)
 
 (: search-changed! (#!rest * -> undefined))
 (define (search-changed! . ignore)

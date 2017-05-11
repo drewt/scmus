@@ -20,7 +20,7 @@
          (export update-browser!))
 
 (import ncurses)
-(import scmus.base scmus.track scmus.window)
+(import scmus.base scmus.client scmus.track scmus.window)
 
 (: browser-add! (* -> undefined))
 (define (browser-add! selected)
