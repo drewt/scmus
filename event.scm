@@ -19,16 +19,14 @@
 
 (declare (unit event))
 
-(module event
-  (handle-events!
-   register-event!
-   register-event-handler!
-   register-timer!
-   register-timer-event!)
-  (import scmus-base)
-  
+(module scmus.event (define-event-handler
+                     handle-events!
+                     register-event!
+                     register-event-handler!
+                     register-timer!
+                     register-timer-event!)
   (import srfi-18)
-  (import scmus-base)
+  (import scmus.base)
 
   (: *events* (list-of (pair symbol list)))
   (define *events* '())
@@ -48,6 +46,13 @@
                            (append! old-handlers (list handler)))))
       (set! *event-handlers*
         (alist-update! event new-handlers *event-handlers*))))
+
+  (define-syntax define-event-handler
+    (syntax-rules ()
+      ((define-event-handler (name args ...) (options ...) first rest ...)
+         (register-event-handler! 'name (lambda (args ...) first rest ...) options ...))
+      ((define-event-handler name (options ...) handler)
+         (register-event-handler! 'name handler options ...))))
 
   (: handle-events! thunk)
   (define (handle-events!)

@@ -15,11 +15,12 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (uses config eval-mode user-api getopt options scmus-client ui-curses))
+(declare (uses config scmus-eval user-api getopt options client ui-curses))
 
 (foreign-declare "#include <locale.h>")
 
-(import scmus-base config eval-mode getopt)
+(import getopt)
+(import scmus.base scmus.config scmus.eval)
 
 (define *error* #f)
 

@@ -21,7 +21,7 @@
          (uses ui-lib)
          (hide *view-ctors*))
 
-(import scmus-base)
+(import scmus.base)
 
 (: *views* (list-of (pair symbol (or boolean view))))
 (define *views* (map (lambda (x) (cons x #f)) *view-names*))

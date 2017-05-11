@@ -16,10 +16,11 @@
 ;;
 
 (declare (unit browser-view)
-         (uses event ncurses options scmus-client track ui-lib view window)
+         (uses ncurses options client track ui-lib view window)
          (export update-browser!))
 
-(import scmus-base ncurses track window)
+(import ncurses)
+(import scmus.base scmus.track scmus.window)
 
 (: browser-add! (* -> undefined))
 (define (browser-add! selected)

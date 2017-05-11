@@ -19,18 +19,18 @@
 (declare (unit option)
          (uses event))
 
-(module option (get-option
-                set-option!
-                options
-                option-get
-                option-set!
-                option-string
-                option-value
-                option-value-set!
-                write-config!
-                register-option!)
+(module scmus.option (get-option
+                      set-option!
+                      options
+                      option-get
+                      option-set!
+                      option-string
+                      option-value
+                      option-value-set!
+                      write-config!
+                      register-option!)
   (import srfi-69)
-  (import scmus-base event)
+  (import scmus.base scmus.event)
 
   ;; An option is a value with associated get/set! functions.
   ;; The get/set! functions may be set to option-value and

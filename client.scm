@@ -15,11 +15,12 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit scmus-client)
-         (uses event mpd-client option scmus-error track)
+(declare (unit client)
+         (uses event mpd-client option error track)
          (hide scmus-try-reconnect scmus-command))
 
-(import scmus-base event mpd-client option scmus-error status track)
+(import mpd-client)
+(import scmus.base scmus.error scmus.event scmus.option scmus.status scmus.track)
 
 (: *last-update* number)
 (define *last-update* -1.0)

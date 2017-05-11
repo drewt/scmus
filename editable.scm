@@ -22,9 +22,10 @@
 (declare (unit editable)
          (uses ncurses))
 
-(module editable *
+(module scmus.editable *
   (import scheme chicken ports srfi-1)
-  (import scmus-base ncurses)
+  (import ncurses)
+  (import scmus.base)
 
   (: *make-editable ((editable char -> undefined)
                      (editable fixnum -> undefined)

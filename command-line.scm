@@ -18,16 +18,16 @@
 (declare (unit command-line)
          (uses editable event input iter ncurses))
 
-(module command-line
-  (command-line-clear! command-line-print-info!
-   command-line-cursor-pos-set!
-   command-line-get-string
-   command-line-mode
-   command-line-print-error!
-   command-line-text
-   command-line-text-set!)
+(module scmus.command-line (command-line-clear!
+                            command-line-print-info!
+                            command-line-cursor-pos-set!
+                            command-line-get-string
+                            command-line-mode
+                            command-line-print-error!
+                            command-line-text
+                            command-line-text-set!)
 
-  (import scmus-base editable event input iter ncurses)
+  (import scmus.base scmus.editable scmus.event scmus.input iter ncurses)
 
   ;; history {{{
 

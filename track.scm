@@ -17,30 +17,30 @@
 
 (declare (unit track))
 
-(module track (track-file
-               track-last-modified
-               *track-duration
-               track-title
-               track-artist
-               track-album
-               track-albumartist
-               track-genre
-               track-date
-               track-track
-               track-disc
-               track-name
-               track-composer
-               track-performer
-               track-start
-               track-end
-               track-pos
-               track-id
-               track-prio
-               track-duration
-               track-meta
-               track=
-               track-match)
-  (import scmus-base)
+(module scmus.track (track-file
+                     track-last-modified
+                     *track-duration
+                     track-title
+                     track-artist
+                     track-album
+                     track-albumartist
+                     track-genre
+                     track-date
+                     track-track
+                     track-disc
+                     track-name
+                     track-composer
+                     track-performer
+                     track-start
+                     track-end
+                     track-pos
+                     track-id
+                     track-prio
+                     track-duration
+                     track-meta
+                     track=
+                     track-match)
+  (import scmus.base)
  
   (define-syntax track-selector
     (syntax-rules ()

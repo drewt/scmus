@@ -49,13 +49,6 @@
     ((define-view name first rest ...)
        (register-view! (quote name) (lambda () first rest ...)))))
 
-(define-syntax define-event-handler
-  (syntax-rules ()
-    ((define-event-handler (name args ...) (options ...) first rest ...)
-       (register-event-handler! 'name (lambda (args ...) first rest ...) options ...))
-    ((define-event-handler name (options ...) handler)
-       (register-event-handler! 'name handler options ...))))
-
 (define-type format-spec list)
 (define-type predicate (* -> boolean))
 (define-type thunk (-> undefined))

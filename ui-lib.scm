@@ -18,7 +18,8 @@
 (declare (unit ui-lib)
          (uses ncurses format option window))
 
-(import scmus-base format ncurses option window)
+(import ncurses)
+(import scmus.base scmus.format scmus.option scmus.window)
 
 ;; colors {{{
 

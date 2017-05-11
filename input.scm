@@ -18,14 +18,13 @@
 (declare (unit input)
          (uses editable ncurses))
 
-(module input
-  (current-editable
-   cursor-off
-   cursor-on
-   cursor-pos
-   input-mode
-   set-input-mode!)
-  (import scmus-base editable ncurses)
+(module scmus.input (current-editable
+                     cursor-off
+                     cursor-on
+                     cursor-pos
+                     input-mode
+                     set-input-mode!)
+  (import scmus.base scmus.editable ncurses)
  
   (: *current-input-mode* symbol)
   (define *current-input-mode* 'normal-mode)

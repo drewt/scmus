@@ -16,11 +16,13 @@
 ;;
 
 (declare (unit user-api)
-         (uses command-line config eval-mode event format keys ncurses option
-               scmus-client status track ui-curses window))
+         (uses command-line config scmus-eval event format keys ncurses option
+               client status track ui-curses window))
 
-(import scmus-base command-line config eval-mode event format keys ncurses
-        option status track window)
+(import ncurses)
+(import scmus.base scmus.command-line scmus.config scmus.eval scmus.event
+        scmus.format scmus.keys scmus.option scmus.status scmus.track
+        scmus.window)
 
 (define-syntax export/user
   (syntax-rules ()
@@ -530,7 +532,6 @@
   "Switch to the previous window in the current view"
   (thunk (view-prev! (current-view))))
 
-(import scmus-base window)
 ;; TODO: search-related stuff should go somewhere else
 (define (win-search! query)
   (window-search-init! (current-window) query)

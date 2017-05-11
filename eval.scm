@@ -17,16 +17,17 @@
 
 (require-extension sandbox)
  
-(declare (unit eval-mode)
-         (uses command-line event option scmus-error))
+;; XXX: Naming a unit "eval" causes segfault
+(declare (unit scmus-eval)
+         (uses command-line event option error))
 
-(module eval-mode (init-sandbox
-                   register-user-value!
-                   user-eval
-                   user-eval-string
-                   user-load)
+(module scmus.eval (init-sandbox
+                    register-user-value!
+                    user-eval
+                    user-eval-string
+                    user-load)
   (import ports sandbox)
-  (import scmus-base command-line event option scmus-error)
+  (import scmus.base scmus.command-line scmus.event scmus.option scmus.error)
 
   (define *user-env* (make-safe-environment parent: default-safe-environment
                                             mutable: #t))

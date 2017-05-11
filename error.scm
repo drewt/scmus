@@ -15,11 +15,11 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit scmus-error)
+(declare (unit error)
          (uses command-line event))
 
-(module scmus-error (scmus-error scmus-error-set!)
-  (import scmus-base command-line event)
+(module scmus.error (scmus-error scmus-error-set!)
+  (import scmus.base scmus.command-line scmus.event)
 
   (: *scmus-error* string)
   (define *scmus-error* "")

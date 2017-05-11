@@ -34,22 +34,22 @@
 (require-extension srfi-1 srfi-69)
 
 (declare (unit keys)
-         (uses eval-mode event ncurses))
+         (uses scmus-eval event ncurses))
 
-(module keys (binding-context-valid?
-              binding-data
-              binding-expression
-              binding-expression?
-              binding-key
-              binding-keys-valid?
-              bindings
-              key-list->string
-              make-binding!
-              normal-mode-key
-              unbind!)
+(module scmus.keys (binding-context-valid?
+                    binding-data
+                    binding-expression
+                    binding-expression?
+                    binding-key
+                    binding-keys-valid?
+                    bindings
+                    key-list->string
+                    make-binding!
+                    normal-mode-key
+                    unbind!)
 
   (import srfi-69)
-  (import scmus-base eval-mode event ncurses)
+  (import scmus.base scmus.eval scmus.event ncurses)
 
   (define-type binding-node (pair string pair))
   (define-type binding-list (list-of binding-node))

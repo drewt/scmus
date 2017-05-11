@@ -18,15 +18,17 @@
 (require-extension coops)
 
 (declare (unit ui-curses)
-         (uses bindings-view browser-view command-line eval-mode event format
+         (uses bindings-view browser-view command-line event format
                input keys library-view ncurses option options options-view queue-view
-               scmus-client scmus-error search-view status ui-lib view window)
+               client error search-view status ui-lib view window)
          (export current-view current-window curses-update cursor-off cursor-on
                  exit-curses get-window init-curses redraw-ui set-view!
                  connect!))
 
-(import scmus-base command-line editable event format input keys ncurses option
-        scmus-error status window)
+(import ncurses)
+(import scmus.base scmus.command-line scmus.editable scmus.error scmus.event
+        scmus.format scmus.input scmus.keys scmus.option scmus.status
+        scmus.window)
 
 (define *current-view* 'queue)
 

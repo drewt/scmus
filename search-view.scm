@@ -16,12 +16,13 @@
 ;;
 
 (declare (unit search-view)
-         (uses editable event format input ncurses options scmus-client ui-lib
+         (uses editable format input ncurses options client track ui-lib
                view window)
          (export make-search-view search-edit! search-clear! search-add!
                  search-remove!))
 
-(import scmus-base editable format input ncurses window)
+(import ncurses)
+(import scmus.base scmus.editable scmus.format scmus.input scmus.track scmus.window)
 
 (: search-changed! (#!rest * -> undefined))
 (define (search-changed! . ignore)

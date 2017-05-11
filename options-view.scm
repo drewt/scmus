@@ -16,10 +16,12 @@
 ;;
 
 (declare (unit options-view)
-         (uses editable event format input ncurses option scmus-error ui-lib view window)
+         (uses editable input ncurses option error ui-lib view window)
          (export make-options-view option-edit!))
 
-(import scmus-base editable event input ncurses option scmus-error window)
+(import ncurses)
+(import scmus.base scmus.editable scmus.error scmus.event scmus.input
+        scmus.option scmus.window)
 
 (: option-changed! thunk)
 (define (option-changed!)

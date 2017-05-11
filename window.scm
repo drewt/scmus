@@ -20,8 +20,9 @@
 (declare (unit window)
          (uses format))
 
-(module window *
-  (import coops scmus-base format)
+(module scmus.window *
+  (import coops)
+  (import scmus.base scmus.format)
 
   (define-class <widget> ()
     ((parent  initform: #f

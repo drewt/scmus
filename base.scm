@@ -15,10 +15,10 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit scmus-base)
+(declare (unit base)
          (uses config ncurses))
 
-(module scmus-base *
+(module scmus.base *
   (reexport
     (except scheme
       string-length string-ref string-set! make-string string substring
@@ -33,7 +33,8 @@
     srfi-1
     utf8 utf8-srfi-13 utf8-srfi-14)
 
-  (import config ncurses)
+  (import ncurses)
+  (import scmus.config)
 
   (define-syntax key-case
     (syntax-rules (else)

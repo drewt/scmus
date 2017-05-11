@@ -17,16 +17,15 @@
 
 (declare (unit config))
 
-(module config
-  (*verbose*
-   *debug*
-   *scmus-dir*
-   *version*
-   *home-dir*
-   *user-config-dir*
-   *plugins-dir*
-   *sysrc-path*
-   *scmusrc-path*)
+(module scmus.config (*verbose*
+                      *debug*
+                      *scmus-dir*
+                      *version*
+                      *home-dir*
+                      *user-config-dir*
+                      *plugins-dir*
+                      *sysrc-path*
+                      *scmusrc-path*)
   (import scheme chicken foreign)
 
   (define *verbose* #f)

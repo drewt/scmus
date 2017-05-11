@@ -16,10 +16,11 @@
 ;;
 
 (declare (unit library-view)
-         (uses event ncurses options scmus-client track ui-lib view window)
+         (uses ncurses options client track ui-lib view window)
          (export update-library!))
 
-(import scmus-base ncurses track window)
+(import ncurses)
+(import scmus.base scmus.track scmus.window)
 
 (define (tag-data data)
   (map (lambda (x) (cons (car x) (list x))) data))
