@@ -531,10 +531,10 @@
   (: window-print-line (window * fixnum -> string))
   (define (window-print-line window row nr-cols)
     (define (print-row window row row-cols)
-      (let ((format (and (window-format window)
-                         ((window-format window) (car row)))))
-        (if format
-          (scmus-format format row-cols (cdr row))
+      (let ((fmt (and (window-format window)
+                      ((window-format window) (car row)))))
+        (if fmt
+          (scmus-format fmt row-cols (cdr row))
           (string-truncate (format "~a" (alist-ref 'text (cdr row) eqv? ""))
                            row-cols))))
     (if (>= (* 2 (window-h-border window)) nr-cols)
@@ -572,6 +572,26 @@
       (set! (window-top-pos window) (- top-pos scroll))
       (set! (window-sel-pos window) (- sel-pos can-move))
       (widget-damaged! window)))
+
+  (: window-move-top! (window -> undefined))
+  (define (window-move-top! window)
+    (window-select! window 0)
+    (void))
+
+  (: window-move-bottom! (window -> undefined))
+  (define (window-move-bottom! window)
+    (window-select! window (- (window-data-len window) 1))
+    (void))
+
+  ;; FIXME: this should be named window-move!, but it's taken
+  (define (window-move-cursor! window n #!optional relative)
+    (let ((nr-lines (if relative
+                      (integer-scale (window-nr-lines window) n)
+                      n)))
+      (if (> nr-lines 0)
+        (window-move-down! window nr-lines)
+        (window-move-up! window (abs nr-lines))))
+    (void))
 
   (: window-select! (window fixnum -> undefined))
   (define (window-select! window i)
@@ -620,6 +640,21 @@
         ((> match prev-pos) (- (window-data-len window)
                                (abs (- prev-pos match))))
         (else               (- prev-pos match)))))
+
+  (: window-search-next! (window -> undefined))
+  (define (window-search-next! window)
+    (let ((i (window-next-match! window)))
+      (when i (window-select! window i))))
+
+  (: window-search-prev! (window -> undefined))
+  (define (window-search-prev! window)
+    (let ((i (window-prev-match! window)))
+      (when i (window-select! window i))))
+
+  (: window-search! (window string -> undefined))
+  (define (window-search! window query)
+    (window-search-init! window query)
+    (window-search-next! window))
 
   ;; FIXME: not really the greatest place for this
   ;; Generates a function to call cursed-set! with the appropriate value given

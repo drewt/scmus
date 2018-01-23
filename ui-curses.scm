@@ -163,8 +163,9 @@
     (move (- (LINES) 1) 0)
     (clrtoeol)
     (addch (case (command-line-mode)
-             ((eval)   #\:)
-             ((search) #\/)
+             ((eval)    #\$)
+             ((search)  #\/)
+             ((command) #\:)
              (else #\space)))
     (format-addstr! (string-truncate (command-line-text)
                                      (- (COLS) 2))
@@ -219,9 +220,9 @@
     retval))
 
 (: connect! (#!optional (or boolean string)
-                           (or boolean symbol fixnum)
-                           (or boolean symbol string)
-                 -> boolean))
+                        (or boolean symbol fixnum)
+                        (or boolean symbol string)
+              -> boolean))
 (define (connect! #!optional (host #f) (port 'default) (pass 'default))
   ; host: #f means default
   ; port: #f means UNIX socket, 'default means default

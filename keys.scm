@@ -43,6 +43,7 @@
                     binding-key
                     binding-keys-valid?
                     bindings
+                    get-binding-expression
                     key-list->string
                     make-binding!
                     normal-mode-key
@@ -90,6 +91,22 @@
   (: get-binding (string binding-list -> binding-data))
   (define (get-binding key bindings)
     (alist-ref key bindings string=?))
+
+  (: get-binding-expression ((list-of string) symbol -> *))
+  (define (get-binding-expression keys context)
+    (let loop ((keys keys) (key-list (alist-ref context *bindings*)))
+      (let ((binding (get-binding (car keys) key-list)))
+        (cond
+          ; found binding
+          ((and (null? (cdr keys))
+                (binding-expression? binding))
+            (cdr binding))
+          ; no binding exists
+          ((or (null? (cdr keys))
+               (not binding))
+            #f)
+          ; recursive case
+          (else (loop (cdr keys) binding))))))
 
   ;; Non-destructive binding update.  Binds expr to keys in key-list.
   (: make-binding ((list-of string) binding-list * -> binding-list))

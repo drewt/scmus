@@ -32,19 +32,17 @@
   ;; history {{{
 
   (define history
-    (let ((eval-history (iter))
-          (search-history (iter)))
+    (let ((histories '()))
       (getter-with-setter
         (lambda ()
-          (case *command-line-mode*
-            ((eval)   eval-history)
-            ((search) search-history)
-            (else     (assert #f "history-getter"))))
+          (let ((this-history (alist-ref *command-line-mode* histories)))
+            (if this-history
+              this-history
+              (let ((this-history (iter)))
+                (set! histories (alist-update! *command-line-mode* this-history histories))
+                this-history))))
         (lambda (x)
-          (case *command-line-mode*
-            ((eval)   (set! eval-history x))
-            ((search) (set! search-history x))
-            (else     (assert #f "history-setter")))))))
+          (set! histories (alist-update! *command-line-mode* x histories))))))
 
   (: history-next! (-> undefined))
   (define (history-next!)

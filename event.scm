@@ -31,6 +31,7 @@
   (: *events* (list-of (pair symbol list)))
   (define *events* '())
 
+  ; TODO: use a hash table
   (: *event-handlers* (list-of (pair symbol thunk)))
   (define *event-handlers* '())
 

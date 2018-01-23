@@ -16,13 +16,13 @@
 ;;
 
 (declare (unit user-api)
-         (uses command-line config scmus-eval event format keys ncurses option
-               client status track ui-curses window))
+         (uses command command-line config scmus-eval event format keys ncurses
+               option client status track ui-curses window))
 
 (import ncurses)
-(import scmus.base scmus.client scmus.command-line scmus.config scmus.eval
-        scmus.event scmus.format scmus.keys scmus.option scmus.status
-        scmus.track scmus.window)
+(import scmus.base scmus.client scmus.command scmus.command-line scmus.config
+        scmus.eval scmus.event scmus.format scmus.keys scmus.option
+        scmus.status scmus.track scmus.window)
 
 (define-syntax export/user
   (syntax-rules ()
@@ -111,6 +111,7 @@
 
 (define/user (describe symbol)
   "Describe a symbol"
+  ; FIXME: *user-api* not exported (nor should it be)
   (let ((info (alist-ref symbol *user-api*))
         (bind (safe-environment-ref *user-env* symbol)))
     (command-line-print-info!
@@ -148,6 +149,12 @@
         (let ((r (user-eval-string s)))
           (if (and (not (condition? r)) (get-option 'eval-mode-print))
             (command-line-print-info! (format "~s" r))))))))
+
+(define/user (enter-command-mode)
+  "Set the input mode to command-mode"
+  (command-line-get-string 'command
+    (lambda (s)
+      (when s (run-command s)))))
 
 (define/user (exit)
   "Exit the program"
@@ -479,26 +486,17 @@
   (scmus-update! path)
   (void))
 
-(define/user (win-move! nr #!optional (relative #f))
+(define/user (win-move! n #!optional relative)
   "Move the cursor up or down"
-  (let ((nr-lines (if relative
-                    (integer-scale (window-nr-lines (current-window)) nr)
-                    nr)))
-    (if (> nr-lines 0)
-      (window-move-down! (current-window) nr-lines)
-      (window-move-up! (current-window) (abs nr-lines))))
-  (void))
+  (window-move-cursor! (current-window) n relative))
 
-(: win-bottom! thunk)
-(define/user (win-bottom!)
+(define/user win-bottom!
   "Move the cursor to the bottom of the window"
-  (let ((window (current-window)))
-    (window-select! window (- (window-data-len window) 1)))
-  (void))
+  (thunk (window-move-bottom! (current-window))))
 
 (define/user win-top!
   "Move the cursor to the top of the window"
-  (thunk (window-select! (current-window) 0)))
+  (thunk (window-move-top! (current-window))))
 
 (define/user win-activate!
   "Activate the row at the cursor"
@@ -532,34 +530,24 @@
   "Switch to the previous window in the current view"
   (thunk (view-prev! (current-view))))
 
-;; TODO: search-related stuff should go somewhere else
-(define (win-search! query)
-  (window-search-init! (current-window) query)
-  (win-search-next!)
-  (void))
-
-(define (win-search-next!)
-  (let ((i (window-next-match! (current-window))))
-    (when i
-      (window-select! (current-window) i)))
-  (void))
-
-(define (win-search-prev!)
-  (let ((i (window-prev-match! (current-window))))
-    (when i
-      (window-select! (current-window) i)))
-  (void))
-
 (: enter-search-mode thunk)
-(define+user (enter-search-mode)
+(define/user (enter-search-mode)
   "Set the input mode to search-mode"
   (command-line-get-string 'search
     (lambda (s)
-      (when s (win-search! s)))))
+      (when s (window-search! (current-window) s)))))
 
-(export/user win-search!      "Search the current window")
-(export/user win-search-next! "Move the cursor to the next search result")
-(export/user win-search-prev! "Move the cursor to the previous search result")
+(define/user (win-search! query)
+  "Search the current window"
+  (window-search! (current-window) query))
+
+(define/user win-search-next!
+  "Move the cursor to the next search result"
+  (thunk (window-search-next! (current-window))))
+
+(define/user win-search-prev!
+  "Move the cursor to the previous search result"
+  (thunk (window-search-prev! (current-window))))
 
 (define/user win-edit!
   "Edit the selected row"

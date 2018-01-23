@@ -28,13 +28,7 @@
 
 (require-extension regex srfi-1 srfi-13 tcp)
 
-(declare (unit mpd-client)
-         ;(hide make-connection mpd-host-set! mpd-port-set! in-port in-port-set!
-         ;      out-port out-port-set! mpd-version-set! re-ok+version
-         ;      re-err re-pair raise-mpd-error check-connection send-command
-         ;      playlist-is-number? convert-type read-response parse-songs
-         ;      flatten-constraints format-range range-or-number)
-         )
+(declare (unit mpd-client))
 
 (module mpd-client
   (; Connection records
@@ -165,6 +159,8 @@
         (abort (make-property-condition 'exn
                   'message "UNIX domain sockets not supported on this platform"
                   'arguments '()))))
+    ; FIXME: unix-sockets uses ##SYS#PATHNAME-RESOLUTION which is removed from
+    ;        recent versions of CHICKEN; hoping upstream fixes this soon...
     (else (require-extension unix-sockets)))
  
 (define-record-type mpd-connection

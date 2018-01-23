@@ -88,25 +88,29 @@ Options view (7)
 Used for viewing and editing scmus's options.  To edit an option, select it
 and run the \fBwin\-edit!\fR function.
 .RE
-.SH EVAL MODE
-Everything in scmus can be controlled by entering scheme expressions on the
-"command line" (the bottommost line).  To enter eval mode press \fB:\fR.  To
-evaluate an expression press \fBENTER\fR or to cancel press \fBESC\fR.
+.SH COMMAND MODE AND EVAL MODE
+Everything in scmus can be controlled by entering commands or scheme
+expressions on the "command line" (the bottommost line).  To enter command mode
+press \fB$\fR.  To enter eval mode press \fB:\fR.  To evaluate a
+command/expression press \fBENTER\fR or to cancel press \fBESC\fR.
 
 Examples:
 
 .RS
 .nf
 ;; add the selected track to the play queue
-(win-add!)
+:add        # command mode
+$(win-add!) ; eval mode
 
 ;; start playing
 ;; you could just press 'x' which is the default
 ;; binding for this function
-(play!)
+:play    # command mode
+$(play!) ; eval mode
 
 ;; clear current window
-(win-clear!)
+:win-clear    # command-mode
+$(win-clear!) ; eval mode
 .fi
 .RE
 .SH SEARCHING
@@ -200,6 +204,233 @@ P              (win-move-tracks! #t)
 h,left         (win-deactivate!)
 l,right        (win-activate!)
 .fi
+.SH COMMANDS
+This section describes scmus' commands.
+
+Optional parameters are in brackets, obligatory parameters in angle brackets.
+
+Scheme expressions can be embedded within a command using the \fI$\fR character.
+The expression following the \fI$\fR character is evaluated and its result it
+spliced into the command, formatted as if by \fIDISPLAY\fR.  E.g.
+
+.RS
+echo $a-scheme-variable
+.RE
+
+Scheme expressions may be optionally delimited by curly braces, e.g.
+
+.RS
+echo ${a-scheme-variable}!
+.RE
+
+bind [-f] <context> <keys> [expression]
+.RS
+Add a key binding.
+
+\fI-f\fR overwrite existing binding
+
+\fBValid key contexts\fR
+.RS
+common library queue search browser status error options bindings
+.RE
+
+There's one context for each view.  Common is a special context on which bound
+keys work in every view.  Keys bound in the common context can be overriden
+in other contexts.
+.RE
+
+clear
+.RS
+Remove all tracks from the play queue.
+.RE
+
+colorscheme <name>
+.RS
+Change color scheme.  Color schemes are found in
+\fI/usr/local/share/scmus/colors/\fR or \fI$XDG_CONFIG_HOME/scmus/colors/\fR.
+.RE
+
+connect [host] [port] [pass]
+.RS
+Connect to an MPD server.
+
+If \fIhost\fR is given, it should be the hostname of the MPD server.
+
+If \fIport\fR is given, it should be the post number of the MPD server, or one
+of the strings \fIunix\fR or \fIdefault\fR.  If the \fIport\fR is given as
+\fIunix\fR, then \fIhost\fR is interpreted as the path to a UNIX domain
+socket.  If \fIport\fR is \fIdefault\fR, then the default configured port
+number is used.
+
+If \fIpass\fR is given, it should be the password of the MPD server.
+.RE
+
+echo <arg>...
+.RS
+Display arguments on the command line.
+.RE
+
+load <playlist>
+.RS
+Load the given playlist to the play queue.
+.RE
+
+next
+.RS
+Skip to the next track.
+.RE
+
+pause
+.RS
+Toggle pause.
+.RE
+
+prev
+.RS
+Skip to the previous track.
+.RE
+
+save <playlist-name>
+.RS
+Save the contents of the play queue as a playlist named \fIplaylist-name\fR.
+.RE
+
+seek [+-](<num>[mh] | [HH:]MM:SS)
+.RS
+Seek to absolute or relative position.  Position can be given in seconds,
+minutes (m), hours (h) or HH:MM:SS format where HH: is optional.
+
+Seek 1 minute backward
+.RS
+:seek -1m
+.RE
+
+Seek 5 seconds forward
+.RS
+:seek +5
+.RE
+
+Seek to absolute position 1h
+.RS
+:seek 1h
+.RE
+
+Seek 90 seconds forward
+.RS
+:seek +1:30
+.RE
+.RE
+
+stop
+.RS
+Stop playback.
+.RE
+
+unbind [-f] <context> <keys>
+.RS
+Remove a key binding.
+
+\fI-f\fR Don't throw an error if the binding is not known
+.RE
+
+update
+.RS
+Initiate an MPD database update.
+.RE
+
+vol [+-]NUM
+.RS
+Set, increase or decrease volume.
+
+To increase or decrease volume prefix the value with \fB-\fR or \fB+\fR,
+otherwise the value is treated as an absolute volume level.
+.RE
+
+win-activate
+.RS
+Activate the currently selected item.  The meaning of this command varies
+depending on what is selected.
+
+In the library and browser views, it descends into the next level of the
+artist/album/track or directory hierarchy.  In queue view it plays the selected
+track.  In options and bindings view it begins editing the selected
+option/binding.
+.RE
+
+win-add
+.RS
+Add the currently marked or selected track(s) to the play queue.
+.RE
+
+win-bottom
+.RS
+Move the cursor to the bottom of the active window.
+.RE
+
+win-clear
+.RS
+In queue view, clears the play queue.  In search view, clears the search
+results.
+.RE
+
+win-deactivate
+.RS
+In the library and browser views, ascend to the next level in the
+artist/album/track or directory hierarchy.
+.RE
+
+win-move [-r] [-]<n>
+.RS
+Move the cursor up or down.
+
+\fI-r\fR Interpret \fIn\fR as a percentage of the visible number of lines.
+.RE
+
+win-move-tracks [-b]
+.RS
+Move the marked or selected track(s) to the cursor location.
+
+\fI-b\fR Move the tracks "before" or "under" the cursor location.
+.RE
+
+win-next
+.RS
+In the library and browser views, descend into the next level of the
+artist/album/track or directory hierarchy.
+.RE
+
+win-prev
+.RS
+In the library and browser views, ascend to the next level in the
+/artist/album/track or directory hierarchy.
+.RE
+
+win-remove
+.RS
+Remove the selected entry.
+.RE
+
+win-search <query>
+.RS
+Search the active window.  This is the same as entering \fIquery\fR in search
+mode.
+.RE
+
+win-search-next
+.RS
+Move the cursor to the next search result.
+.RE
+
+win-search-prev
+.RS
+Move the cursor to the previous search result.
+.RE
+
+win-top
+.RS
+Move the cursor to the top of the active window.
+.RE
+
 .SH SCHEME ENVIRONMENT
 This section describes the functions and variables available in eval mode.
 

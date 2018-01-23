@@ -1,5 +1,6 @@
-(bind! ":" 'common '(enter-eval-mode) #t)
+(bind! ":" 'common '(enter-command-mode) #t)
 (bind! "/" 'common '(enter-search-mode) #t)
+(bind! "$" 'common '(enter-eval-mode) #t)
 (bind! "q" 'common '(exit) #t)
 
 ;; views

@@ -15,49 +15,61 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
+(require-extension srfi-69)
 (require-extension sandbox)
  
 ;; XXX: Naming a unit "eval" causes segfault
 (declare (unit scmus-eval)
-         (uses command-line event option error))
+         (uses command-line error event option))
 
-(module scmus.eval (init-sandbox
-                    register-user-value!
+(module scmus.eval (register-user-value!
+                    user-value-ref
+                    user-doc-ref
                     user-eval
+                    user-eval/raw
                     user-eval-string
                     user-load)
-  (import ports sandbox)
-  (import scmus.base scmus.command-line scmus.event scmus.option scmus.error)
+  (import ports srfi-69)
+  (import sandbox)
+  (import scmus.base scmus.command-line scmus.error scmus.event scmus.option)
 
   (define *user-env* (make-safe-environment parent: default-safe-environment
                                             mutable: #t))
+  (safe-environment-macro-set! *user-env* (string->symbol "\u03bb")
+    (lambda (args)
+      (cons 'lambda args)))
 
   (define (user-export! name obj)
     (safe-environment-set! *user-env* name obj))
 
-  (define *user-api* '())
+  (define *user-api* (make-hash-table test: eqv?
+                                      hash: symbol-hash))
 
   (: register-user-value! (symbol * string -> undefined))
   (define (register-user-value! name value doc)
-    (set! *user-api* (cons (list name value doc) *user-api*)))
+    (hash-table-set! *user-api* name (cons value doc))
+    (user-export! name value))
 
-  (define (init-sandbox)
-    (safe-environment-macro-set! *user-env* (string->symbol "\u03bb")
-      (lambda (args)
-        (cons 'lambda args)))
-    (for-each (lambda (info)
-                (user-export! (car info) (cadr info)))
-              *user-api*))
+  (: user-value-ref (symbol -> *))
+  (define (user-value-ref name)
+    (car (hash-table-ref *user-api* name)))
 
-  (: user-eval procedure)
+  (: user-doc-ref (symbol -> string))
+  (define (user-doc-ref name)
+    (cdr (hash-table-ref *user-api* name)))
+
+  (: user-eval/raw (* -> *))
+  (define (user-eval/raw expr)
+    (safe-eval expr environment: *user-env*))
+
+  (: user-eval (* -> *))
   (define (user-eval expr)
     (condition-case (safe-eval expr environment: *user-env*)
       (e () (scmus-error-set! e) e)))
 
   (: user-eval-string (string -> *))
   (define (user-eval-string str)
-    (condition-case (safe-eval (with-input-from-string str read)
-                               environment: *user-env*)
+    (condition-case (user-eval/raw (with-input-from-string str read))
       (e () (scmus-error-set! e) e)))
 
   (: user-load (string -> *))

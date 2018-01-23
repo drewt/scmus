@@ -15,7 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (uses config scmus-eval user-api getopt options client ui-curses))
+(declare (uses config client commands scmus-eval getopt options ui-curses user-api))
 
 (foreign-declare "#include <locale.h>")
 
@@ -101,6 +101,13 @@
                           (alist-ref 'load-order plugin))))
             plugins))
 
+;; Set the terminal title
+(define (set-title! title)
+  (display (string-append "\x1b]2;" title "\x07"
+                          (if (ui-initialized?) "\n" ""))))
+
+(set-title! "scmus")
+
 ;; initialize scmus
 (let ((opts (process-opts (command-line-arguments) *cmdline-opts*)))
   (if (alist-ref 'help opts) (usage *cmdline-opts* 0))
@@ -122,8 +129,6 @@
       (foreign-code "setlocale(LC_COLLATE, \"\");"))
     (initialize "Loading plugins"
       (load-plugins (read-plugins)))
-    (initialize "Initializing environment"
-      (init-sandbox))
     (initialize "Loading config files"
       (handle-exceptions x
         (printf "WARNING: failed to load ~a~n" *sysrc-path*)

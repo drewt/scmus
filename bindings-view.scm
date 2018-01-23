@@ -17,7 +17,7 @@
 
 (declare (unit bindings-view)
   (uses editable event input keys ncurses options error ui-lib view window)
-  (export make-bindings-view binding-edit!))
+  (export))
 
 (import ncurses)
 (import scmus.base scmus.editable scmus.error scmus.event scmus.input
