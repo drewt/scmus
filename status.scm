@@ -18,6 +18,8 @@
 (declare (unit status)
          (uses mpd-client track))
 
+;; TODO: replace status, etc. alists with record types
+
 (module scmus.status (current-queue
                       current-status
                       current-stats
@@ -40,6 +42,7 @@
                       scmus-song-id
                       scmus-next-song
                       scmus-next-song-id
+                      scmus-elapsed-tick!
                       scmus-elapsed-time
                       scmus-elapsed
                       scmus-elapsed-string
@@ -142,6 +145,11 @@
   (: scmus-elapsed-string (-> string))
   (define (scmus-elapsed-string)
     (seconds->string (inexact->exact (round (scmus-elapsed)))))
+
+  (: scmus-elapsed-tick! (number -> undefined))
+  (define (scmus-elapsed-tick! n)
+    (set! (current-status) (alist-update 'elapsed (+ (scmus-elapsed) n)
+                                         (current-status))))
 
   (stat-selector scmus-uptime 'uptime)
   (stat-selector scmus-playtime 'playtime)

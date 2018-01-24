@@ -50,7 +50,7 @@
 (register-option! 'mpd-address "localhost" mpd-address-set!)
 (register-option! 'mpd-port 6600 mpd-port-set!)
 (register-option! 'mpd-password #f mpd-password-set!)
-(register-option! 'status-update-interval 0.5 update-interval-set!)
+(register-option! 'status-update-interval 1.5 update-interval-set!)
 (register-option! 'eval-mode-print #f boolean-set!)
 ;; }}} Miscellaneous
 ;; {{{ Colors

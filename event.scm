@@ -87,12 +87,12 @@
   (define (register-timer! thunk seconds #!key (recurring #f))
     (define (make-timer)
       (cons (+ (time->seconds (current-time))
-             seconds)
-          (if recurring
-            (rec (recurring-thunk)
-              (thunk)
-              (register-timer! recurring-thunk seconds))
-            thunk)))
+               seconds)
+            (if recurring
+              (rec (recurring-thunk)
+                (thunk)
+                (register-timer! recurring-thunk seconds))
+              thunk)))
     (set! *timers* (append! *timers* (list (make-timer)))))
 
   (define (register-timer-event! name . rest)

@@ -15,6 +15,8 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
+(require-extension srfi-18)
+
 (declare (unit client)
          (uses error event mpd-client option track))
 
@@ -99,6 +101,7 @@
                       scmus-toggle-consume!
                       scmus-consume-set!
                       scmus-search-songs)
+  (import srfi-18)
   (import mpd-client)
   (import scmus.base scmus.error scmus.event scmus.option scmus.status scmus.track)
 
@@ -113,6 +116,7 @@
         (if (scmus-connected?)
           (mpd:disconnect (current-connection)))
         (set! (current-connection) con)
+        (do-full-update)
         (register-event! 'db-changed)
         #t)))
 
@@ -162,7 +166,8 @@
       (register-event! 'status-changed)
       (unless (= (alist-ref 'songid old-status eqv? -1)
                  (alist-ref 'songid new-status eqv? -1))
-        (register-event! 'track-changed))))
+        (register-event! 'track-changed)))
+    (set! *last-update* (time->seconds (current-time))))
 
   (: scmus-update-current-song! thunk)
   (define (scmus-update-current-song!)
@@ -175,22 +180,31 @@
     (set! (current-queue) (scmus-playlist-info))
     (register-event! 'queue-data-changed))
 
-  ;; Status update timer
+  (: do-full-update thunk)
+  (define (do-full-update)
+    (condition-case
+      (let ((version (scmus-queue-version)))
+        (scmus-update-status!)
+        (unless (= (scmus-song-id) (track-id (current-track)))
+          (scmus-update-current-song!))
+        (unless (= version (scmus-queue-version))
+          (scmus-update-queue!)))
+      (e () (scmus-error-set! e)
+            (scmus-try-reconnect))))
+
+  ;; Status update timer.  Ticks every 0.5 seconds.  Does a full status update
+  ;; every STATUS-UPDATE-INTERVAL seconds, otherwise just updates elapsed time.
   (register-timer!
     (rec (scmus-update-client!)
-      (let ((version (scmus-queue-version)))
-        (when (scmus-connected?)
-          (condition-case
-            (begin
-              (scmus-update-status!)
-              (unless (= (scmus-song-id) (track-id (current-track)))
-                (scmus-update-current-song!))
-              (unless (= version (scmus-queue-version))
-                (scmus-update-queue!)))
-            (e () (scmus-error-set! e)
-                  (scmus-try-reconnect)))))
-      (register-timer! scmus-update-client!
-                       (get-option 'status-update-interval)))
+      (when (scmus-connected?)
+        (let ((now (time->seconds (current-time))))
+          (if (>= (- now *last-update*)
+                 (get-option 'status-update-interval))
+            (do-full-update)
+            (when (eqv? (scmus-state) 'play)
+              (scmus-elapsed-tick! 0.5)
+              (register-event! 'status-changed)))))
+      (register-timer! scmus-update-client! 0.5))
     -1)
 
   (: scmus-bail! (* -> null))
@@ -297,7 +311,7 @@
     (assert (integer? seconds) "scmus-seek!" seconds)
     (scmus-seek-id! (track-id (current-track))
                     (min (track-duration (current-track))
-                         (max 0 (+ (car (scmus-elapsed-time)) seconds)))))
+                         (max 0 (+ (scmus-elapsed) seconds)))))
 
   (: scmus-toggle-repeat! thunk)
   (define (scmus-toggle-repeat!)
