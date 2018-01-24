@@ -1,7 +1,7 @@
 scmus - Scheme MPD Client
 =========================
 
-Copyright © 2014-2017 Drew Thoreson
+Copyright © 2014-2018 Drew Thoreson
 
 ![screenshot of scmus](https://raw.github.com/drewt/scmus/master/screens/scmus.png "scmus - queue view")
 
