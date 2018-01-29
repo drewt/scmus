@@ -16,15 +16,15 @@
 ;;
 
 (declare (unit browser-view)
-         (uses ncurses options client track ui-lib view window)
-         (export update-browser!))
+         (uses ncurses event options client track ui-lib view window)
+         (export))
 
 (import ncurses)
-(import scmus.base scmus.client scmus.track scmus.window)
+(import scmus.base scmus.client scmus.event scmus.track scmus.window)
 
 (: browser-add! (* -> undefined))
 (define (browser-add! selected)
-  (case (caar selected)
+  (case (car selected)
     ((directory) (scmus-find-add! (cons 'base (cdadr selected))))
     ((playlist)  (scmus-playlist-load! (cdadr selected)))
     ((file)      (scmus-add! (cdadr selected)))))
@@ -49,28 +49,11 @@
     ((file)      (get-format 'format-browser-file))
     ((metadata)  (get-format 'format-browser-metadata))))
 
-(: update-browser! thunk)
-(define (update-browser!)
-  (let ((window (get-window 'browser)))
-    (let loop ()
-      (when (window-stack-peek window)
-        (window-stack-pop! window)
-        (loop)))
-    (set! (*window-data window) #f)
-    (browser-get-data window)
-    (void)))
-
 (: tag-data (list -> (list-of (pair symbol *))))
 (define (tag-data data)
   (if (null? data)
     data
     (map (lambda (x) (cons (caar x) x)) data)))
-
-(: browser-get-data (window -> list))
-(define (browser-get-data window)
-  (unless (*window-data window)
-    (set! (*window-data window) (tag-data (scmus-lsinfo "/"))))
-  (*window-data window))
 
 (define *browser-location* (list "/"))
 
@@ -86,17 +69,19 @@
 (define (directory-activate! window dir)
   (set! *browser-location*
     (cons (string-append "/" dir) *browser-location*))
-  (window-stack-push! window (tag-data (scmus-lsinfo dir)) browser-get-data))
+  (window-stack-push! (widget-parent window)
+    (make-browser-window (tag-data (scmus-lsinfo dir)))))
 
 (: playlist-activate! (window string -> undefined))
 (define (playlist-activate! window playlist)
   (set! *browser-location*
     (cons (string-append "[" playlist "]") *browser-location*))
-  (window-stack-push! window (tag-data (scmus-list-playlist playlist)) browser-get-data))
+  (window-stack-push! (widget-parent window)
+    (make-browser-window (tag-data (scmus-list-playlist playlist)))))
 
 (: file-activate! (window track -> undefined))
 (define (file-activate! window file)
-  (define (format-metadata metadata)
+   (define (format-metadata metadata)
     (map (lambda (x)
            (cons 'metadata
                  (list (cons 'tag   (car x))
@@ -104,24 +89,32 @@
          metadata))
   (set! *browser-location*
     (cons (string-append "/" (alist-ref 'file file)) *browser-location*))
-  (window-stack-push! window (format-metadata (sort-metadata file)) browser-get-data))
+  (window-stack-push! (widget-parent window)
+    (make-browser-window (format-metadata (sort-metadata file)))))
 
 (: browser-deactivate (window -> undefined))
 (define (browser-deactivate! window)
-  (when (window-stack-peek window)
-    (set! *browser-location* (cdr *browser-location*))
-    (window-stack-pop! window)))
+  (let ((window (widget-parent window)))
+    (when (window-stack-peek window)
+      (set! *browser-location* (cdr *browser-location*))
+      (window-stack-pop! window))))
 
 (define (browser-title-data view)
   `((location . ,(car *browser-location*))))
 
+(define-event-handler (db-changed) ()
+  (set! (*window-data (widget-last (view-widget (get-view 'browser))))
+        (tag-data (scmus-lsinfo "/"))))
+
+(define (make-browser-window data)
+  (make-window 'data       data
+               'activate   browser-activate!
+               'deactivate browser-deactivate!
+               'match      browser-match
+               'add        browser-add-selected!
+               'format     browser-format))
+
 (define-view browser
-  (make-view (make-stack-window 'data #f
-                                'data-thunk browser-get-data
-                                'activate   browser-activate!
-                                'deactivate browser-deactivate!
-                                'match      browser-match
-                                'add        browser-add-selected!
-                                'format     browser-format)
+  (make-view (make-window-stack (make-browser-window '()))
              " Browser: ~{location}"
              'title-data browser-title-data))

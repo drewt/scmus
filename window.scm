@@ -275,7 +275,7 @@
   ;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-   (define-class <window> (<widget>)
+  (define-class <window> (<widget>)
     ((data       initform: '()
                  ; writer below
                  reader:   *window-data)
@@ -375,50 +375,6 @@
 
   (define (make-window . args)
     (apply make <window> args))
-
-  (define-class <window-stack> (<window>)
-    ((stack initform: '()
-            accessor: window-stack-stack)))
-
-  (define-method (window-stack-push! (window <window-stack>) data data-thunk)
-    (set! (window-stack-stack window)
-      (cons `((data-thunk . ,(window-data-thunk window))
-              (data-len   . ,(window-data-len window))
-              (top-pos    . ,(window-top-pos window))
-              (sel-pos    . ,(window-sel-pos window))
-              (marked     . ,(*window-marked window))
-              (data       . ,(*window-data window)))
-            (window-stack-stack window)))
-    (set! (window-data-thunk window) data-thunk)
-    (set! (window-top-pos window) 0)
-    (set! (window-sel-pos window) 0)
-    (set! (*window-marked window) '())
-    (set! (*window-data window) data))
-
-  (define-method (window-stack-pop! (window <window-stack>))
-    (let loop ((members (car (window-stack-stack window))))
-      (unless (null? members)
-        (let ((name  (caar members))
-              (value (cdar members)))
-          (case name
-            ((data)       (set! (*window-data window) value))
-            ((data-thunk) (set! (window-data-thunk window) value))
-            ((data-len)   (set! (window-data-len window) value))
-            ((top-pos)    (set! (window-top-pos window) value))
-            ((sel-pos)    (set! (window-sel-pos window) value))
-            ((marked)     (set! (*window-marked window) value))))
-        (loop (cdr members))))
-    (set! (window-stack-stack window)
-      (cdr (window-stack-stack window))))
-
-  (define-method (window-stack-peek (window <window-stack>))
-    (let ((stack (window-stack-stack window)))
-      (if (null? stack)
-        #f
-        (car stack))))
-
-  (define (make-stack-window . args)
-    (apply make <window-stack> args))
 
   (: window-data (window -> list))
   (define (window-data window)
@@ -655,6 +611,43 @@
   (define (window-search! window query)
     (window-search-init! window query)
     (window-search-next! window))
+
+  (define-class <window-stack> (<container>))
+
+  (define (make-window-stack root-window #!rest windows)
+    (let ((stack (make <window-stack> 'children (cons root-window windows))))
+     (for-each (lambda (w) (set! (widget-parent w) stack))
+               (cons root-window windows))
+     stack))
+
+  (define-method (compute-layout (stack <window-stack>) cols rows)
+    (list (list (car (container-children stack)) 0 0 cols rows)))
+
+  (define-method (widget-geometry-set! (stack <window-stack>) cols rows)
+    (widget-geometry-set! (widget-first stack) cols rows))
+
+  ;; Override the default <container> behavior, which is not what we want.
+  (define-method (widget-next (stack <window-stack>) prev) stack)
+  (define-method (widget-prev (stack <window-stack>) next) stack)
+
+  (define-method (window-stack-push! (stack <window-stack>) (window <window>))
+    ; XXX: hack because window-geometry-set! is never called on new window
+    (set! (window-nr-lines window) (window-nr-lines (widget-first stack)))
+    (container-prepend-child! stack window)
+    (set! (view-window (widget-root stack)) window)
+    (widget-damaged! stack))
+
+  (define-method (window-stack-pop! (stack <window-stack>))
+    (unless (null? (cdr (container-children stack)))
+    (set! (container-children stack) (cdr (container-children stack))))
+    (set! (view-window (widget-root stack)) (car (container-children stack)))
+    (widget-damaged! stack))
+
+  (define-method (window-stack-peek (stack <window-stack>))
+    (let ((s (cdr (container-children stack))))
+      (if (null? s)
+        #f
+        (car s))))
 
   ;; FIXME: not really the greatest place for this
   ;; Generates a function to call cursed-set! with the appropriate value given

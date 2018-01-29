@@ -89,12 +89,12 @@
                   (+ x (cadr layout))
                   (+ y (caddr layout)))
             (cdddr layout)))
-  (let loop ((children (compute-layout container cols rows)))
-    (unless (null? children)
-      (apply print-widget! (adjust-positions (car children)))
-      (loop (cdr children)))))
+  (for-each (lambda (child)
+              (apply print-widget! (adjust-positions child)))
+            (compute-layout container cols rows)))
 
 (define-method (print-widget! (window <window>) x y cols rows)
+  ;(command-line-print-info! (format "LINES: ~s" (window-nr-lines window)))
   (let loop ((rows (window-top window))
              (lines (window-nr-lines window)))
     (when (> lines 0)
@@ -173,9 +173,7 @@
 
 (: update-db thunk)
 (define (update-db)
-  (scmus-update-stats!)
-  (update-library!)
-  (update-browser!))
+  (scmus-update-stats!))
 
 (: update-cursor thunk)
 (define (update-cursor)

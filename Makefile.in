@@ -51,7 +51,7 @@ all: $(target)
 
 main_deps          = base client config eval getopt
 bindings-view_deps = base editable event input keys ncurses error window
-browser-view_deps  = base client ncurses track window
+browser-view_deps  = base client event ncurses track window
 command-line_deps  = base editable event input iter ncurses
 command_deps       = base command-line error eval event
 commands_deps      = base client command command-line eval keys status window
@@ -61,7 +61,7 @@ event_deps         = base
 format_deps        = base eval error status track
 input_deps         = base editable ncurses
 keys_deps          = base eval event ncurses
-library-view_deps  = base client ncurses track window
+library-view_deps  = base client event ncurses track window
 option_deps        = base event
 options_deps       = base event format option
 options-view_deps  = base editable event input ncurses option error window

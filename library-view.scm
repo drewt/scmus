@@ -16,11 +16,11 @@
 ;;
 
 (declare (unit library-view)
-         (uses ncurses options client track ui-lib view window)
-         (export update-library!))
+         (uses ncurses event options client track ui-lib view window)
+         (export))
 
 (import ncurses)
-(import scmus.base scmus.client scmus.track scmus.window)
+(import scmus.base scmus.client scmus.event scmus.track scmus.window)
 
 (define (tag-data data)
   (map (lambda (x) (cons (car x) (list x))) data))
@@ -37,17 +37,6 @@
   (for-each library-add! (window-all-selected window))
   (scmus-update-queue!))
 
-(: update-library! thunk)
-(define (update-library!)
-  (let ((window (get-window 'library)))
-    (let loop ()
-      (when (window-stack-peek window)
-        (window-stack-pop! window)
-        (loop)))
-    (set! (*window-data window) #f)
-    (library-get-data window)
-    (void)))
-
 (: library-format (symbol -> format-spec))
 (define (library-format tag)
   (case tag
@@ -57,15 +46,6 @@
     ((album)     (get-format 'format-library-album))
     ((file)      (get-format 'format-library-file))
     ((metadata)  (get-format 'format-library-metadata))))
-
-(: library-get-data (window -> list))
-(define (library-get-data window)
-  (unless (*window-data window)
-    (set! (*window-data window) (append! (cons '(separator . ((text . "Playlists")))
-                                               (tag-data (scmus-list-playlists)))
-                                         (cons '(separator . ((text . "Artists")))
-                                               (tag-data (scmus-list-tags 'artist))))))
-  (*window-data window))
 
 (: library-activate! (window -> undefined))
 (define (library-activate! window)
@@ -82,17 +62,20 @@
 (: playlist-activate! (window list -> undefined))
 (define (playlist-activate! window playlist)
   (let ((tracks (scmus-list-playlist (cdar playlist))))
-    (window-stack-push! window (list-of 'file tracks) library-get-data)))
+    (window-stack-push! (widget-parent window)
+      (make-library-window (list-of 'file tracks)))))
 
 (: artist-activate! (window list -> undefined))
 (define (artist-activate! window artist)
   (let ((albums (scmus-list-tags 'album (cons 'artist (cdar artist)))))
-    (window-stack-push! window (tag-data albums) library-get-data)))
+    (window-stack-push! (widget-parent window)
+      (make-library-window (tag-data albums)))))
 
 (: album-activate! (window list -> undefined))
 (define (album-activate! window album)
   (let ((tracks (scmus-search-songs #t #f (cons 'album (cdar album)))))
-    (window-stack-push! window (list-of 'file tracks) library-get-data)))
+    (window-stack-push! (widget-parent window)
+      (make-library-window (list-of 'file tracks)))))
 
 (: file-activate! (window track -> undefined))
 (define (file-activate! window track)
@@ -102,12 +85,14 @@
                  (list (cons 'tag   (car x))
                        (cons 'value (cdr x)))))
          metadata))
-  (window-stack-push! window (format-metadata (sort-metadata track)) library-get-data))
+  (window-stack-push! (widget-parent window)
+    (make-library-window (format-metadata (sort-metadata track)))))
 
 (: library-deactivate! (window -> undefined))
 (define (library-deactivate! window)
-  (when (window-stack-peek window)
-    (window-stack-pop! window)))
+  (let ((window (widget-parent window)))
+    (when (window-stack-peek window)
+      (window-stack-pop! window))))
 
 (: library-match (* string -> boolean))
 (define (library-match row query)
@@ -118,12 +103,21 @@
                                  (substring-match (format "~a" (cdaddr row)) query)))
     (else                    #f)))
 
+(define-event-handler (db-changed) ()
+  (set! (*window-data (widget-last (view-widget (get-view 'library))))
+        (append! (cons '(separator . ((text . "Playlists")))
+                       (tag-data (scmus-list-playlists)))
+                 (cons '(separator . ((text . "Artists")))
+                       (tag-data (scmus-list-tags 'artist))))))
+
+(define (make-library-window data)
+  (make-window 'data       data
+               'activate   library-activate!
+               'deactivate library-deactivate!
+               'match      library-match
+               'add        library-add-selected!
+               'format     library-format))
+
 (define-view library
-  (make-view (make-stack-window 'data #f
-                                'data-thunk library-get-data
-                                'activate   library-activate!
-                                'deactivate library-deactivate!
-                                'match      library-match
-                                'add        library-add-selected!
-                                'format     library-format)
+  (make-view (make-window-stack (make-library-window '()))
              " Library"))
