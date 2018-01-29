@@ -147,7 +147,9 @@
     (lambda (s)
       (when s
         (let ((r (user-eval-string s)))
-          (if (and (not (condition? r)) (get-option 'eval-mode-print))
+          (if (and (not (condition? r))
+                   (not (eqv? r (void)))
+                   (get-option 'eval-mode-print))
             (command-line-print-info! (format "~s" r))))))))
 
 (define/user (enter-command-mode)
