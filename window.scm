@@ -261,14 +261,6 @@
   ;;             \ |                       |
   ;;              `+- - - - - - - - - - - -+
   ;;
-  ;; By default, the list is given by the @data slot of the window object.
-  ;;
-  ;; If the @data-thunk slot is set to something other than the default, then
-  ;; the @data slot is ignored and the return value of @data-thunk is used
-  ;; instead.  This can be used to track a list which is stored outside of the
-  ;; window, for example.  It is not advisable to do any expensive computations
-  ;; in @data-thunk, as it is called often.
-  ;;
   ;; A window can be searched.  This works by calling the function in the @match
   ;; slot on each row of the window; if @match returns true, then the row is
   ;; considered to be a match for the query.
@@ -278,9 +270,7 @@
   (define-class <window> (<widget>)
     ((data       initform: '()
                  ; writer below
-                 reader:   *window-data)
-     (data-thunk initform: *window-data
-                 accessor: window-data-thunk)
+                 reader:   window-data)
      (data-len   initform: 0
                  ; writer below
                  reader:   window-data-len)
@@ -331,7 +321,7 @@
       (if (and format (not (procedure? format)))
         (set! (slot-value window 'format) (lambda (tag) format)))))
 
-  (define-method ((setter *window-data) (window <window>) data)
+  (define-method ((setter window-data) (window <window>) data)
     (set! (slot-value window 'data) data)
     (set! (window-data-len window) (length (window-data window)))
     (widget-damaged! window))
@@ -375,10 +365,6 @@
 
   (define (make-window . args)
     (apply make <window> args))
-
-  (: window-data (window -> list))
-  (define (window-data window)
-    ((window-data-thunk window) window))
 
   (: window-sel-offset (window -> fixnum))
   (define (window-sel-offset window)

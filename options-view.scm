@@ -66,4 +66,4 @@
 
 (define-event-handler (option-data-changed) ()
   (let ((window (get-window 'options)))
-    (set! (*window-data window) (make-options-data))))
+    (set! (window-data window) (make-options-data))))

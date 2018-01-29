@@ -103,7 +103,7 @@
   `((location . ,(car *browser-location*))))
 
 (define-event-handler (db-changed) ()
-  (set! (*window-data (widget-last (view-widget (get-view 'browser))))
+  (set! (window-data (widget-last (view-widget (get-view 'browser))))
         (tag-data (scmus-lsinfo "/"))))
 
 (define (make-browser-window data)

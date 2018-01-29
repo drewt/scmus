@@ -41,10 +41,10 @@
 (: add-search-field! (window -> undefined))
 (define (add-search-field! window)
   (let-values (((queries results) (search-window-data window)))
-    (set! (*window-data window) (append queries
-                                        (list (make-search-field)
-                                              '(separator . ((text . "Results"))))
-                                        results))
+    (set! (window-data window) (append queries
+                                       (list (make-search-field)
+                                             '(separator . ((text . "Results"))))
+                                       results))
     (when (>= (window-sel-pos window) (length queries))
       (window-move-down! window 1))
     (search-changed!)))
@@ -65,20 +65,20 @@
 
 (: search-remove! (window -> undefined))
 (define (search-remove! window)
-  (let-values (((prev rest) (split-at (*window-data window)
+  (let-values (((prev rest) (split-at (window-data window)
                                       (window-sel-pos window))))
     (cond
       ((null? prev) (editable-clear! (cdadar rest)))
       ((separator? (car rest)) (void))
       (else
-        (set! (*window-data window) (append prev (cdr rest)))))
+        (set! (window-data window) (append prev (cdr rest)))))
     (search-changed!)))
 
 (: search-clear! (window -> undefined))
 (define (search-clear! window)
   (let loop ((data (window-data window)) (result '()))
     (if (or (null? data) (eqv? (caar data) 'file))
-      (set! (*window-data window) (reverse result))
+      (set! (window-data window) (reverse result))
       (loop (cdr data) (cons (car data) result))))
   (search-changed!))
 
@@ -109,7 +109,7 @@
          (remove (lambda (x) (= 0 (editable-length (cdadr x))))
                  (search-window-data window))))
   (let ((results (apply scmus-search-songs #f #f (gather-constraints))))
-    (set! (*window-data window) (append (window-data window)
+    (set! (window-data window) (append (window-data window)
                                         (list-of 'file results))))
   (search-changed!))
 

@@ -94,7 +94,6 @@
             (compute-layout container cols rows)))
 
 (define-method (print-widget! (window <window>) x y cols rows)
-  ;(command-line-print-info! (format "LINES: ~s" (window-nr-lines window)))
   (let loop ((rows (window-top window))
              (lines (window-nr-lines window)))
     (when (> lines 0)
@@ -145,7 +144,7 @@
 
 (: update-status thunk)
 (define (update-status)
-  (set! (*window-data (get-window 'status)) (alist->kv-rows (current-status)))
+  (set! (window-data (get-window 'status)) (alist->kv-rows (current-status)))
   (update-status-line))
 
 (: update-current thunk)
@@ -302,5 +301,5 @@
 (define-event-handler db-changed () update-db)
 (define-event-handler status-changed () update-status)
 (define-event-handler (error-changed) ()
-  (set! (*window-data (get-window 'error))
+  (set! (window-data (get-window 'error))
     (list->rows (string-split-lines (scmus-error)))))

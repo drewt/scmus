@@ -104,7 +104,7 @@
     (else                    #f)))
 
 (define-event-handler (db-changed) ()
-  (set! (*window-data (widget-last (view-widget (get-view 'library))))
+  (set! (window-data (widget-last (view-widget (get-view 'library))))
         (append! (cons '(separator . ((text . "Playlists")))
                        (tag-data (scmus-list-playlists)))
                  (cons '(separator . ((text . "Artists")))

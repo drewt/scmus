@@ -70,4 +70,4 @@
   (widget-damaged! (get-view 'queue)))
 
 (define-event-handler (queue-data-changed) ()
-  (set! (*window-data (get-window 'queue)) (list-of 'file (current-queue))))
+  (set! (window-data (get-window 'queue)) (list-of 'file (current-queue))))
