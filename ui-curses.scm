@@ -94,21 +94,21 @@
             (compute-layout container cols rows)))
 
 (define-method (print-widget! (window <window>) x y cols rows)
-  (let loop ((rows (window-top window))
-             (lines (window-nr-lines window)))
+  (let loop ((data (window-top window))
+             (lines rows))
     (when (> lines 0)
-      (let ((line-nr (+ y (- (window-nr-lines window) lines))))
-        (if (null? rows)
+      (let ((line-nr (+ y (- rows lines))))
+        (if (null? data)
           (begin
             (cursed-set! CURSED-WIN)
             (print-line! "" x line-nr cols CURSED-WIN))
-          (let ((cursed (window-cursed window (car rows) line-nr)))
-            (print-line! (window-print-line window (car rows) cols)
+          (let ((cursed (window-cursed window (car data) line-nr)))
+            (print-line! (window-print-line window (car data) cols)
                          x
                          line-nr
                          cols
                          cursed)))
-        (loop (if (null? rows) '() (cdr rows)) (- lines 1))))))
+        (loop (if (null? data) '() (cdr data)) (- lines 1))))))
 
 (: print-line! (string fixnum fixnum fixnum fixnum -> undefined))
 (define (print-line! str col line nr-cols cursed)
