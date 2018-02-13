@@ -30,7 +30,7 @@
 
 (declare (unit mpd-client))
 
-(module mpd-client
+(module drewt.mpd-client
   (; Connection records
    mpd-connection?
    mpd-host

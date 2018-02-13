@@ -102,7 +102,7 @@
                       scmus-consume-set!
                       scmus-search-songs)
   (import srfi-18)
-  (import mpd-client)
+  (import drewt.mpd-client)
   (import scmus.base scmus.error scmus.event scmus.option scmus.status scmus.track)
 
   (: *last-update* number)
