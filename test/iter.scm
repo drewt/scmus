@@ -25,7 +25,7 @@
   (csi (include "iter.scm"))
   (else (void)))
 
-(import iter)
+(import drewt.iter)
 
 (start-test "iter")
 

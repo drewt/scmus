@@ -27,7 +27,7 @@
                             command-line-text
                             command-line-text-set!)
 
-  (import scmus.base scmus.editable scmus.event scmus.input iter drewt.ncurses)
+  (import scmus.base scmus.editable scmus.event scmus.input drewt.iter drewt.ncurses)
 
   ;; history {{{
 

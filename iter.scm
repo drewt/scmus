@@ -17,7 +17,7 @@
 
 (declare (unit iter))
 
-(module iter *
+(module drewt.iter *
   (import scheme chicken srfi-1)
 
   ;;
