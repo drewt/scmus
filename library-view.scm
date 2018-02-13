@@ -19,7 +19,7 @@
          (uses ncurses event options client track ui-lib view window)
          (export))
 
-(import ncurses)
+(import drewt.ncurses)
 (import scmus.base scmus.client scmus.event scmus.track scmus.window)
 
 (define (tag-data data)

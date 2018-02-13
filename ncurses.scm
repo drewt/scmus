@@ -6,7 +6,7 @@
          (hide check to-chtype)
          (foreign-declare "#include <ncurses.h>"))
 
-(module ncurses
+(module drewt.ncurses
   (endwin
    initscr
    box

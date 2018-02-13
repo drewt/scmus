@@ -24,7 +24,7 @@
 
 (module scmus.editable *
   (import scheme chicken ports srfi-1)
-  (import ncurses)
+  (import drewt.ncurses)
   (import scmus.base)
 
   (: *make-editable ((editable char -> undefined)

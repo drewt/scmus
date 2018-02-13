@@ -19,7 +19,7 @@
          (uses editable input ncurses option error ui-lib view window)
          (export make-options-view option-edit!))
 
-(import ncurses)
+(import drewt.ncurses)
 (import scmus.base scmus.editable scmus.error scmus.event scmus.input
         scmus.option scmus.window)
 

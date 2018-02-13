@@ -50,7 +50,7 @@
                     unbind!)
 
   (import srfi-69)
-  (import scmus.base scmus.eval scmus.event ncurses)
+  (import scmus.base scmus.eval scmus.event drewt.ncurses)
 
   (define-type binding-node (pair string pair))
   (define-type binding-list (list-of binding-node))

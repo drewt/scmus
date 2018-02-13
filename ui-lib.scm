@@ -18,7 +18,7 @@
 (declare (unit ui-lib)
          (uses ncurses format option window))
 
-(import ncurses)
+(import drewt.ncurses)
 (import scmus.base scmus.format scmus.option scmus.window)
 
 ;; colors {{{

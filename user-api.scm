@@ -19,7 +19,7 @@
          (uses command command-line config scmus-eval event format keys ncurses
                option client status track ui-curses window))
 
-(import ncurses)
+(import drewt.ncurses)
 (import scmus.base scmus.client scmus.command scmus.command-line scmus.config
         scmus.eval scmus.event scmus.format scmus.keys scmus.option
         scmus.status scmus.track scmus.window)

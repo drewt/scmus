@@ -24,7 +24,7 @@
                      cursor-pos
                      input-mode
                      set-input-mode!)
-  (import scmus.base scmus.editable ncurses)
+  (import scmus.base scmus.editable drewt.ncurses)
  
   (: *current-input-mode* symbol)
   (define *current-input-mode* 'normal-mode)

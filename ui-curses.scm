@@ -25,7 +25,7 @@
                  exit-curses get-window init-curses redraw-ui set-view!
                  connect!))
 
-(import ncurses)
+(import drewt.ncurses)
 (import scmus.base scmus.client scmus.command-line scmus.editable scmus.error
         scmus.event scmus.format scmus.input scmus.keys scmus.option
         scmus.status scmus.window)

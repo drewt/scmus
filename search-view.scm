@@ -21,7 +21,7 @@
          (export make-search-view search-edit! search-clear! search-add!
                  search-remove!))
 
-(import ncurses)
+(import drewt.ncurses)
 (import scmus.base scmus.client scmus.editable scmus.format scmus.input
         scmus.track scmus.window)
 

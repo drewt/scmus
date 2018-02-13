@@ -19,7 +19,7 @@
   (uses editable event input keys ncurses options error ui-lib view window)
   (export))
 
-(import ncurses)
+(import drewt.ncurses)
 (import scmus.base scmus.editable scmus.error scmus.event scmus.input
         scmus.keys scmus.window)
 

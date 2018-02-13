@@ -33,7 +33,7 @@
     srfi-1
     utf8 utf8-srfi-13 utf8-srfi-14)
 
-  (import ncurses)
+  (import drewt.ncurses)
   (import scmus.config)
 
   (define-syntax key-case
