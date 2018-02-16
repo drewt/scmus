@@ -17,7 +17,7 @@
 
 (declare (unit getopt))
 
-(module getopt (mkopt process-opts usage store-true store-one store-all store-number)
+(module drewt.getopt (mkopt process-opts usage store-true store-one store-all store-number)
   (import scheme chicken data-structures)
 
   (define-record-type cmdline-opt
