@@ -15,12 +15,10 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (uses config client commands scmus-eval getopt options ui-curses user-api))
-
 (foreign-declare "#include <locale.h>")
 
 (import drewt.getopt)
-(import scmus.base scmus.client scmus.config scmus.eval)
+(import scmus.base scmus.client scmus.config scmus.ueval)
 
 (define *error* #f)
 

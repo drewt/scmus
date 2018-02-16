@@ -15,9 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit queue-view)
-  (uses event options client status track ui-lib view window)
-  (export make-queue-view))
+(declare (export make-queue-view))
 
 (import scmus.base scmus.client scmus.event scmus.status scmus.track
         scmus.window)

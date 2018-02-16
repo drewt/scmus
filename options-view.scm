@@ -15,9 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit options-view)
-         (uses editable input ncurses option error ui-lib view window)
-         (export make-options-view option-edit!))
+(declare (export make-options-view option-edit!))
 
 (import drewt.ncurses)
 (import scmus.base scmus.editable scmus.error scmus.event scmus.input

@@ -1,3 +1,7 @@
+.SUFFIXES:
+.PHONY: clean distclean run
+
+# variables {{{
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 datarootdir = @datarootdir@
@@ -33,7 +37,7 @@ eggs = coops regex sandbox unix-sockets utf8
 units    = bindings-view browser-view commands library-view options \
            options-view queue-view search-view ui-curses ui-lib \
            user-api view
-imodules = base client command command-line config editable eval event format \
+imodules = base client command command-line config editable ueval event format \
 	   input keys option error status track window
 omodules = getopt iter mpd-client ncurses
 modules  = $(imodules) $(omodules)
@@ -43,24 +47,28 @@ target   = scmus@EXEEXT@
 test-units = test/iter
 
 clean = $(call objfiles,$(units) $(modules) $(test-units) main check) \
-	$(addsuffix .import.scm,$(omodules)) \
+	$(addprefix drewt.,$(addsuffix .import.scm,$(omodules))) \
 	$(addprefix scmus.,$(addsuffix .import.scm,$(imodules))) \
         $(types) $(target) all.types
 
 all: $(target)
 
-main_deps          = base client config eval getopt
+# variables }}}
+# dependencies {{{
+
+# BUILD dependencies
+main_deps          = base client config ueval getopt
 bindings-view_deps = base editable event input keys ncurses error window
 browser-view_deps  = base client event ncurses track window
 command-line_deps  = base editable event input iter ncurses
-command_deps       = base command-line error eval event
-commands_deps      = base client command command-line eval keys status window
+command_deps       = base command-line error ueval event
+commands_deps      = base client command command-line ueval keys status window
 editable_deps      = base ncurses
-eval_deps          = base command-line event option error
+ueval_deps         = base command-line event option error
 event_deps         = base
-format_deps        = base eval error status track
+format_deps        = base ueval error status track
 input_deps         = base editable ncurses
-keys_deps          = base eval event ncurses
+keys_deps          = base ueval event ncurses
 library-view_deps  = base client event ncurses track window
 option_deps        = base event
 options_deps       = base event format option
@@ -75,21 +83,80 @@ track_deps         = base
 ui-curses_deps     = base client command-line editable event format input keys \
                      ncurses option error status window
 ui-lib_deps        = base format ncurses option window
-user-api_deps      = base client command command-line config eval event format \
+user-api_deps      = base client command command-line config ueval event format \
                      keys ncurses option status track window
 view_deps          = base
 window_deps        = base format
 
+# LOAD dependencies
+main_uses          = commands options ui-curses user-api
+bindings-view_uses = options ui-lib view
+browser-view_uses  = options track ui-lib view
+library-view_uses  = options ui-lib view
+options-view_uses  = ui-lib view
+queue-view_uses    = options ui-lib view
+search-view_uses   = options ui-lib view
+ui-curses_uses     = bindings-view browser-view library-view options options-view \
+                     queue-view search-view ui-lib view
+user-api_uses      = ui-curses
+view_uses          = ui-lib
+
+# Add $($(file)_deps) as dependencies on $(file)
 $(foreach f,$(units) $(modules) main,$(eval $(f).@OBJEXT@: $(call objfiles,$($(f)_deps))))
 
-include rules.mk
-
+# Everything depends on prologue
 $(call objfiles,$(units) $(modules)): prologue.scm $(types-prereq-y)
+
+# Test dependencies
+$(call objfiles,$(test-units)): prologue.scm test/test.scm
+
+# Everything except main.scm is a unit with the same name as the source file.
+$(foreach f,$(units) $(modules),$(eval $(f).@OBJEXT@: private CSCFLAGS += -unit $(f)))
+
+# Add load dependencies
+$(foreach f,$(units) $(modules) main,$(eval $(f).@OBJEXT@: private CSCFLAGS += $(foreach d,$($(f)_deps) $($(f)_uses), -uses $(d))))
+
+# dependencies }}}
+# rules {{{
+
+ifeq ($(verbose),y)
+  quiet =
+else
+  quiet = quiet_
+endif
+
+clean:
+	$(if $(clean), rm -f $(clean))
+
+distclean: clean
+	$(if $(distclean), rm -f $(distclean))
+
+run: all
+	$(if $(target), ./$(target))
+
+%.@OBJEXT@: %.scm
+	$(call cmd,csc)
+
+%.types: %.scm
+	$(call cmd,types)
+
+# scheme compile for object files
+quiet_cmd_csc   = CSC     $@
+      cmd_csc   = $(CSC) -c $(CSCFLAGS) -J -o $@ $<
+
+# generate type file
+quiet_cmd_types = TYPES   $@
+      cmd_types = $(CSC) -c $(TFLAGS) -analyze-only -emit-type-file $@ $<
+
+# LD for programs; optional parameter: libraries
+quiet_cmd_ld    = LD      $@
+      cmd_ld    = $(LD) $(LDFLAGS) -o $@ $^ $(1)
+
+# cmd macro (taken from kbuild)
+cmd = @$(if $($(quiet)cmd_$(1)),echo '  $(call $(quiet)cmd_$(1),$(2))' &&) $(call cmd_$(1),$(2))
 
 $(target): $(call objfiles,$(units) $(modules)) main.@OBJEXT@
 	$(call cmd,ld,$(LIBS))
-
-$(call objfiles,$(test-units)): prologue.scm test/test.scm
 
 check: $(call objfiles,$(units) $(modules) $(test-units)) check.@OBJEXT@
 	$(call cmd,ld,$(LIBS))
@@ -105,3 +172,5 @@ install: all
 	$(INSTALL) -m644 $(datadir)/scmus data/scmusrc.scm
 	$(INSTALL) -m644 $(datadir)/scmus/colors $(wildcard data/colors/*)
 	$(INSTALL) -m644 $(mandir)/man1 $(wildcard doc/*.1)
+
+# rules }}}

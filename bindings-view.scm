@@ -15,9 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit bindings-view)
-  (uses editable event input keys ncurses options error ui-lib view window)
-  (export))
+(declare (export))
 
 (import drewt.ncurses)
 (import scmus.base scmus.editable scmus.error scmus.event scmus.input

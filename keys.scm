@@ -33,9 +33,6 @@
 
 (require-extension srfi-1 srfi-69)
 
-(declare (unit keys)
-         (uses scmus-eval event ncurses))
-
 (module scmus.keys (binding-context-valid?
                     binding-data
                     binding-expression
@@ -50,7 +47,7 @@
                     unbind!)
 
   (import srfi-69)
-  (import scmus.base scmus.eval scmus.event drewt.ncurses)
+  (import scmus.base scmus.ueval scmus.event drewt.ncurses)
 
   (define-type binding-node (pair string pair))
   (define-type binding-list (list-of binding-node))

@@ -15,8 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit getopt))
-
 (module drewt.getopt (mkopt process-opts usage store-true store-one store-all store-number)
   (import scheme chicken data-structures)
 

@@ -15,8 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit iter))
-
 (module drewt.iter *
   (import scheme chicken srfi-1)
 

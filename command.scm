@@ -17,9 +17,6 @@
 
 (require-extension srfi-69)
 
-(declare (unit command)
-         (uses command-line error event scmus-eval))
-
 ;;
 ;; This module provides an interpreter for a simple command language.  The
 ;; primary motivation for this interpreter is to provide a complete interface to
@@ -62,7 +59,7 @@
                        register-command!
                        run-command)
   (import ports srfi-69)
-  (import scmus.base scmus.command-line scmus.error scmus.eval scmus.event)
+  (import scmus.base scmus.command-line scmus.error scmus.ueval scmus.event)
 
   (define *commands* (make-hash-table test: string=?
                                       hash: string-hash))

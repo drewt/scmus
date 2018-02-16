@@ -15,8 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit track))
-
 (module scmus.track (track-file
                      track-last-modified
                      *track-duration

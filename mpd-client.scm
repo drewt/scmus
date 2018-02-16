@@ -28,8 +28,6 @@
 
 (require-extension regex srfi-1 srfi-13 tcp)
 
-(declare (unit mpd-client))
-
 (module drewt.mpd-client
   (; Connection records
    mpd-connection?

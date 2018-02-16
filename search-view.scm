@@ -15,10 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit search-view)
-         (uses editable format input ncurses options client track ui-lib
-               view window)
-         (export make-search-view search-edit! search-clear! search-add!
+(declare (export make-search-view search-edit! search-clear! search-add!
                  search-remove!))
 
 (import drewt.ncurses)

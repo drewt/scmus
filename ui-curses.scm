@@ -17,11 +17,7 @@
 
 (require-extension coops)
 
-(declare (unit ui-curses)
-         (uses bindings-view browser-view command-line event format
-               input keys library-view ncurses option options options-view queue-view
-               client error search-view status ui-lib view window)
-         (export current-view current-window curses-update cursor-off cursor-on
+(declare (export current-view current-window curses-update cursor-off cursor-on
                  exit-curses get-window init-curses redraw-ui set-view!
                  connect!))
 

@@ -16,8 +16,6 @@
 ;;
 
 (require-extension srfi-69)
-(declare (unit option)
-         (uses event))
 
 (module scmus.option (get-option
                       set-option!

@@ -19,8 +19,6 @@
 ;; Simple text representation suitable for editing.  Text is stored as a
 ;; reversed list of characters, and can be converted to a string on demand.
 ;;
-(declare (unit editable)
-         (uses ncurses))
 
 (module scmus.editable *
   (import scheme chicken ports srfi-1)

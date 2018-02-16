@@ -17,8 +17,6 @@
 
 (require-extension srfi-18)
 
-(declare (unit event))
-
 (module scmus.event (define-event-handler
                      handle-events!
                      register-event!

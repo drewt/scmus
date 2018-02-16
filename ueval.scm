@@ -18,17 +18,14 @@
 (require-extension srfi-69)
 (require-extension sandbox)
  
-;; XXX: Naming a unit "eval" causes segfault
-(declare (unit scmus-eval)
-         (uses command-line error event option))
-
-(module scmus.eval (register-user-value!
-                    user-value-ref
-                    user-doc-ref
-                    user-eval
-                    user-eval/raw
-                    user-eval-string
-                    user-load)
+;; XXX: Naming a unit "eval" causes segfault -- hence ueval
+(module scmus.ueval (register-user-value!
+                     user-value-ref
+                     user-doc-ref
+                     user-eval
+                     user-eval/raw
+                     user-eval-string
+                     user-load)
   (import ports srfi-69)
   (import sandbox)
   (import scmus.base scmus.command-line scmus.error scmus.event scmus.option)

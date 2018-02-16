@@ -17,9 +17,7 @@
 
 (require-extension coops)
 
-(declare (unit view)
-         (uses ui-lib)
-         (hide *view-ctors*))
+(declare (hide *view-ctors*))
 
 (import scmus.base)
 

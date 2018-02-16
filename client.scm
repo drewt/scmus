@@ -17,9 +17,6 @@
 
 (require-extension srfi-18)
 
-(declare (unit client)
-         (uses error event mpd-client option track))
-
 (module scmus.client (scmus-connect!
                       scmus-disconnect!
                       scmus-oneshot

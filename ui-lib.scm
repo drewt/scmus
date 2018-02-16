@@ -15,9 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit ui-lib)
-         (uses ncurses format option window))
-
 (import drewt.ncurses)
 (import scmus.base scmus.format scmus.option scmus.window)
 

@@ -15,9 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit command-line)
-         (uses editable event input iter ncurses))
-
 (module scmus.command-line (command-line-clear!
                             command-line-print-info!
                             command-line-cursor-pos-set!

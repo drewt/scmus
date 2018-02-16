@@ -15,9 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit options)
-         (uses event format option)
-         (export get-format))
+(declare (export get-format))
 
 (import scmus.base scmus.event scmus.format scmus.option)
 

@@ -15,9 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit input)
-         (uses editable ncurses))
-
 (module scmus.input (current-editable
                      cursor-off
                      cursor-on

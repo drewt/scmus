@@ -15,9 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit status)
-         (uses mpd-client track))
-
 ;; TODO: replace status, etc. alists with record types
 
 (module scmus.status (current-queue

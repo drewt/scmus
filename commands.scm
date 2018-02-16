@@ -15,10 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit commands)
-         (uses client command command-line keys scmus-eval status window))
-
-(import scmus.base scmus.client scmus.command scmus.command-line scmus.eval
+(import scmus.base scmus.client scmus.command scmus.command-line scmus.ueval
         scmus.keys scmus.status scmus.window)
 
 (define (param-is-flags? p)

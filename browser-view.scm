@@ -15,9 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit browser-view)
-         (uses ncurses event options client track ui-lib view window)
-         (export))
+(declare (export))
 
 (import drewt.ncurses)
 (import scmus.base scmus.client scmus.event scmus.track scmus.window)

@@ -15,9 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (unit base)
-         (uses config ncurses))
-
 (module scmus.base *
   (reexport
     (except scheme

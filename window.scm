@@ -17,9 +17,6 @@
 
 (require-extension srfi-1 coops)
 
-(declare (unit window)
-         (uses format))
-
 (module scmus.window *
   (import coops)
   (import scmus.base scmus.format)

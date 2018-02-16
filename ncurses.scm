@@ -1,7 +1,6 @@
 ;;;; ncurses.scm
 
-(declare (unit ncurses)
-         (fixnum)
+(declare (fixnum)
          (disable-interrupts)
          (hide check to-chtype)
          (foreign-declare "#include <ncurses.h>"))
