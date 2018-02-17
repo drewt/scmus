@@ -122,11 +122,11 @@
   (apply append (map context->rows (sort (bindings) context<?))))
 
 (define-view bindings
-  (make-view (make-window 'data       (make-bindings-data)
-                          'activate   binding-edit!
-                          'edit       binding-edit!
-                          'format     binding-format)
-             " Key Bindings"))
+  (make-frame (make-window 'data       (make-bindings-data)
+                           'activate   binding-edit!
+                           'edit       binding-edit!
+                           'format     binding-format)
+              " Key Bindings"))
 
 (define-event-handler (binding-data-changed) ()
   (let ((window (get-window 'bindings)))

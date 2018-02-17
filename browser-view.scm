@@ -101,7 +101,7 @@
   `((location . ,(car *browser-location*))))
 
 (define-event-handler (db-changed) ()
-  (set! (window-data (widget-last (view-widget (get-view 'browser))))
+  (set! (window-data (widget-last (frame-widget (get-view 'browser))))
         (tag-data (scmus-lsinfo "/"))))
 
 (define (make-browser-window data)
@@ -113,6 +113,6 @@
                'format     browser-format))
 
 (define-view browser
-  (make-view (make-window-stack (make-browser-window '()))
-             " Browser: ~{location}"
-             'title-data browser-title-data))
+  (make-frame (make-window-stack (make-browser-window '()))
+              " Browser: ~{location}"
+              'title-data browser-title-data))

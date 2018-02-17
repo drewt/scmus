@@ -199,8 +199,6 @@
 (define-command ("win-add")        (view-add! (current-view)))
 (define-command ("win-remove")     (view-remove! (current-view)))
 (define-command ("win-clear")      (view-clear! (current-view)))
-(define-command ("win-next")       (view-next! (current-view)))
-(define-command ("win-prev")       (view-prev! (current-view)))
 
 (define-command ("win-search" query) (window-search! (current-window) query))
 (define-command ("win-search-next")  (window-search-next! (current-window)))

@@ -520,14 +520,6 @@
   "Move the marked tracks to the cursor"
   (view-move! (current-view) before))
 
-(define/user win-next!
-  "Switch to the next window in the current view"
-  (thunk (view-next! (current-view))))
-
-(define/user win-prev!
-  "Switch to the previous window in the current view"
-  (thunk (view-prev! (current-view))))
-
 (: enter-search-mode thunk)
 (define/user (enter-search-mode)
   "Set the input mode to search-mode"

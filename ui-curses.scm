@@ -64,9 +64,9 @@
 
 (: get-window (symbol -> window))
 (define (get-window view-name)
-  (view-window (alist-ref view-name *views*)))
+  (widget-focus (alist-ref view-name *views*)))
 
-(: current-view (-> view))
+(: current-view (-> frame))
 (define (current-view)
   (alist-ref *current-view* *views*))
 
@@ -87,7 +87,7 @@
 ;; windows }}}
 ;; screen updates {{{
 
-(: print-view! (view -> undefined))
+(: print-view! (frame -> undefined))
 (define (print-view! view)
   (when (> (LINES) 3)
     (print-widget! view 0 0 (COLS) (- (LINES) 3))))
@@ -166,7 +166,7 @@
 (: redraw-ui thunk)
 (define (redraw-ui)
   (define (update-geometry view)
-    (widget-geometry-set! (view-widget (cdr view))
+    (widget-geometry-set! (frame-widget (cdr view))
                           (max 0 (- (COLS) 2))
                           (max 0 (- (LINES) 4))))
   (for-each update-geometry *views*)
@@ -260,16 +260,16 @@
     (endwin)))
 
 (define-view status
-  (make-view (make-window 'data (alist->kv-rows (current-status))
+  (make-frame (make-window 'data (alist->kv-rows (current-status))
                           'format *key-value-format*)
-             " MPD Status"))
+              " MPD Status"))
 
 (define (list->rows lines)
   (map (lambda (line) `(row . ((text . ,line)))) lines))
 
 (define-view error
-  (make-view (make-window 'data (list->rows (string-split-lines (scmus-error))))
-             " Error"))
+  (make-frame (make-window 'data (list->rows (string-split-lines (scmus-error))))
+              " Error"))
 
 (define-event-handler command-line-changed () update-command-line)
 (define-event-handler current-line-changed () update-current)

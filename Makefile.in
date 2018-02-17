@@ -37,8 +37,9 @@ eggs = coops regex sandbox unix-sockets utf8
 
 units    = bindings-view browser-view commands library-view options options-view queue-view \
 	   search-view ui-curses ui-lib user-api view
+tui_mods = $(addprefix tui/,display frame misc split-pane widget window)
 imodules = base client command command-line config editable ueval event format input keys option \
-	   error status track tui tui/display tui/misc tui/split-pane tui/widget tui/window
+	   error status track tui $(tui_mods)
 omodules = getopt iter mpd-client ncurses
 modules  = $(imodules) $(omodules)
 types    = $(foreach unit,$(units) $(modules),$(addsuffix .types,$(unit)))
@@ -85,9 +86,10 @@ ui-curses_deps      = base client command-line editable event format input keys 
 ui-lib_deps         = base format ncurses option tui
 user-api_deps       = base client command command-line config ueval event format \
                       keys ncurses option status track tui
-view_deps           = base
-tui_deps            = tui/display tui/misc tui/split-pane tui/widget tui/window
+view_deps           = base tui
+tui_deps            = $(tui_mods)
 tui/display_deps    = base ncurses
+tui/frame_deps      = base format tui/display tui/widget
 tui/misc_deps       = base ncurses tui/widget
 tui/split-pane_deps = base tui/misc tui/widget
 tui/widget_deps     = base
@@ -97,13 +99,14 @@ tui/window_deps     = base format tui/widget tui/display
 main_uses           = commands options ui-curses user-api
 bindings-view_uses  = options ui-lib view
 browser-view_uses   = options track ui-lib view
+commands_uses       = view
 library-view_uses   = options ui-lib view
 options-view_uses   = ui-lib view
 queue-view_uses     = options ui-lib view
 search-view_uses    = options ui-lib view
 ui-curses_uses      = bindings-view browser-view library-view options options-view \
                       queue-view search-view ui-lib view
-user-api_uses       = ui-curses
+user-api_uses       = ui-curses view
 view_uses           = ui-lib
 
 # Add $($(file)_deps) as dependencies on $(file)

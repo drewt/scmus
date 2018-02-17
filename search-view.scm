@@ -130,13 +130,13 @@
     ((file)      (get-format 'format-search-file))))
 
 (define-view search
-  (make-view (make-window 'data       (list (make-search-field)
-                                            '(separator . ((text . "Results"))))
-                          'activate   search-activate!
-                          'match      search-match
-                          'add        search-add!
-                          'remove     search-remove!
-                          'clear      search-clear!
-                          'edit       search-edit!
-                          'format     search-format)
-             " Search"))
+  (make-frame (make-window 'data       (list (make-search-field)
+                                             '(separator . ((text . "Results"))))
+                           'activate   search-activate!
+                           'match      search-match
+                           'add        search-add!
+                           'remove     search-remove!
+                           'clear      search-clear!
+                           'edit       search-edit!
+                           'format     search-format)
+              " Search"))

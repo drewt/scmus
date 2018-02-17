@@ -56,11 +56,11 @@
   (map option->row (options)))
 
 (define-view options
-  (make-view (make-window 'data     (make-options-data)
-                          'activate option-edit!
-                          'edit     option-edit!
-                          'format   *key-value-format*)
-             " Options"))
+  (make-frame (make-window 'data     (make-options-data)
+                           'activate option-edit!
+                           'edit     option-edit!
+                           'format   *key-value-format*)
+              " Options"))
 
 (define-event-handler (option-data-changed) ()
   (let ((window (get-window 'options)))

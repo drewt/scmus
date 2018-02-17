@@ -57,7 +57,7 @@
 (define-type editable (struct editable))
 (define-type mpd-connection (struct mpd-connection))
 (define-type option (struct option))
-(define-type view (struct view))
+(define-type frame (struct frame))
 (define-type window (struct window))
 (define-type widget (struct widget))
 

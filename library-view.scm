@@ -102,7 +102,7 @@
     (else                    #f)))
 
 (define-event-handler (db-changed) ()
-  (set! (window-data (widget-last (view-widget (get-view 'library))))
+  (set! (window-data (widget-last (frame-widget (get-view 'library))))
         (append! (cons '(separator . ((text . "Playlists")))
                        (tag-data (scmus-list-playlists)))
                  (cons '(separator . ((text . "Artists")))
@@ -117,5 +117,5 @@
                'format     library-format))
 
 (define-view library
-  (make-view (make-window-stack (make-library-window '()))
-             " Library"))
+  (make-frame (make-window-stack (make-library-window '()))
+              " Library"))

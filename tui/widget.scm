@@ -50,20 +50,13 @@
   (define-method (widget-last (widget <widget>))
     widget)
 
-  (define-method (widget-next (widget <widget>) (prev <widget>))
-    (if (widget-parent widget)
-      (widget-next (widget-parent widget) widget)
-      #f))
-
-  (define-method (widget-prev (widget <widget>) (next <widget>))
-    (if (widget-parent widget)
-      (widget-prev (widget-parent widget) widget)
-      #f))
-
   (define-method (widget-root (widget <widget>))
     (if (widget-parent widget)
       (widget-root (widget-parent widget))
       widget))
+
+  (define-method (widget-focus (widget <widget>))
+    widget)
 
   ;;
   ;; Container
@@ -99,17 +92,10 @@
         ((null? (cdr rest)) (car children))
         (else               (cadr rest)))))
 
-  (define-method (widget-next (container <container>) (child <widget>))
-    (let ((next (*container-next-child (container-children container) child)))
-      (if next
-        (widget-first next)
-        #f)))
-
-  (define-method (widget-prev (container <container>) (child <widget>))
-    (let ((prev (*container-next-child (reverse (container-children container)) child)))
-      (if prev
-        (widget-last prev)
-        prev)))
+  (define-method (widget-focus (container <container>))
+    (if (null? (container-children container))
+      #f
+      (widget-focus (car (container-children container)))))
 
   ;; Generic <container> printing method.  Subclasses can override this to add borders, etc.
   (define-method (print-widget! (container <container>) x y cols rows)
@@ -120,4 +106,6 @@
               (cdddr layout)))
     (for-each (lambda (child)
                 (apply print-widget! (adjust-positions child)))
-              (compute-layout container cols rows))))
+              (compute-layout container cols rows)))
+
+  )

@@ -53,7 +53,7 @@
   (scmus-update-queue!))
 
 (define-view queue
-  (make-view
+  (make-frame
     (make-window 'data       (list-of 'file (current-queue))
                  'activate   (lambda (w) (scmus-play-track! (cdr (window-selected w))))
                  'match      (lambda (row query) (track-match (cdr row) query))

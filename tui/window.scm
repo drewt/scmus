@@ -23,80 +23,6 @@
           scmus.tui.widget)
 
   ;;
-  ;; View
-  ;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-  ; FIXME: replace VIEW-WINDOW with generic focus system (WIDGET-FOCUS method specialized on
-  ;        container widgets)
-  (define-class <view> (<widget>)
-    ((widget     initform: #f
-                 accessor: view-widget)
-     (window     initform: #f
-                 accessor: view-window)
-     (title-fmt  initform: #f
-                 accessor: view-title-fmt)
-     (title-data initform: (lambda (v) '())
-                 accessor: view-title-data-thunk)))
-
-  (define-method (initialize-instance (view <view>))
-    (call-next-method)
-    (set! (widget-parent (view-widget view)) view))
-
-  (define (make-view widget title . kwargs)
-    (apply make <view> 'widget widget
-                       'window (widget-first widget)
-                       'title-fmt (process-format title)
-                       kwargs))
-
-  (: view-title-data (view -> list))
-  (define (view-title-data view)
-    ((view-title-data-thunk view) view))
-
-  (: view-add! (view -> undefined))
-  (define (view-add! view)
-    (window-add! (view-window view)))
-
-  (: view-remove! (view -> undefined))
-  (define (view-remove! view)
-    (window-remove! (view-window view)))
-
-  (: view-clear! (view -> undefined))
-  (define (view-clear! view)
-    (window-clear! (view-window view)))
-
-  (: view-edit! (view -> undefined))
-  (define (view-edit! view)
-    (window-edit! (view-window view)))
-
-  (: view-move! (view boolean -> undefined))
-  (define (view-move! view before)
-    (window-move! (view-window view) before))
-
-  (: view-next! (view -> undefined))
-  (define (view-next! view)
-    (let ((next (widget-next (view-window view)
-                             (view-window view))))
-      (when (and next (window? next))
-        (set! (view-window view) next))))
-
-  (: view-prev! (view -> undefined))
-  (define (view-prev! view)
-    (let ((prev (widget-prev (view-window view)
-                             (view-window view))))
-      (when (and prev (window? prev))
-        (set! (view-window view) prev))))
-
-  (define-method (print-widget! (view <view>) x y cols rows)
-    (print-line! (scmus-format (view-title-fmt view) cols (view-title-data view))
-                 x
-                 y
-                 cols
-                 CURSED-WIN-TITLE)
-    (when (> rows 1)
-      (print-widget! (view-widget view) x (+ 1 y) cols (- rows 1))))
-
-  ;;
   ;; Window
   ;;
   ;; A window is a list with a visible section and a cursor.  The visible
@@ -487,25 +413,17 @@
     (list (list (car (container-children stack)) 0 0 cols rows)))
 
   (define-method (widget-geometry-set! (stack <window-stack>) cols rows)
-    (widget-geometry-set! (widget-first stack) cols rows))
-
-  ;; Override the default <container> behavior, which is not what we want.
-  (define-method (widget-next (stack <window-stack>) prev) stack)
-  (define-method (widget-prev (stack <window-stack>) next) stack)
+    (widget-geometry-set! (car (container-children stack)) cols rows))
 
   (define-method (window-stack-push! (stack <window-stack>) (window <window>))
     ; XXX: hack because window-geometry-set! is never called on new window
-    (set! (window-nr-lines window) (window-nr-lines (widget-first stack)))
+    (set! (window-nr-lines window) (window-nr-lines (car (container-children stack))))
     (container-prepend-child! stack window)
-    ; FIXME: shouldn't depend on being embedded in a view, or a view being the root widget
-    (set! (view-window (widget-root stack)) window)
     (widget-damaged! stack))
 
   (define-method (window-stack-pop! (stack <window-stack>))
     (unless (null? (cdr (container-children stack)))
     (set! (container-children stack) (cdr (container-children stack))))
-    ; FIXME: shouldn't depend on being embedded in a view, or a view being the root widget
-    (set! (view-window (widget-root stack)) (car (container-children stack)))
     (widget-damaged! stack))
 
   (define-method (window-stack-peek (stack <window-stack>))
