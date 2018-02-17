@@ -15,8 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension coops)
-
 (declare (export current-view current-window curses-update cursor-off cursor-on
                  exit-curses get-window init-curses redraw-ui set-view!
                  connect!))
@@ -24,9 +22,43 @@
 (import drewt.ncurses)
 (import scmus.base scmus.client scmus.command-line scmus.editable scmus.error
         scmus.event scmus.format scmus.input scmus.keys scmus.option
-        scmus.status scmus.window)
+        scmus.status scmus.tui)
 
 (define *current-view* 'queue)
+
+(: get-color-option (symbol -> (list-of fixnum)))
+(define (get-color-option name)
+  (let ((option (get-option name)))
+    (assert (list? option))
+    (list (attr->number (car option))
+          (safe-color->number (cadr option))
+          (safe-color->number (caddr option)))))
+
+(: init-cursed! (fixnum symbol -> undefined))
+(define (init-cursed! cursed color)
+  (vector-set! *colors* (cursed-i cursed) (get-color-option color)))
+
+(: update-colors! thunk)
+(define (update-colors!)
+  (define (*update-colors!)
+    (let loop ((i 1))
+      (when (<= i NR-CURSED)
+        (init_pair i (cursed-fg i) (cursed-bg i))
+        (loop (+ i 1)))))
+  (init-cursed! CURSED-CMDLINE     'color-cmdline)
+  (init-cursed! CURSED-ERROR       'color-error)
+  (init-cursed! CURSED-INFO        'color-info)
+  (init-cursed! CURSED-STATUSLINE  'color-statusline)
+  (init-cursed! CURSED-TITLELINE   'color-titleline)
+  (init-cursed! CURSED-WIN         'color-win)
+  (init-cursed! CURSED-WIN-CUR     'color-win-cur)
+  (init-cursed! CURSED-WIN-CUR-SEL 'color-win-cur-sel)
+  (init-cursed! CURSED-WIN-SEL     'color-win-sel)
+  (init-cursed! CURSED-WIN-MARKED  'color-win-marked)
+  (init-cursed! CURSED-WIN-TITLE   'color-win-title)
+  (*update-colors!)
+  (cursed-set! CURSED-WIN)
+  (void))
 
 ;; windows {{{
 
@@ -60,60 +92,9 @@
   (when (> (LINES) 3)
     (print-widget! view 0 0 (COLS) (- (LINES) 3))))
 
-(define-method (print-widget! (view <view>) x y cols rows)
-  (print-line! (scmus-format (view-title-fmt view) cols (view-title-data view))
-               x
-               y
-               cols
-               CURSED-WIN-TITLE)
-  (when (> rows 1)
-    (print-widget! (view-widget view) x (+ 1 y) cols (- rows 1))))
-
-(define-method (print-widget! (separator <separator>) x y cols rows)
-  (let loop ((row y))
-    (when (< (- row y) rows)
-      (move row x)
-      (let loop ((col 0))
-        (when (< col cols)
-          (addch (separator-char separator))
-          (loop (+ col 1))))
-      (loop (+ row 1)))))
-
-(define-method (print-widget! (container <container>) x y cols rows)
-  (define (adjust-positions layout)
-    (append (list (car layout)
-                  (+ x (cadr layout))
-                  (+ y (caddr layout)))
-            (cdddr layout)))
-  (for-each (lambda (child)
-              (apply print-widget! (adjust-positions child)))
-            (compute-layout container cols rows)))
-
-(define-method (print-widget! (window <window>) x y cols rows)
-  (let loop ((data (window-top window))
-             (lines rows))
-    (when (> lines 0)
-      (let ((line-nr (+ y (- rows lines))))
-        (if (null? data)
-          (begin
-            (cursed-set! CURSED-WIN)
-            (print-line! "" x line-nr cols CURSED-WIN))
-          (let ((cursed (window-cursed window (car data) line-nr)))
-            (print-line! (window-print-line window (car data) cols)
-                         x
-                         line-nr
-                         cols
-                         cursed)))
-        (loop (if (null? data) '() (cdr data)) (- lines 1))))))
-
-(: print-line! (string fixnum fixnum fixnum fixnum -> undefined))
-(define (print-line! str col line nr-cols cursed)
-  (move line col)
-  (cursed-set! cursed)
-  (let ((written (format-addstr! (string-truncate str nr-cols) cursed)))
-    (when (< written nr-cols)
-      (addstr (make-string (- nr-cols written) #\space)))))
-
+; TODO: Replace with text widget.
+;       But first need to implement partial redraws so we're not redrawing the whole screen
+;       for current-/status-line changes
 (: update-current-line thunk)
 (define (update-current-line)
   (when (> (LINES) 2)

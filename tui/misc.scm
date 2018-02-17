@@ -15,17 +15,22 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(import drewt.ncurses)
-(import scmus.base scmus.format scmus.option scmus.tui)
+(module scmus.tui.misc *
+  (import coops
+          drewt.ncurses
+          scmus.base
+          scmus.tui.widget)
 
-(: separator? (* -> boolean))
-(define (separator? row)
-  (and (pair? row) (eqv? (car row) 'separator)))
+  (define-class <separator> (<widget>)
+    ((char initform: #\space
+           accessor: separator-char)))
 
-(define (alist->kv-rows alist)
-  (map (lambda (pair)
-         `(key-value . ((key   . ,(car pair))
-                        (value . ,(cdr pair)))))
-       alist))
-
-(define *key-value-format* (process-format "~-50%{key} ~{value}"))
+(define-method (print-widget! (separator <separator>) x y cols rows)
+  (let loop ((row y))
+    (when (< (- row y) rows)
+      (move row x)
+      (let loop ((col 0))
+        (when (< col cols)
+          (addch (separator-char separator))
+          (loop (+ col 1))))
+      (loop (+ row 1))))))

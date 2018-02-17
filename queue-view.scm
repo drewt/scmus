@@ -18,7 +18,7 @@
 (declare (export make-queue-view))
 
 (import scmus.base scmus.client scmus.event scmus.status scmus.track
-        scmus.window)
+        scmus.tui)
 
 (: queue-remove! (window -> undefined))
 (define (queue-remove! window)

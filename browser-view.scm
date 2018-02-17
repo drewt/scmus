@@ -18,7 +18,7 @@
 (declare (export))
 
 (import drewt.ncurses)
-(import scmus.base scmus.client scmus.event scmus.track scmus.window)
+(import scmus.base scmus.client scmus.event scmus.track scmus.tui)
 
 (: browser-add! (* -> undefined))
 (define (browser-add! selected)

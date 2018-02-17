@@ -16,7 +16,7 @@
 ;;
 
 (import scmus.base scmus.client scmus.command scmus.command-line scmus.ueval
-        scmus.keys scmus.status scmus.window)
+        scmus.keys scmus.status scmus.tui)
 
 (define (param-is-flags? p)
   (and (> (string-length p 1))

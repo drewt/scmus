@@ -15,17 +15,9 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(import drewt.ncurses)
-(import scmus.base scmus.format scmus.option scmus.tui)
-
-(: separator? (* -> boolean))
-(define (separator? row)
-  (and (pair? row) (eqv? (car row) 'separator)))
-
-(define (alist->kv-rows alist)
-  (map (lambda (pair)
-         `(key-value . ((key   . ,(car pair))
-                        (value . ,(cdr pair)))))
-       alist))
-
-(define *key-value-format* (process-format "~-50%{key} ~{value}"))
+(module scmus.tui *
+  (reexport scmus.tui.display
+            scmus.tui.misc
+            scmus.tui.split-pane
+            scmus.tui.widget
+            scmus.tui.window))

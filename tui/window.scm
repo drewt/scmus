@@ -15,169 +15,20 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-1 coops)
-
-(module scmus.window *
-  (import coops)
-  (import scmus.base scmus.format)
-
-  (define-class <widget> ()
-    ((parent  initform: #f
-              accessor: widget-parent)
-     (damaged initform: #t
-              accessor: widget-damaged)))
-
-  (define-method (widget-damaged! (widget <widget>))
-    ; FIXME: widgets need to store their own geometry in order to do partial
-    ;        redraws.  For now, we just mark the root widget as damaged so that
-    ;        the whole hierarchy is redrawn.
-    ;
-    ;        OR a better idea: have a GET-GEOMETRY method which returns:
-    ;            * the terminal geometry for root widgets
-    ;            * the result of calling GET-CHILD-GEOMETRY on the parent widget
-    ;              for non-root widgets
-    ;       All container widgets must implement the GET-CHILD-GEOMETRY method:
-    ;           (GET-CHILD-GEOMETRY <PARENT> <CHILD>)
-    ;       "Geometry" is a pair of pairs: ((X . Y) . (WIDTH . HEIGHT))
-    ;       Where (X . Y) is the top-leftmost coordinate of the widget, and
-    ;       (WIDTH . HEIGHT) are as you would expect.
-    (set! (widget-damaged (widget-root widget)) #t))
-
-  (define-method (widget-geometry-set! (widget <widget>) cols rows)
-    (void))
-
-  (define-method (widget-first (widget <widget>))
-    widget)
-
-  (define-method (widget-last (widget <widget>))
-    widget)
-
-  (define-method (widget-next (widget <widget>) (prev <widget>))
-    (if (widget-parent widget)
-      (widget-next (widget-parent widget) widget)
-      #f))
-
-  (define-method (widget-prev (widget <widget>) (next <widget>))
-    (if (widget-parent widget)
-      (widget-prev (widget-parent widget) widget)
-      #f))
-
-  (define-method (widget-root (widget <widget>))
-    (if (widget-parent widget)
-      (widget-root (widget-parent widget))
-      widget))
-
-  (define-class <separator> (<widget>)
-    ((char initform: #\space
-           accessor: separator-char)))
-
-  ;;
-  ;; Container
-  ;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-  (define-class <container> (<widget>)
-    ((children accessor: container-children)))
-
-  (define-method (container-prepend-child! (container <container>) (child <widget>))
-    (set! (widget-parent child) container)
-    (set! (container-children container)
-      (cons child (container-children container))))
-
-  (define-method (container-append-child! (container <container>) (child <widget>))
-    (set! (widget-parent child) container)
-    (set! (container-children container)
-      (append! (container-children container) (list child))))
-
-  (define-method (widget-first (container <container>))
-    (widget-first (car (container-children container))))
-
-  (define-method (widget-last (container <container>))
-    (widget-last (car (reverse (container-children container)))))
-
-  (: *container-next-child (list (struct widget) -> (or boolean (struct widget))))
-  (define (*container-next-child children child)
-    (let ((rest (member child children)))
-      (cond
-        ((not rest)         #f) ; FIXME: throw exception
-        ((null? (cdr rest)) (car children))
-        (else               (cadr rest)))))
-
-  (define-method (widget-next (container <container>) (child <widget>))
-    (let ((next (*container-next-child (container-children container) child)))
-      (if next
-        (widget-first next)
-        #f)))
-
-  (define-method (widget-prev (container <container>) (child <widget>))
-    (let ((prev (*container-next-child (reverse (container-children container)) child)))
-      (if prev
-        (widget-last prev)
-        prev)))
-
-  ;;
-  ;; Split Pane
-  ;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-  (define-class <split-pane> (<container>)
-    ((left-size      initform: 0.5
-                     reader: split-pane-left-size)
-     (separator-char initform: #\space
-                     reader: split-pane-separator-char)))
-
-  (define (make-split-pane left-child right-child . args)
-    (let* ((children (list left-child right-child))
-           (pane (apply make <split-pane> 'children children args)))
-      (set! (widget-parent left-child) pane)
-      (set! (widget-parent right-child) pane)
-      pane))
-
-  ;; Ensure that left-size is between 0 and 1
-  (define-method ((setter split-pane-left-size) (pane <split-pane>) size)
-    (cond
-      ((and (>= size 0)
-            (<= size 1))
-        (set! (slot-value pane 'left-size) size))
-      (else
-        #f)))
-
-  (define-method (split-pane-left-child (pane <split-pane>))
-    (car (container-children pane)))
-
-  (define-method (split-pane-right-child (pane <split-pane>))
-    (cadr (container-children pane)))
-
-  ;; Ensure that a split pane is always given 2 children
-  (define-method ((setter container-children) (pane <split-pane>) children)
-    (cond
-      ((= (length children) 2)
-        (call-next-method))
-      (else
-        #f)))
-
-  (define-method (compute-layout (pane <split-pane>) cols rows)
-    (let* ((separator (make <separator> 'char (split-pane-separator-char pane)))
-           (left-cols (inexact->exact (floor (* (split-pane-left-size pane) cols))))
-           (right-cols (- cols left-cols 1)))
-      ;           WIDGET                        X               Y COLS       ROWS
-      (list (list (split-pane-left-child pane)  0               0 left-cols  rows)
-            (list separator                     left-cols       0 1          rows)
-            (list (split-pane-right-child pane) (+ left-cols 1) 0 right-cols rows))))
-
-  (define-method (widget-geometry-set! (pane <split-pane>) cols rows)
-    (let loop ((children (compute-layout pane cols rows)))
-      (unless (null? children)
-        (widget-geometry-set! (first (car children))
-                              (fourth (car children))
-                              (fifth  (car children)))
-        (loop (cdr children)))))
+(module scmus.tui.window *
+  (import coops
+          scmus.base
+          scmus.format
+          scmus.tui.display
+          scmus.tui.widget)
 
   ;;
   ;; View
   ;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+  ; FIXME: replace VIEW-WINDOW with generic focus system (WIDGET-FOCUS method specialized on
+  ;        container widgets)
   (define-class <view> (<widget>)
     ((widget     initform: #f
                  accessor: view-widget)
@@ -235,6 +86,15 @@
                              (view-window view))))
       (when (and prev (window? prev))
         (set! (view-window view) prev))))
+
+  (define-method (print-widget! (view <view>) x y cols rows)
+    (print-line! (scmus-format (view-title-fmt view) cols (view-title-data view))
+                 x
+                 y
+                 cols
+                 CURSED-WIN-TITLE)
+    (when (> rows 1)
+      (print-widget! (view-widget view) x (+ 1 y) cols (- rows 1))))
 
   ;;
   ;; Window
@@ -595,6 +455,26 @@
     (window-search-init! window query)
     (window-search-next! window))
 
+(define-method (print-widget! (window <window>) x y cols rows)
+  (let loop ((data (window-top window))
+             (lines rows))
+    (when (> lines 0)
+      (let ((line-nr (+ y (- rows lines))))
+        (if (null? data)
+          (begin
+            (cursed-set! CURSED-WIN)
+            (print-line! "" x line-nr cols CURSED-WIN))
+          (let ((cursed (window-cursed window (car data) line-nr)))
+            (print-line! (window-print-line window (car data) cols)
+                         x
+                         line-nr
+                         cols
+                         cursed)))
+        (loop (if (null? data) '() (cdr data)) (- lines 1))))))
+
+  ;;
+  ;; Window Stack
+  ;;
   (define-class <window-stack> (<container>))
 
   (define (make-window-stack root-window #!rest windows)
@@ -617,12 +497,14 @@
     ; XXX: hack because window-geometry-set! is never called on new window
     (set! (window-nr-lines window) (window-nr-lines (widget-first stack)))
     (container-prepend-child! stack window)
+    ; FIXME: shouldn't depend on being embedded in a view, or a view being the root widget
     (set! (view-window (widget-root stack)) window)
     (widget-damaged! stack))
 
   (define-method (window-stack-pop! (stack <window-stack>))
     (unless (null? (cdr (container-children stack)))
     (set! (container-children stack) (cdr (container-children stack))))
+    ; FIXME: shouldn't depend on being embedded in a view, or a view being the root widget
     (set! (view-window (widget-root stack)) (car (container-children stack)))
     (widget-damaged! stack))
 
