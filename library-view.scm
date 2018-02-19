@@ -114,8 +114,10 @@
                'deactivate library-deactivate!
                'match      library-match
                'add        library-add-selected!
-               'format     library-format))
+               'format     library-format
+               'cursed     CURSED-WIN
+               'cursed-fn  (win-cursed-fn)))
 
 (define-view library
   (make-frame (make-window-stack (make-library-window '()))
-              " Library"))
+              (make-text " Library" 'cursed CURSED-WIN-TITLE)))

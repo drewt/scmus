@@ -34,10 +34,6 @@
           (safe-color->number (cadr option))
           (safe-color->number (caddr option)))))
 
-(: init-cursed! (fixnum symbol -> undefined))
-(define (init-cursed! cursed color)
-  (vector-set! *colors* (cursed-i cursed) (get-color-option color)))
-
 (: update-colors! thunk)
 (define (update-colors!)
   (define (*update-colors!)
@@ -45,17 +41,17 @@
       (when (<= i NR-CURSED)
         (init_pair i (cursed-fg i) (cursed-bg i))
         (loop (+ i 1)))))
-  (init-cursed! CURSED-CMDLINE     'color-cmdline)
-  (init-cursed! CURSED-ERROR       'color-error)
-  (init-cursed! CURSED-INFO        'color-info)
-  (init-cursed! CURSED-STATUSLINE  'color-statusline)
-  (init-cursed! CURSED-TITLELINE   'color-titleline)
-  (init-cursed! CURSED-WIN         'color-win)
-  (init-cursed! CURSED-WIN-CUR     'color-win-cur)
-  (init-cursed! CURSED-WIN-CUR-SEL 'color-win-cur-sel)
-  (init-cursed! CURSED-WIN-SEL     'color-win-sel)
-  (init-cursed! CURSED-WIN-MARKED  'color-win-marked)
-  (init-cursed! CURSED-WIN-TITLE   'color-win-title)
+  (init-cursed! CURSED-CMDLINE     (get-color-option 'color-cmdline))
+  (init-cursed! CURSED-ERROR       (get-color-option 'color-error))
+  (init-cursed! CURSED-INFO        (get-color-option 'color-info))
+  (init-cursed! CURSED-STATUSLINE  (get-color-option 'color-statusline))
+  (init-cursed! CURSED-TITLELINE   (get-color-option 'color-titleline))
+  (init-cursed! CURSED-WIN         (get-color-option 'color-win))
+  (init-cursed! CURSED-WIN-CUR     (get-color-option 'color-win-cur))
+  (init-cursed! CURSED-WIN-CUR-SEL (get-color-option 'color-win-cur-sel))
+  (init-cursed! CURSED-WIN-SEL     (get-color-option 'color-win-sel))
+  (init-cursed! CURSED-WIN-MARKED  (get-color-option 'color-win-marked))
+  (init-cursed! CURSED-WIN-TITLE   (get-color-option 'color-win-title))
   (*update-colors!)
   (void))
 
@@ -256,15 +252,17 @@
 
 (define-view status
   (make-frame (make-window 'data (alist->kv-rows (current-status))
-                          'format *key-value-format*)
-              " MPD Status"))
+                          'format *key-value-format*
+                          'cursed CURSED-WIN)
+              (make-text " MPD Status" 'cursed CURSED-WIN-TITLE)))
 
 (define (list->rows lines)
   (map (lambda (line) `(row . ((text . ,line)))) lines))
 
 (define-view error
-  (make-frame (make-window 'data (list->rows (string-split-lines (scmus-error))))
-              " Error"))
+  (make-frame (make-window 'data   (list->rows (string-split-lines (scmus-error)))
+                           'cursed CURSED-WIN)
+              (make-text " Error" 'cursed CURSED-WIN-TITLE)))
 
 (define-event-handler command-line-changed () update-command-line)
 (define-event-handler current-line-changed () update-current)

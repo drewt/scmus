@@ -125,8 +125,10 @@
   (make-frame (make-window 'data       (make-bindings-data)
                            'activate   binding-edit!
                            'edit       binding-edit!
-                           'format     binding-format)
-              " Key Bindings"))
+                           'format     binding-format
+                           'cursed     CURSED-WIN
+                           'cursed-fn  (win-cursed-fn))
+              (make-text " Key Bindings" 'cursed CURSED-WIN-TITLE)))
 
 (define-event-handler (binding-data-changed) ()
   (let ((window (get-window 'bindings)))

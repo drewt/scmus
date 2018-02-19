@@ -91,7 +91,7 @@
                  accessor: window-edit)
      (move       initform: void
                  accessor: window-move)
-     (cursed     initform: (win-cursed-fn (lambda (x) #f))
+     (cursed-fn  initform: (lambda (w r l) #f)
                  reader:   *window-cursed)
      (format     initform: #f
                  reader:   window-format)))
@@ -387,7 +387,7 @@
     (when (> lines 0)
       (let ((line-nr (+ y (- rows lines))))
         (if (null? data)
-          (with-cursed CURSED-WIN (print-line! "" x line-nr cols))
+          (print-line! "" x line-nr cols)
           (with-cursed (window-cursed window (car data) line-nr)
             (print-line! (window-print-line window (car data) cols)
                          x
@@ -429,21 +429,4 @@
         #f
         (car s))))
 
-  ;; FIXME: not really the greatest place for this
-  ;; Generates a function to call cursed-set! with the appropriate value given
-  ;; a window, row, and line number.
-  (: win-cursed-fn ((* -> boolean) -> (window * fixnum -> fixnum)))
-  (define (win-cursed-fn current?)
-    (lambda (window row line-nr)
-      (let* ((current (current? row))
-             (row-pos (+ (window-top-pos window) (- line-nr 1)))
-             (selected (= row-pos (window-sel-pos window)))
-             (marked (member row-pos (window-marked window))))
-        (cond
-          ((separator? row)       CURSED-WIN-TITLE)
-          ((eqv? row 'separator)  CURSED-WIN-TITLE)
-          ((and current selected) CURSED-WIN-CUR-SEL)
-          (current                CURSED-WIN-CUR)
-          (selected               CURSED-WIN-SEL)
-          (marked                 CURSED-WIN-MARKED)
-          (else                   CURSED-WIN))))))
+  )

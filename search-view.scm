@@ -138,5 +138,7 @@
                            'remove     search-remove!
                            'clear      search-clear!
                            'edit       search-edit!
-                           'format     search-format)
-              " Search"))
+                           'format     search-format
+                           'cursed     CURSED-WIN
+                           'cursed-fn  (win-cursed-fn))
+              (make-text " Search" 'cursed CURSED-WIN-TITLE)))

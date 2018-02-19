@@ -80,7 +80,21 @@
         (else         #f))))
 
   (: *colors* vector)
-  (define *colors* (make-vector NR-CURSED))
+  (define *colors* (make-vector 255 #f))
+
+  (define (alloc-cursed)
+    (let loop ((i 0))
+      (if (< i 255)
+        (if (vector-ref *colors* i)
+          (loop (+ i 1))
+          (+ i 1))
+        ; FIXME: should throw an error here
+        255)))
+
+  (define (init-cursed! cursed attrs)
+    (vector-set! *colors* (cursed-i cursed) attrs)
+    (init_pair cursed (third attrs) (second attrs))
+    cursed)
 
   (: cursed-i (fixnum -> fixnum))
   (define (cursed-i cursed)
@@ -104,6 +118,8 @@
                           (cursed-attr cursed)))
     cursed)
 
+  ; Find the color pair number for (FG,BG), if it exists.
+  ; TODO: we could keep a hash table keyed on ((FG << 8) | BG) for fast lookup
   (: find-pair (fixnum fixnum -> (or fixnum boolean)))
   (define (find-pair fg bg)
     (let loop ((i 1))
@@ -116,21 +132,13 @@
         #f)))
 
   (: cursed-temp-set! (fixnum fixnum fixnum -> undefined))
-  (define cursed-temp-set!
-    (let ((next (+ NR-CURSED 1)))
-      (define (cursed-set! pair attr)
-        (bkgdset (bitwise-ior (COLOR_PAIR pair) attr)))
-      (lambda (fg bg attr)
-        (cond
-          ((or (>= fg (COLORS)) (>= bg (COLORS))) (void))
-          ((find-pair fg bg) => (lambda (x) (cursed-set! x attr)))
-          (else
-            (let ((this next))
-              (set! next (if (< next (- (COLOR_PAIRS) 1))
-                           (+ next 1)
-                           (+ NR-CURSED 1)))
-              (init_pair this fg bg)
-              (cursed-set! this attr)))))))
+  (define (cursed-temp-set! fg bg attr)
+    (define (cursed-set! pair attr)
+      (bkgdset (bitwise-ior (COLOR_PAIR pair) attr)))
+    (cond
+      ((or (>= fg (COLORS)) (>= bg (COLORS))) (void))
+      ((find-pair fg bg) => (lambda (x) (cursed-set! x attr)))
+      (else (cursed-set! (init-cursed! (alloc-cursed) (list attr bg fg)) attr))))
 
   (define (call-with-cursed fn cursed)
     (if cursed

@@ -61,8 +61,9 @@
                  'clear      (lambda (w) (scmus-clear!))
                  'move       queue-move!
                  'format     (lambda (tag) (get-format 'format-queue))
-                 'cursed     (win-cursed-fn (lambda (row) (current-track? (cdr row)))))
-    " Queue - ~{queue-length} tracks"))
+                 'cursed     CURSED-WIN
+                 'cursed-fn  (win-cursed-fn (lambda (row) (current-track? (cdr row)))))
+    (make-format-text " Queue - ~{queue-length} tracks" '() 'cursed CURSED-WIN-TITLE)))
 
 (define-event-handler (queue-changed) ()
   (widget-damaged! (get-view 'queue)))

@@ -52,25 +52,20 @@
     (for-each (lambda (line) (print-line! line x y cols))
       (take-at-most (string-split-lines (text-text text)) rows)))
 
-  ; FIXME: is there any value in subclassing <text> here?
-  (define-class <format-text> (<text>)
+  (define-class <format-text> (<widget>)
     ((format initform: (process-format "")
              accessor: format-text-format)
      (data   initform: '()
-             reader:   format-text-data)))
+             accessor: format-text-data)))
 
   (define (make-format-text format data . kwargs)
-    (apply make <format-text> 'text format
-                              'format (process-format format)
+    (apply make <format-text> 'format (process-format format)
                               'data data kwargs))
 
-  (define-method ((setter format-text-format) (text <format-text>) format)
-    (set! (slot-value text 'text) format)
-    (set! (slot-value text 'format) (process-format format))
+  (define-method ((setter format-text-format) after: (text <format-text>) fmt)
     (widget-damaged! text))
 
-  (define-method ((setter format-text-data) (text <format-text>) data)
-    (set! (slot-value text 'data) data)
+  (define-method ((setter format-text-data) after: (text <format-text>) data)
     (widget-damaged! text))
 
   (define-method (print-widget! (text <format-text>) x y cols rows)

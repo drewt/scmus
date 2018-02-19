@@ -16,29 +16,21 @@
 ;;
 
 (module scmus.tui.widget *
-  (import coops)
-  (import scmus.base)
+  (import coops
+          scmus.base
+          scmus.tui.display)
 
   (define-class <widget> ()
     ((parent  initform: #f
               accessor: widget-parent)
      (damaged initform: #t
-              accessor: widget-damaged)))
+              accessor: widget-damaged)
+     (cursed  initform: #f
+              accessor: widget-cursed)))
 
   (define-method (widget-damaged! (widget <widget>))
-    ; FIXME: widgets need to store their own geometry in order to do partial
-    ;        redraws.  For now, we just mark the root widget as damaged so that
-    ;        the whole hierarchy is redrawn.
-    ;
-    ;        OR a better idea: have a GET-GEOMETRY method which returns:
-    ;            * the terminal geometry for root widgets
-    ;            * the result of calling GET-CHILD-GEOMETRY on the parent widget
-    ;              for non-root widgets
-    ;       All container widgets must implement the GET-CHILD-GEOMETRY method:
-    ;           (GET-CHILD-GEOMETRY <PARENT> <CHILD>)
-    ;       "Geometry" is a pair of pairs: ((X . Y) . (WIDTH . HEIGHT))
-    ;       Where (X . Y) is the top-leftmost coordinate of the widget, and
-    ;       (WIDTH . HEIGHT) are as you would expect.
+    ; TODO: Store geometry in widget so that we can do partial redraws
+    ;       We can cache arguments to WIDGET-DRAW! so that they are available here
     (set! (widget-damaged (widget-root widget)) #t))
 
   (define-method (widget-geometry-set! (widget <widget>) cols rows)
@@ -57,6 +49,9 @@
 
   (define-method (widget-focus (widget <widget>))
     widget)
+
+  (define-method (print-widget! around: (widget <widget>) x y cols rows)
+    (call-with-cursed call-next-method (widget-cursed widget)))
 
   ;;
   ;; Container

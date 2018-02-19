@@ -25,10 +25,10 @@
 
   ; FIXME: this should be a container
   (define-class <frame> (<widget>)
-    ((widget     initform: #f
-                 accessor: frame-widget)
-     (title      initform: (make-format-text "" '())
-                 accessor: frame-title)))
+    ((widget initform: #f
+             accessor: frame-widget)
+     (title  initform: (make-text "")
+             accessor: frame-title)))
 
   (define-method (initialize-instance (frame <frame>))
     (call-next-method)
@@ -36,14 +36,13 @@
 
   (define (make-frame widget title . kwargs)
     (apply make <frame> 'widget widget
-                        'title (if (string? title) (make-format-text title '()) title)
+                        'title title
                         kwargs))
 
   (define-method (widget-focus (frame <frame>))
     (widget-focus (frame-widget frame)))
 
   (define-method (print-widget! (frame <frame>) x y cols rows)
-    (with-cursed CURSED-WIN-TITLE
-      (print-widget! (frame-title frame) x y cols 1))
+    (print-widget! (frame-title frame) x y cols 1)
     (when (> rows 1)
       (print-widget! (frame-widget frame) x (+ 1 y) cols (- rows 1)))))

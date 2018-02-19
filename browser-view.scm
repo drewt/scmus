@@ -117,8 +117,11 @@
                'deactivate browser-deactivate!
                'match      browser-match
                'add        browser-add-selected!
-               'format     browser-format))
+               'format     browser-format
+               'cursed     CURSED-WIN
+               'cursed-fn  (win-cursed-fn)))
 
 (define-view browser
   (make-frame (make-window-stack (make-browser-window '()))
-              (make-format-text " Browser: ~{location}" (browser-title-data))))
+              (make-format-text " Browser: ~{location}" (browser-title-data)
+                                'cursed CURSED-WIN-TITLE)))
