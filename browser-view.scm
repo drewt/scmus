@@ -55,6 +55,16 @@
 
 (define *browser-location* (list "/"))
 
+(define (browser-location-push! str)
+  (set! *browser-location* (cons str *browser-location*))
+  (set! (format-text-data (frame-title (get-view 'browser)))
+    (browser-title-data)))
+
+(define (browser-location-pop!)
+  (set! *browser-location* (cdr *browser-location*))
+  (set! (format-text-data (frame-title (get-view 'browser)))
+    (browser-title-data)))
+
 (: browser-activate! (window -> undefined))
 (define (browser-activate! window)
   (let ((selected (window-selected window)))
@@ -65,15 +75,13 @@
 
 (: directory-activate! (window string -> undefined))
 (define (directory-activate! window dir)
-  (set! *browser-location*
-    (cons (string-append "/" dir) *browser-location*))
+  (browser-location-push! (string-append "/" dir))
   (window-stack-push! (widget-parent window)
     (make-browser-window (tag-data (scmus-lsinfo dir)))))
 
 (: playlist-activate! (window string -> undefined))
 (define (playlist-activate! window playlist)
-  (set! *browser-location*
-    (cons (string-append "[" playlist "]") *browser-location*))
+  (browser-location-push! (string-append "[" playlist "]"))
   (window-stack-push! (widget-parent window)
     (make-browser-window (tag-data (scmus-list-playlist playlist)))))
 
@@ -85,8 +93,7 @@
                  (list (cons 'tag   (car x))
                        (cons 'value (cdr x)))))
          metadata))
-  (set! *browser-location*
-    (cons (string-append "/" (alist-ref 'file file)) *browser-location*))
+  (browser-location-push! (string-append "/" (alist-ref 'file file)))
   (window-stack-push! (widget-parent window)
     (make-browser-window (format-metadata (sort-metadata file)))))
 
@@ -94,10 +101,10 @@
 (define (browser-deactivate! window)
   (let ((window (widget-parent window)))
     (when (window-stack-peek window)
-      (set! *browser-location* (cdr *browser-location*))
+      (browser-location-pop!)
       (window-stack-pop! window))))
 
-(define (browser-title-data view)
+(define (browser-title-data)
   `((location . ,(car *browser-location*))))
 
 (define-event-handler (db-changed) ()
@@ -114,5 +121,4 @@
 
 (define-view browser
   (make-frame (make-window-stack (make-browser-window '()))
-              " Browser: ~{location}"
-              'title-data browser-title-data))
+              (make-format-text " Browser: ~{location}" (browser-title-data))))

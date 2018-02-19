@@ -323,6 +323,7 @@
    mvvline
    mvwvline
    bkgdset
+   getbkgd
    putp
    use_default_colors
    get-char)
@@ -802,8 +803,9 @@
   (def err mvwvline win int int chtype int)
 
   ;;; definitions missing from the ncurses egg
-  (define bkgdset
-    (foreign-lambda* void ((unsigned-long a0)) "bkgdset(a0);"))
+  (def void bkgdset chtype)
+
+  (def chtype getbkgd win)
 
   (define putp
     (foreign-lambda* int ((c-string str)) "putp(str);"))

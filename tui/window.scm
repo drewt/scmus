@@ -387,15 +387,12 @@
     (when (> lines 0)
       (let ((line-nr (+ y (- rows lines))))
         (if (null? data)
-          (begin
-            (cursed-set! CURSED-WIN)
-            (print-line! "" x line-nr cols CURSED-WIN))
-          (let ((cursed (window-cursed window (car data) line-nr)))
+          (with-cursed CURSED-WIN (print-line! "" x line-nr cols))
+          (with-cursed (window-cursed window (car data) line-nr)
             (print-line! (window-print-line window (car data) cols)
                          x
                          line-nr
-                         cols
-                         cursed)))
+                         cols)))
         (loop (if (null? data) '() (cdr data)) (- lines 1))))))
 
   ;;

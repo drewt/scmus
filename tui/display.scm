@@ -78,7 +78,7 @@
         ((top)        A_TOP)
         ((vertical)   A_VERTICAL)
         (else         #f))))
- 
+
   (: *colors* vector)
   (define *colors* (make-vector NR-CURSED))
 
@@ -115,14 +115,12 @@
             (loop (+ i 1))))
         #f)))
 
-  (: cursed-temp-set! (fixnum #!optional fixnum fixnum fixnum -> undefined))
+  (: cursed-temp-set! (fixnum fixnum fixnum -> undefined))
   (define cursed-temp-set!
     (let ((next (+ NR-CURSED 1)))
       (define (cursed-set! pair attr)
         (bkgdset (bitwise-ior (COLOR_PAIR pair) attr)))
-      (lambda (base #!optional (fg (cursed-fg base))
-                               (bg (cursed-bg base))
-                               (attr (cursed-attr base)))
+      (lambda (fg bg attr)
         (cond
           ((or (>= fg (COLORS)) (>= bg (COLORS))) (void))
           ((find-pair fg bg) => (lambda (x) (cursed-set! x attr)))
@@ -134,30 +132,52 @@
               (init_pair this fg bg)
               (cursed-set! this attr)))))))
 
+  (define (call-with-cursed fn cursed)
+    (if cursed
+      (let ((old-bkgd (getbkgd (stdscr))))
+        (cursed-set! cursed)
+        (fn)
+        (bkgdset old-bkgd))
+      (fn)))
+
+  (define-syntax with-cursed
+    (syntax-rules ()
+      ((with-cursed cursed first . rest)
+        (call-with-cursed (lambda () first . rest) cursed))))
+
+  (define (current-cursed)
+    (PAIR_NUMBER (char->integer (getbkgd (stdscr)))))
+
+  (define (display-attributes ch)
+    (let-values (((fg bg) (pair_content (PAIR_NUMBER (char->integer ch)))))
+      (list fg bg (bitwise-and (char->integer ch)
+                               A_ATTRIBUTES
+                               (bitwise-not A_COLOR)))))
+
   ;; colors }}}
 
   ; TODO: instead of embedding color codes into string, just use a list with strings and color
   ;       codes... this is more efficient anyway since we don't have to scan the string before
   ;       printing
-  (: format-addstr! (string fixnum -> fixnum))
-  (define (format-addstr! str cursed)
-    (let loop ((str str))
-      (let ((i (string-index str color-code?)))
-        (if i
-          (let ((code (ch->color-code (string-ref str i))))
-            (addstr (string-take str i))
-            ;(cursed-aux-set! code)
-            (if (= code -2)
-              (cursed-set! cursed)
-              (cursed-temp-set! cursed code))
-            (loop (substring/shared str (+ i 1))))
-          (addstr str))))
-    (string-width str))
+  (: format-addstr! (string -> fixnum))
+  (define (format-addstr! str)
+    (let* ((old-bkgd (getbkgd (stdscr)))
+           (attrs    (display-attributes old-bkgd)))
+      (let loop ((str str))
+        (let ((i (string-index str color-code?)))
+          (if i
+            (let ((code (ch->color-code (string-ref str i))))
+              (addstr (string-take str i))
+              (if (= code -2)
+                (bkgdset old-bkgd)
+                (cursed-temp-set! code (cadr attrs) (caddr attrs)))
+              (loop (substring/shared str (+ i 1))))
+            (addstr str)))))
+      (string-width str))
 
-  (: print-line! (string fixnum fixnum fixnum fixnum -> undefined))
-  (define (print-line! str col line nr-cols cursed)
+  (: print-line! (string fixnum fixnum fixnum -> undefined))
+  (define (print-line! str col line nr-cols)
     (move line col)
-    (cursed-set! cursed)
-    (let ((written (format-addstr! (string-truncate str nr-cols) cursed)))
+    (let ((written (format-addstr! (string-truncate str nr-cols))))
       (when (< written nr-cols)
         (addstr (make-string (- nr-cols written) #\space))))))

@@ -100,6 +100,15 @@
     (without-curses
       (pp sexp)))
 
+  ;; How did this not make it into SRFI-1?
+  (define (take-at-most in-lst n)
+    (let do-take ((lst in-lst) (n n) (result '()))
+      (if (null? lst)
+        in-lst
+        (if (= n 0)
+          (reverse result)
+          (do-take (cdr lst) (- n 1) (cons (car lst) result))))))
+
   (: list-of (symbol list -> (list-of (pair symbol *))))
   (define (list-of type lst)
     (map (lambda (x) (cons type x)) lst))
@@ -311,6 +320,7 @@
     (assert (>= len 0) "integer-scale" len)
     (inexact->exact (round (* len (/ percent 100)))))
 
+  ; FIXME: why not use STRING-INDEX and SUBSTRING to avoid list conversion?
   (: string-split-lines (string -> (list-of string)))
   (define (string-split-lines str)
     (let loop ((result '()) (substr '()) (rest (string->list str)))
