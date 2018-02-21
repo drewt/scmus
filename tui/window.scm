@@ -64,9 +64,6 @@
      (marked     initform: '()
                  ; writer below
                  reader:   *window-marked)
-     (nr-lines   initform: 0
-                 ; writer below
-                 reader:   window-nr-lines)
      (query      initform: ""
                  accessor: window-query) 
      (h-border   initform: 1
@@ -123,28 +120,16 @@
     (set! (slot-value window 'marked) marked)
     (widget-damaged! window))
 
-  (define-method ((setter window-nr-lines) (window <window>) nr-lines)
+  ;; When the number of visible lines changes, the cursor may go off-screen;
+  ;; if so, we adjust TOP-POS so that the cursor remains on-screen.
+  (define-method ((setter widget-rows) (window <window>) rows)
     (let ((top-pos (window-top-pos window))
           (sel-pos (window-sel-pos window)))
-      (when (<= nr-lines (- sel-pos top-pos))
+      (when (<= rows (- sel-pos top-pos))
         (set! (window-top-pos window)
               (+ top-pos
-                 (- (window-nr-lines window)
-                    nr-lines)))))
-    (set! (slot-value window 'nr-lines) nr-lines))
-
-  (define-syntax define-subclass-predicate
-    (syntax-rules ()
-      ((define-subclass-predicate predname classname)
-        (define (predname obj)
-          (subclass? (class-of obj) classname)))))
-
-  (define-subclass-predicate widget? <widget>)
-  (define-subclass-predicate container? <container>)
-  (define-subclass-predicate window? <window>)
-
-  (define-method (widget-geometry-set! (window <window>) cols rows)
-    (set! (window-nr-lines window) rows))
+                 (- (widget-rows window) rows)))))
+    (call-next-method))
 
   (define (make-window . args)
     (apply make <window> args))
@@ -279,7 +264,7 @@
     (let* ((top-pos  (window-top-pos window))
            (sel-pos  (window-sel-pos window))
            (data-len (window-data-len window))
-           (nr-lines (window-nr-lines window))
+           (nr-lines (widget-rows window))
            (can-move (max 0 (min n (- data-len sel-pos 1))))
            (scroll   (max 0 (+ 1 (- (+ sel-pos can-move)
                                     (+ top-pos nr-lines))))))
@@ -311,7 +296,7 @@
   ;; FIXME: this should be named window-move!, but it's taken
   (define (window-move-cursor! window n #!optional relative)
     (let ((nr-lines (if relative
-                      (integer-scale (window-nr-lines window) n)
+                      (integer-scale (widget-rows window) n)
                       n)))
       (if (> nr-lines 0)
         (window-move-down! window nr-lines)
@@ -393,40 +378,4 @@
                          x
                          line-nr
                          cols)))
-        (loop (if (null? data) '() (cdr data)) (- lines 1))))))
-
-  ;;
-  ;; Window Stack
-  ;;
-  (define-class <window-stack> (<container>))
-
-  (define (make-window-stack root-window #!rest windows)
-    (let ((stack (make <window-stack> 'children (cons root-window windows))))
-     (for-each (lambda (w) (set! (widget-parent w) stack))
-               (cons root-window windows))
-     stack))
-
-  (define-method (compute-layout (stack <window-stack>) cols rows)
-    (list (list (car (container-children stack)) 0 0 cols rows)))
-
-  (define-method (widget-geometry-set! (stack <window-stack>) cols rows)
-    (widget-geometry-set! (car (container-children stack)) cols rows))
-
-  (define-method (window-stack-push! (stack <window-stack>) (window <window>))
-    ; XXX: hack because window-geometry-set! is never called on new window
-    (set! (window-nr-lines window) (window-nr-lines (car (container-children stack))))
-    (container-prepend-child! stack window)
-    (widget-damaged! stack))
-
-  (define-method (window-stack-pop! (stack <window-stack>))
-    (unless (null? (cdr (container-children stack)))
-    (set! (container-children stack) (cdr (container-children stack))))
-    (widget-damaged! stack))
-
-  (define-method (window-stack-peek (stack <window-stack>))
-    (let ((s (cdr (container-children stack))))
-      (if (null? s)
-        #f
-        (car s))))
-
-  )
+        (loop (if (null? data) '() (cdr data)) (- lines 1)))))))

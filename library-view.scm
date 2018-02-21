@@ -60,19 +60,19 @@
 (: playlist-activate! (window list -> undefined))
 (define (playlist-activate! window playlist)
   (let ((tracks (scmus-list-playlist (cdar playlist))))
-    (window-stack-push! (widget-parent window)
+    (widget-stack-push! (widget-parent window)
       (make-library-window (list-of 'file tracks)))))
 
 (: artist-activate! (window list -> undefined))
 (define (artist-activate! window artist)
   (let ((albums (scmus-list-tags 'album (cons 'artist (cdar artist)))))
-    (window-stack-push! (widget-parent window)
+    (widget-stack-push! (widget-parent window)
       (make-library-window (tag-data albums)))))
 
 (: album-activate! (window list -> undefined))
 (define (album-activate! window album)
   (let ((tracks (scmus-search-songs #t #f (cons 'album (cdar album)))))
-    (window-stack-push! (widget-parent window)
+    (widget-stack-push! (widget-parent window)
       (make-library-window (list-of 'file tracks)))))
 
 (: file-activate! (window track -> undefined))
@@ -83,14 +83,14 @@
                  (list (cons 'tag   (car x))
                        (cons 'value (cdr x)))))
          metadata))
-  (window-stack-push! (widget-parent window)
+  (widget-stack-push! (widget-parent window)
     (make-library-window (format-metadata (sort-metadata track)))))
 
 (: library-deactivate! (window -> undefined))
 (define (library-deactivate! window)
   (let ((window (widget-parent window)))
-    (when (window-stack-peek window)
-      (window-stack-pop! window))))
+    (when (widget-stack-peek window)
+      (widget-stack-pop! window))))
 
 (: library-match (* string -> boolean))
 (define (library-match row query)
@@ -119,5 +119,5 @@
                'cursed-fn  (win-cursed-fn)))
 
 (define-view library
-  (make-frame (make-window-stack (make-library-window '()))
+  (make-frame (make-widget-stack (make-library-window '()))
               (make-text " Library" 'cursed CURSED-WIN-TITLE)))

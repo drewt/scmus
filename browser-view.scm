@@ -76,13 +76,13 @@
 (: directory-activate! (window string -> undefined))
 (define (directory-activate! window dir)
   (browser-location-push! (string-append "/" dir))
-  (window-stack-push! (widget-parent window)
+  (widget-stack-push! (widget-parent window)
     (make-browser-window (tag-data (scmus-lsinfo dir)))))
 
 (: playlist-activate! (window string -> undefined))
 (define (playlist-activate! window playlist)
   (browser-location-push! (string-append "[" playlist "]"))
-  (window-stack-push! (widget-parent window)
+  (widget-stack-push! (widget-parent window)
     (make-browser-window (tag-data (scmus-list-playlist playlist)))))
 
 (: file-activate! (window track -> undefined))
@@ -94,15 +94,15 @@
                        (cons 'value (cdr x)))))
          metadata))
   (browser-location-push! (string-append "/" (alist-ref 'file file)))
-  (window-stack-push! (widget-parent window)
+  (widget-stack-push! (widget-parent window)
     (make-browser-window (format-metadata (sort-metadata file)))))
 
 (: browser-deactivate (window -> undefined))
 (define (browser-deactivate! window)
   (let ((window (widget-parent window)))
-    (when (window-stack-peek window)
+    (when (widget-stack-peek window)
       (browser-location-pop!)
-      (window-stack-pop! window))))
+      (widget-stack-pop! window))))
 
 (define (browser-title-data)
   `((location . ,(car *browser-location*))))
@@ -122,6 +122,6 @@
                'cursed-fn  (win-cursed-fn)))
 
 (define-view browser
-  (make-frame (make-window-stack (make-browser-window '()))
+  (make-frame (make-widget-stack (make-browser-window '()))
               (make-format-text " Browser: ~{location}" (browser-title-data)
                                 'cursed CURSED-WIN-TITLE)))

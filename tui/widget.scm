@@ -20,21 +20,47 @@
           scmus.base
           scmus.tui.display)
 
+  (define *damaged-widgets* '())
+  (define (damaged-widgets) *damaged-widgets*)
+  (define (clear-damaged-widgets!) (set! *damaged-widgets* '()))
+
   (define-class <widget> ()
     ((parent  initform: #f
               accessor: widget-parent)
+     (visible initform: #t)
      (damaged initform: #t
               accessor: widget-damaged)
      (cursed  initform: #f
-              accessor: widget-cursed)))
+              accessor: widget-cursed)
+     (x       initform: 0
+              accessor: widget-x)
+     (y       initform: 0
+              accessor: widget-y)
+     (cols    initform: 0
+              accessor: widget-cols)
+     (rows    initform: 0
+              accessor: widget-rows)))
 
   (define-method (widget-damaged! (widget <widget>))
-    ; TODO: Store geometry in widget so that we can do partial redraws
-    ;       We can cache arguments to WIDGET-DRAW! so that they are available here
-    (set! (widget-damaged (widget-root widget)) #t))
+    (when (widget-visible? widget)
+      (unless (memq widget *damaged-widgets*)
+        (set! *damaged-widgets* (cons widget *damaged-widgets*)))
+      (set! (widget-damaged (widget-root widget)) #t)))
+
+  (define-method (widget-visible? (widget <widget>))
+    (and (slot-value widget 'visible)
+         (and (> (widget-cols widget) 0)
+              (> (widget-rows widget) 0))
+         (or (not (widget-parent widget))
+             (widget-visible? (widget-parent widget)))))
+
+  (define-method ((setter widget-visible) (widget <widget>) visible)
+    (set! (slot-value widget 'visible) visible)
+    (widget-damaged! widget))
 
   (define-method (widget-geometry-set! (widget <widget>) cols rows)
-    (void))
+    (set! (widget-cols widget) cols)
+    (set! (widget-rows widget) rows))
 
   (define-method (widget-first (widget <widget>))
     widget)
@@ -49,6 +75,15 @@
 
   (define-method (widget-focus (widget <widget>))
     widget)
+
+  (define-method (print-widget! before: (widget <widget>) x y cols rows)
+    (set! (widget-x    widget) x)
+    (set! (widget-y    widget) y)
+    (set! (widget-cols widget) cols)
+    (set! (widget-rows widget) rows))
+
+  (define-method (reprint-widget! (w <widget>))
+    (print-widget! w (widget-x w) (widget-y w) (widget-cols w) (widget-rows w)))
 
   (define-method (print-widget! around: (widget <widget>) x y cols rows)
     (call-with-cursed call-next-method (widget-cursed widget)))
@@ -103,4 +138,69 @@
                 (apply print-widget! (adjust-positions child)))
               (compute-layout container cols rows)))
 
-  )
+  ;;
+  ;; Widget Wrap
+  ;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  (define-class <widget-wrap> (<container>))
+
+  (define (make-widget-wrap widget . kwargs)
+    (let ((wrap (apply make <widget-wrap> kwargs)))
+      (set! (widget-wrap-widget wrap) widget)
+      wrap))
+
+  (define-method (compute-layout (wrap <widget-wrap>) cols rows)
+    (list (list (widget-wrap-widget wrap) 0 0 cols rows)))
+
+  (define-method (widget-geometry-set! (wrap <widget-wrap>) cols rows)
+    (widget-geometry-set! (widget-wrap-widget wrap) cols rows))
+
+  (define-method (widget-wrap-widget (wrap <widget-wrap>))
+    (car (container-children wrap)))
+
+  (define-method ((setter widget-wrap-widget) (wrap <widget-wrap>) (widget <widget>))
+    (set! (widget-parent widget) wrap)
+    (set! (container-children wrap) (list widget))
+    (set! (widget-visible widget) #t)
+    (widget-geometry-set! widget (widget-cols wrap) (widget-rows wrap))
+    (widget-damaged! wrap))
+
+  (define-method (widget-wrap-swap! (wrap <widget-wrap>) (widget <widget>))
+    (let ((old (widget-wrap-widget wrap)))
+      (set! (widget-wrap-widget wrap) widget)
+      (set! (widget-visible old) #f)))
+
+  ;;
+  ;; Widget Stack
+  ;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+  (define-class <widget-stack> (<container>))
+
+  (define (make-widget-stack root-widget #!rest widgets)
+    (let ((stack (make <widget-stack> 'children (cons root-widget widgets))))
+      (for-each (lambda (w) (set! (widget-parent w) stack))
+                (cons root-widget widgets))
+      stack))
+
+  (define-method (compute-layout (stack <widget-stack>) cols rows)
+    (list (list (car (container-children stack)) 0 0 cols rows)))
+
+  (define-method (widget-geometry-set! (stack <widget-stack>) cols rows)
+    (for-each (lambda (w) (widget-geometry-set! w cols rows))
+              (container-children stack)))
+
+  (define-method (widget-stack-push! (stack <widget-stack>) (widget <widget>))
+    (widget-geometry-set! widget (widget-cols stack) (widget-rows stack))
+    (container-prepend-child! stack widget)
+    (widget-damaged! stack))
+
+  (define-method (widget-stack-pop! (stack <widget-stack>))
+    (unless (null? (cdr (container-children stack)))
+      (set! (container-children stack) (cdr (container-children stack)))
+      (widget-damaged! stack)))
+
+  (define-method  (widget-stack-peek (stack <widget-stack>))
+    (let ((s (cdr (container-children stack))))
+      (if (null? s) #f (car s)))))

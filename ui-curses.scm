@@ -57,6 +57,8 @@
 
 ;; windows {{{
 
+(define root-widget #f)
+
 (: get-window (symbol -> window))
 (define (get-window view-name)
   (widget-focus (alist-ref view-name *views*)))
@@ -77,19 +79,13 @@
 (define (set-view! view-name)
   (when (memv view-name *view-names*)
     (set! *current-view* view-name)
+    (widget-wrap-swap! root-widget (get-view view-name))
     (widget-damaged! (get-view view-name))))
 
 ;; windows }}}
 ;; screen updates {{{
 
-(: print-view! (frame -> undefined))
-(define (print-view! view)
-  (when (> (LINES) 3)
-    (print-widget! view 0 0 (COLS) (- (LINES) 3))))
-
 ; TODO: Replace with text widget.
-;       But first need to implement partial redraws so we're not redrawing the whole screen
-;       for current-/status-line changes
 (: update-current-line thunk)
 (define (update-current-line)
   (when (> (LINES) 2)
@@ -142,26 +138,23 @@
 (define (update-db)
   (scmus-update-stats!))
 
-(: update-cursor thunk)
-(define (update-cursor)
-  (if (current-editable)
+(define (update-cursor!)
+  (when (current-editable)
     (let ((pos (cursor-pos)))
       (move (car pos) (cdr pos)))))
 
-(define (update-current-view!)
-  (let ((view (current-view)))
-    (when (widget-damaged view)
-      (print-view! view)
-      (set! (widget-damaged view) #f))))
+; TODO: move this logic into TUI module
+(define (update-tui!)
+  (when (> (LINES) 3)
+    (for-each reprint-widget! (damaged-widgets))
+    (clear-damaged-widgets!))
+  (update-cursor!))
 
 (: redraw-ui thunk)
 (define (redraw-ui)
-  (define (update-geometry view)
-    (widget-geometry-set! (frame-widget (cdr view))
-                          (max 0 (- (COLS) 2))
-                          (max 0 (- (LINES) 4))))
-  (for-each update-geometry *views*)
-  (print-view! (alist-ref *current-view* *views*))
+  (widget-geometry-set! root-widget (COLS) (- (LINES) 3))
+  (print-widget! root-widget 0 0 (COLS) (- (LINES) 3))
+  (update-cursor!)
   (update-current)
   (update-status)
   (update-command-line))
@@ -225,8 +218,7 @@
 (define (curses-update)
   (let ((err (handle-events!)))
     (if err (scmus-error-set! err)))
-  (update-current-view!)
-  (update-cursor)
+  (update-tui!)
   (handle-input *current-view*))
 
 (: init-curses thunk)
@@ -242,7 +234,9 @@
     (use_default_colors))
   (update-colors!)
   (init-views!)
+  (set! root-widget (make-widget-wrap (get-view 'queue)))
   (redraw-ui)
+  (print-widget! root-widget 0 0 (COLS) (- (LINES) 3))
   (set-input-mode! 'normal-mode))
 
 (: exit-curses thunk)
