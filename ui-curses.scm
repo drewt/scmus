@@ -152,7 +152,6 @@
 
 (: redraw-ui thunk)
 (define (redraw-ui)
-  (widget-geometry-set! root-widget (COLS) (- (LINES) 3))
   (print-widget! root-widget 0 0 (COLS) (- (LINES) 3))
   (update-cursor!)
   (update-current)

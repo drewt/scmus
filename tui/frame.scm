@@ -42,10 +42,6 @@
   (define-method (widget-focus (frame <frame>))
     (widget-focus (frame-widget frame)))
 
-  (define-method (widget-geometry-set! (frame <frame>) cols rows)
-    (widget-geometry-set! (frame-title frame) cols 1)
-    (widget-geometry-set! (frame-widget frame) cols (max 0 (- rows 1))))
-
   (define-method (print-widget! (frame <frame>) x y cols rows)
     (print-widget! (frame-title frame) x y cols 1)
     (when (> rows 1)

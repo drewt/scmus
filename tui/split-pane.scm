@@ -64,12 +64,4 @@
       ;           WIDGET                        X               Y COLS       ROWS
       (list (list (split-pane-left-child pane)  0               0 left-cols  rows)
             (list separator                     left-cols       0 1          rows)
-            (list (split-pane-right-child pane) (+ left-cols 1) 0 right-cols rows))))
-
-  (define-method (widget-geometry-set! (pane <split-pane>) cols rows)
-    (let loop ((children (compute-layout pane cols rows)))
-      (unless (null? children)
-        (widget-geometry-set! (first (car children))
-                              (fourth (car children))
-                              (fifth  (car children)))
-        (loop (cdr children))))))
+            (list (split-pane-right-child pane) (+ left-cols 1) 0 right-cols rows)))))

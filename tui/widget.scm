@@ -58,10 +58,6 @@
     (set! (slot-value widget 'visible) visible)
     (widget-damaged! widget))
 
-  (define-method (widget-geometry-set! (widget <widget>) cols rows)
-    (set! (widget-cols widget) cols)
-    (set! (widget-rows widget) rows))
-
   (define-method (widget-first (widget <widget>))
     widget)
 
@@ -153,9 +149,6 @@
   (define-method (compute-layout (wrap <widget-wrap>) cols rows)
     (list (list (widget-wrap-widget wrap) 0 0 cols rows)))
 
-  (define-method (widget-geometry-set! (wrap <widget-wrap>) cols rows)
-    (widget-geometry-set! (widget-wrap-widget wrap) cols rows))
-
   (define-method (widget-wrap-widget (wrap <widget-wrap>))
     (car (container-children wrap)))
 
@@ -163,7 +156,6 @@
     (set! (widget-parent widget) wrap)
     (set! (container-children wrap) (list widget))
     (set! (widget-visible widget) #t)
-    (widget-geometry-set! widget (widget-cols wrap) (widget-rows wrap))
     (widget-damaged! wrap))
 
   (define-method (widget-wrap-swap! (wrap <widget-wrap>) (widget <widget>))
@@ -187,12 +179,7 @@
   (define-method (compute-layout (stack <widget-stack>) cols rows)
     (list (list (car (container-children stack)) 0 0 cols rows)))
 
-  (define-method (widget-geometry-set! (stack <widget-stack>) cols rows)
-    (for-each (lambda (w) (widget-geometry-set! w cols rows))
-              (container-children stack)))
-
   (define-method (widget-stack-push! (stack <widget-stack>) (widget <widget>))
-    (widget-geometry-set! widget (widget-cols stack) (widget-rows stack))
     (container-prepend-child! stack widget)
     (widget-damaged! stack))
 
