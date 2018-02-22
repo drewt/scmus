@@ -23,8 +23,7 @@
           scmus.tui.misc
           scmus.tui.widget)
 
-  ; FIXME: this should be a container
-  (define-class <frame> (<widget>)
+  (define-class <frame> (<container>)
     ((widget initform: #f
              accessor: frame-widget)
      (title  initform: (make-text "")
@@ -32,7 +31,10 @@
 
   (define-method (initialize-instance (frame <frame>))
     (call-next-method)
-    (set! (widget-parent (frame-widget frame)) frame))
+    (when (frame-widget frame)
+      (set! (widget-parent (frame-widget frame)) frame))
+    (when (frame-title frame)
+      (set! (widget-parent (frame-title frame)) frame)))
 
   (define (make-frame widget title . kwargs)
     (apply make <frame> 'widget widget
@@ -42,7 +44,10 @@
   (define-method (widget-focus (frame <frame>))
     (widget-focus (frame-widget frame)))
 
-  (define-method (print-widget! (frame <frame>) x y cols rows)
-    (print-widget! (frame-title frame) x y cols 1)
-    (when (> rows 1)
-      (print-widget! (frame-widget frame) x (+ 1 y) cols (- rows 1)))))
+  (define-method (container-children (frame <frame>))
+    (append (if (frame-title frame)  (list (frame-title frame))  '())
+            (if (frame-widget frame) (list (frame-widget frame)) '())))
+
+  (define-method (compute-layout (frame <frame>) cols rows)
+    (list (list (frame-title frame)  0 0 cols 1)
+          (list (frame-widget frame) 0 1 cols (- rows 1)))))
