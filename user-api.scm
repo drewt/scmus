@@ -338,14 +338,14 @@
   "Set the volume"
   (return-void set-volume!))
 
-(define/user (shell! command . args)
+(define+user (shell! command . args)
   "Run a shell command"
   (process-fork
     (lambda ()
       (handle-exceptions exn (void)
         (process-execute command args)))))
 
-(define/user (shell-sync! command . args)
+(define+user (shell-sync! command . args)
   "Run a shell command synchronously"
   (nth-value 2 (process-wait (apply shell! command args))))
 
