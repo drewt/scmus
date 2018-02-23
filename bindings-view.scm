@@ -122,13 +122,13 @@
   (apply append (map context->rows (sort (bindings) context<?))))
 
 (define-view bindings
-  (make-frame (make-window 'data       (make-bindings-data)
-                           'activate   binding-edit!
-                           'edit       binding-edit!
-                           'format     binding-format
-                           'cursed     CURSED-WIN
-                           'cursed-fn  (win-cursed-fn))
-              (make-text " Key Bindings" 'cursed CURSED-WIN-TITLE)))
+  (make-frame 'body   (make-window 'data       (make-bindings-data)
+                                   'activate   binding-edit!
+                                   'edit       binding-edit!
+                                   'format     binding-format
+                                   'cursed     CURSED-WIN
+                                   'cursed-fn  (win-cursed-fn))
+              'header (make-text " Key Bindings" 'cursed CURSED-WIN-TITLE)))
 
 (define-event-handler (binding-data-changed) ()
   (let ((window (get-window 'bindings)))

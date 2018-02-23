@@ -48,6 +48,11 @@
     (set! (slot-value text 'text) str)
     (widget-damaged! text))
 
+  (define-method (widget-size (text <text>) available-cols available-rows)
+    (let ((lines (string-split-lines (text-text text))))
+      (values (min available-cols (fold max 0 (map string-length lines)))
+              (min available-rows (length lines)))))
+
   (define-method (print-widget! (text <text>) x y cols rows)
     (for-each (lambda (line) (print-line! line x y cols))
       (take-at-most (string-split-lines (text-text text)) rows)))
@@ -67,6 +72,9 @@
 
   (define-method ((setter format-text-data) after: (text <format-text>) data)
     (widget-damaged! text))
+
+  (define-method (widget-size (text <format-text>) available-cols available-rows)
+    (values available-cols (min available-rows 1)))
 
   (define-method (print-widget! (text <format-text>) x y cols rows)
     (for-each (lambda (line) (print-line! line x y cols))

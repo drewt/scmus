@@ -56,13 +56,13 @@
   (map option->row (options)))
 
 (define-view options
-  (make-frame (make-window 'data       (make-options-data)
-                           'activate   option-edit!
-                           'edit       option-edit!
-                           'format     *key-value-format*
-                           'cursed     CURSED-WIN
-                           'cursed-fn (win-cursed-fn))
-              (make-text " Options" 'cursed CURSED-WIN-TITLE)))
+  (make-frame 'body   (make-window 'data       (make-options-data)
+                                   'activate   option-edit!
+                                   'edit       option-edit!
+                                   'format     *key-value-format*
+                                   'cursed     CURSED-WIN
+                                   'cursed-fn (win-cursed-fn))
+              'header (make-text " Options" 'cursed CURSED-WIN-TITLE)))
 
 (define-event-handler (option-data-changed) ()
   (let ((window (get-window 'options)))

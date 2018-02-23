@@ -130,15 +130,15 @@
     ((file)      (get-format 'format-search-file))))
 
 (define-view search
-  (make-frame (make-window 'data       (list (make-search-field)
-                                             '(separator . ((text . "Results"))))
-                           'activate   search-activate!
-                           'match      search-match
-                           'add        search-add!
-                           'remove     search-remove!
-                           'clear      search-clear!
-                           'edit       search-edit!
-                           'format     search-format
-                           'cursed     CURSED-WIN
-                           'cursed-fn  (win-cursed-fn))
-              (make-text " Search" 'cursed CURSED-WIN-TITLE)))
+  (make-frame 'body   (make-window 'data       (list (make-search-field)
+                                                     '(separator . ((text . "Results"))))
+                                   'activate   search-activate!
+                                   'match      search-match
+                                   'add        search-add!
+                                   'remove     search-remove!
+                                   'clear      search-clear!
+                                   'edit       search-edit!
+                                   'format     search-format
+                                   'cursed     CURSED-WIN
+                                   'cursed-fn  (win-cursed-fn))
+              'header (make-text " Search" 'cursed CURSED-WIN-TITLE)))

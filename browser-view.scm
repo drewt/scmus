@@ -57,12 +57,12 @@
 
 (define (browser-location-push! str)
   (set! *browser-location* (cons str *browser-location*))
-  (set! (format-text-data (frame-title (get-view 'browser)))
+  (set! (format-text-data (frame-header (get-view 'browser)))
     (browser-title-data)))
 
 (define (browser-location-pop!)
   (set! *browser-location* (cdr *browser-location*))
-  (set! (format-text-data (frame-title (get-view 'browser)))
+  (set! (format-text-data (frame-header (get-view 'browser)))
     (browser-title-data)))
 
 (: browser-activate! (window -> undefined))
@@ -108,7 +108,7 @@
   `((location . ,(car *browser-location*))))
 
 (define-event-handler (db-changed) ()
-  (set! (window-data (widget-last (frame-widget (get-view 'browser))))
+  (set! (window-data (widget-last (frame-body (get-view 'browser))))
         (tag-data (scmus-lsinfo "/"))))
 
 (define (make-browser-window data)
@@ -122,6 +122,6 @@
                'cursed-fn  (win-cursed-fn)))
 
 (define-view browser
-  (make-frame (make-widget-stack (make-browser-window '()))
-              (make-format-text " Browser: ~{location}" (browser-title-data)
-                                'cursed CURSED-WIN-TITLE)))
+  (make-frame 'body   (make-widget-stack (make-browser-window '()))
+              'header (make-format-text " Browser: ~{location}" (browser-title-data)
+                                        'cursed CURSED-WIN-TITLE)))

@@ -54,16 +54,16 @@
 
 (define-view queue
   (make-frame
-    (make-window 'data       (list-of 'file (current-queue))
-                 'activate   (lambda (w) (scmus-play-track! (cdr (window-selected w))))
-                 'match      (lambda (row query) (track-match (cdr row) query))
-                 'remove     queue-remove!
-                 'clear      (lambda (w) (scmus-clear!))
-                 'move       queue-move!
-                 'format     (lambda (tag) (get-format 'format-queue))
-                 'cursed     CURSED-WIN
-                 'cursed-fn  (win-cursed-fn (lambda (row) (current-track? (cdr row)))))
-    (make-format-text " Queue - ~{queue-length} tracks" '() 'cursed CURSED-WIN-TITLE)))
+    'body   (make-window 'data       (list-of 'file (current-queue))
+                         'activate   (lambda (w) (scmus-play-track! (cdr (window-selected w))))
+                         'match      (lambda (row query) (track-match (cdr row) query))
+                         'remove     queue-remove!
+                         'clear      (lambda (w) (scmus-clear!))
+                         'move       queue-move!
+                         'format     (lambda (tag) (get-format 'format-queue))
+                         'cursed     CURSED-WIN
+                         'cursed-fn  (win-cursed-fn (lambda (row) (current-track? (cdr row)))))
+    'header (make-format-text " Queue - ~{queue-length} tracks" '() 'cursed CURSED-WIN-TITLE)))
 
 (define-event-handler (queue-changed) ()
   (widget-damaged! (get-view 'queue)))

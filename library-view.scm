@@ -102,7 +102,7 @@
     (else                    #f)))
 
 (define-event-handler (db-changed) ()
-  (set! (window-data (widget-last (frame-widget (get-view 'library))))
+  (set! (window-data (widget-last (frame-body (get-view 'library))))
         (append! (cons '(separator . ((text . "Playlists")))
                        (tag-data (scmus-list-playlists)))
                  (cons '(separator . ((text . "Artists")))
@@ -119,5 +119,5 @@
                'cursed-fn  (win-cursed-fn)))
 
 (define-view library
-  (make-frame (make-widget-stack (make-library-window '()))
-              (make-text " Library" 'cursed CURSED-WIN-TITLE)))
+  (make-frame 'body   (make-widget-stack (make-library-window '()))
+              'header (make-text " Library" 'cursed CURSED-WIN-TITLE)))

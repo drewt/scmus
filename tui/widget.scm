@@ -72,6 +72,9 @@
   (define-method (widget-focus (widget <widget>))
     widget)
 
+  (define-method (widget-size (widget <widget>) available-cols available-rows)
+    (values available-cols available-rows))
+
   (define-method (print-widget! before: (widget <widget>) x y cols rows)
     (set! (widget-x    widget) x)
     (set! (widget-y    widget) y)
@@ -92,6 +95,16 @@
   (define-class <container> (<widget>)
     ((children accessor: container-children)))
 
+  ;; Method returning a list of lists: (WIDGET X Y COLS ROWS) where:
+  ;;   * WIDGET is a child widget
+  ;;   * X is the X coordinate of WIDGET (relative to the container's X,Y coordinates)
+  ;;   * Y is the Y coordinate of WIDGET (relative to the container's X,Y coordinates)
+  ;;   * COLS is the number of columns allocated to WIDGET
+  ;;   * ROWS is the number of rows allocated to WIDGET
+  ;;
+  ;; This method is called in the generic PRINT-WIDGET! implementation for containers.
+  ;; It is not necessary to implement this method in a subclass that overrides
+  ;; PRINT-WIDGET!.
   (define-generic (compute-layout container cols rows))
   
   (define-method (container-prepend-child! (container <container>) (child <widget>))

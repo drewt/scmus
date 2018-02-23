@@ -244,18 +244,18 @@
     (endwin)))
 
 (define-view status
-  (make-frame (make-window 'data (alist->kv-rows (current-status))
-                          'format *key-value-format*
-                          'cursed CURSED-WIN)
-              (make-text " MPD Status" 'cursed CURSED-WIN-TITLE)))
+  (make-frame 'body   (make-window 'data (alist->kv-rows (current-status))
+                                   'format *key-value-format*
+                                   'cursed CURSED-WIN)
+              'header (make-text " MPD Status" 'cursed CURSED-WIN-TITLE)))
 
 (define (list->rows lines)
   (map (lambda (line) `(row . ((text . ,line)))) lines))
 
 (define-view error
-  (make-frame (make-window 'data   (list->rows (string-split-lines (scmus-error)))
-                           'cursed CURSED-WIN)
-              (make-text " Error" 'cursed CURSED-WIN-TITLE)))
+  (make-frame 'body   (make-window 'data   (list->rows (string-split-lines (scmus-error)))
+                                   'cursed CURSED-WIN)
+              'header (make-text " Error" 'cursed CURSED-WIN-TITLE)))
 
 (define-event-handler command-line-changed () update-command-line)
 (define-event-handler current-line-changed () update-current)

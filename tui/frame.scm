@@ -24,30 +24,56 @@
           scmus.tui.widget)
 
   (define-class <frame> (<container>)
-    ((widget initform: #f
-             accessor: frame-widget)
-     (title  initform: (make-text "")
-             accessor: frame-title)))
+    ((body   initform: #f
+             accessor: frame-body)
+     (header initform: #f
+             accessor: frame-header)
+     (footer initform: #f
+             accessor: frame-footer)))
 
   (define-method (initialize-instance (frame <frame>))
     (call-next-method)
-    (when (frame-widget frame)
-      (set! (widget-parent (frame-widget frame)) frame))
-    (when (frame-title frame)
-      (set! (widget-parent (frame-title frame)) frame)))
+    (when (frame-body frame)
+      (set! (widget-parent (frame-body frame)) frame))
+    (when (frame-header frame)
+      (set! (widget-parent (frame-header frame)) frame))
+    (when (frame-footer frame)
+      (set! (widget-parent (frame-footer frame)) frame)))
 
-  (define (make-frame widget title . kwargs)
-    (apply make <frame> 'widget widget
-                        'title title
-                        kwargs))
+  (define (make-frame . kwargs)
+    (apply make <frame> kwargs))
 
   (define-method (widget-focus (frame <frame>))
-    (widget-focus (frame-widget frame)))
+    (if (frame-body frame)
+      (widget-focus (frame-body frame))
+      #f))
 
   (define-method (container-children (frame <frame>))
-    (append (if (frame-title frame)  (list (frame-title frame))  '())
-            (if (frame-widget frame) (list (frame-widget frame)) '())))
+    (let ((head (frame-header frame))
+          (body (frame-body frame))
+          (foot (frame-footer frame)))
+      (append (if head (list head) '())
+              (if body (list body) '())
+              (if foot (list foot) '()))))
 
+  ;; Nasty imperative code. Header and footer will consume the entire frame
+  ;; if they want to.  Maybe we could have an option to limit their size?
   (define-method (compute-layout (frame <frame>) cols rows)
-    (list (list (frame-title frame)  0 0 cols 1)
-          (list (frame-widget frame) 0 1 cols (- rows 1)))))
+    (let ((title  (frame-header frame))
+          (body   (frame-body   frame))
+          (footer (frame-footer frame))
+          (x      0))
+      (when footer
+        (let-values (((_ foot-rows) (widget-size footer cols rows)))
+          (set! footer (list footer 0 (- rows foot-rows) cols foot-rows))
+          (set! rows (- rows foot-rows))))
+      (when title
+        (let-values (((_ head-rows) (widget-size title cols rows)))
+          (set! title (list title 0 0 cols head-rows))
+          (set! rows (- rows head-rows))
+          (set! x (+ x head-rows))))
+      (when body
+        (set! body (list body 0 x cols rows)))
+      (append (if title  (list title)  '())
+              (if body   (list body)   '())
+              (if footer (list footer) '())))))
