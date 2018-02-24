@@ -37,27 +37,37 @@
             (loop (+ col 1))))
         (loop (+ row 1)))))
 
-  (define-class <text> (<widget>)
-    ((text initform: ""
-           reader:   text-text)))
+  (define-class <textual> (<widget>))
+
+  (define-method (print-widget! (text <textual>) x y cols rows)
+    (for-each (lambda (line) (print-line! line x y cols))
+      (take-at-most (text-text text) rows)))
+
+  (define-class <text> (<textual>)
+    ((text initform: '("")
+           reader:   text-text)
+     (w    initform: 0
+           reader:   text-w)
+     (h    initform: 0
+           reader:   text-h)))
 
   (define (make-text str . kwargs)
-    (apply make <text> 'text str kwargs))
+    (let ((text (apply make <text> kwargs)))
+      (set! (text-text text) str)
+      text))
 
   (define-method ((setter text-text) (text <text>) str)
-    (set! (slot-value text 'text) str)
+    (let ((lines (string-split-lines str)))
+      (set! (slot-value text 'text) lines)
+      (set! (slot-value text 'w)    (fold max 0 (map string-length lines)))
+      (set! (slot-value text 'h)    (length lines)))
     (widget-damaged! text))
 
   (define-method (widget-size (text <text>) available-cols available-rows)
-    (let ((lines (string-split-lines (text-text text))))
-      (values (min available-cols (fold max 0 (map string-length lines)))
-              (min available-rows (length lines)))))
+    (values (min available-cols (text-w text))
+            (min available-rows (text-h text))))
 
-  (define-method (print-widget! (text <text>) x y cols rows)
-    (for-each (lambda (line) (print-line! line x y cols))
-      (take-at-most (string-split-lines (text-text text)) rows)))
-
-  (define-class <format-text> (<widget>)
+  (define-class <format-text> (<textual>)
     ((format initform: (process-format "")
              accessor: format-text-format)
      (data   initform: '()
@@ -76,9 +86,5 @@
   (define-method (widget-size (text <format-text>) available-cols available-rows)
     (values available-cols (min available-rows 1)))
 
-  (define-method (print-widget! (text <format-text>) x y cols rows)
-    (for-each (lambda (line) (print-line! line x y cols))
-      (take-at-most (string-split-lines (scmus-format (format-text-format text)
-                                                      cols
-                                                      (format-text-data text)))
-                    rows))))
+  (define-method (text-text (text <format-text>))
+    (list (scmus-format (format-text-format text) (widget-cols text) (format-text-data text)))))
