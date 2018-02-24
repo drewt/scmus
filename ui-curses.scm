@@ -15,7 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (export current-view current-window curses-update cursor-off cursor-on
+(declare (export current-window curses-update cursor-off cursor-on
                  exit-curses get-window init-curses redraw-ui set-view!
                  connect!))
 
@@ -23,8 +23,6 @@
 (import scmus.base scmus.client scmus.command-line scmus.editable scmus.error
         scmus.event scmus.format scmus.input scmus.keys scmus.option
         scmus.status scmus.tui)
-
-(define *current-view* 'queue)
 
 (: get-color-option (symbol -> (list-of fixnum)))
 (define (get-color-option name)
@@ -55,34 +53,6 @@
   (*update-colors!)
   (void))
 
-;; windows {{{
-
-(define root-widget #f)
-
-(: get-window (symbol -> window))
-(define (get-window view-name)
-  (widget-focus (alist-ref view-name *views*)))
-
-(: current-view (-> frame))
-(define (current-view)
-  (alist-ref *current-view* *views*))
-
-(: current-window (-> window))
-(define (current-window)
-  (get-window *current-view*))
-
-(: current-view? (symbol -> boolean))
-(define (current-view? view-name)
-  (eqv? view-name *current-view*))
-
-(: set-view! (symbol -> undefined))
-(define (set-view! view-name)
-  (when (memv view-name *view-names*)
-    (set! *current-view* view-name)
-    (widget-wrap-swap! root-widget (get-view view-name))
-    (widget-damaged! (get-view view-name))))
-
-;; windows }}}
 ;; screen updates {{{
 
 ; TODO: Replace with text widget.
@@ -218,7 +188,7 @@
   (let ((err (handle-events!)))
     (if err (scmus-error-set! err)))
   (update-tui!)
-  (handle-input *current-view*))
+  (handle-input (current-view-name)))
 
 (: init-curses thunk)
 (define (init-curses)
@@ -233,7 +203,7 @@
     (use_default_colors))
   (update-colors!)
   (init-views!)
-  (set! root-widget (make-widget-wrap (get-view 'queue)))
+  (set-view! 'queue)
   (redraw-ui)
   (print-widget! root-widget 0 0 (COLS) (- (LINES) 3))
   (set-input-mode! 'normal-mode))

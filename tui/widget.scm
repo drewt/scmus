@@ -154,26 +154,30 @@
   ; FIXME: use INITIALIZE-INSTANCE instead of setter
   (define (make-widget-wrap widget . kwargs)
     (let ((wrap (apply make <widget-wrap> kwargs)))
-      (set! (widget-wrap-widget wrap) widget)
+      (when widget (set! (widget-wrap-widget wrap) widget))
       wrap))
 
   (define-method ((setter widget-wrap-widget) (wrap <widget-wrap>) (widget <widget>))
-    (set! (widget-parent widget) wrap)
     (set! (slot-value wrap 'widget) widget)
-    (set! (widget-visible widget) #t)
+    (when widget
+      (set! (widget-parent widget) wrap)
+      (set! (widget-visible widget) #t))
     (widget-damaged! wrap))
 
   (define-method (widget-wrap-swap! (wrap <widget-wrap>) (widget <widget>))
     (let ((old (widget-wrap-widget wrap)))
       (set! (widget-wrap-widget wrap) widget)
-      (set! (widget-visible old) #f)))
+      (when old (set! (widget-visible old) #f))))
 
   (define-method (container-children (wrap <widget-wrap>))
     (let ((widget (widget-wrap-widget wrap)))
       (if widget (list widget) '())))
 
   (define-method (compute-layout (wrap <widget-wrap>) cols rows)
-    (list (list (widget-wrap-widget wrap) 0 0 cols rows)))
+    (let ((widget (widget-wrap-widget wrap)))
+      (if widget
+        (list (list (widget-wrap-widget wrap) 0 0 cols rows))
+        '())))
 
   ;;
   ;; Widget Stack
