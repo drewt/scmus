@@ -22,14 +22,15 @@
           scmus.tui.widget)
 
   (define-class <split-pane> (<container>)
-    ((left-size      initform: 0.5
-                     reader: split-pane-left-size)
+    ((left-child     accessor: split-pane-left-child)
+     (right-child    accessor: split-pane-right-child)
+     (left-size      initform: 0.5
+                     reader:   split-pane-left-size)
      (separator-char initform: #\space
                      reader: split-pane-separator-char)))
 
   (define (make-split-pane left-child right-child . args)
-    (let* ((children (list left-child right-child))
-           (pane (apply make <split-pane> 'children children args)))
+    (let ((pane (apply make <split-pane> 'left-child left-child 'right-child right-child)))
       (set! (widget-parent left-child) pane)
       (set! (widget-parent right-child) pane)
       pane))
@@ -43,21 +44,12 @@
       (else
         #f)))
 
-  (define-method (split-pane-left-child (pane <split-pane>))
-    (car (container-children pane)))
-
-  (define-method (split-pane-right-child (pane <split-pane>))
-    (cadr (container-children pane)))
-
-  ;; Ensure that a split pane is always given 2 children
-  (define-method ((setter container-children) (pane <split-pane>) children)
-    (cond
-      ((= (length children) 2)
-        (call-next-method))
-      (else
-        #f)))
+  (define-method (container-children (pane <split-pane>))
+    (list (split-pane-left-child pane)
+          (split-pane-right-child pane)))
 
   (define-method (compute-layout (pane <split-pane>) cols rows)
+    ; FIXME: don't create new separator for every draw
     (let* ((separator (make <separator> 'char (split-pane-separator-char pane)))
            (left-cols (inexact->exact (floor (* (split-pane-left-size pane) cols))))
            (right-cols (- cols left-cols 1)))

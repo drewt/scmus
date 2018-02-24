@@ -39,6 +39,11 @@
 
   (define-class <textual> (<widget>))
 
+  ;; Method to retrieve/generate the text data.  Should return a list of
+  ;; strings, where each item in the list is a line (which SHOULD NOT
+  ;; contain the #\newline character).
+  (define-abstract-method (text-text (text <textual>)))
+
   (define-method (print-widget! (text <textual>) x y cols rows)
     (for-each (lambda (line) (print-line! line x y cols))
       (take-at-most (text-text text) rows)))

@@ -20,6 +20,17 @@
           scmus.base
           scmus.tui.display)
 
+  (define-syntax define-abstract-method
+    (syntax-rules ()
+      ((define-abstract-method (name . args))
+        (define-method (name . args)
+          (abort
+            (make-composite-condition
+              (make-property-condition 'exn
+                'message "Abstract method not implemented by subclass"
+                'arguments '(name . args))
+              (make-property-condition 'coops)))))))
+
   (define *damaged-widgets* '())
   (define (damaged-widgets) *damaged-widgets*)
   (define (clear-damaged-widgets!) (set! *damaged-widgets* '()))
@@ -92,8 +103,10 @@
   ;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (define-class <container> (<widget>)
-    ((children accessor: container-children)))
+  (define-class <container> (<widget>))
+
+  ;; Method returning a list of the container's child widgets.
+  (define-abstract-method (container-children (container <container>)))
 
   ;; Method returning a list of lists: (WIDGET X Y COLS ROWS) where:
   ;;   * WIDGET is a child widget
@@ -105,31 +118,13 @@
   ;; This method is called in the generic PRINT-WIDGET! implementation for containers.
   ;; It is not necessary to implement this method in a subclass that overrides
   ;; PRINT-WIDGET!.
-  (define-generic (compute-layout container cols rows))
-  
-  (define-method (container-prepend-child! (container <container>) (child <widget>))
-    (set! (widget-parent child) container)
-    (set! (container-children container)
-      (cons child (container-children container))))
-
-  (define-method (container-append-child! (container <container>) (child <widget>))
-    (set! (widget-parent child) container)
-    (set! (container-children container)
-      (append! (container-children container) (list child))))
+  (define-abstract-method (compute-layout (container <container>) cols rows))
 
   (define-method (widget-first (container <container>))
     (widget-first (car (container-children container))))
 
   (define-method (widget-last (container <container>))
     (widget-last (car (reverse (container-children container)))))
-
-  (: *container-next-child (list (struct widget) -> (or boolean (struct widget))))
-  (define (*container-next-child children child)
-    (let ((rest (member child children)))
-      (cond
-        ((not rest)         #f) ; FIXME: throw exception
-        ((null? (cdr rest)) (car children))
-        (else               (cadr rest)))))
 
   (define-method (widget-focus (container <container>))
     (if (null? (container-children container))
@@ -152,22 +147,19 @@
   ;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (define-class <widget-wrap> (<container>))
+  (define-class <widget-wrap> (<container>)
+    ((widget initform: #f
+             reader:   widget-wrap-widget)))
 
+  ; FIXME: use INITIALIZE-INSTANCE instead of setter
   (define (make-widget-wrap widget . kwargs)
     (let ((wrap (apply make <widget-wrap> kwargs)))
       (set! (widget-wrap-widget wrap) widget)
       wrap))
 
-  (define-method (compute-layout (wrap <widget-wrap>) cols rows)
-    (list (list (widget-wrap-widget wrap) 0 0 cols rows)))
-
-  (define-method (widget-wrap-widget (wrap <widget-wrap>))
-    (car (container-children wrap)))
-
   (define-method ((setter widget-wrap-widget) (wrap <widget-wrap>) (widget <widget>))
     (set! (widget-parent widget) wrap)
-    (set! (container-children wrap) (list widget))
+    (set! (slot-value wrap 'widget) widget)
     (set! (widget-visible widget) #t)
     (widget-damaged! wrap))
 
@@ -176,15 +168,25 @@
       (set! (widget-wrap-widget wrap) widget)
       (set! (widget-visible old) #f)))
 
+  (define-method (container-children (wrap <widget-wrap>))
+    (let ((widget (widget-wrap-widget wrap)))
+      (if widget (list widget) '())))
+
+  (define-method (compute-layout (wrap <widget-wrap>) cols rows)
+    (list (list (widget-wrap-widget wrap) 0 0 cols rows)))
+
   ;;
   ;; Widget Stack
   ;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (define-class <widget-stack> (<container>))
+  (define-class <widget-stack> (<container>)
+    ((stack initform: '()
+            reader:   container-children)))
 
+  ; FIXME: use INITIALIZE-INSTANCE for initialization
   (define (make-widget-stack root-widget #!rest widgets)
-    (let ((stack (make <widget-stack> 'children (cons root-widget widgets))))
+    (let ((stack (make <widget-stack> 'stack (cons root-widget widgets))))
       (for-each (lambda (w) (set! (widget-parent w) stack))
                 (cons root-widget widgets))
       stack))
@@ -193,12 +195,15 @@
     (list (list (car (container-children stack)) 0 0 cols rows)))
 
   (define-method (widget-stack-push! (stack <widget-stack>) (widget <widget>))
-    (container-prepend-child! stack widget)
+    (set! (slot-value stack 'stack)
+      (cons widget (slot-value stack 'stack)))
+    (set! (widget-parent widget) stack)
     (widget-damaged! stack))
 
   (define-method (widget-stack-pop! (stack <widget-stack>))
     (unless (null? (cdr (container-children stack)))
-      (set! (container-children stack) (cdr (container-children stack)))
+      (set! (slot-value stack 'stack)
+        (cdr (slot-value stack 'stack)))
       (widget-damaged! stack)))
 
   (define-method  (widget-stack-peek (stack <widget-stack>))
