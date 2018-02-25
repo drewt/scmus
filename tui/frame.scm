@@ -31,15 +31,6 @@
      (footer initform: #f
              accessor: frame-footer)))
 
-  (define-method (initialize-instance (frame <frame>))
-    (call-next-method)
-    (when (frame-body frame)
-      (set! (widget-parent (frame-body frame)) frame))
-    (when (frame-header frame)
-      (set! (widget-parent (frame-header frame)) frame))
-    (when (frame-footer frame)
-      (set! (widget-parent (frame-footer frame)) frame)))
-
   (define (make-frame . kwargs)
     (apply make <frame> kwargs))
 

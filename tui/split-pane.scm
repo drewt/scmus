@@ -30,10 +30,7 @@
                      reader: split-pane-separator-char)))
 
   (define (make-split-pane left-child right-child . args)
-    (let ((pane (apply make <split-pane> 'left-child left-child 'right-child right-child)))
-      (set! (widget-parent left-child) pane)
-      (set! (widget-parent right-child) pane)
-      pane))
+    (apply make <split-pane> 'left-child left-child 'right-child right-child))
 
   ;; Ensure that left-size is between 0 and 1
   (define-method ((setter split-pane-left-size) (pane <split-pane>) size)

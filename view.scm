@@ -28,11 +28,17 @@
    (active  initform: 'none
             reader:   widget-bag-active)))
 
-;; FIXME: use INITIALIZE-INSTANCE on WIDGET-WRAP instead of invoking setter here.
 (define (make-widget-bag widgets active . kwargs)
-  (let ((bag (apply make <widget-bag> 'widgets widgets kwargs)))
-    (set! (widget-bag-active bag) active)
-    bag))
+  (apply make <widget-bag> 'widgets widgets 'active active kwargs))
+
+(define-method (initialize-instance (bag <widget-bag>))
+  (call-next-method)
+  (for-each (lambda (n/w)
+              (set! (widget-parent (cdr n/w)) bag)
+              (set! (widget-visible (cdr n/w)) #f))
+            (widget-bag-widgets bag))
+  (set! (widget-wrap-widget bag)
+    (alist-ref (widget-bag-active bag) (widget-bag-widgets bag))))
 
 (define-method ((setter widget-bag-active) (bag <widget-bag>) name)
   (let ((widget (alist-ref name (widget-bag-widgets bag))))

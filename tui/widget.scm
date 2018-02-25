@@ -105,6 +105,13 @@
 
   (define-class <container> (<widget>))
 
+  ;; Ensure that WIDGET-PARENT is set correctly on all children.
+  (define-method (initialize-instance (container <container>))
+    (call-next-method)
+    (for-each (lambda (child)
+                (set! (widget-parent child) container))
+              (container-children container)))
+
   ;; Method returning a list of the container's child widgets.
   (define-abstract-method (container-children (container <container>)))
 
@@ -151,11 +158,8 @@
     ((widget initform: #f
              reader:   widget-wrap-widget)))
 
-  ; FIXME: use INITIALIZE-INSTANCE instead of setter
   (define (make-widget-wrap widget . kwargs)
-    (let ((wrap (apply make <widget-wrap> kwargs)))
-      (when widget (set! (widget-wrap-widget wrap) widget))
-      wrap))
+    (apply make <widget-wrap> 'widget widget kwargs))
 
   (define-method ((setter widget-wrap-widget) (wrap <widget-wrap>) (widget <widget>))
     (set! (slot-value wrap 'widget) widget)
@@ -188,12 +192,8 @@
     ((stack initform: '()
             reader:   container-children)))
 
-  ; FIXME: use INITIALIZE-INSTANCE for initialization
   (define (make-widget-stack root-widget #!rest widgets)
-    (let ((stack (make <widget-stack> 'stack (cons root-widget widgets))))
-      (for-each (lambda (w) (set! (widget-parent w) stack))
-                (cons root-widget widgets))
-      stack))
+    (make <widget-stack> 'stack (cons root-widget widgets)))
 
   (define-method (compute-layout (stack <widget-stack>) cols rows)
     (list (list (car (container-children stack)) 0 0 cols rows)))
