@@ -160,35 +160,34 @@
     (with-info-message (format "Connecting to ~a:~a..." host port)
       (scmus-connect! host port pass))))
 
-(: handle-key (symbol fixnum -> undefined))
-(define (handle-key view key)
+(: handle-key (fixnum -> undefined))
+(define (handle-key key)
   (cond
     ((= key KEY_RESIZE) (redraw-ui))
     (else
       (case (input-mode)
-        ((normal-mode) (normal-mode-key view key))
+        ((normal-mode) (handle-input (widget-focus root-widget) key))
         ((edit-mode)   (editable-key (current-editable) key))))))
 
-(: handle-char (symbol char -> undefined))
-(define (handle-char view ch)
+(: handle-char (char -> undefined))
+(define (handle-char ch)
   (case (input-mode)
-    ((normal-mode) (normal-mode-key view ch))
+    ((normal-mode) (handle-input (widget-focus root-widget) ch))
     ((edit-mode)   (editable-char (current-editable) ch))))
 
-(: handle-input (symbol -> undefined))
-(define (handle-input view)
+(: *handle-input (-> undefined))
+(define (*handle-input)
   (let-values (((ch rc) (get-char)))
     (cond
-      ((= rc KEY_CODE_YES) (handle-key view ch))
-      ((= rc ERR) #f)
-      (else (handle-char view (integer->char ch))))))
+      ((= rc KEY_CODE_YES) (handle-key ch))
+      ((not (= rc ERR))    (handle-char (integer->char ch))))))
 
 (: curses-update thunk)
 (define (curses-update)
   (let ((err (handle-events!)))
     (if err (scmus-error-set! err)))
   (update-tui!)
-  (handle-input (current-view-name)))
+  (*handle-input))
 
 (: init-curses thunk)
 (define (init-curses)

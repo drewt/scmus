@@ -215,8 +215,8 @@
     (set! *current-context* (alist-ref view *bindings*))
     (set! *common-context* (alist-ref 'common *bindings*)))
 
-  (: handle-user-key (symbol fixnum -> undefined))
-  (define (handle-user-key view key)
+  (: normal-mode-key (symbol fixnum -> undefined))
+  (define (normal-mode-key view key)
     (if (not *current-context*)
       (start-context! view))
     (let ((keystr (key->string key)))
@@ -236,16 +236,6 @@
               (set! *common-context* (if common-binding common-binding '())))
             (else ; no binding
               (clear-context!)))))))
-
-  (: normal-mode-key (symbol fixnum -> undefined))
-  (define (normal-mode-key view key)
-    (case key
-      ; TODO: document whatever is going on here, or else remove it
-      ((KEY_UP #f))
-      ((KEY_DOWN #f))
-      ((KEY_LEFT #f))
-      ((KEY_RIGHT #f))
-      (else (handle-user-key view key))))
 
   (: find-key-code (string -> (or fixnum boolean)))
   (define (find-key-code name)

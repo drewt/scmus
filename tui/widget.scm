@@ -98,6 +98,16 @@
   (define-method (print-widget! around: (widget <widget>) x y cols rows)
     (call-with-cursed call-next-method (widget-cursed widget)))
 
+  ;; Input handler.  If the widget doesn't handle the input, it should invoke
+  ;; CALL-NEXT-METHOD to allow the superclass to handle the input.  If the input
+  ;; is handled, HANDLE-INPUT should return #t so that the default handler is
+  ;; not called.
+  (define-method (handle-input (widget <widget>) input)
+    (let ((parent (widget-parent widget)))
+      (if parent
+        (handle-input parent input)
+        #f)))
+
   ;;
   ;; Container
   ;;

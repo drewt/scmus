@@ -19,6 +19,7 @@
 
 (import scmus.base)
 (import scmus.tui)
+(import scmus.keys)
 
 ;; Custom <widget-wrap> which keeps an alist of widgets, and allows swapping
 ;; the active widget by name.
@@ -53,6 +54,9 @@
 
 (define-method (widget-bag-ref (bag <widget-bag>) name)
   (alist-ref name (widget-bag-widgets bag)))
+
+(define-method (handle-input (bag <widget-bag>) input)
+  (normal-mode-key (widget-bag-active bag) input))
 
 (define root-widget (make-widget-bag '() 'none))
 
