@@ -20,6 +20,8 @@
   (import drewt.ncurses)
   (import scmus.base)
 
+  (define *current-cursed* CURSED-WIN)
+
   ;; colors {{{
 
   (: color->number (* -> (or boolean fixnum)))
@@ -112,29 +114,28 @@
   (define (cursed-fg cursed)
     (caddr (vector-ref *colors* (cursed-i cursed))))
 
-  (: cursed-set! (fixnum -> fixnum))
-  (define (cursed-set! cursed)
-    (bkgdset (bitwise-ior (COLOR_PAIR cursed)
-                          (cursed-attr cursed)))
+  (: cursed-set! (fixnum #!optional fixnum -> fixnum))
+  (define (cursed-set! cursed #!optional (attr (cursed-attr cursed)))
+    (set! *current-cursed* cursed)
+    (bkgdset (bitwise-ior (COLOR_PAIR cursed) attr))
     cursed)
 
   ; Find the color pair number for (FG,BG), if it exists.
   ; TODO: we could keep a hash table keyed on ((FG << 8) | BG) for fast lookup
   (: find-pair (fixnum fixnum -> (or fixnum boolean)))
   (define (find-pair fg bg)
-    (let loop ((i 1))
-      (if (< i (COLOR_PAIRS))
-        (let-values (((p-fg p-bg) (pair_content i)))
-          (if (and (= p-fg fg)
-                   (= p-bg bg))
-            i
-            (loop (+ i 1))))
-        #f)))
+    (let loop ((i 0))
+      (if (>= i 255)
+        #f
+        (let ((colors (vector-ref *colors* i)))
+          (if (and colors
+                   (= (cadr colors) bg)
+                   (= (caddr colors) fg))
+            (+ i 1)
+            (loop (+ i 1)))))))
 
   (: cursed-temp-set! (fixnum fixnum fixnum -> undefined))
   (define (cursed-temp-set! fg bg attr)
-    (define (cursed-set! pair attr)
-      (bkgdset (bitwise-ior (COLOR_PAIR pair) attr)))
     (cond
       ((or (>= fg (COLORS)) (>= bg (COLORS))) (void))
       ((find-pair fg bg) => (lambda (x) (cursed-set! x attr)))
@@ -142,25 +143,16 @@
 
   (define (call-with-cursed fn cursed)
     (if cursed
-      (let ((old-bkgd (getbkgd (stdscr))))
+      (let ((old-cursed *current-cursed*))
         (cursed-set! cursed)
         (fn)
-        (bkgdset old-bkgd))
+        (cursed-set! old-cursed))
       (fn)))
 
   (define-syntax with-cursed
     (syntax-rules ()
       ((with-cursed cursed first . rest)
         (call-with-cursed (lambda () first . rest) cursed))))
-
-  (define (current-cursed)
-    (PAIR_NUMBER (char->integer (getbkgd (stdscr)))))
-
-  (define (display-attributes ch)
-    (let-values (((fg bg) (pair_content (PAIR_NUMBER (char->integer ch)))))
-      (list fg bg (bitwise-and (char->integer ch)
-                               A_ATTRIBUTES
-                               (bitwise-not A_COLOR)))))
 
   ;; colors }}}
 
@@ -169,19 +161,18 @@
   ;       printing
   (: format-addstr! (string -> fixnum))
   (define (format-addstr! str)
-    (let* ((old-bkgd (getbkgd (stdscr)))
-           (attrs    (display-attributes old-bkgd)))
+    (let ((old-cursed *current-cursed*))
       (let loop ((str str))
         (let ((i (string-index str color-code?)))
           (if i
             (let ((code (ch->color-code (string-ref str i))))
               (addstr (string-take str i))
               (if (= code -2)
-                (bkgdset old-bkgd)
-                (cursed-temp-set! code (cadr attrs) (caddr attrs)))
+                (cursed-set! old-cursed)
+                (cursed-temp-set! code (cursed-bg old-cursed) (cursed-attr old-cursed)))
               (loop (substring/shared str (+ i 1))))
             (addstr str)))))
-      (string-width str))
+    (string-width str))
 
   (: print-line! (string fixnum fixnum fixnum -> undefined))
   (define (print-line! str col line nr-cols)

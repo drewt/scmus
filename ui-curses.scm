@@ -34,11 +34,6 @@
 
 (: update-colors! thunk)
 (define (update-colors!)
-  (define (*update-colors!)
-    (let loop ((i 1))
-      (when (<= i NR-CURSED)
-        (init_pair i (cursed-fg i) (cursed-bg i))
-        (loop (+ i 1)))))
   (init-cursed! CURSED-CMDLINE     (get-color-option 'color-cmdline))
   (init-cursed! CURSED-ERROR       (get-color-option 'color-error))
   (init-cursed! CURSED-INFO        (get-color-option 'color-info))
@@ -50,7 +45,6 @@
   (init-cursed! CURSED-WIN-SEL     (get-color-option 'color-win-sel))
   (init-cursed! CURSED-WIN-MARKED  (get-color-option 'color-win-marked))
   (init-cursed! CURSED-WIN-TITLE   (get-color-option 'color-win-title))
-  (*update-colors!)
   (void))
 
 ;; screen updates {{{
@@ -82,10 +76,6 @@
 (define (update-status)
   (set! (window-data (get-window 'status)) (alist->kv-rows (current-status)))
   (update-status-line))
-
-(: update-current thunk)
-(define (update-current)
-  (update-current-line))
 
 (: update-command-line thunk)
 (define (update-command-line)
@@ -124,7 +114,7 @@
 (define (redraw-ui)
   (print-widget! root-widget 0 0 (COLS) (- (LINES) 3))
   (update-cursor!)
-  (update-current)
+  (update-current-line)
   (update-status)
   (update-command-line))
 
@@ -227,7 +217,7 @@
               'header (make-text " Error" 'cursed CURSED-WIN-TITLE)))
 
 (define-event-handler command-line-changed () update-command-line)
-(define-event-handler current-line-changed () update-current)
+(define-event-handler current-line-changed () update-current-line)
 (define-event-handler color-changed () update-colors!)
 (define-event-handler format-changed () redraw-ui)
 (define-event-handler db-changed () update-db)
