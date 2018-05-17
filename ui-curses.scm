@@ -49,28 +49,24 @@
 
 ;; screen updates {{{
 
-; TODO: Replace with text widget.
+(define current-line (make-format-text (get-format 'format-current)
+                                       (current-track)
+                                       'cursed CURSED-TITLELINE))
+(define status-line (make-format-text (get-format 'format-status)
+                                      (current-track)
+                                      'cursed CURSED-STATUSLINE))
+(define root-widget (make-frame 'body view-widget
+                                'footer (make-pile (list current-line status-line))))
+
 (: update-current-line thunk)
 (define (update-current-line)
-  (when (> (LINES) 2)
-    (with-cursed CURSED-TITLELINE
-      (print-line! (scmus-format (get-format 'format-current)
-                                 (COLS)
-                                 (current-track))
-                   0
-                   (- (LINES) 3)
-                   (COLS)))))
+  (set! (format-text-format current-line) (get-format 'format-current))
+  (set! (format-text-data current-line) (current-track)))
 
 (: update-status-line thunk)
 (define (update-status-line)
-  (when (> (LINES) 1)
-    (with-cursed CURSED-STATUSLINE
-      (print-line! (scmus-format (get-format 'format-status)
-                                 (COLS)
-                                 (current-track))
-                   0
-                   (- (LINES) 2)
-                   (COLS)))))
+  (set! (format-text-format status-line) (get-format 'format-status))
+  (set! (format-text-data status-line) (current-track)))
 
 (: update-status thunk)
 (define (update-status)
@@ -105,14 +101,14 @@
 
 ; TODO: move this logic into TUI module
 (define (update-tui!)
-  (when (> (LINES) 3)
+  (when (> (LINES) 1)
     (for-each reprint-widget! (damaged-widgets))
     (clear-damaged-widgets!))
   (update-cursor!))
 
 (: redraw-ui thunk)
 (define (redraw-ui)
-  (print-widget! root-widget 0 0 (COLS) (- (LINES) 3))
+  (print-widget! root-widget 0 0 (COLS) (- (LINES) 1))
   (update-cursor!)
   (update-current-line)
   (update-status)
@@ -156,13 +152,13 @@
     ((= key KEY_RESIZE) (redraw-ui))
     (else
       (case (input-mode)
-        ((normal-mode) (handle-input (widget-focus root-widget) key))
+        ((normal-mode) (handle-input (widget-focus view-widget) key))
         ((edit-mode)   (editable-key (current-editable) key))))))
 
 (: handle-char (char -> undefined))
 (define (handle-char ch)
   (case (input-mode)
-    ((normal-mode) (handle-input (widget-focus root-widget) ch))
+    ((normal-mode) (handle-input (widget-focus view-widget) ch))
     ((edit-mode)   (editable-char (current-editable) ch))))
 
 (: *handle-input (-> undefined))

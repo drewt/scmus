@@ -37,6 +37,37 @@
             (loop (+ col 1))))
         (loop (+ row 1)))))
 
+  (define-class <pile> (<container>)
+    ((children initform: '()
+               accessor: container-children)))
+
+  (define (make-pile children . kwargs)
+    (apply make <pile> 'children children kwargs))
+
+  (define-method (widget-size (pile <pile>) cols rows)
+    (values cols
+      (let loop ((children (container-children pile)) (count 0))
+        (cond
+          ((null? children) count)
+          ((>= count rows)  rows)
+          (else
+            (let-values (((_ child-rows) (widget-size (car children) cols (- rows count))))
+              (loop (cdr children) (+ count child-rows))))))))
+
+  (define-method (compute-layout (pile <pile>) cols rows)
+    (let loop ((rows rows)
+               (y 0)
+               (children (container-children pile))
+               (result '()))
+      (if (or (<= rows 0) (null? children))
+        (reverse result)
+        (let-values (((_ child-rows) (widget-size (car children) cols rows)))
+          (loop (- rows child-rows)
+                (+ y child-rows)
+                (cdr children)
+                (cons (list (car children) 0 y cols child-rows)
+                      result))))))
+
   (define-class <textual> (<widget>))
 
   ;; Method to retrieve/generate the text data.  Should return a list of
@@ -79,7 +110,9 @@
              accessor: format-text-data)))
 
   (define (make-format-text format data . kwargs)
-    (apply make <format-text> 'format (process-format format)
+    (apply make <format-text> 'format (if (string? format)
+                                        (process-format format)
+                                        format)
                               'data data kwargs))
 
   (define-method ((setter format-text-format) after: (text <format-text>) fmt)

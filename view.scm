@@ -58,7 +58,7 @@
 (define-method (handle-input (bag <widget-bag>) input)
   (normal-mode-key (widget-bag-active bag) input))
 
-(define root-widget (make-widget-bag '() 'none))
+(define view-widget (make-widget-bag '() 'none))
 
 (: *view-ctors* (list-of (pair symbol (-> frame))))
 (define *view-ctors* '())
@@ -70,12 +70,12 @@
 (: init-views! thunk)
 (define (init-views!)
   (for-each (lambda (x)
-              (widget-bag-add! root-widget ((cdr x)) (car x)))
+              (widget-bag-add! view-widget ((cdr x)) (car x)))
             *view-ctors*))
 
 (: get-view (symbol -> frame))
 (define (get-view name)
-  (widget-bag-ref root-widget name))
+  (widget-bag-ref view-widget name))
 
 (: get-window (symbol -> window))
 (define (get-window view-name)
@@ -83,25 +83,25 @@
 
 (: current-view (-> frame))
 (define (current-view)
-  (widget-wrap-widget root-widget))
+  (widget-wrap-widget view-widget))
 
 (: current-view-name (-> symbol))
 (define (current-view-name)
-  (widget-bag-active root-widget))
+  (widget-bag-active view-widget))
 
 (: current-window (-> window))
 (define (current-window)
-  (widget-focus (widget-wrap-widget root-widget)))
+  (widget-focus (widget-wrap-widget view-widget)))
 
 (: current-view? (symbol -> boolean))
 (define (current-view? view-name)
-  (eq? (widget-bag-ref root-widget view-name)
-       (widget-wrap-widget root-widget)))
+  (eq? (widget-bag-ref view-widget view-name)
+       (widget-wrap-widget view-widget)))
 
 (: set-view! (symbol -> undefined))
 (define (set-view! view-name)
-  (when (widget-bag-ref root-widget view-name)
-    (set! (widget-bag-active root-widget) view-name)))
+  (when (widget-bag-ref view-widget view-name)
+    (set! (widget-bag-active view-widget) view-name)))
 
 (: view-add! (frame -> undefined))
 (define (view-add! view)
