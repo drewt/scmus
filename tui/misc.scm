@@ -76,8 +76,11 @@
   (define-abstract-method (text-text (text <textual>)))
 
   (define-method (print-widget! (text <textual>) x y cols rows)
-    (for-each (lambda (line) (print-line! line x y cols))
-      (take-at-most (text-text text) rows)))
+    (let loop ((lines (take-at-most (text-text text) rows))
+               (y y))
+      (unless (null? lines)
+        (print-line! (car lines) x y cols)
+        (loop (cdr lines) (+ y 1)))))
 
   (define-class <text> (<textual>)
     ((text initform: '("")
