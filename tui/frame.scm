@@ -34,10 +34,9 @@
   (define (make-frame . kwargs)
     (apply make <frame> kwargs))
 
-  (define-method (widget-focus (frame <frame>))
-    (if (frame-body frame)
-      (widget-focus (frame-body frame))
-      #f))
+  (define-method (initialize-instance (frame <frame>))
+    (call-next-method)
+    (set! (container-focus frame) (frame-body frame)))
 
   (define-method (container-children (frame <frame>))
     (let ((head (frame-header frame))

@@ -113,7 +113,9 @@
   ;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (define-class <container> (<widget>))
+  (define-class <container> (<widget>)
+    ((focus initform: #f
+            accessor: container-focus)))
 
   ;; Ensure that WIDGET-PARENT is set correctly on all children.
   (define-method (initialize-instance (container <container>))
@@ -144,9 +146,10 @@
     (widget-last (car (reverse (container-children container)))))
 
   (define-method (widget-focus (container <container>))
-    (if (null? (container-children container))
-      #f
-      (widget-focus (car (container-children container)))))
+    (let ((focus (container-focus container)))
+      (if focus
+        (widget-focus focus)
+        #f)))
 
   ;; Generic <container> printing method.  Subclasses can override this to add borders, etc.
   (define-method (print-widget! (container <container>) x y cols rows)
@@ -177,6 +180,9 @@
       (set! (widget-parent widget) wrap)
       (set! (widget-visible widget) #t))
     (widget-damaged! wrap))
+
+  (define-method (widget-focus (wrap <widget-wrap>))
+    (widget-wrap-widget wrap))
 
   (define-method (widget-wrap-swap! (wrap <widget-wrap>) (widget <widget>))
     (let ((old (widget-wrap-widget wrap)))
