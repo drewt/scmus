@@ -55,8 +55,9 @@
 (define status-line (make-format-text (get-format 'format-status)
                                       (current-track)
                                       'cursed CURSED-STATUSLINE))
+(define foot-pile (make-pile (list current-line status-line)))
 (define root-widget (make-frame 'body view-widget
-                                'footer (make-pile (list current-line status-line))))
+                                'footer foot-pile))
 
 (: update-current-line thunk)
 (define (update-current-line)
@@ -101,9 +102,11 @@
 
 ; TODO: move this logic into TUI module
 (define (update-tui!)
-  (when (> (LINES) 1)
-    (for-each reprint-widget! (damaged-widgets))
-    (clear-damaged-widgets!))
+  (let-values (((y x) (getyx (stdscr))))
+    (when (> (LINES) 1)
+      (for-each reprint-widget! (damaged-widgets))
+      (clear-damaged-widgets!))
+    (move y x))
   (update-cursor!))
 
 (: redraw-ui thunk)
@@ -152,13 +155,13 @@
     ((= key KEY_RESIZE) (redraw-ui))
     (else
       (case (input-mode)
-        ((normal-mode) (handle-input (widget-focus view-widget) key))
+        ((normal-mode) (do-handle-input root-widget key))
         ((edit-mode)   (editable-key (current-editable) key))))))
 
 (: handle-char (char -> undefined))
 (define (handle-char ch)
   (case (input-mode)
-    ((normal-mode) (handle-input (widget-focus view-widget) ch))
+    ((normal-mode) (do-handle-input root-widget ch))
     ((edit-mode)   (editable-char (current-editable) ch))))
 
 (: *handle-input (-> undefined))

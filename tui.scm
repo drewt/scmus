@@ -18,6 +18,7 @@
 (module scmus.tui *
   (reexport scmus.tui.display
             scmus.tui.frame
+            scmus.tui.input
             scmus.tui.misc
             scmus.tui.split-pane
             scmus.tui.widget

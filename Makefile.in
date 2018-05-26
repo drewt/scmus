@@ -37,7 +37,7 @@ eggs = coops regex sandbox unix-sockets utf8
 
 units    = bindings-view browser-view commands library-view options options-view queue-view \
 	   search-view ui-curses ui-lib user-api view
-tui_mods = $(addprefix tui/,display frame misc split-pane widget window)
+tui_mods = $(addprefix tui/,display frame input misc split-pane widget window)
 imodules = base client command command-line config editable ueval event format input keys option \
 	   error status track tui $(tui_mods)
 omodules = getopt iter mpd-client ncurses
@@ -90,6 +90,7 @@ view_deps           = base tui keys
 tui_deps            = $(tui_mods)
 tui/display_deps    = base ncurses
 tui/frame_deps      = base format tui/display tui/misc tui/widget
+tui/input_deps      = base ncurses tui/widget tui/misc
 tui/misc_deps       = base ncurses format tui/display tui/widget
 tui/split-pane_deps = base tui/misc tui/widget
 tui/widget_deps     = base
