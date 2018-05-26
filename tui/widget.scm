@@ -69,6 +69,9 @@
     (set! (slot-value widget 'visible) visible)
     (widget-damaged! widget))
 
+  (define-method ((setter widget-cursed) after: (widget <widget>))
+    (widget-damaged! widget))
+
   (define-method (widget-first (widget <widget>))
     widget)
 
@@ -210,6 +213,9 @@
 
   (define (make-widget-stack root-widget #!rest widgets)
     (make <widget-stack> 'stack (cons root-widget widgets)))
+
+  (define-method (widget-focus (stack <widget-stack>))
+    (car (container-children stack)))
 
   (define-method (compute-layout (stack <widget-stack>) cols rows)
     (list (list (car (container-children stack)) 0 0 cols rows)))
