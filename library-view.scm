@@ -18,7 +18,7 @@
 (declare (export))
 
 (import drewt.ncurses)
-(import scmus.base scmus.client scmus.event scmus.track scmus.tui)
+(import scmus.base scmus.client scmus.event scmus.track scmus.tui scmus.widgets)
 
 (define (tag-data data)
   (map (lambda (x) (cons (car x) (list x))) data))

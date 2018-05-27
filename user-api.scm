@@ -18,7 +18,7 @@
 (import drewt.ncurses)
 (import scmus.base scmus.client scmus.command scmus.command-line scmus.config
         scmus.ueval scmus.event scmus.format scmus.keys scmus.option
-        scmus.status scmus.track scmus.tui)
+        scmus.status scmus.track scmus.tui scmus.widgets)
 
 (define-syntax export/user
   (syntax-rules ()

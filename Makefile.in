@@ -37,9 +37,9 @@ eggs = coops regex sandbox unix-sockets utf8
 
 units    = bindings-view browser-view commands library-view options options-view queue-view \
 	   search-view ui-curses ui-lib user-api view
-tui_mods = $(addprefix tui/,display frame input misc split-pane widget window)
+tui_mods = $(addprefix tui/,display frame input misc split-pane widget)
 imodules = base client command command-line config editable ueval event format input keys option \
-	   error status track tui $(tui_mods)
+	   error status track tui $(tui_mods) widgets
 omodules = getopt iter mpd-client ncurses
 modules  = $(imodules) $(omodules)
 types    = $(foreach unit,$(units) $(modules),$(addsuffix .types,$(unit)))
@@ -59,42 +59,42 @@ all: $(target)
 
 # BUILD dependencies
 main_deps           = base client config ueval getopt
-bindings-view_deps  = base editable event input keys ncurses error tui
-browser-view_deps   = base client event ncurses track tui
+bindings-view_deps  = base editable event input keys ncurses error tui widgets
+browser-view_deps   = base client event ncurses track tui widgets
 command-line_deps   = base editable event input iter ncurses
 command_deps        = base command-line error ueval event
-commands_deps       = base client command command-line ueval keys status tui
+commands_deps       = base client command command-line ueval keys status tui widgets
 editable_deps       = base ncurses
 ueval_deps          = base command-line event option error
 event_deps          = base
 format_deps         = base ueval error status track
 input_deps          = base editable ncurses
 keys_deps           = base ueval event ncurses
-library-view_deps   = base client event ncurses track tui
+library-view_deps   = base client event ncurses track tui widgets
 option_deps         = base event
 options_deps        = base event format option
-options-view_deps   = base editable event input ncurses option error tui
-queue-view_deps     = base client event status track tui
+options-view_deps   = base editable event input ncurses option error tui widgets
+queue-view_deps     = base client event status track tui widgets
 base_deps           = config ncurses
 client_deps         = base event mpd-client option error status track
 error_deps          = base command-line event
-search-view_deps    = base client editable input format ncurses track tui
+search-view_deps    = base client editable input format ncurses track tui widgets
 status_deps         = base mpd-client track
 track_deps          = base
 ui-curses_deps      = base client command-line editable event format input keys \
-                      ncurses option error status tui
-ui-lib_deps         = base format ncurses option tui
+                      ncurses option error status tui widgets
+ui-lib_deps         = base format ncurses option tui widgets
 user-api_deps       = base client command command-line config ueval event format \
-                      keys ncurses option status track tui
-view_deps           = base tui keys
+                      keys ncurses option status track tui widgets
+view_deps           = base tui keys widgets
+widgets_deps        = base format tui
 tui_deps            = $(tui_mods)
 tui/display_deps    = base ncurses
-tui/frame_deps      = base format tui/display tui/misc tui/widget
+tui/frame_deps      = base tui/display tui/misc tui/widget
 tui/input_deps      = base ncurses tui/widget tui/misc
-tui/misc_deps       = base ncurses format tui/display tui/widget
+tui/misc_deps       = base ncurses tui/display tui/widget
 tui/split-pane_deps = base tui/misc tui/widget
-tui/widget_deps     = base
-tui/window_deps     = base format tui/widget tui/display
+tui/widget_deps     = base tui/display
 
 # LOAD dependencies
 main_uses           = commands options ui-curses user-api

@@ -15,15 +15,40 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.tui.window *
+(module scmus.widgets *
   (import coops
           scmus.base
           scmus.format
-          scmus.tui.display
-          scmus.tui.widget)
+          scmus.tui)
 
-  ;;
-  ;; Window
+  ;; <format-text> {{{
+
+  (define-class <format-text> (<textual>)
+    ((format initform: (process-format "")
+             accessor: format-text-format)
+     (data   initform: '()
+             accessor: format-text-data)))
+
+  (define (make-format-text format data . kwargs)
+    (apply make <format-text> 'format (if (string? format)
+                                        (process-format format)
+                                        format)
+                              'data data kwargs))
+
+  (define-method ((setter format-text-format) after: (text <format-text>) fmt)
+    (widget-damaged! text))
+
+  (define-method ((setter format-text-data) after: (text <format-text>) data)
+    (widget-damaged! text))
+
+  (define-method (widget-size (text <format-text>) available-cols available-rows)
+    (values available-cols (min available-rows 1)))
+
+  (define-method (text-text (text <format-text>))
+    (list (scmus-format (format-text-format text) (widget-cols text) (format-text-data text))))
+  
+  ;; <format-text> }}}
+  ;; <window> {{{
   ;;
   ;; A window is a list with a visible section and a cursor.  The visible
   ;; section follows the cursor.
@@ -366,16 +391,18 @@
     (window-search-init! window query)
     (window-search-next! window))
 
-(define-method (print-widget! (window <window>) x y cols rows)
-  (let loop ((data (window-top window))
-             (lines rows))
-    (when (> lines 0)
-      (let ((line-nr (+ y (- rows lines))))
-        (if (null? data)
-          (print-line! "" x line-nr cols)
-          (with-cursed (window-cursed window (car data) line-nr)
-            (print-line! (window-print-line window (car data) cols)
-                         x
-                         line-nr
-                         cols)))
-        (loop (if (null? data) '() (cdr data)) (- lines 1)))))))
+  (define-method (print-widget! (window <window>) x y cols rows)
+    (let loop ((data (window-top window))
+               (lines rows))
+      (when (> lines 0)
+        (let ((line-nr (+ y (- rows lines))))
+          (if (null? data)
+            (print-line! "" x line-nr cols)
+            (with-cursed (window-cursed window (car data) line-nr)
+              (print-line! (window-print-line window (car data) cols)
+                           x
+                           line-nr
+                           cols)))
+          (loop (if (null? data) '() (cdr data)) (- lines 1))))))
+  ;; <window> }}}
+  )

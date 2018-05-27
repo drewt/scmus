@@ -19,7 +19,6 @@
   (import coops
           drewt.ncurses
           scmus.base
-          scmus.format
           scmus.tui.display
           scmus.tui.widget)
 
@@ -104,28 +103,4 @@
 
   (define-method (widget-size (text <text>) available-cols available-rows)
     (values (min available-cols (text-w text))
-            (min available-rows (text-h text))))
-
-  (define-class <format-text> (<textual>)
-    ((format initform: (process-format "")
-             accessor: format-text-format)
-     (data   initform: '()
-             accessor: format-text-data)))
-
-  (define (make-format-text format data . kwargs)
-    (apply make <format-text> 'format (if (string? format)
-                                        (process-format format)
-                                        format)
-                              'data data kwargs))
-
-  (define-method ((setter format-text-format) after: (text <format-text>) fmt)
-    (widget-damaged! text))
-
-  (define-method ((setter format-text-data) after: (text <format-text>) data)
-    (widget-damaged! text))
-
-  (define-method (widget-size (text <format-text>) available-cols available-rows)
-    (values available-cols (min available-rows 1)))
-
-  (define-method (text-text (text <format-text>))
-    (list (scmus-format (format-text-format text) (widget-cols text) (format-text-data text)))))
+            (min available-rows (text-h text)))))

@@ -21,5 +21,4 @@
             scmus.tui.input
             scmus.tui.misc
             scmus.tui.split-pane
-            scmus.tui.widget
-            scmus.tui.window))
+            scmus.tui.widget))

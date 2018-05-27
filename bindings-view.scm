@@ -19,7 +19,7 @@
 
 (import drewt.ncurses)
 (import scmus.base scmus.editable scmus.error scmus.event scmus.input
-        scmus.keys scmus.tui)
+        scmus.keys scmus.tui scmus.widgets)
 
 (define-record-type key-list (make-key-list keys) key-list?
   (keys key-list-keys))

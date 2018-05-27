@@ -22,7 +22,7 @@
 (import drewt.ncurses)
 (import scmus.base scmus.client scmus.command-line scmus.editable scmus.error
         scmus.event scmus.format scmus.input scmus.keys scmus.option
-        scmus.status scmus.tui)
+        scmus.status scmus.tui scmus.widgets)
 
 (: get-color-option (symbol -> (list-of fixnum)))
 (define (get-color-option name)

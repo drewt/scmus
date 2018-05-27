@@ -18,7 +18,6 @@
 (module scmus.tui.frame *
   (import coops
           scmus.base
-          scmus.format
           scmus.tui.display
           scmus.tui.misc
           scmus.tui.widget)

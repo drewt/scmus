@@ -16,7 +16,7 @@
 ;;
 
 (import drewt.ncurses)
-(import scmus.base scmus.format scmus.option scmus.tui)
+(import scmus.base scmus.format scmus.option scmus.tui scmus.widgets)
 
 (: separator? (* -> boolean))
 (define (separator? row)

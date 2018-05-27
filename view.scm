@@ -17,9 +17,10 @@
 
 (declare (hide *view-ctors*))
 
-(import scmus.base)
-(import scmus.tui)
-(import scmus.keys)
+(import scmus.base
+        scmus.keys
+        scmus.tui
+        scmus.widgets)
 
 ;; Custom <widget-wrap> which keeps an alist of widgets, and allows swapping
 ;; the active widget by name.

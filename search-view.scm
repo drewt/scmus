@@ -20,7 +20,7 @@
 
 (import drewt.ncurses)
 (import scmus.base scmus.client scmus.editable scmus.format scmus.input
-        scmus.track scmus.tui)
+        scmus.track scmus.tui scmus.widgets)
 
 (: search-changed! (#!rest * -> undefined))
 (define (search-changed! . ignore)

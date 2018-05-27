@@ -19,7 +19,7 @@
 
 (import drewt.ncurses)
 (import scmus.base scmus.editable scmus.error scmus.event scmus.input
-        scmus.option scmus.tui)
+        scmus.option scmus.tui scmus.widgets)
 
 (: option-changed! thunk)
 (define (option-changed!)
