@@ -6,7 +6,7 @@ AC_LANG(C)
 # programs
 AC_PROG_CC
 AC_CHECK_PROG([HAVE_CSC], csc, yes, no)
-if test $HAVE_CSC == no
+if test $HAVE_CSC = no
 then
 	AC_MSG_ERROR([chicken compiler not found])
 fi
@@ -32,7 +32,7 @@ fi
 # sometimes we have some functions split off into libtinfo
 if test "$ac_cv_lib_tinfo_cbreak" = yes
 then
-	NCURSES_LIBS+=" -ltinfo"
+	NCURSES_LIBS="$NCURSES_LIBS -ltinfo"
 fi
 
 AC_SUBST([NCURSES_LIBS])
