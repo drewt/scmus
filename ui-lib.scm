@@ -78,7 +78,15 @@
       (else         #f))))
  
 (: *colors* vector)
-(define *colors* (make-vector NR-CURSED))
+(define *colors* (make-vector 255 #f))
+
+(define (alloc-cursed)
+  (let loop ((i 0))
+    (if (< i 255)
+      (if (vector-ref *colors* i)
+        (loop (+ i 1))
+        (+ i 1))
+      255)))
 
 (: get-color-option (symbol -> (list-of fixnum)))
 (define (get-color-option name)
@@ -106,7 +114,12 @@
 
 (: init-cursed! (fixnum symbol -> undefined))
 (define (init-cursed! cursed color)
-  (vector-set! *colors* (cursed-i cursed) (get-color-option color)))
+  (*init-cursed! cursed (get-color-option color)))
+
+(define (*init-cursed! cursed attrs)
+  (vector-set! *colors* (cursed-i cursed) attrs)
+  (init_pair cursed (third attrs) (second attrs))
+  cursed)
 
 (: update-colors! thunk)
 (define (update-colors!)
@@ -130,41 +143,45 @@
   (cursed-set! CURSED-WIN)
   (void))
 
-(: cursed-set! (fixnum -> fixnum))
-(define (cursed-set! cursed)
-  (bkgdset (bitwise-ior (COLOR_PAIR cursed)
-                        (cursed-attr cursed)))
+(: cursed-set! (fixnum #!optional fixnum -> fixnum))
+(define (cursed-set! cursed #!optional (attr (cursed-attr cursed)))
+  (bkgdset (bitwise-ior (COLOR_PAIR cursed) attr))
   cursed)
 
 (: find-pair (fixnum fixnum -> (or fixnum boolean)))
 (define (find-pair fg bg)
-  (let loop ((i 1))
-    (if (< i (COLOR_PAIRS))
-      (let-values (((p-fg p-bg) (pair_content i)))
-        (if (and (= p-fg fg)
-                 (= p-bg bg))
-          i
-          (loop (+ i 1))))
-      #f)))
+  (let loop ((i 0))
+    (if (>= i 255)
+      #f
+      (let ((colors (vector-ref *colors* i)))
+        (if (and colors
+                 (= (cadr colors) bg)
+                 (= (caddr colors) fg))
+          (+ i 1)
+          (loop (+ i 1)))))))
 
-(: cursed-temp-set! (fixnum #!optional fixnum fixnum fixnum -> undefined))
-(define cursed-temp-set!
-  (let ((next (+ NR-CURSED 1)))
-    (define (cursed-set! pair attr)
-      (bkgdset (bitwise-ior (COLOR_PAIR pair) attr)))
-    (lambda (base #!optional (fg (cursed-fg base))
-                             (bg (cursed-bg base))
-                             (attr (cursed-attr base)))
-      (cond
-        ((or (>= fg (COLORS)) (>= bg (COLORS))) (void))
-        ((find-pair fg bg) => (lambda (x) (cursed-set! x attr)))
-        (else
-          (let ((this next))
-            (set! next (if (< next (- (COLOR_PAIRS) 1))
-                         (+ next 1)
-                         (+ NR-CURSED 1)))
-            (init_pair this fg bg)
-            (cursed-set! this attr)))))))
+;(: cursed-temp-set! (fixnum #!optional fixnum fixnum fixnum -> undefined))
+;(define cursed-temp-set!
+;  (let ((next (+ NR-CURSED 1)))
+;    (lambda (base #!optional (fg (cursed-fg base))
+;                             (bg (cursed-bg base))
+;                             (attr (cursed-attr base)))
+;      (cond
+;        ((or (>= fg (COLORS)) (>= bg (COLORS))) (void))
+;        ((find-pair fg bg) => (lambda (x) (cursed-set! x attr)))
+;        (else
+;          (let ((this next))
+;            (set! next (if (< next (- (COLOR_PAIRS) 1))
+;                         (+ next 1)
+;                         (+ NR-CURSED 1)))
+;            (init_pair this fg bg)
+;            (cursed-set! this attr)))))))
+
+(define (cursed-temp-set! fg bg attr)
+  (cond
+    ((or (>= fg (COLORS)) (>= bg (COLORS))) (void))
+    ((find-pair fg bg) => (lambda (x) (cursed-set! x attr)))
+    (else (cursed-set! (*init-cursed! (alloc-cursed) (list attr bg fg)) attr))))
 
 ;; colors }}}
 
@@ -175,10 +192,9 @@
       (if i
         (let ((code (ch->color-code (string-ref str i))))
           (addstr (string-take str i))
-          ;(cursed-aux-set! code)
           (if (= code -2)
             (cursed-set! cursed)
-            (cursed-temp-set! cursed code))
+            (cursed-temp-set! code (cursed-bg cursed) (cursed-attr cursed)))
           (loop (substring/shared str (+ i 1))))
         (addstr str))))
   (string-width str))
