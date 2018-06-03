@@ -21,13 +21,16 @@ Consult http://wiki.call-cc.org/platforms for instructions on getting Chicken
 on your platform.  You'll also need to install ncurses if it isn't installed
 already.  Again, the procedure will depend on your platform.
 
+First, run the configure script:
+
+    $ ./configure
+
 scmus depends on a few "eggs".  To install them:
 
     $ make eggs
 
 To build scmus:
 
-    $ ./configure
     $ make
 
 

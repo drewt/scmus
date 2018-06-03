@@ -18,10 +18,10 @@ AC_CHECK_LIB(tinfo, cbreak)
 
 # determine which libs to use for ncurses
 NCURSES_LIBS=""
-if test "$ac_cv_lib_ncursesw_get_wch" == yes
+if test "$ac_cv_lib_ncursesw_get_wch" = yes
 then
 	NCURSES_LIBS="-lncursesw"
-elif test "$ac_cv_lib_ncurses_getch" == yes
+elif test "$ac_cv_lib_ncurses_getch" = yes
 then
 	NCURSES_LIBS="-lncurses"
 	AC_MSG_WARN([configuring without wide character support])
@@ -30,7 +30,7 @@ else
 fi
 
 # sometimes we have some functions split off into libtinfo
-if test "$ac_cv_lib_tinfo_cbreak" == yes
+if test "$ac_cv_lib_tinfo_cbreak" = yes
 then
 	NCURSES_LIBS+=" -ltinfo"
 fi
