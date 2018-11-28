@@ -354,6 +354,47 @@
   (without-curses
     (apply shell-sync! command args)))
 
+;; Spawn a shell command, capturing STDOUT and STDERR as input ports.
+;; XXX: the returned ports MUST be closed by the caller.
+(define (async-shell! command . args)
+  (let-values (((stdout-in stdout-out) (create-pipe))
+               ((stderr-in stderr-out) (create-pipe)))
+    (let ((child (process-fork
+                   (lambda ()
+                     (duplicate-fileno stdout-out fileno/stdout)
+                     (duplicate-fileno stderr-out fileno/stderr)
+                     (file-close stdout-out)
+                     (file-close stderr-out)
+                     (file-close stdout-in)
+                     (file-close stderr-in)
+                     (handle-exceptions exn (void)
+                       (process-execute command args)))))
+          (stdout-in-port (open-input-file* stdout-in))
+          (stderr-in-port (open-input-file* stderr-in)))
+      (file-close stdout-out)
+      (file-close stderr-out)
+      (values child stdout-in-port stderr-in-port))))
+
+;; Wrapper for ASYNC-SHELL! that automatically closes pipes.
+(define (call-with-shell proc command . args)
+  (let-values (((pid stdout stderr) (apply async-shell! command args)))
+    (let ((ret (proc pid stdout stderr)))
+      (file-close (port->fileno stdout))
+      (file-close (port->fileno stderr))
+      ret)))
+
+(define/user (shell!/capture-stdout command . args)
+  "Run a shell command, returning the contents of standard output as a string"
+  (apply call-with-shell
+    (lambda (pid stdout stderr)
+      (with-output-to-string
+        (lambda ()
+          (let loop ()
+            (unless (eof-object? (peek-char stdout))
+              (write-char (read-char stdout))
+              (loop))))))
+    command args))
+
 (define/user shuffle!
   "Shuffle the queue"
   (return-void scmus-shuffle!))
