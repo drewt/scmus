@@ -42,6 +42,8 @@
                  accessor: text-input-on-commit)
      (on-cancel  initform: (lambda (_) #f)
                  accessor: text-input-on-cancel)
+     (on-begin   initform: (lambda (_) #f)
+                 accessor: text-input-on-begin)
      (on-leave   initform: (lambda (_) #f)
                  accessor: text-input-on-leave)))
 
@@ -63,7 +65,7 @@
           (min (- (COLS) 1)
                (+ (widget-x input)
                   (string-length (text-input-prefix input))
-                  (- (length (text-input-text input))
+                  (- (text-input-length input)
                      (text-input-cursor-pos input))))))
 
   (define-method ((setter text-input-editing?) after: (widget <text-input>) editing?)
@@ -78,7 +80,27 @@
 
   (define-method ((setter text-input-text) after: (widget <text-input>) text)
     (when (text-input-editing? widget)
-      (text-input-update-cursor widget)))
+      (text-input-update-cursor widget))
+    (widget-damaged! widget))
+
+  (define-method (text-input-get-text (widget <text-input>))
+    (list->string (reverse (text-input-text widget))))
+
+  (define-method (text-input-set-text! (widget <text-input>) text)
+    (set! (text-input-text widget) (reverse (string->list text)))
+    (set! (text-input-cursor-pos widget) 0))
+
+  ; TODO: store length
+  (define-method (text-input-length (widget <text-input>))
+    (length (text-input-text widget)))
+
+  (define-method (text-input-get-cursor-pos (widget <text-input>))
+    (- (text-input-length widget)
+       (text-input-cursor-pos widget)))
+
+  (define-method (text-input-set-cursor-pos! (widget <text-input>) n)
+    (set! (text-input-cursor-pos widget)
+      (max 0 (- (text-input-length widget) n))))
 
   (define-method (handle-input (widget <text-input>) input)
     (if (text-input-editing? widget)
@@ -88,7 +110,7 @@
         ((KEY_LEFT)      (text-input-move! widget -1))
         ((KEY_RIGHT)     (text-input-move! widget 1))
         ((KEY_HOME)      (set! (text-input-cursor-pos widget)
-                               (length (text-input-text widget))))
+                               (text-input-length widget)))
         ((KEY_END)       (set! (text-input-cursor-pos widget) 0))
         ((KEY_BACKSPACE) (text-input-backspace! widget))
         ((KEY_DC)        (text-input-delete! widget))
@@ -102,7 +124,7 @@
 
   (define-method (text-input-move! (widget <text-input>) n)
     (set! (text-input-cursor-pos widget)
-      (max 0 (min (length (text-input-text widget))
+      (max 0 (min (text-input-length widget)
                   (- (text-input-cursor-pos widget) n)))))
 
   (define-method (text-input-insert! (widget <text-input>) char)
@@ -115,7 +137,7 @@
   (define-method (text-input-backspace! (widget <text-input>))
     (let ((text (text-input-text widget))
           (pos  (text-input-cursor-pos widget)))
-      (when (< pos (length text))
+      (when (< pos (text-input-length widget))
         (set! (text-input-text widget)
           (append (take text pos)
                   (drop text (+ pos 1)))))))
@@ -145,7 +167,8 @@
   (define-method (text-input-begin (widget <text-input>))
     (set! (text-input-editing? widget) #t)
     (set! (text-input-saved-text widget)
-          (text-input-text widget)))
+          (text-input-text widget))
+    ((text-input-on-begin widget) widget))
 
   (define (do-handle-input widget input)
     (handle-input (widget-focus widget) input)))

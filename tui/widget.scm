@@ -69,7 +69,7 @@
     (set! (slot-value widget 'visible) visible)
     (widget-damaged! widget))
 
-  (define-method ((setter widget-cursed) after: (widget <widget>))
+  (define-method ((setter widget-cursed) after: (widget <widget>) _)
     (widget-damaged! widget))
 
   (define-method (widget-first (widget <widget>))
@@ -110,6 +110,15 @@
       (if parent
         (handle-input parent input)
         #f)))
+
+  ;; Focus a particular widget.  This recursively focuses the parent widgets so that the given
+  ;; widget is focused wrt the root of the widget hierarchy.
+  (define (set-focus! widget)
+    (if (widget-parent widget)
+      (begin
+        (set! (container-focus (widget-parent widget)) widget)
+        (set-focus! (widget-parent widget)))
+      (void)))
 
   ;;
   ;; Container

@@ -61,11 +61,11 @@ all: $(target)
 main_deps           = base client config ueval getopt
 bindings-view_deps  = base editable event input keys ncurses error tui widgets
 browser-view_deps   = base client event ncurses track tui widgets
-command-line_deps   = base editable event input iter ncurses
+command-line_deps   = base editable event input iter ncurses tui
 command_deps        = base command-line error ueval event
 commands_deps       = base client command command-line ueval keys status tui widgets
 editable_deps       = base ncurses
-ueval_deps          = base command-line event option error
+ueval_deps          = base event option error
 event_deps          = base
 format_deps         = base ueval error status track
 input_deps          = base editable ncurses

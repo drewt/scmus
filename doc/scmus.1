@@ -186,8 +186,8 @@ a              (win-add!)
 d              (win-remove!)
 D              (win-clear!)
 enter          (win-activate!)
-(              (push! "()" -1)
-!              (push! "(shell! )" -1)
+(              (enter-eval-mode "()" 1)
+!              (enter-eval-mode "(shell! )" 8)
 .fi
 .SS Library Context
 .nf
@@ -536,6 +536,32 @@ Disconnects from the current MPD server.
 Prints the given string to the command line.
 .RE
 
+;; enter-eval-mode : [string] [integer] \-> void
+.br
+(enter-eval-mode [text] [cursor-pos])
+.RS
+Enter eval-mode (a mode in which scheme expressions may be entered on the
+command line).  If \fItext\fR is given, then the text is added on the command
+line.  If \fIcursor-pos\fR is given, then the cursor is moved to the given
+position within \fItext\fR.
+.RE
+
+;; enter-command-mode : [string] [integer] : \-> void
+.br
+(enter-command-mode [text] [cursor-pos])
+.RS
+Enter command mode (a mode in which commands may be entered on the command
+line).  See \fIenter-eval-mode\fR for a description of arguments.
+.RE
+
+;; enter-search-mode : [string] [integer] : \-> void
+.br
+(enter-search-mode [text] [cursor-pos])
+.RS
+Enter search mode (a mode in which search terms may be entered on the command
+line).  See \fIenter-eval-mode\fR for a description of arguments.
+.RE
+
 ;; get\-option : symbol \-> ???
 .br
 (get\-option! <name>)
@@ -683,16 +709,6 @@ Removes the given playlist.
 (prev!)
 .RS
 Skip to the previous track.
-.RE
-
-;; push! : string [integer] \-> void
-.br
-(push! <text> [index])
-.RS
-Enter eval mode with the command line pre\-set to \fItext\fR.  If \fIindex\fR
-is provided, then the cursor will be positioned at \fIindex\fR.  If \fIindex\fR
-is negative, then the indexing is done "backwards" from the end of \fItext\fR
-rather than the beginning.
 .RE
 
 ;; queue\-delete! : (or integer range) \-> void

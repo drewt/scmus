@@ -28,7 +28,7 @@
                      user-load)
   (import ports srfi-69)
   (import sandbox)
-  (import scmus.base scmus.command-line scmus.error scmus.event scmus.option)
+  (import scmus.base scmus.error scmus.event scmus.option)
 
   (define *user-env* (make-safe-environment parent: default-safe-environment
                                             mutable: #t))

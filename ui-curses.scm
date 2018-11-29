@@ -55,7 +55,7 @@
 (define status-line (make-format-text (get-format 'format-status)
                                       (current-track)
                                       'cursed CURSED-STATUSLINE))
-(define foot-pile (make-pile (list current-line status-line)))
+(define foot-pile (make-pile (list current-line status-line command-line-widget)))
 (define root-widget (make-frame 'body view-widget
                                 'footer foot-pile))
 
@@ -73,23 +73,6 @@
 (define (update-status)
   (set! (window-data (get-window 'status)) (alist->kv-rows (current-status)))
   (update-status-line))
-
-(: update-command-line thunk)
-(define (update-command-line)
-  (when (> (COLS) 1)
-   (with-cursed (case (command-line-mode)
-                  ((info)  CURSED-INFO)
-                  ((error) CURSED-ERROR)
-                  (else    CURSED-CMDLINE))
-     (move (- (LINES) 1) 0)
-     (clrtoeol)
-     (addch (case (command-line-mode)
-              ((eval)    #\$)
-              ((search)  #\/)
-              ((command) #\:)
-              (else #\space)))
-     (format-addstr! (string-truncate (command-line-text)
-                                      (- (COLS) 2))))))
 
 (: update-db thunk)
 (define (update-db)
@@ -111,11 +94,10 @@
 
 (: redraw-ui thunk)
 (define (redraw-ui)
-  (print-widget! root-widget 0 0 (COLS) (- (LINES) 1))
+  (print-widget! root-widget 0 0 (COLS) (LINES))
   (update-cursor!)
   (update-current-line)
-  (update-status)
-  (update-command-line))
+  (update-status))
 
 ;; screen updates }}}
 
@@ -128,7 +110,7 @@
 
 (define (call-with-info-message message thunk)
   (command-line-print-info! message)
-  (update-command-line)
+  (reprint-widget! command-line-widget)
   (refresh)
   (let ((retval (thunk)))
     (when (string=? (command-line-text) message)
@@ -193,7 +175,7 @@
   (init-views!)
   (set-view! 'queue)
   (redraw-ui)
-  (print-widget! root-widget 0 0 (COLS) (- (LINES) 3))
+  (print-widget! root-widget 0 0 (COLS) (LINES))
   (set-input-mode! 'normal-mode))
 
 (: exit-curses thunk)
@@ -215,7 +197,6 @@
                                    'cursed CURSED-WIN)
               'header (make-text " Error" 'cursed CURSED-WIN-TITLE)))
 
-(define-event-handler command-line-changed () update-command-line)
 (define-event-handler current-line-changed () update-current-line)
 (define-event-handler color-changed () update-colors!)
 (define-event-handler format-changed () redraw-ui)

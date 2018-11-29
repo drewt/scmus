@@ -137,7 +137,7 @@
   (command-line-print-info! (clean-text (format #f "~a" arg)))
   arg)
 
-(define+user (enter-eval-mode)
+(define+user (enter-eval-mode #!optional (text "") (cursor-pos 0))
   "Set the input mode to eval-mode"
   (command-line-get-string 'eval
     (lambda (s)
@@ -146,13 +146,17 @@
           (if (and (not (condition? r))
                    (not (eqv? r (void)))
                    (get-option 'eval-mode-print))
-            (command-line-print-info! (format "~s" r))))))))
+            (command-line-print-info! (format "~s" r))))))
+    text
+    cursor-pos))
 
-(define/user (enter-command-mode)
+(define/user (enter-command-mode #!optional (text "") (cursor-pos 0))
   "Set the input mode to command-mode"
   (command-line-get-string 'command
     (lambda (s)
-      (when s (run-command s)))))
+      (when s (run-command s)))
+    text
+    cursor-pos))
 
 (define/user (exit)
   "Exit the program"
@@ -241,13 +245,6 @@
 (define/user prev!
   "Play the previous track in the queue"
   (return-void scmus-prev!))
-
-(define/user (push! str #!optional index)
-  "Push a string onto the command line"
-  (enter-eval-mode)
-  (command-line-text-set! str)
-  (when index
-    (command-line-cursor-pos-set! index)))
 
 (define/user queue-delete!
   "Delete a track from the queue"
@@ -562,11 +559,13 @@
   (view-move! (current-view) before))
 
 (: enter-search-mode thunk)
-(define/user (enter-search-mode)
+(define/user (enter-search-mode #!optional (text "") (cursor-pos 0))
   "Set the input mode to search-mode"
   (command-line-get-string 'search
     (lambda (s)
-      (when s (window-search! (current-window) s)))))
+      (when s (window-search! (current-window) s)))
+    text
+    cursor-pos))
 
 (define/user (win-search! query)
   "Search the current window"

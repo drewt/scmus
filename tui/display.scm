@@ -156,6 +156,14 @@
 
   ;; colors }}}
 
+  (define (safe-addstr str)
+    (handle-exceptions exn
+                       (let-values (((y x) (getyx (stdscr))))
+                         (unless (and (= y (- (LINES) 1))
+                                      (= x (- (COLS) 1)))
+                           (abort exn)))
+      (addstr str)))
+
   ; TODO: instead of embedding color codes into string, just use a list with strings and color
   ;       codes... this is more efficient anyway since we don't have to scan the string before
   ;       printing
@@ -166,12 +174,12 @@
         (let ((i (string-index str color-code?)))
           (if i
             (let ((code (ch->color-code (string-ref str i))))
-              (addstr (string-take str i))
+              (safe-addstr (string-take str i))
               (if (= code -2)
                 (cursed-set! old-cursed)
                 (cursed-temp-set! code (cursed-bg old-cursed) (cursed-attr old-cursed)))
               (loop (substring/shared str (+ i 1))))
-            (addstr str)))))
+            (safe-addstr str)))))
     (string-width str))
 
   (: print-line! (string fixnum fixnum fixnum -> undefined))
@@ -179,4 +187,4 @@
     (move line col)
     (let ((written (format-addstr! (string-truncate str nr-cols))))
       (when (< written nr-cols)
-        (addstr (make-string (- nr-cols written) #\space))))))
+        (safe-addstr (make-string (- nr-cols written) #\space))))))
