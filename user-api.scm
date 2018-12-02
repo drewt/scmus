@@ -162,6 +162,10 @@
   "Exit the program"
   (scmus-exit 0))
 
+(define/user get-environment-variable
+  "Get the value of an environment variable"
+  get-environment-variable)
+
 (define/user get-option
   "Get the value of a configuration option"
   get-option)
