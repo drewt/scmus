@@ -17,9 +17,22 @@
 
 (module scmus.widgets *
   (import coops
+          coops-utils
           scmus.base
           scmus.format
           scmus.tui)
+
+  (define-class <window-separator> (<separator>)
+    ((text   initform: ""
+             accessor: window-separator-text)
+     (indent initform: 0
+             accessor: window-separator-indent)))
+
+  (define-method (print-widget! (widget <window-separator>) x y cols rows)
+    (let ((text (string-append (make-string (window-separator-indent widget)
+                                            (separator-char widget))
+                               (window-separator-text widget))))
+      (print-line! text x y cols (separator-char widget))))
 
   ;; <format-text> {{{
 
@@ -93,10 +106,6 @@
                  accessor: window-query) 
      (h-border   initform: 1
                  accessor: window-h-border)
-     ;; Because COOPS does not play well across multiple compilation units, we
-     ;; use our own OOP implementation for customizing windows.  Ideally, the
-     ;; functions stored in the slots below would be defined as methods, but
-     ;; then they couldn't be specialized in another compilation unit.
      (activate   initform: void
                  accessor: window-activate)
      (deactivate initform: void
@@ -399,10 +408,12 @@
           (if (null? data)
             (print-line! "" x line-nr cols)
             (with-cursed (window-cursed window (car data) line-nr)
-              (print-line! (window-print-line window (car data) cols)
-                           x
-                           line-nr
-                           cols)))
+              (if (instance-of? (car data) <widget>)
+                (print-widget! (car data) x line-nr cols 1)
+                (print-line! (window-print-line window (car data) cols)
+                             x
+                             line-nr
+                             cols))))
           (loop (if (null? data) '() (cdr data)) (- lines 1))))))
   ;; <window> }}}
   )

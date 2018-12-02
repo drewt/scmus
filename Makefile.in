@@ -25,7 +25,8 @@ TFLAGS   = -uses base -prologue prologue.scm $(features-y)
 CSCFLAGS = -scrutinize -C -Wno-int-to-pointer-cast -C -Wno-cpp $(TFLAGS) \
            -C '-DSCMUS_DIR=\"$(datadir)/scmus\"' \
            -C '-DVERSION=\"$(VERSION)\"' \
-	   -R coops
+	   -R coops \
+	   -R coops-utils
            $(types-cflags-y)
 LD       = csc
 LDFLAGS  =
@@ -33,7 +34,7 @@ INSTALL  = @scripts/install
 
 objfiles = $(foreach f,$(1),$(addsuffix .@OBJEXT@,$(f)))
 
-eggs = coops regex sandbox unix-sockets utf8
+eggs = coops coops-utils regex sandbox unix-sockets utf8
 
 units    = bindings-view browser-view commands library-view options options-view queue-view \
 	   search-view ui-curses ui-lib user-api view
@@ -70,7 +71,7 @@ event_deps          = base
 format_deps         = base ueval error status track
 input_deps          = base editable ncurses
 keys_deps           = base ueval event ncurses
-library-view_deps   = base client event ncurses track tui widgets
+library-view_deps   = base client event format ncurses track tui widgets
 option_deps         = base event
 options_deps        = base event format option
 options-view_deps   = base editable event input ncurses option error tui widgets

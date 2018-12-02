@@ -183,8 +183,8 @@
     (string-width str))
 
   (: print-line! (string fixnum fixnum fixnum -> undefined))
-  (define (print-line! str col line nr-cols)
+  (define (print-line! str col line nr-cols #!optional (fill #\space))
     (move line col)
     (let ((written (format-addstr! (string-truncate str nr-cols))))
       (when (< written nr-cols)
-        (safe-addstr (make-string (- nr-cols written) #\space))))))
+        (safe-addstr (make-string (- nr-cols written) fill))))))
