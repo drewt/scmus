@@ -416,4 +416,20 @@
                              cols))))
           (loop (if (null? data) '() (cdr data)) (- lines 1))))))
   ;; <window> }}}
+  ;; <window-row> {{{
+
+(define-class <window-row> (<textual>)
+  ((data   reader: window-row-data)
+   (type   reader: window-row-type)
+   (format reader: window-row-format)))
+
+(define (make-window-row data type format)
+  (make <window-row> 'data data 'type type 'format format))
+
+(define-method (text-text (widget <window-row>))
+  (list (scmus-format ((window-row-format widget) widget)
+                      (widget-cols widget)
+                      (window-row-data widget))))
+
+  ;; <window-row> }}}
   )
