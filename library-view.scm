@@ -65,12 +65,6 @@
                                 tracks)))))
 
 (define (file-activate! window track)
-  (define (format-metadata metadata)
-    (map (lambda (x)
-           (cons 'metadata
-                 (list (cons 'tag (car x))
-                       (cons 'value (cdr x)))))
-         metadata))
   (widget-stack-push! (widget-parent window)
     (make-library-window (map (lambda (metadata)
                                 (make-window-row (list (cons 'tag (car metadata))
