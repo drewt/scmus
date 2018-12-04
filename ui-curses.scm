@@ -69,9 +69,17 @@
   (set! (format-text-format status-line) (get-format 'format-status))
   (set! (format-text-data status-line) (current-track)))
 
+(define (make-status-rows)
+  (map (lambda (pair)
+         (make-window-row `((key   . ,(car pair))
+                            (value . ,(cdr pair)))
+                          'key-value
+                          (lambda (_) *key-value-format*)))
+       (current-status)))
+
 (: update-status thunk)
 (define (update-status)
-  (set! (window-data (get-window 'status)) (alist->kv-rows (current-status)))
+  (set! (window-data (get-window 'status)) (make-status-rows))
   (update-status-line))
 
 (: update-db thunk)
@@ -184,16 +192,18 @@
     (endwin)))
 
 (define-view status
-  (make-frame 'body   (make-window 'data (alist->kv-rows (current-status))
-                                   'format *key-value-format*
-                                   'cursed CURSED-WIN)
+  (make-frame 'body   (make-window 'data (make-status-rows)
+                                   'cursed CURSED-WIN
+                                   'cursed-fn (win-cursed-fn))
               'header (make-text " MPD Status" 'cursed CURSED-WIN-TITLE)))
 
-(define (list->rows lines)
-  (map (lambda (line) `(row . ((text . ,line)))) lines))
+(define (make-error-rows)
+  (map (lambda (line)
+         (make-text (string-append " " line) 'cursed CURSED-WIN))
+       (string-split-lines (scmus-error))))
 
 (define-view error
-  (make-frame 'body   (make-window 'data   (list->rows (string-split-lines (scmus-error)))
+  (make-frame 'body   (make-window 'data   (make-error-rows)
                                    'cursed CURSED-WIN)
               'header (make-text " Error" 'cursed CURSED-WIN-TITLE)))
 
@@ -204,4 +214,4 @@
 (define-event-handler status-changed () update-status)
 (define-event-handler (error-changed) ()
   (set! (window-data (get-window 'error))
-    (list->rows (string-split-lines (scmus-error)))))
+    (make-error-rows)))
