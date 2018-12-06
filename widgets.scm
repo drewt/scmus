@@ -88,7 +88,7 @@
   ;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (define-class <window> (<widget>)
+  (define-class <window> (<container>)
     ((data       initform: '()
                  ; writer below
                  reader:   window-data)
@@ -138,6 +138,9 @@
   (define-method ((setter window-data) (window <window>) data)
     (set! (slot-value window 'data) data)
     (set! (window-data-len window) (length (window-data window)))
+    (for-each (lambda (row)
+                (set! (widget-parent row) window))
+              data)
     (widget-damaged! window))
 
   ;; Whenever the length of the window data changes, we need to make sure that
@@ -181,7 +184,9 @@
   (: window-selected (window -> *))
   (define (window-selected window)
     (assert (> (length (window-data window)) (window-sel-pos window))
-            "window-selected")
+            "window-selected"
+            (length (window-data window))
+            (window-sel-pos window))
     (list-ref (window-data window) (window-sel-pos window)))
 
   (: window-all-selected (window -> list))
@@ -400,6 +405,14 @@
     (window-search-init! window query)
     (window-search-next! window))
 
+  (define-method (container-children (window <window>))
+    (window-data window))
+
+  (define-method (widget-focus (window <window>))
+    (widget-focus (window-selected window)))
+
+  ;; Even though <window>s are <container>s, we still implement PRINT-WIDGET!
+  ;; so that we can use WITH-CURSED per-line.
   (define-method (print-widget! (window <window>) x y cols rows)
     (let loop ((data (window-top window))
                (lines rows))
@@ -432,4 +445,19 @@
                       (window-row-data widget))))
 
   ;; <window-row> }}}
-  )
+  ;; <scheme-text> {{{
+  ;; Text widget that displays a stored scheme expression.
+
+  (define-class <scheme-text> (<textual>)
+    ((expr   accessor: scheme-text-expr)
+     (format accessor: scheme-text-format
+             initform: "~s")))
+
+  (define-method (text-text (widget <scheme-text>))
+    (list (format #f (scheme-text-format widget) (scheme-text-expr widget))))
+
+  (define (make-scheme-text expr . args)
+    (apply make <scheme-text> 'expr expr args))
+
+  ;; <scheme-text> }}}
+ )

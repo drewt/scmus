@@ -17,8 +17,13 @@
 
 (declare (export make-queue-view))
 
-(import scmus.base scmus.client scmus.event scmus.status scmus.track
-        scmus.tui scmus.widgets)
+(import scmus.base
+        scmus.client
+        scmus.event
+        scmus.status
+        scmus.track
+        scmus.tui
+        scmus.widgets)
 
 (define (queue-activate! w)
   (scmus-play-track! (window-row-data (window-selected w))))

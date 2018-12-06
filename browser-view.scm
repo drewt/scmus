@@ -18,7 +18,12 @@
 (declare (export))
 
 (import drewt.ncurses)
-(import scmus.base scmus.client scmus.event scmus.track scmus.tui scmus.widgets)
+(import scmus.base
+        scmus.client
+        scmus.event
+        scmus.track
+        scmus.tui
+        scmus.widgets)
 
 (define *browser-location* (list "/"))
 

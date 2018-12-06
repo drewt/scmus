@@ -19,10 +19,18 @@
                  exit-curses get-window init-curses redraw-ui set-view!
                  connect!))
 
-(import drewt.ncurses)
-(import scmus.base scmus.client scmus.command-line scmus.editable scmus.error
-        scmus.event scmus.format scmus.input scmus.keys scmus.option
-        scmus.status scmus.tui scmus.widgets)
+(import drewt.ncurses
+        scmus.base
+        scmus.client
+        scmus.command-line
+        scmus.error
+        scmus.event
+        scmus.format
+        scmus.keys
+        scmus.option
+        scmus.status
+        scmus.tui
+        scmus.widgets)
 
 (: get-color-option (symbol -> (list-of fixnum)))
 (define (get-color-option name)
@@ -86,24 +94,17 @@
 (define (update-db)
   (scmus-update-stats!))
 
-(define (update-cursor!)
-  (when (current-editable)
-    (let ((pos (cursor-pos)))
-      (move (car pos) (cdr pos)))))
-
 ; TODO: move this logic into TUI module
 (define (update-tui!)
   (let-values (((y x) (getyx (stdscr))))
     (when (> (LINES) 1)
       (for-each reprint-widget! (damaged-widgets))
       (clear-damaged-widgets!))
-    (move y x))
-  (update-cursor!))
+    (move y x)))
 
 (: redraw-ui thunk)
 (define (redraw-ui)
   (print-widget! root-widget 0 0 (COLS) (LINES))
-  (update-cursor!)
   (update-current-line)
   (update-status))
 
@@ -143,16 +144,11 @@
 (define (handle-key key)
   (cond
     ((= key KEY_RESIZE) (redraw-ui))
-    (else
-      (case (input-mode)
-        ((normal-mode) (do-handle-input root-widget key))
-        ((edit-mode)   (editable-key (current-editable) key))))))
+    (else (do-handle-input root-widget key))))
 
 (: handle-char (char -> undefined))
 (define (handle-char ch)
-  (case (input-mode)
-    ((normal-mode) (do-handle-input root-widget ch))
-    ((edit-mode)   (editable-char (current-editable) ch))))
+  (do-handle-input root-widget ch))
 
 (: *handle-input (-> undefined))
 (define (*handle-input)
@@ -183,8 +179,7 @@
   (init-views!)
   (set-view! 'queue)
   (redraw-ui)
-  (print-widget! root-widget 0 0 (COLS) (LINES))
-  (set-input-mode! 'normal-mode))
+  (print-widget! root-widget 0 0 (COLS) (LINES)))
 
 (: exit-curses thunk)
 (define (exit-curses)

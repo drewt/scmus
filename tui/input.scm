@@ -27,25 +27,27 @@
   ;;   <text>   is editable text
   ;; TODO: scroll when the cursor moves beyond the edge of the available area
   (define-class <text-input> (<textual>)
-    ((text       initform: '()
-                 accessor: text-input-text)
-     (saved-text initform: '()
-                 accessor: text-input-saved-text)
-     (cursor-pos initform: 0
-                 accessor: text-input-cursor-pos)
+    ((text          initform: '()
+                    accessor: text-input-text)
+     (saved-text    initform: '()
+                    accessor: text-input-saved-text)
+     (cursor-pos    initform: 0
+                    accessor: text-input-cursor-pos)
      ; TODO: allow specifying percentage of available cols to allocate to prefix
-     (prefix     initform: ""
-                 accessor: text-input-prefix)
-     (editing?   initform: #f
-                 accessor: text-input-editing?)
-     (on-commit  initform: (lambda (_) #f)
-                 accessor: text-input-on-commit)
-     (on-cancel  initform: (lambda (_) #f)
-                 accessor: text-input-on-cancel)
-     (on-begin   initform: (lambda (_) #f)
-                 accessor: text-input-on-begin)
-     (on-leave   initform: (lambda (_) #f)
-                 accessor: text-input-on-leave)))
+     (prefix        initform: ""
+                    accessor: text-input-prefix)
+     (stolen-focus  initform: #f
+                    accessor: text-input-stolen-focus)
+     (editing?      initform: #f
+                    accessor: text-input-editing?)
+     (on-commit     initform: (lambda (_) #f)
+                    accessor: text-input-on-commit)
+     (on-cancel     initform: (lambda (_) #f)
+                    accessor: text-input-on-cancel)
+     (on-begin      initform: (lambda (_) #f)
+                    accessor: text-input-on-begin)
+     (on-leave      initform: (lambda (_) #f)
+                    accessor: text-input-on-leave)))
 
   (define (make-text-input text prefix . args)
     (apply make <text-input>
@@ -117,9 +119,7 @@
         (else
           (when (char? input)
             (text-input-insert! widget input))))
-      (if (eqv? input #\newline)
-        (text-input-begin widget)
-        (call-next-method)))
+      (call-next-method))
     (widget-damaged! widget))
 
   (define-method (text-input-move! (widget <text-input>) n)
@@ -157,7 +157,7 @@
     (set! (text-input-editing? widget) #f)
     (set! (text-input-saved-text widget) '())
     ((text-input-on-commit widget) widget)
-    ((text-input-on-leave widget) widget))
+    (text-input-leave widget))
 
   (define-method (text-input-cancel (widget <text-input>))
     (set! (text-input-editing? widget) #f)
@@ -165,13 +165,31 @@
           (text-input-saved-text widget))
     (set! (text-input-saved-text widget) '())
     ((text-input-on-cancel widget) widget)
+    (text-input-leave widget))
+
+  (define-method (text-input-leave (widget <text-input>))
+    (when (text-input-stolen-focus widget)
+      (override-focus-end)
+      (set! (text-input-stolen-focus widget) #f))
     ((text-input-on-leave widget) widget))
 
-  (define-method (text-input-begin (widget <text-input>))
+  (define-method (text-input-begin (widget <text-input>) #!key (steal-focus #f))
+    (when steal-focus
+      (set! (text-input-stolen-focus widget) #t)
+      (override-focus widget))
     (set! (text-input-editing? widget) #t)
     (set! (text-input-saved-text widget)
           (text-input-text widget))
     ((text-input-on-begin widget) widget))
 
+  (define *focus-override* #f)
+  
+  (define (override-focus widget)
+    (assert (not *focus-override*) "override-focus" widget)
+    (set! *focus-override* widget))
+
+  (define (override-focus-end)
+    (set! *focus-override* #f))
+
   (define (do-handle-input widget input)
-    (handle-input (widget-focus widget) input)))
+    (handle-input (or *focus-override* (widget-focus widget)) input)))

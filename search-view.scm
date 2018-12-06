@@ -18,127 +18,115 @@
 (declare (export make-search-view search-edit! search-clear! search-add!
                  search-remove!))
 
-(import drewt.ncurses)
-(import scmus.base scmus.client scmus.editable scmus.format scmus.input
-        scmus.track scmus.tui scmus.widgets)
+(import coops-utils
+        drewt.ncurses)
+(import scmus.base
+        scmus.client
+        scmus.format
+        scmus.track
+        scmus.tui
+        scmus.widgets)
 
-(: search-changed! (#!rest * -> undefined))
-(define (search-changed! . ignore)
-  (widget-damaged! (get-view 'search)))
+(define (search-format row)
+  (get-format 'format-search-file))
 
-(: search-edit! (window -> undefined))
-(define (search-edit! window)
-  (let ((selected (window-selected window)))
-    (when (eqv? (car selected) 'input)
-      (set-input-mode! 'edit-mode
-                       (cdadr selected)
-                       (cons (+ 1 (window-sel-offset window))
-                             3)))))
+(define (search-activate! window)
+  (define (string->tag str)
+    (string->symbol (string-trim-both (string-downcase str))))
+  (define (search-field->constraint w)
+    (let* ((str (text-input-get-text w))
+           (index (string-index str #\:)))
+      (cond
+        ((string=? str "") #f)
+        (index
+          (cons (string->tag (string-take str index))
+                (string-trim-both (string-drop str (+ 1 index)))))
+        (else
+          (cons 'any (string-trim-both str))))))
+  (define (constraints)
+    (filter values
+            (map search-field->constraint
+                 (filter (lambda (row) (instance-of? row <text-input>))
+                         (window-data window)))))
+  (let ((results (apply scmus-search-songs #f #f (constraints))))
+    (set! (window-data window) (append (window-data window)
+                                       (map (lambda (track)
+                                              (make-window-row track 'file search-format))
+                                            results)))))
 
-(: add-search-field! (window -> undefined))
-(define (add-search-field! window)
-  (let-values (((queries results) (search-window-data window)))
-    (set! (window-data window) (append queries
-                                       (list (make-search-field)
-                                             '(separator . ((text . "Results"))))
-                                       results))
-    (when (>= (window-sel-pos window) (length queries))
-      (window-move-down! window 1))
-    (search-changed!)))
+(define (search-match row query)
+  (and (instance-of? row <window-row>)
+       (track-match (window-row-data row) query)))
 
-(: add-selected-tracks! (window -> undefined))
-(define (add-selected-tracks! window)
-  (for-each (lambda (x)
-              (if (eqv? (car x) 'file)
-                (scmus-add! (track-file (cdr x)))))
-            (window-all-selected window)))
-
-(: search-add! (window -> undefined))
 (define (search-add! window)
   (let ((selected (window-selected window)))
-    (case (car selected)
-      ((input) (add-search-field! window))
-      ((file)  (add-selected-tracks! window)))))
+    (cond
+      ((instance-of? selected <text-input>)
+        (add-search-field! window))
+      ((instance-of? selected <window-row>)
+        (add-selected-tracks! window)))))
 
-(: search-remove! (window -> undefined))
+(define (search-window-data window)
+  (let loop ((data (window-data window)) (result '()))
+    (if (or (null? data) (instance-of? (car data) <window-separator>))
+      (values (reverse result) (car data) (cdr data))
+      (loop (cdr data) (cons (car data) result)))))
+
+(define (add-search-field! window)
+  (let-values (((queries separator results) (search-window-data window)))
+    (set! (window-data window)
+      (append queries
+              (list (make-search-field) separator)
+              results))
+    (when (>= (window-sel-pos window) (length queries))
+      (window-move-down! window 1))))
+
+(define (add-selected-tracks! window)
+  (for-each (lambda (row)
+              (when (instance-of? row <window-row>)
+                (scmus-add! (track-file (window-row-data row)))))
+            (window-all-selected window)))
+
 (define (search-remove! window)
   (let-values (((prev rest) (split-at (window-data window)
                                       (window-sel-pos window))))
+    ; FIXME: this should remove all marked rows, not just the selected row
     (cond
-      ((null? prev) (editable-clear! (cdadar rest)))
-      ((separator? (car rest)) (void))
-      (else
-        (set! (window-data window) (append prev (cdr rest)))))
-    (search-changed!)))
+      ; if there's only one search field, we clear it instead of removing it
+      ((and (null? prev)
+            (instance-of? (cadr rest) <window-separator>))
+        (text-input-set-text! (car rest) ""))
+      ((not (instance-of? (car rest) <window-separator>))
+        (set! (window-data window) (append prev (cdr rest)))))))
 
-(: search-clear! (window -> undefined))
 (define (search-clear! window)
   (let loop ((data (window-data window)) (result '()))
-    (if (or (null? data) (eqv? (caar data) 'file))
+    (if (or (null? data) (instance-of? (car data) <window-row>))
       (set! (window-data window) (reverse result))
-      (loop (cdr data) (cons (car data) result))))
-  (search-changed!))
-
-(: search-window-data (window -> *))
-(define (search-window-data window)
-  (let loop ((data (window-data window)) (result '()))
-    (if (not (eqv? (caar data) 'input))
-      (values (reverse result) (cdr data))
       (loop (cdr data) (cons (car data) result)))))
 
-(: string->tag (string -> (or symbol boolean)))
-(define (string->tag str)
-  ; TODO: aliases?
-  (string->symbol (string-trim-both (string-downcase str))))
+(define (search-edit! window)
+  (let ((selected (window-selected window)))
+    (when (instance-of? selected <text-input>)
+      (text-input-begin selected steal-focus: #t))))
 
-(: parse-constraint (string -> (pair symbol string)))
-(define (parse-constraint str)
-  (let ((index (string-index str #\:)))
-    (if index
-      (cons (string->tag (string-take str index))
-            (string-trim-both (string-drop str (+ 1 index))))
-      (cons 'any (string-trim-both str)))))
-
-(: search-activate! (window -> undefined))
-(define (search-activate! window)
-  (define (gather-constraints)
-    (map (lambda (x) (parse-constraint (editable-text (cdadr x))))
-         (remove (lambda (x) (= 0 (editable-length (cdadr x))))
-                 (search-window-data window))))
-  (let ((results (apply scmus-search-songs #f #f (gather-constraints))))
-    (set! (window-data window) (append (window-data window)
-                                        (list-of 'file results))))
-  (search-changed!))
-
-(: make-search-field (-> (pair symbol (list-of (pair symbol editable)))))
 (define (make-search-field)
-  `(input . ((text . ,(make-simple-editable
-                        (lambda (e) #t)
-                        (lambda (e) (set-input-mode! 'normal-mode))
-                        search-changed!)))))
+  (make-text-input "" " * " 'on-commit search-field-commit!))
 
-(: search-match (* string -> boolean))
-(define (search-match row query)
-  (and (eqv? (car row) 'file) (track-match (cdr row) query)))
-
-(define *input-format* (process-format "* ~{text}"))
-
-(define (search-format tag)
-  (case tag
-    ((input)     *input-format*)
-    ((separator) (get-format 'format-separator))
-    ((file)      (get-format 'format-search-file))))
+(define (search-field-commit! widget)
+  (void))
 
 (define-view search
   (make-frame 'body   (make-window 'data       (list (make-search-field)
-                                                     '(separator . ((text . "Results"))))
+                                                     (make <window-separator>
+                                                           'text " Results"
+                                                           'cursed CURSED-WIN-TITLE))
                                    'activate   search-activate!
                                    'match      search-match
                                    'add        search-add!
                                    'remove     search-remove!
                                    'clear      search-clear!
                                    'edit       search-edit!
-                                   'format     search-format
                                    'cursed     CURSED-WIN
                                    'cursed-fn  (win-cursed-fn))
               'header (make-text " Search" 'cursed CURSED-WIN-TITLE)))

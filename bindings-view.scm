@@ -18,8 +18,12 @@
 (declare (export))
 
 (import drewt.ncurses)
-(import scmus.base scmus.editable scmus.error scmus.event scmus.input
-        scmus.keys scmus.tui scmus.widgets)
+(import scmus.base
+        scmus.error
+        scmus.event
+        scmus.keys
+        scmus.tui
+        scmus.widgets)
 
 (define-record-type key-list (make-key-list keys) key-list?
   (keys key-list-keys))
@@ -27,105 +31,66 @@
 (define-record-printer (key-list kl out)
   (display (key-list->string (key-list-keys kl)) out))
 
-(define-type binding-row (pair symbol (list-of (pair symbol *))))
+(define-class <binding-row> (<split-pane>)
+  ((context accessor: binding-row-context)
+   (keys    accessor: binding-row-keys)
+   (expr    accessor: binding-row-expr)))
 
-(: make-binding-row (symbol (list-of string) * -> binding-row))
-(define (make-binding-row context keys expr)
-  `(binding . ((context . ,context)
-               (key     . ,(make-key-list keys))
-               (value   . ,(make-simple-editable
-                             binding-commit-edit!
-                             (lambda (e) (set-input-mode! 'normal-mode))
-                             binding-changed!
-                             (with-output-to-string
-                               (lambda () (write expr)))
-                             (cons keys context))))))
+(define (make-binding-row context keys expr . args)
+  (let ((keys (make-key-list keys)))
+    (apply make <binding-row>
+                'context context
+                'keys keys
+                'expr expr
+                'left-child (make-scheme-text keys)
+                'right-child (make-text-input (format #f "~s" expr) ""
+                                              'on-commit binding-commit-edit!)
+                args)))
 
-(define (binding-row? row)
-  (and (pair? row) (eqv? (car row) 'binding)))
-
-(define (binding-row-context row)
-  (alist-ref 'context (cdr row)))
-
-(define (binding-row-keys row)
-  (key-list-keys (alist-ref 'key (cdr row))))
-
-(define (binding-row-editable row)
-  (alist-ref 'value (cdr row)))
-
-;; For sorting rows within a context.
-(: binding-row<? (binding-row binding-row -> boolean))
-(define (binding-row<? a b)
-  (string<? (key-list->string (binding-row-keys a))
-            (key-list->string (binding-row-keys b))))
-
-;; For sorting contexts.  We want the common context to come first; the rest
-;; should be in alphabetical order.
-(: context<? ((pair symbol *) (pair symbol *) -> boolean))
-(define (context<? a b)
-  (let ((a-name (car a))
-        (b-name (car b)))
-    (cond
-      ((eqv? a-name 'common) #t)
-      ((eqv? b-name 'common) #f)
-      (else (string<? (symbol->string a-name)
-                      (symbol->string b-name))))))
-
-(: binding-changed! thunk)
-(define (binding-changed!)
-  (widget-damaged! (get-view 'bindings)))
-
-(: binding-edit! (window -> undefined))
 (define (binding-edit! window)
-  (let ((selected (window-selected window)))
-    (when (binding-row? selected)
-      (set-input-mode! 'edit-mode
-                       (binding-row-editable selected)
-                       (cons (+ 1 (window-sel-offset window))
-                             (+ 1 (quotient (COLS) 2)))))))
+  (text-input-begin (split-pane-right-child (window-selected window)) steal-focus: #t))
 
-(: binding-format (symbol -> format-spec))
-(define (binding-format tag)
-  (case tag
-    ((separator) (get-format 'format-separator))
-    ((binding)   *key-value-format*)))
+(define (binding-commit-edit! widget)
+  (let ((text    (text-input-get-text widget))
+        (context (binding-row-context (widget-parent widget)))
+        (keys    (key-list-keys (binding-row-keys (widget-parent widget)))))
+    (handle-exceptions e (begin (scmus-error-set! e) #f)
+      (unbind! keys context)
+      (make-binding! keys context (with-input-from-string text read)))))
 
-(: binding-commit-edit! (editable -> boolean))
-(define (binding-commit-edit! editable)
-  (handle-exceptions e (begin (scmus-error-set! e) #f)
-    (user-bind! (car (editable-data editable))
-                (cdr (editable-data editable))
-                (editable-read editable)
-                #t)
-    #t))
-
-(define (make-separator text)
-  `(separator . ((text . ,text))))
-
-;; The bindings are stored as trees, where each node represents one key in a
-;; key sequence.  We want to display this data as a list of key sequences, so
-;; we use this function to flatten and append the trees.
-(: make-bindings-data (-> (list-of binding-row)))
 (define (make-bindings-data)
+  (define (context<? a b)
+    (let ((a-name (car a))
+          (b-name (car b)))
+      (cond
+        ((eqv? a-name 'common) #t)
+        ((eqv? b-name 'common) #f)
+        (else (string<? (symbol->string a-name)
+                        (symbol->string b-name))))))
+  (define (binding-row<? a b)
+    (string<? (key-list->string (key-list-keys (binding-row-keys a)))
+              (key-list->string (key-list-keys (binding-row-keys b)))))
+  (define (binding-list->rows blist context)
+    (let loop ((blist blist) (keys '()))
+      (if (binding-expression? blist)
+        (list (make-binding-row context (reverse keys) (binding-data blist)))
+        (apply append (map (lambda (x)
+                             (loop (cdr x) (cons (car x) keys)))
+                           blist)))))
   (define (context->rows context)
-    (define (binding-list->rows blist)
-      (let loop ((blist blist) (keys '()))
-        (if (binding-expression? blist)
-          (list (make-binding-row (car context) (reverse keys) (binding-data blist)))
-          (apply append (map (lambda (x)
-                               (loop (cdr x) (cons (car x) keys)))
-                             blist)))))
     (if (null? (cdr context))
       '()
-      (cons (make-separator (string-titlecase (symbol->string (car context))))
-            (sort! (binding-list->rows (cdr context)) binding-row<?))))
+      (cons (make <window-separator> 'text (string-titlecase (symbol->string (car context)))
+                                     'indent 1
+                                     'cursed CURSED-WIN-TITLE)
+            (sort! (binding-list->rows (cdr context) (car context)) binding-row<?))))
   (apply append (map context->rows (sort (bindings) context<?))))
 
 (define-view bindings
   (make-frame 'body   (make-window 'data       (make-bindings-data)
                                    'activate   binding-edit!
                                    'edit       binding-edit!
-                                   'format     binding-format
+                                   ;'format     binding-format
                                    'cursed     CURSED-WIN
                                    'cursed-fn  (win-cursed-fn))
               'header (make-text " Key Bindings" 'cursed CURSED-WIN-TITLE)))

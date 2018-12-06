@@ -26,11 +26,12 @@
      (right-child    accessor: split-pane-right-child)
      (left-size      initform: 0.5
                      reader:   split-pane-left-size)
+     (focus-left     initform: #t)
      (separator-char initform: #\space
                      reader: split-pane-separator-char)))
 
   (define (make-split-pane left-child right-child . args)
-    (apply make <split-pane> 'left-child left-child 'right-child right-child))
+    (apply make <split-pane> 'left-child left-child 'right-child right-child args))
 
   ;; Ensure that left-size is between 0 and 1
   (define-method ((setter split-pane-left-size) (pane <split-pane>) size)
@@ -44,6 +45,12 @@
   (define-method (container-children (pane <split-pane>))
     (list (split-pane-left-child pane)
           (split-pane-right-child pane)))
+
+  (define-method (widget-focus (pane <split-pane>))
+    (widget-focus
+      (if (slot-value pane 'focus-left)
+        (split-pane-left-child pane)
+        (split-pane-right-child pane))))
 
   (define-method (compute-layout (pane <split-pane>) cols rows)
     ; FIXME: don't create new separator for every draw

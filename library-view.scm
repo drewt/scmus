@@ -19,7 +19,13 @@
 
 (import drewt.ncurses)
 (import coops-utils)
-(import scmus.base scmus.client scmus.event scmus.format scmus.track scmus.tui scmus.widgets)
+(import scmus.base
+        scmus.client
+        scmus.event
+        scmus.format
+        scmus.track 
+        scmus.tui
+        scmus.widgets)
 
 (: library-format (symbol -> format-spec))
 (define (library-format row)
@@ -101,10 +107,10 @@
 
 (define-event-handler (db-changed) ()
   (set! (window-data (widget-last (frame-body (get-view 'library))))
-        (append! (cons (make <window-separator> 'text "Playlists" 'indent 1 'cursed CURSED-WIN-TITLE)
+        (append! (cons (make <window-separator> 'text " Playlists" 'cursed CURSED-WIN-TITLE)
                        (map (lambda (x) (make-window-row (list x) 'playlist library-format))
                             (scmus-list-playlists)))
-                 (cons (make <window-separator> 'text "Artists" 'indent 1 'cursed CURSED-WIN-TITLE)
+                 (cons (make <window-separator> 'text " Artists" 'cursed CURSED-WIN-TITLE)
                        (map (lambda (x) (make-window-row (list x) 'artist library-format))
                             (scmus-list-tags 'artist))))))
 

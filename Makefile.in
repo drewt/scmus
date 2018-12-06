@@ -39,7 +39,7 @@ eggs = coops coops-utils regex sandbox unix-sockets utf8
 units    = bindings-view browser-view commands library-view options options-view queue-view \
 	   search-view ui-curses ui-lib user-api view
 tui_mods = $(addprefix tui/,display frame input misc split-pane widget)
-imodules = base client command command-line config editable ueval event format input keys option \
+imodules = base client command command-line config ueval event format keys option \
 	   error status track tui $(tui_mods) widgets
 omodules = getopt iter mpd-client ncurses
 modules  = $(imodules) $(omodules)
@@ -60,29 +60,27 @@ all: $(target)
 
 # BUILD dependencies
 main_deps           = base client config ueval getopt
-bindings-view_deps  = base editable event input keys ncurses error tui widgets
+bindings-view_deps  = base event keys ncurses error tui widgets
 browser-view_deps   = base client event ncurses track tui widgets
-command-line_deps   = base editable event input iter ncurses tui
+command-line_deps   = base event iter ncurses tui
 command_deps        = base command-line error ueval event
 commands_deps       = base client command command-line ueval keys status tui widgets
-editable_deps       = base ncurses
 ueval_deps          = base event option error
 event_deps          = base
 format_deps         = base ueval error status track
-input_deps          = base editable ncurses
 keys_deps           = base ueval event ncurses
 library-view_deps   = base client event format ncurses track tui widgets
 option_deps         = base event
 options_deps        = base event format option
-options-view_deps   = base editable event input ncurses option error tui widgets
+options-view_deps   = base event ncurses option error tui widgets
 queue-view_deps     = base client event status track tui widgets
 base_deps           = config ncurses
 client_deps         = base event mpd-client option error status track
 error_deps          = base command-line event
-search-view_deps    = base client editable input format ncurses track tui widgets
+search-view_deps    = base client format ncurses track tui widgets
 status_deps         = base mpd-client track
 track_deps          = base
-ui-curses_deps      = base client command-line editable event format input keys \
+ui-curses_deps      = base client command-line event format keys \
                       ncurses option error status tui widgets
 ui-lib_deps         = base format ncurses option tui widgets
 user-api_deps       = base client command command-line config ueval event format \

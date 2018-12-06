@@ -43,6 +43,8 @@
               accessor: widget-damaged)
      (cursed  initform: #f
               accessor: widget-cursed)
+     (*cursed initform: #f
+              accessor: widget-cursed/cached)
      (x       initform: 0
               accessor: widget-x)
      (y       initform: 0
@@ -93,10 +95,12 @@
     (set! (widget-x    widget) x)
     (set! (widget-y    widget) y)
     (set! (widget-cols widget) cols)
-    (set! (widget-rows widget) rows))
+    (set! (widget-rows widget) rows)
+    (set! (widget-cursed/cached widget) *current-cursed*))
 
   (define-method (reprint-widget! (w <widget>))
-    (print-widget! w (widget-x w) (widget-y w) (widget-cols w) (widget-rows w)))
+    (with-cursed (widget-cursed/cached w)
+      (print-widget! w (widget-x w) (widget-y w) (widget-cols w) (widget-rows w))))
 
   (define-method (print-widget! around: (widget <widget>) x y cols rows)
     (call-with-cursed call-next-method (widget-cursed widget)))
@@ -111,23 +115,12 @@
         (handle-input parent input)
         #f)))
 
-  ;; Focus a particular widget.  This recursively focuses the parent widgets so that the given
-  ;; widget is focused wrt the root of the widget hierarchy.
-  (define (set-focus! widget)
-    (if (widget-parent widget)
-      (begin
-        (set! (container-focus (widget-parent widget)) widget)
-        (set-focus! (widget-parent widget)))
-      (void)))
-
   ;;
   ;; Container
   ;;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (define-class <container> (<widget>)
-    ((focus initform: #f
-            accessor: container-focus)))
+  (define-class <container> (<widget>))
 
   ;; Ensure that WIDGET-PARENT is set correctly on all children.
   (define-method (initialize-instance (container <container>))
@@ -152,16 +145,18 @@
   (define-abstract-method (compute-layout (container <container>) cols rows))
 
   (define-method (widget-first (container <container>))
-    (widget-first (car (container-children container))))
+    (first (container-children container)))
 
   (define-method (widget-last (container <container>))
-    (widget-last (car (reverse (container-children container)))))
+    (last (container-children container)))
+
+  (define-method (widget-focus around: (container <container>))
+    (if (null? (container-children container))
+      container
+      (call-next-method)))
 
   (define-method (widget-focus (container <container>))
-    (let ((focus (container-focus container)))
-      (if focus
-        (widget-focus focus)
-        #f)))
+    (car (container-children container)))
 
   ;; Generic <container> printing method.  Subclasses can override this to add borders, etc.
   (define-method (print-widget! (container <container>) x y cols rows)
@@ -194,7 +189,7 @@
     (widget-damaged! wrap))
 
   (define-method (widget-focus (wrap <widget-wrap>))
-    (widget-wrap-widget wrap))
+    (widget-focus (widget-wrap-widget wrap)))
 
   (define-method (widget-wrap-swap! (wrap <widget-wrap>) (widget <widget>))
     (let ((old (widget-wrap-widget wrap)))
@@ -224,7 +219,7 @@
     (make <widget-stack> 'stack (cons root-widget widgets)))
 
   (define-method (widget-focus (stack <widget-stack>))
-    (car (container-children stack)))
+    (widget-focus (car (container-children stack))))
 
   (define-method (compute-layout (stack <widget-stack>) cols rows)
     (list (list (car (container-children stack)) 0 0 cols rows)))

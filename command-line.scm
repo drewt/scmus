@@ -23,9 +23,12 @@
                             command-line-text-set!
                             command-line-cursor-pos-set!
                             command-line-get-string)
-  (import coops)
-  (import drewt.iter drewt.ncurses)
-  (import scmus.base scmus.editable scmus.event scmus.input scmus.tui)
+  (import coops
+          drewt.iter
+          drewt.ncurses
+          scmus.base
+          scmus.event
+          scmus.tui)
 
   (define *command-line-mode* 'normal)
 
@@ -128,21 +131,16 @@
         ((eval)    "$")
         ((search)  "/")))
     (set! *command-line-mode* mode)
-    ; XXX: we focus command-line-widget, then restore the previous focus
-    (let ((old-focus (widget-focus (widget-root command-line-widget))))
-      (set! (text-input-on-commit command-line-widget)
-        (lambda (w)
-          (let ((text (text-input-get-text w)))
-            (set-focus! old-focus)
-            (text-input-set-text! w "")
-            (history-add! text)
-            (then text))))
-      (set! (text-input-on-cancel command-line-widget)
-        (lambda (w)
-          (set-focus! old-focus)
-          (set! (text-input-prefix w) " ")
-          (text-input-set-text! w "")))
-      (set-focus! command-line-widget)
-      (text-input-set-text! command-line-widget text)
-      (text-input-set-cursor-pos! command-line-widget cursor-pos)
-      (text-input-begin command-line-widget))))
+    (set! (text-input-on-commit command-line-widget)
+      (lambda (w)
+        (let ((text (text-input-get-text w)))
+          (text-input-set-text! w "")
+          (history-add! text)
+          (then text))))
+    (set! (text-input-on-cancel command-line-widget)
+      (lambda (w)
+        (set! (text-input-prefix w) " ")
+        (text-input-set-text! w "")))
+    (text-input-set-text! command-line-widget text)
+    (text-input-set-cursor-pos! command-line-widget cursor-pos)
+    (text-input-begin command-line-widget steal-focus: #t)))

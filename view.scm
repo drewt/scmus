@@ -17,7 +17,8 @@
 
 (declare (hide *view-ctors*))
 
-(import scmus.base
+(import coops-utils
+        scmus.base
         scmus.keys
         scmus.tui
         scmus.widgets)
@@ -78,9 +79,22 @@
 (define (get-view name)
   (widget-bag-ref view-widget name))
 
-(: get-window (symbol -> window))
+;; FIXME: This is an ugly hack; we should not depend on there being a <window>
+;;        in the widget hierarchy.  The problem is, how else do we implement
+;;        WINDOW-MOVE, etc. for user code?
+;; IDEA:  Decouple verb from noun in WINDOW-* functions by implementing the
+;;        verbs as methods on <WIDGET>s.  Any widget that doesn't implement a
+;;        particular method can pass the message to its parent.
+(define (*get-window widget)
+  (let loop ((widget (widget-focus widget)))
+    (cond
+      ((not widget)
+        #f)
+      ((instance-of? widget <window>) widget)
+      (else (loop (widget-parent widget))))))
+
 (define (get-window view-name)
-  (widget-focus (get-view view-name)))
+  (*get-window (get-view view-name)))
 
 (: current-view (-> frame))
 (define (current-view)
@@ -90,9 +104,8 @@
 (define (current-view-name)
   (widget-bag-active view-widget))
 
-(: current-window (-> window))
 (define (current-window)
-  (widget-focus (widget-wrap-widget view-widget)))
+  (*get-window (current-view)))
 
 (: current-view? (symbol -> boolean))
 (define (current-view? view-name)
@@ -125,4 +138,4 @@
   (window-move! (view-window view) before))
 
 (define (view-window view)
-  (widget-focus view))
+  (*get-window view))

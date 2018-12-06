@@ -22,20 +22,28 @@
           scmus.tui.misc
           scmus.tui.widget)
 
+  ;; TODO: This whole widget is an ugly hack.  This behaviour should be accomplished
+  ;;       with a pile widget, in which the 'body' element is set to expand, and the
+  ;;       header/footer elements are not.
   (define-class <frame> (<container>)
-    ((body   initform: #f
-             accessor: frame-body)
-     (header initform: #f
-             accessor: frame-header)
-     (footer initform: #f
-             accessor: frame-footer)))
+    ((body    initform: #f
+              reader:   frame-body)
+     (header  initform: #f
+              reader:   frame-header)
+     (footer  initform: #f
+              reader:   frame-footer)
+     (focused initform: 'body)))
 
   (define (make-frame . kwargs)
     (apply make <frame> kwargs))
 
-  (define-method (initialize-instance (frame <frame>))
-    (call-next-method)
-    (set! (container-focus frame) (frame-body frame)))
+  (define-method (widget-focus (frame <frame>))
+    (widget-focus
+      (case (slot-value frame 'focused)
+        ((body)   (frame-body frame))
+        ((header) (frame-header frame))
+        ((footer) (frame-footer frame))
+        (else (assert #f "widget-focus" frame)))))
 
   (define-method (container-children (frame <frame>))
     (let ((head (frame-header frame))
