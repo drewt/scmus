@@ -111,7 +111,7 @@
       (text-input-begin selected steal-focus: #t))))
 
 (define (make-search-field)
-  (make-text-input "" " * " 'on-commit search-field-commit!))
+  (make-text-input "" "* " 'on-commit search-field-commit!))
 
 (define (search-field-commit! widget)
   (void))
@@ -119,7 +119,7 @@
 (define-view search
   (make-frame 'body   (make-window 'data       (list (make-search-field)
                                                      (make <window-separator>
-                                                           'text " Results"
+                                                           'text "Results"
                                                            'cursed CURSED-WIN-TITLE))
                                    'activate   search-activate!
                                    'match      search-match

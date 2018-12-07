@@ -33,6 +33,8 @@
   (import drewt.ncurses)
   (import scmus.config)
 
+  ;; FOREIGN-VALUE constants don't work in CASE expressions, so we
+  ;; have to use a chain of IFs.
   (define-syntax key-case
     (syntax-rules (else)
       ((key-case key) (void))
@@ -67,10 +69,6 @@
  
   ;; the exit routine; initially (exit), becomes a continuation
   (define scmus-exit exit)
-
-  (: *view-names* (list-of symbol))
-  (define *view-names*
-    '(library queue search browser status error options bindings))
 
   (define-type printf (#!rest * -> undefined))
   (define-type pp (* -> undefined))

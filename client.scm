@@ -170,7 +170,7 @@
   (define (scmus-update-current-song!)
     (set! (current-track) (scmus-current-song))
     (register-event! 'queue-changed)
-    (register-event! 'current-line-changed))
+    (register-event! 'current-track-changed))
 
   (: scmus-update-queue! thunk)
   (define (scmus-update-queue!)

@@ -39,8 +39,6 @@
     ((parent  initform: #f
               accessor: widget-parent)
      (visible initform: #t)
-     (damaged initform: #t
-              accessor: widget-damaged)
      (cursed  initform: #f
               accessor: widget-cursed)
      (*cursed initform: #f
@@ -57,8 +55,7 @@
   (define-method (widget-damaged! (widget <widget>))
     (when (widget-visible? widget)
       (unless (memq widget *damaged-widgets*)
-        (set! *damaged-widgets* (cons widget *damaged-widgets*)))
-      (set! (widget-damaged (widget-root widget)) #t)))
+        (set! *damaged-widgets* (cons widget *damaged-widgets*)))))
 
   (define-method (widget-visible? (widget <widget>))
     (and (slot-value widget 'visible)

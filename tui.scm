@@ -16,9 +16,41 @@
 ;;
 
 (module scmus.tui *
+  (import drewt.ncurses
+          scmus.base)
   (reexport scmus.tui.display
             scmus.tui.frame
             scmus.tui.input
             scmus.tui.misc
             scmus.tui.split-pane
-            scmus.tui.widget))
+            scmus.tui.widget)
+
+  (define (init-ui root-widget)
+    (initscr)
+    (cbreak)
+    (keypad (stdscr) #t)
+    (halfdelay 5)
+    (noecho)
+    (when (has_colors)
+      (start_color)
+      (use_default_colors)))
+
+  (define (draw-ui root-widget)
+    (print-widget! root-widget 0 0 (COLS) (LINES)))
+
+  (define (update-ui root-widget)
+    ; redraw damaged widgets
+    (let-values (((y x) (getyx (stdscr))))
+      (when (> (LINES) 1)
+        (for-each reprint-widget! (damaged-widgets))
+        (clear-damaged-widgets!))
+      (move y x))
+    ; handle input
+    (let-values (((ch rc) (get-char)))
+      (cond
+        ((= rc KEY_CODE_YES)
+          (if (= ch KEY_RESIZE)
+            (draw-ui root-widget)
+            (do-handle-input root-widget ch)))
+        ((not (= rc ERR))
+          (do-handle-input root-widget (integer->char ch)))))))

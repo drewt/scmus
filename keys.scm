@@ -44,6 +44,7 @@
                     key-list->string
                     make-binding!
                     normal-mode-key
+                    register-context!
                     unbind!)
 
   (import srfi-69)
@@ -56,8 +57,13 @@
 
   ;; alist associating key-contexts with binding alists
   (: *bindings* (list-of (pair symbol binding-list)))
-  (define *bindings*
-    (map (lambda (x) (cons x '())) (cons 'common *view-names*)))
+  (define *bindings* '((common)))
+
+  (: bindings (-> (list-of (pair symbol binding-list))))
+  (define (bindings) *bindings*)
+
+  (define (register-context! name)
+    (set! *bindings* (alist-update! name '() *bindings*)))
 
   ;; evil global state
   (: *current-context* (or boolean binding-list))
@@ -65,9 +71,6 @@
 
   (: *common-context* (or boolean binding-list))
   (define *common-context* #f)
-
-  (: bindings (-> (list-of (pair symbol binding-list))))
-  (define (bindings) *bindings*)
 
   (: binding-expression? (* -> boolean))
   (define (binding-expression? binding)
@@ -199,7 +202,7 @@
 
   (: binding-context-valid? (symbol -> boolean))
   (define (binding-context-valid? context)
-    (memv context (cons 'common *view-names*)))
+    (memv context (map car *bindings*)))
 
   ;; Abandons the current key context.
   (: clear-context! thunk)

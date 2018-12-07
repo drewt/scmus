@@ -16,7 +16,7 @@
 ;;
 
 (declare (export current-window curses-update cursor-off cursor-on
-                 exit-curses get-window init-curses redraw-ui set-view!
+                 exit-curses get-window init-curses set-view!
                  connect!))
 
 (import drewt.ncurses
@@ -32,31 +32,6 @@
         scmus.tui
         scmus.widgets)
 
-(: get-color-option (symbol -> (list-of fixnum)))
-(define (get-color-option name)
-  (let ((option (get-option name)))
-    (assert (list? option))
-    (list (attr->number (car option))
-          (safe-color->number (cadr option))
-          (safe-color->number (caddr option)))))
-
-(: update-colors! thunk)
-(define (update-colors!)
-  (init-cursed! CURSED-CMDLINE     (get-color-option 'color-cmdline))
-  (init-cursed! CURSED-ERROR       (get-color-option 'color-error))
-  (init-cursed! CURSED-INFO        (get-color-option 'color-info))
-  (init-cursed! CURSED-STATUSLINE  (get-color-option 'color-statusline))
-  (init-cursed! CURSED-TITLELINE   (get-color-option 'color-titleline))
-  (init-cursed! CURSED-WIN         (get-color-option 'color-win))
-  (init-cursed! CURSED-WIN-CUR     (get-color-option 'color-win-cur))
-  (init-cursed! CURSED-WIN-CUR-SEL (get-color-option 'color-win-cur-sel))
-  (init-cursed! CURSED-WIN-SEL     (get-color-option 'color-win-sel))
-  (init-cursed! CURSED-WIN-MARKED  (get-color-option 'color-win-marked))
-  (init-cursed! CURSED-WIN-TITLE   (get-color-option 'color-win-title))
-  (void))
-
-;; screen updates {{{
-
 (define current-line (make-format-text (get-format 'format-current)
                                        (current-track)
                                        'cursed CURSED-TITLELINE))
@@ -66,49 +41,6 @@
 (define foot-pile (make-pile (list current-line status-line command-line-widget)))
 (define root-widget (make-frame 'body view-widget
                                 'footer foot-pile))
-
-(: update-current-line thunk)
-(define (update-current-line)
-  (set! (format-text-format current-line) (get-format 'format-current))
-  (set! (format-text-data current-line) (current-track)))
-
-(: update-status-line thunk)
-(define (update-status-line)
-  (set! (format-text-format status-line) (get-format 'format-status))
-  (set! (format-text-data status-line) (current-track)))
-
-(define (make-status-rows)
-  (map (lambda (pair)
-         (make-window-row `((key   . ,(car pair))
-                            (value . ,(cdr pair)))
-                          'key-value
-                          (lambda (_) *key-value-format*)))
-       (current-status)))
-
-(: update-status thunk)
-(define (update-status)
-  (set! (window-data (get-window 'status)) (make-status-rows))
-  (update-status-line))
-
-(: update-db thunk)
-(define (update-db)
-  (scmus-update-stats!))
-
-; TODO: move this logic into TUI module
-(define (update-tui!)
-  (let-values (((y x) (getyx (stdscr))))
-    (when (> (LINES) 1)
-      (for-each reprint-widget! (damaged-widgets))
-      (clear-damaged-widgets!))
-    (move y x)))
-
-(: redraw-ui thunk)
-(define (redraw-ui)
-  (print-widget! root-widget 0 0 (COLS) (LINES))
-  (update-current-line)
-  (update-status))
-
-;; screen updates }}}
 
 ;; If an operation is likely to stall the UI, then this macro can be used to
 ;; inform the user about what is going on during that time.
@@ -140,51 +72,54 @@
     (with-info-message (format "Connecting to ~a:~a..." host port)
       (scmus-connect! host port pass))))
 
-(: handle-key (fixnum -> undefined))
-(define (handle-key key)
-  (cond
-    ((= key KEY_RESIZE) (redraw-ui))
-    (else (do-handle-input root-widget key))))
-
-(: handle-char (char -> undefined))
-(define (handle-char ch)
-  (do-handle-input root-widget ch))
-
-(: *handle-input (-> undefined))
-(define (*handle-input)
-  (let-values (((ch rc) (get-char)))
-    (cond
-      ((= rc KEY_CODE_YES) (handle-key ch))
-      ((not (= rc ERR))    (handle-char (integer->char ch))))))
-
 (: curses-update thunk)
 (define (curses-update)
   (let ((err (handle-events!)))
     (if err (scmus-error-set! err)))
-  (update-tui!)
-  (*handle-input))
+  (update-ui root-widget))
+
+(define (get-color-option name)
+  (let ((option (get-option name)))
+    (assert (list? option))
+    (list (attr->number (car option))
+          (safe-color->number (cadr option))
+          (safe-color->number (caddr option)))))
+
+ (define (update-colors!)
+  (palette-set!
+    `((,CURSED-CMDLINE     . ,(get-color-option 'color-cmdline))
+      (,CURSED-ERROR       . ,(get-color-option 'color-error))
+      (,CURSED-INFO        . ,(get-color-option 'color-info))
+      (,CURSED-STATUSLINE  . ,(get-color-option 'color-statusline))
+      (,CURSED-TITLELINE   . ,(get-color-option 'color-titleline))
+      (,CURSED-WIN         . ,(get-color-option 'color-win))
+      (,CURSED-WIN-CUR     . ,(get-color-option 'color-win-cur))
+      (,CURSED-WIN-CUR-SEL . ,(get-color-option 'color-win-cur-sel))
+      (,CURSED-WIN-SEL     . ,(get-color-option 'color-win-sel))
+      (,CURSED-WIN-MARKED  . ,(get-color-option 'color-win-marked))
+      (,CURSED-WIN-TITLE   . ,(get-color-option 'color-win-title)))))
 
 (: init-curses thunk)
 (define (init-curses)
-  (initscr)
-  (ui-initialized!)
-  (cbreak)
-  (keypad (stdscr) #t)
-  (halfdelay 5)
-  (noecho)
-  (when (has_colors)
-    (start_color)
-    (use_default_colors))
+  (init-ui root-widget)
   (update-colors!)
+  (ui-initialized!)
   (init-views!)
   (set-view! 'queue)
-  (redraw-ui)
-  (print-widget! root-widget 0 0 (COLS) (LINES)))
+  (draw-ui root-widget))
 
 (: exit-curses thunk)
 (define (exit-curses)
   (handle-exceptions exn (void)
     (endwin)))
+
+(define (make-status-rows)
+  (map (lambda (pair)
+         (make-window-row `((key   . ,(car pair))
+                            (value . ,(cdr pair)))
+                          'key-value
+                          (lambda (_) *key-value-format*)))
+       (current-status)))
 
 (define-view status
   (make-frame 'body   (make-window 'data (make-status-rows)
@@ -202,11 +137,22 @@
                                    'cursed CURSED-WIN)
               'header (make-text " Error" 'cursed CURSED-WIN-TITLE)))
 
-(define-event-handler current-line-changed () update-current-line)
-(define-event-handler color-changed () update-colors!)
-(define-event-handler format-changed () redraw-ui)
-(define-event-handler db-changed () update-db)
-(define-event-handler status-changed () update-status)
+(define-event-handler (current-track-changed) ()
+  (set! (format-text-format current-line) (get-format 'format-current))
+  (set! (format-text-data current-line) (current-track)))
+
+(define-event-handler (status-changed) ()
+  (set! (window-data (get-window 'status)) (make-status-rows))
+  (set! (format-text-format status-line) (get-format 'format-status))
+  (set! (format-text-data status-line) (current-track)))
+
 (define-event-handler (error-changed) ()
   (set! (window-data (get-window 'error))
     (make-error-rows)))
+
+(define-event-handler color-changed () update-colors!)
+
+(define-event-handler db-changed () scmus-update-stats!)
+
+(define-event-handler (format-changed) ()
+  (draw-ui root-widget))

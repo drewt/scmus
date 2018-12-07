@@ -154,6 +154,10 @@
       ((with-cursed cursed first . rest)
         (call-with-cursed (lambda () first . rest) cursed))))
 
+  (define (palette-set! palette)
+    (for-each (lambda (pair) (init-cursed! (car pair) (cdr pair)))
+              palette))
+
   ;; colors }}}
 
   (define (safe-addstr str)

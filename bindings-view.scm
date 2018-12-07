@@ -81,7 +81,6 @@
     (if (null? (cdr context))
       '()
       (cons (make <window-separator> 'text (string-titlecase (symbol->string (car context)))
-                                     'indent 1
                                      'cursed CURSED-WIN-TITLE)
             (sort! (binding-list->rows (cdr context) (car context)) binding-row<?))))
   (apply append (map context->rows (sort (bindings) context<?))))
@@ -90,7 +89,6 @@
   (make-frame 'body   (make-window 'data       (make-bindings-data)
                                    'activate   binding-edit!
                                    'edit       binding-edit!
-                                   ;'format     binding-format
                                    'cursed     CURSED-WIN
                                    'cursed-fn  (win-cursed-fn))
               'header (make-text " Key Bindings" 'cursed CURSED-WIN-TITLE)))

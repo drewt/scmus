@@ -67,6 +67,7 @@
 
 (: register-view! (symbol (-> frame) -> undefined))
 (define (register-view! name ctor)
+  (register-context! name)
   (set! *view-ctors* (cons (cons name ctor) *view-ctors*)))
 
 (: init-views! thunk)

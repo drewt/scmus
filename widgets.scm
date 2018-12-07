@@ -277,23 +277,6 @@
     (when (positive? (window-data-len window))
       ((window-move window) window before)))
 
-  (: window-print-line (window * fixnum -> string))
-  (define (window-print-line window row nr-cols)
-    (define (print-row window row row-cols)
-      (let ((fmt (and (window-format window)
-                      ((window-format window) (car row)))))
-        (if fmt
-          (scmus-format fmt row-cols (cdr row))
-          (string-truncate (format "~a" (alist-ref 'text (cdr row) eqv? ""))
-                           row-cols))))
-    (if (>= (* 2 (window-h-border window)) nr-cols)
-      (make-string nr-cols #\space)
-      (let* ((h-border (window-h-border window))
-             (str      (print-row window row (- nr-cols (* 2 h-border)))))
-        (string-append (make-string h-border #\space)
-                       str
-                       (make-string h-border #\space)))))
-
   (: window-cursed (window * fixnum -> undefined))
   (define (window-cursed window row line-nr)
     ((*window-cursed window) window row line-nr))
@@ -418,15 +401,17 @@
                (lines rows))
       (when (> lines 0)
         (let ((line-nr (+ y (- rows lines))))
-          (if (null? data)
+          (if (or (null? data)
+                  (< cols (* 2 (window-h-border window))))
             (print-line! "" x line-nr cols)
-            (with-cursed (window-cursed window (car data) line-nr)
-              (if (instance-of? (car data) <widget>)
-                (print-widget! (car data) x line-nr cols 1)
-                (print-line! (window-print-line window (car data) cols)
-                             x
+            (with-cursed (or (widget-cursed (car data))
+                             (window-cursed window (car data) line-nr))
+              (print-line! "" x line-nr cols) ; FIXME: fill in border properly
+              (print-widget! (car data)
+                             (+ x (window-h-border window))
                              line-nr
-                             cols))))
+                             (- cols (* 2 (window-h-border window)))
+                             1)))
           (loop (if (null? data) '() (cdr data)) (- lines 1))))))
   ;; <window> }}}
   ;; <window-row> {{{
