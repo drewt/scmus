@@ -75,6 +75,13 @@
   (define-abstract-method (text-text (text <textual>)))
 
   (define-method (print-widget! (text <textual>) x y cols rows)
+    (define (take-at-most in-lst n)
+      (let loop ((lst in-lst) (n n) (result '()))
+        (if (null? lst)
+          in-lst
+          (if (zero? n)
+            (reverse result)
+            (loop (cdr lst) (- n 1) (cons (car lst) result))))))
     (let loop ((lines (take-at-most (text-text text) rows))
                (y y))
       (unless (null? lines)

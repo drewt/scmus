@@ -65,12 +65,9 @@
   (define (register-context! name)
     (set! *bindings* (alist-update! name '() *bindings*)))
 
-  ;; evil global state
-  (: *current-context* (or boolean binding-list))
-  (define *current-context* #f)
+  (define current-context (make-parameter #f))
 
-  (: *common-context* (or boolean binding-list))
-  (define *common-context* #f)
+  (define common-context (make-parameter #f))
 
   (: binding-expression? (* -> boolean))
   (define (binding-expression? binding)
@@ -207,25 +204,25 @@
   ;; Abandons the current key context.
   (: clear-context! thunk)
   (define (clear-context!)
-    (set! *current-context* #f)
-    (set! *common-context* #f))
+    (current-context #f)
+    (common-context #f))
 
   ;; Begins a new key context.  This can be delayed until a key is
   ;; pressed so that new bindings and view changes are taken into
   ;; account.
   (: start-context! (symbol -> undefined))
   (define (start-context! view)
-    (set! *current-context* (alist-ref view *bindings*))
-    (set! *common-context* (alist-ref 'common *bindings*)))
+    (current-context (alist-ref view *bindings*))
+    (common-context (alist-ref 'common *bindings*)))
 
   (: normal-mode-key (symbol fixnum -> undefined))
   (define (normal-mode-key view key)
-    (if (not *current-context*)
+    (if (not (current-context))
       (start-context! view))
     (let ((keystr (key->string key)))
       (if keystr
-        (let ((view-binding (get-binding keystr *current-context*))
-              (common-binding (get-binding keystr *common-context*))) 
+        (let ((view-binding (get-binding keystr (current-context)))
+              (common-binding (get-binding keystr (common-context)))) 
           (cond
             ((binding-expression? view-binding)
               (user-eval (cdr view-binding))
@@ -235,8 +232,8 @@
               (clear-context!))
             ((or (list? view-binding)
                  (list? common-binding))
-              (set! *current-context* (if view-binding view-binding '()))
-              (set! *common-context* (if common-binding common-binding '())))
+              (current-context (if view-binding view-binding '()))
+              (common-context (if common-binding common-binding '())))
             (else ; no binding
               (clear-context!)))))))
 

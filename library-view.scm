@@ -17,9 +17,9 @@
 
 (declare (export))
 
-(import drewt.ncurses)
-(import coops-utils)
-(import scmus.base
+(import coops-utils
+        drewt.ncurses
+        scmus.base
         scmus.client
         scmus.event
         scmus.format
@@ -65,7 +65,7 @@
                                                          (cons 'value (cdr metadata)))
                                                    'metadata
                                                    library-format))
-                                track))))
+                                (sort-metadata track)))))
   (define (activate-function type)
     (case type
       ((playlist) playlist-activate!)

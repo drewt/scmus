@@ -30,7 +30,7 @@
 
 (define (option-commit-edit! widget)
   (let ((text (text-input-get-text widget)))
-    (handle-exceptions e (begin (scmus-error-set! e) #f)
+    (handle-exceptions e (begin (scmus-error e) #f)
       (set-option! (scheme-text-expr (split-pane-left-child (widget-parent widget)))
                    (with-input-from-string (text-input-get-text widget) read)))))
 

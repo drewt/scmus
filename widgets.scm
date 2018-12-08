@@ -411,9 +411,8 @@
                (lines rows))
       (when (> lines 0)
         (let ((line-nr (+ y (- rows lines))))
-          (if (or (null? data)
-                  (< cols (* 2 (window-h-border window))))
-            (print-line! "" x line-nr cols)
+          (unless (or (null? data)
+                      (< cols (* 2 (window-h-border window))))
             (with-cursed (or (widget-cursed (car data))
                              (window-cursed window (car data) line-nr))
               (print-line! "" x line-nr cols) ; FIXME: fill in border properly

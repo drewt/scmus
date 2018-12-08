@@ -20,7 +20,7 @@
   (import drewt.ncurses)
   (import scmus.base)
 
-  (define *current-cursed* CURSED-WIN)
+  (define current-cursed (make-parameter 1))
 
   ;; colors {{{
 
@@ -116,7 +116,7 @@
 
   (: cursed-set! (fixnum #!optional fixnum -> fixnum))
   (define (cursed-set! cursed #!optional (attr (cursed-attr cursed)))
-    (set! *current-cursed* cursed)
+    (current-cursed cursed)
     (bkgdset (bitwise-ior (COLOR_PAIR cursed) attr))
     cursed)
 
@@ -143,7 +143,7 @@
 
   (define (call-with-cursed fn cursed)
     (if cursed
-      (let ((old-cursed *current-cursed*))
+      (let ((old-cursed (current-cursed)))
         (cursed-set! cursed)
         (fn)
         (cursed-set! old-cursed))
@@ -160,20 +160,42 @@
 
   ;; colors }}}
 
+  ;; This is a really stupid macro which is unfortunately required because
+  ;; curses returns ERR when writing to the bottom-rightmost cell, which
+  ;; causes an exception to be thrown.  So whenever we're writing to an
+  ;; arbitrary screen location, we have to set up an exception handler to
+  ;; catch and ignore this particular "error" condition.
+  ;; FIXME: it should be possible to continue executing on spurious errors
+  (define-syntax safe-curses
+    (syntax-rules ()
+      ((safe-curses first rest ...)
+        (handle-exceptions exn
+                           (let-values (((y x) (getyx (stdscr))))
+                             (unless (and (= y (- (LINES) 1))
+                                          (= x (- (COLS) 1)))
+                               (abort exn)))
+          first rest ...))))
+
+  (define (clear-screen x y cols rows)
+    (safe-curses
+      (let clear-line ((line y))
+        (when (< (- line y) rows)
+          (move line x)
+          (let clear-cells ((cell x))
+            (when (< (- cell x) cols)
+              (addch #\space)
+              (clear-cells (+ cell 1))))
+          (clear-line (+ line 1))))))
+
   (define (safe-addstr str)
-    (handle-exceptions exn
-                       (let-values (((y x) (getyx (stdscr))))
-                         (unless (and (= y (- (LINES) 1))
-                                      (= x (- (COLS) 1)))
-                           (abort exn)))
-      (addstr str)))
+    (safe-curses (addstr str)))
 
   ; TODO: instead of embedding color codes into string, just use a list with strings and color
   ;       codes... this is more efficient anyway since we don't have to scan the string before
   ;       printing
   (: format-addstr! (string -> fixnum))
   (define (format-addstr! str)
-    (let ((old-cursed *current-cursed*))
+    (let ((old-cursed (current-cursed)))
       (let loop ((str str))
         (let ((i (string-index str color-code?)))
           (if i

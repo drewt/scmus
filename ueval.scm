@@ -62,12 +62,12 @@
   (: user-eval (* -> *))
   (define (user-eval expr)
     (condition-case (safe-eval expr environment: *user-env*)
-      (e () (scmus-error-set! e) e)))
+      (e () (scmus-error e) e)))
 
   (: user-eval-string (string -> *))
   (define (user-eval-string str)
     (condition-case (user-eval/raw (with-input-from-string str read))
-      (e () (scmus-error-set! e) e)))
+      (e () (scmus-error e) e)))
 
   (: user-load (string -> *))
   (define (user-load path)
@@ -77,5 +77,5 @@
          (let ((input (read in)))
            (unless (eqv? input #!eof)
              (condition-case (safe-eval input environment: *user-env*)
-               (e () (scmus-error-set! e)))
+               (e () (scmus-error e)))
              (loop))))))))

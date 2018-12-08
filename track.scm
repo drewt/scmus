@@ -15,7 +15,9 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.track (track-file
+(module scmus.track (seconds->string
+                     sort-metadata
+                     track-file
                      track-last-modified
                      *track-duration
                      track-title
@@ -92,4 +94,78 @@
             (substring-match (track-artist track) query)
             (substring-match (track-albumartist track) query))
       #t
-      #f)))
+      #f))
+
+  (: seconds->string (fixnum -> string))
+  (define (seconds->string total-seconds)
+    (assert (>= total-seconds 0) "seconds->string" total-seconds)
+    (let* ((total-minutes (quotient total-seconds 60))
+           (seconds (modulo total-seconds 60))
+           (minutes (modulo total-minutes 60))
+           (hours (quotient total-minutes 60)))
+      (string-append (if (= hours 0)
+                       ""
+                       (format "~a:" hours))
+                     (if (< minutes 10)
+                       (format "0~a:" minutes)
+                       (format "~a:" minutes))
+                     (if (< seconds 10)
+                       (format "0~a" seconds)
+                       (number->string seconds)))))
+
+  (define metadata-display-names
+    '((title                     . "Title")
+      (artist                    . "Artist")
+      (artistsort                . "Artist (Sort)")
+      (albumartist               . "Album Artist")
+      (albumartistsort           . "Albumartist (Sort)")
+      (album                     . "Album")
+      (date                      . "Date")
+      (track                     . "Track Number")
+      (disc                      . "Disc Number")
+      (genre                     . "Genre")
+      (composer                  .  "Composer")
+      (duration                  . "Duration")
+      (last-modified             . "Last Modified")
+      (file                      . "File")
+      (musicbrainz_artistid      . "Musicbrainz Artist ID")
+      (musicbrainz_albumid       . "Musicbrainz Album ID")
+      (musicbrainz_albumartistid . "Musicbrainz Albumartist ID")
+      (musicbrainz_trackid       . "Musicbrainz Track ID")))
+
+  (define (metadata-name key)
+    (let ((name (alist-ref key metadata-display-names)))
+      (if name name (symbol->string key))))
+
+  (: sort-metadata ((list-of (pair symbol *)) -> (list-of (pair string *))))
+  (define (sort-metadata metadata)
+    ;; returns the position of key in alist, or #f.
+    (define (alist-ordinal key alist)
+      (let loop ((i 0) (rest alist))
+        (if (null? rest)
+          #f
+          (if (eqv? key (caar rest))
+            i
+            (loop (+ i 1) (cdr rest))))))
+
+    ;; Returns true if (car a) is before (car b) in model (an alist)
+    (define (alist-compare a b model)
+      (let ((ord-a (alist-ordinal (car a) model))
+            (ord-b (alist-ordinal (car b) model)))
+        (cond
+          ((and (not ord-a) (not ord-b))
+             (string<? (symbol->string (car a))
+                       (symbol->string (car b))))
+          ((not ord-a) #f)
+          ((not ord-b) #t)
+          (else (< ord-a ord-b)))))
+
+    ;; We're doing two things here.  First, we sort the metadata using
+    ;; metadata-display-names as a reference.  Then we convert the keys to
+    ;; strings, using metadata-display-names to get the name strings.
+    (map (lambda (x)
+           (cons (metadata-name (car x))
+                 (cdr x)))
+         (sort (alist-delete 'time metadata)
+               (lambda (a b)
+                 (alist-compare a b metadata-display-names))))))

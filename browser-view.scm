@@ -68,7 +68,7 @@
                                                          (cons 'value (cdr metadata)))
                                                    'metadata
                                                    browser-format))
-                                file))))
+                                (sort-metadata file)))))
   (unless (window-empty? window)
     (let ((selected (window-selected window)))
       (case (window-row-type selected)

@@ -93,7 +93,8 @@
     (set! (widget-y    widget) y)
     (set! (widget-cols widget) cols)
     (set! (widget-rows widget) rows)
-    (set! (widget-cursed/cached widget) *current-cursed*))
+    (set! (widget-cursed/cached widget) (current-cursed))
+    (clear-screen x y cols rows))
 
   (define-method (reprint-widget! (w <widget>))
     (with-cursed (widget-cursed/cached w)

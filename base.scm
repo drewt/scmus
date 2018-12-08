@@ -33,26 +33,7 @@
   (import drewt.ncurses)
   (import scmus.config)
 
-  ;; FOREIGN-VALUE constants don't work in CASE expressions, so we
-  ;; have to use a chain of IFs.
-  (define-syntax key-case
-    (syntax-rules (else)
-      ((key-case key) (void))
-      ((key-case key (else first rest ...))
-        (begin first rest ...))
-      ((key-case key ((choices ...) first rest ...) others ...)
-        (if (member key (list choices ...))
-          (begin first rest ...)
-          (key-case key others ...)))))
- 
-  (define *ui-initialized* #f)
-
-  (: ui-initialized! (-> undefined))
-  (define (ui-initialized!)
-    (set! *ui-initialized* #t))
-  
-  (: ui-initialized? (-> boolean))
-  (define (ui-initialized?) *ui-initialized*)
+  (define ui-initialized? (make-parameter #f))
 
   (define (call-without-curses thunk)
     (if (ui-initialized?)
@@ -98,23 +79,6 @@
     (without-curses
       (pp sexp)))
 
-  ;; How did this not make it into SRFI-1?
-  (define (take-at-most in-lst n)
-    (let do-take ((lst in-lst) (n n) (result '()))
-      (if (null? lst)
-        in-lst
-        (if (= n 0)
-          (reverse result)
-          (do-take (cdr lst) (- n 1) (cons (car lst) result))))))
-
-  (: list-of (symbol list -> (list-of (pair symbol *))))
-  (define (list-of type lst)
-    (map (lambda (x) (cons type x)) lst))
-
-  (: separator? (* -> boolean))
-  (define (separator? obj)
-    (and (pair? obj) (eq? (car obj) 'separator)))
-
   (: port-valid? (* -> boolean))
   (define (port-valid? port)
     (and (integer? port) (positive? port) (< port 65536)))
@@ -145,57 +109,6 @@
               ((light-cyan)    14)
               ((gray)          15)
               (else            #f)))))
-
-  ;(: alist-update (* * (list-of pair) #!optional (* * -> boolean) -> (list-of pair)))
-  ;(define (alist-update key value alist #!optional (test eqv?))
-  ;  (alist-update! key value (list-copy alist) test))
-
-  (define metadata-display-names
-    '((title         . "Title")
-      (artist        . "Artist")
-      (albumartist   . "Album Artist")
-      (album         . "Album")
-      (date          . "Date")
-      (track         . "Track Number")
-      (disc          . "Disc Number")
-      (duration      . "Duration")
-      (last-modified . "Last Modified")
-      (file          . "File")))
-
-  (define (metadata-name key)
-    (let ((name (alist-ref key metadata-display-names)))
-      (if name name (symbol->string key))))
-
-  (: sort-metadata ((list-of (pair symbol *)) -> (list-of (pair string *))))
-  (define (sort-metadata metadata)
-    ;; returns the position of key in alist, or #f.
-    (define (alist-ordinal key alist)
-      (let loop ((i 0) (rest alist))
-        (if (null? rest)
-          #f
-          (if (eqv? key (caar rest))
-            i
-            (loop (+ i 1) (cdr rest))))))
-
-    ;; Returns true if (car a) is before (car b) in model (an alist)
-    (define (alist-compare a b model)
-      (let ((ord-a (alist-ordinal (car a) model))
-            (ord-b (alist-ordinal (car b) model)))
-        (cond
-          ((and (not ord-a) (not ord-b))
-             (string<? (symbol->string (car a))
-                       (symbol->string (car b))))
-          ((not ord-a) #f)
-          ((not ord-b) #t)
-          (else (< ord-a ord-b)))))
-
-    ;; We're doing two things here.  First, we sort the metadata using
-    ;; metadata-display-names as a reference.  Then we convert the keys to
-    ;; strings, using metadata-display-names to get the name strings.
-    (map (lambda (x)
-           (cons (metadata-name (car x))
-                 (cdr x)))
-         (sort metadata (lambda (a b) (alist-compare a b metadata-display-names)))))
 
   ;; unicode stuff {{{
 
@@ -318,36 +231,11 @@
     (assert (>= len 0) "integer-scale" len)
     (inexact->exact (round (* len (/ percent 100)))))
 
-  ; FIXME: why not use STRING-INDEX and SUBSTRING to avoid list conversion?
   (: string-split-lines (string -> (list-of string)))
   (define (string-split-lines str)
-    (let loop ((result '()) (substr '()) (rest (string->list str)))
-      (if (null? rest)
-        (if (null? substr)
-          (reverse result)
-          (reverse (cons (list->string (reverse substr)) result)))
-        (if (char=? (car rest) #\newline)
-          (loop (cons (list->string (reverse substr)) result) '() (cdr rest))
-          (loop result (cons (car rest) substr) (cdr rest))))))
-
-  (: seconds->string (fixnum -> string))
-  (define (seconds->string total-seconds)
-    (assert (>= total-seconds 0) "seconds->string" total-seconds)
-    (let* ((total-minutes (quotient total-seconds 60))
-           (seconds (modulo total-seconds 60))
-           (minutes (modulo total-minutes 60))
-           (hours (quotient total-minutes 60)))
-      (string-append (if (= hours 0)
-                       ""
-                       (format "~a:" hours))
-                     (if (< minutes 10)
-                       (format "0~a:" minutes)
-                       (format "~a:" minutes))
-                     (if (< seconds 10)
-                       (format "0~a" seconds)
-                       (number->string seconds)))))
-
-  (: clean-nr (string -> string))
-  (define (clean-nr str)
-    (let ((i (string-index str #\/)))
-      (if i (string-take str i) str))))
+    (let loop ((str str) (result '()))
+      (let ((i (string-index str #\newline)))
+        (if (not i)
+          (reverse (cons str result))
+          (loop (substring/shared str (+ i 1))
+                (cons (substring/shared str 0 i) result)))))))

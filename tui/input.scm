@@ -22,6 +22,18 @@
           scmus.tui.widget
           scmus.tui.misc)
 
+  ;; FOREIGN-VALUE constants don't work in CASE expressions, so we
+  ;; have to use a chain of IFs.
+  (define-syntax key-case
+    (syntax-rules (else)
+      ((key-case key) (void))
+      ((key-case key (else first rest ...))
+        (begin first rest ...))
+      ((key-case key ((choices ...) first rest ...) others ...)
+        (if (member key (list choices ...))
+          (begin first rest ...)
+          (key-case key others ...)))))
+
   ;; Text widget of the form '<prefix><text>' where
   ;;   <prefix> is optional descriptive text
   ;;   <text>   is editable text

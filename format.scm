@@ -94,7 +94,7 @@
   (: interp-format-function ((track fixnum -> *) track fixnum -> string))
   (define (interp-format-function fun track len)
     (handle-exceptions e
-      (begin (scmus-error-set! e) "<error>")
+      (begin (scmus-error e) "<error>")
       (format "~a" (fun track len))))
 
   (: interp-format-list (pair track fixnum -> string))
@@ -117,6 +117,11 @@
           (loop (cdr rest) pad-right pad-char #t width))
         ((number? (car rest))
           (loop (cdr rest) pad-right pad-char rel (car rest))))))
+
+  (: clean-nr (string -> string))
+  (define (clean-nr str)
+    (let ((i (string-index str #\/)))
+      (if i (string-take str i) str)))
 
   (define (format-artist track len)
     (track-artist track))
@@ -380,7 +385,7 @@
   (define (code-spec-valid? spec)
     (let-values (((code rest) (parend-split spec #\[ #\])))
       (handle-exceptions e
-        (begin (scmus-error-set! e) #f)
+        (begin (scmus-error e) #f)
         (read (open-input-string (list->string code)))
         rest)))
 

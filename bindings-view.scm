@@ -51,7 +51,7 @@
   (let ((text    (text-input-get-text widget))
         (context (binding-row-context (widget-parent widget)))
         (keys    (key-list-keys (binding-row-keys (widget-parent widget)))))
-    (handle-exceptions e (begin (scmus-error-set! e) #f)
+    (handle-exceptions e (begin (scmus-error e) #f)
       (unbind! keys context)
       (make-binding! keys context (with-input-from-string text read)))))
 

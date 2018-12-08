@@ -18,10 +18,6 @@
 (import drewt.ncurses)
 (import scmus.base scmus.format scmus.option scmus.tui scmus.widgets)
 
-(: separator? (* -> boolean))
-(define (separator? row)
-  (and (pair? row) (eqv? (car row) 'separator)))
-
 (define (alist->kv-rows alist)
   (map (lambda (pair)
          `(key-value . ((key   . ,(car pair))
@@ -40,8 +36,6 @@
            (selected (= row-pos (window-sel-pos window)))
            (marked (member row-pos (window-marked window))))
       (cond
-        ((separator? row)       CURSED-WIN-TITLE)
-        ((eqv? row 'separator)  CURSED-WIN-TITLE)
         ((and current selected) CURSED-WIN-CUR-SEL)
         (current                CURSED-WIN-CUR)
         (selected               CURSED-WIN-SEL)

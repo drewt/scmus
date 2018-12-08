@@ -44,8 +44,6 @@
 (define root-widget (make-frame 'body view-widget
                                 'footer foot-pile))
 
-;(define *current-search-query* #f)
-;(define (current-search-query) *current-search-query*)
 (define current-search-query (make-parameter #f))
 
 ;; If an operation is likely to stall the UI, then this macro can be used to
@@ -81,7 +79,7 @@
 (: curses-update thunk)
 (define (curses-update)
   (let ((err (handle-events!)))
-    (if err (scmus-error-set! err)))
+    (if err (scmus-error err)))
   (update-ui root-widget))
 
 (define (get-color-option name)
@@ -109,7 +107,7 @@
 (define (init-curses)
   (init-ui root-widget)
   (update-colors!)
-  (ui-initialized!)
+  (ui-initialized? #t)
   (init-views!)
   (set-view! 'queue)
   (draw-ui root-widget))
@@ -141,12 +139,10 @@
          (make-text line 'cursed CURSED-WIN))
        (string-split-lines (scmus-error))))
 
-(define *error-window*
-  (make-window 'data   (make-error-rows)
-               'cursed CURSED-WIN))
+(define *error-text* (make-text "" 'cursed CURSED-WIN))
 
 (define-view error
-  (make-frame 'body   *error-window*
+  (make-frame 'body   *error-text*
               'header (make-text " Error" 'cursed CURSED-WIN-TITLE)))
 
 (define-event-handler (current-track-changed) ()
@@ -159,8 +155,7 @@
   (set! (format-text-data status-line) (current-track)))
 
 (define-event-handler (error-changed) ()
-  (set! (window-data *error-window*)
-    (make-error-rows)))
+  (set! (text-text *error-text*) (scmus-error)))
 
 (define-event-handler color-changed () update-colors!)
 

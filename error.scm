@@ -15,23 +15,22 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.error (scmus-error scmus-error-set!)
-  (import scmus.base scmus.command-line scmus.event)
+(module scmus.error (scmus-error)
+  (import scmus.base
+          scmus.command-line
+          scmus.event)
 
-  (: *scmus-error* string)
-  (define *scmus-error* "")
-
-  (: scmus-error (-> string))
-  (define (scmus-error) *scmus-error*)
-
-  (: scmus-error-set! (condition -> undefined))
-  (define (scmus-error-set! error)
-    (let ((out (open-output-string)))
-      (pretty-print (condition->list error) out)
-      (verbose-printf "~a~n"(get-output-string out))
-      (set! *scmus-error* (get-output-string out)))
-    (if ((condition-predicate 'exn) error)
-      (command-line-print-error!
-        (format "~a: ~s" (get-condition-property error 'exn 'message)
-                         (get-condition-property error 'exn 'arguments))))
-    (register-event! 'error-changed)))
+  (define scmus-error
+    (make-parameter #f
+      (lambda (error)
+        (if (not error)
+          ""
+          (let ((out (open-output-string)))
+            (pretty-print (condition->list error) out)
+            (verbose-printf "~a~n" (get-output-string out))
+            (if ((condition-predicate 'exn) error)
+              (command-line-print-error!
+                (format "~a: ~s" (get-condition-property error 'exn 'message)
+                                 (get-condition-property error 'exn 'arguments))))
+            (register-event! 'error-changed)
+            (get-output-string out)))))))
