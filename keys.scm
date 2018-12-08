@@ -44,6 +44,7 @@
                     key-list->string
                     make-binding!
                     normal-mode-key
+                    register-context!
                     unbind!)
 
   (import srfi-69)
@@ -56,18 +57,17 @@
 
   ;; alist associating key-contexts with binding alists
   (: *bindings* (list-of (pair symbol binding-list)))
-  (define *bindings*
-    (map (lambda (x) (cons x '())) (cons 'common *view-names*)))
-
-  ;; evil global state
-  (: *current-context* (or boolean binding-list))
-  (define *current-context* #f)
-
-  (: *common-context* (or boolean binding-list))
-  (define *common-context* #f)
+  (define *bindings* '((common)))
 
   (: bindings (-> (list-of (pair symbol binding-list))))
   (define (bindings) *bindings*)
+
+  (define (register-context! name)
+    (set! *bindings* (alist-update! name '() *bindings*)))
+
+  (define current-context (make-parameter #f))
+
+  (define common-context (make-parameter #f))
 
   (: binding-expression? (* -> boolean))
   (define (binding-expression? binding)
@@ -199,30 +199,30 @@
 
   (: binding-context-valid? (symbol -> boolean))
   (define (binding-context-valid? context)
-    (memv context (cons 'common *view-names*)))
+    (memv context (map car *bindings*)))
 
   ;; Abandons the current key context.
   (: clear-context! thunk)
   (define (clear-context!)
-    (set! *current-context* #f)
-    (set! *common-context* #f))
+    (current-context #f)
+    (common-context #f))
 
   ;; Begins a new key context.  This can be delayed until a key is
   ;; pressed so that new bindings and view changes are taken into
   ;; account.
   (: start-context! (symbol -> undefined))
   (define (start-context! view)
-    (set! *current-context* (alist-ref view *bindings*))
-    (set! *common-context* (alist-ref 'common *bindings*)))
+    (current-context (alist-ref view *bindings*))
+    (common-context (alist-ref 'common *bindings*)))
 
-  (: handle-user-key (symbol fixnum -> undefined))
-  (define (handle-user-key view key)
-    (if (not *current-context*)
+  (: normal-mode-key (symbol fixnum -> undefined))
+  (define (normal-mode-key view key)
+    (if (not (current-context))
       (start-context! view))
     (let ((keystr (key->string key)))
       (if keystr
-        (let ((view-binding (get-binding keystr *current-context*))
-              (common-binding (get-binding keystr *common-context*))) 
+        (let ((view-binding (get-binding keystr (current-context)))
+              (common-binding (get-binding keystr (common-context)))) 
           (cond
             ((binding-expression? view-binding)
               (user-eval (cdr view-binding))
@@ -232,20 +232,10 @@
               (clear-context!))
             ((or (list? view-binding)
                  (list? common-binding))
-              (set! *current-context* (if view-binding view-binding '()))
-              (set! *common-context* (if common-binding common-binding '())))
+              (current-context (if view-binding view-binding '()))
+              (common-context (if common-binding common-binding '())))
             (else ; no binding
               (clear-context!)))))))
-
-  (: normal-mode-key (symbol fixnum -> undefined))
-  (define (normal-mode-key view key)
-    (case key
-      ; TODO: document whatever is going on here, or else remove it
-      ((KEY_UP #f))
-      ((KEY_DOWN #f))
-      ((KEY_LEFT #f))
-      ((KEY_RIGHT #f))
-      (else (handle-user-key view key))))
 
   (: find-key-code (string -> (or fixnum boolean)))
   (define (find-key-code name)

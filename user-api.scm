@@ -18,7 +18,7 @@
 (import drewt.ncurses)
 (import scmus.base scmus.client scmus.command scmus.command-line scmus.config
         scmus.ueval scmus.event scmus.format scmus.keys scmus.option
-        scmus.status scmus.track scmus.window)
+        scmus.status scmus.track scmus.tui scmus.widgets)
 
 (define-syntax export/user
   (syntax-rules ()
@@ -137,7 +137,7 @@
   (command-line-print-info! (clean-text (format #f "~a" arg)))
   arg)
 
-(define+user (enter-eval-mode)
+(define+user (enter-eval-mode #!optional (text "") (cursor-pos 0))
   "Set the input mode to eval-mode"
   (command-line-get-string 'eval
     (lambda (s)
@@ -146,17 +146,25 @@
           (if (and (not (condition? r))
                    (not (eqv? r (void)))
                    (get-option 'eval-mode-print))
-            (command-line-print-info! (format "~s" r))))))))
+            (command-line-print-info! (format "~s" r))))))
+    text
+    cursor-pos))
 
-(define/user (enter-command-mode)
+(define/user (enter-command-mode #!optional (text "") (cursor-pos 0))
   "Set the input mode to command-mode"
   (command-line-get-string 'command
     (lambda (s)
-      (when s (run-command s)))))
+      (when s (run-command s)))
+    text
+    cursor-pos))
 
 (define/user (exit)
   "Exit the program"
   (scmus-exit 0))
+
+(define/user get-environment-variable
+  "Get the value of an environment variable"
+  get-environment-variable)
 
 (define/user get-option
   "Get the value of a configuration option"
@@ -241,13 +249,6 @@
 (define/user prev!
   "Play the previous track in the queue"
   (return-void scmus-prev!))
-
-(define/user (push! str #!optional index)
-  "Push a string onto the command line"
-  (enter-eval-mode)
-  (command-line-text-set! str)
-  (when index
-    (command-line-cursor-pos-set! index)))
 
 (define/user queue-delete!
   "Delete a track from the queue"
@@ -338,14 +339,14 @@
   "Set the volume"
   (return-void set-volume!))
 
-(define/user (shell! command . args)
+(define+user (shell! command . args)
   "Run a shell command"
   (process-fork
     (lambda ()
       (handle-exceptions exn (void)
         (process-execute command args)))))
 
-(define/user (shell-sync! command . args)
+(define+user (shell-sync! command . args)
   "Run a shell command synchronously"
   (nth-value 2 (process-wait (apply shell! command args))))
 
@@ -353,6 +354,47 @@
   "Run a shell command synchronously, with curses off"
   (without-curses
     (apply shell-sync! command args)))
+
+;; Spawn a shell command, capturing STDOUT and STDERR as input ports.
+;; XXX: the returned ports MUST be closed by the caller.
+(define (async-shell! command . args)
+  (let-values (((stdout-in stdout-out) (create-pipe))
+               ((stderr-in stderr-out) (create-pipe)))
+    (let ((child (process-fork
+                   (lambda ()
+                     (duplicate-fileno stdout-out fileno/stdout)
+                     (duplicate-fileno stderr-out fileno/stderr)
+                     (file-close stdout-out)
+                     (file-close stderr-out)
+                     (file-close stdout-in)
+                     (file-close stderr-in)
+                     (handle-exceptions exn (void)
+                       (process-execute command args)))))
+          (stdout-in-port (open-input-file* stdout-in))
+          (stderr-in-port (open-input-file* stderr-in)))
+      (file-close stdout-out)
+      (file-close stderr-out)
+      (values child stdout-in-port stderr-in-port))))
+
+;; Wrapper for ASYNC-SHELL! that automatically closes pipes.
+(define (call-with-shell proc command . args)
+  (let-values (((pid stdout stderr) (apply async-shell! command args)))
+    (let ((ret (proc pid stdout stderr)))
+      (file-close (port->fileno stdout))
+      (file-close (port->fileno stderr))
+      ret)))
+
+(define/user (shell!/capture-stdout command . args)
+  "Run a shell command, returning the contents of standard output as a string"
+  (apply call-with-shell
+    (lambda (pid stdout stderr)
+      (with-output-to-string
+        (lambda ()
+          (let loop ()
+            (unless (eof-object? (peek-char stdout))
+              (write-char (read-char stdout))
+              (loop))))))
+    command args))
 
 (define/user shuffle!
   "Shuffle the queue"
@@ -486,102 +528,89 @@
 
 (define/user (win-move! n #!optional relative)
   "Move the cursor up or down"
-  (window-move-cursor! (current-window) n relative))
+  (widget-move (widget-focus view-widget) n relative))
 
-(define/user win-bottom!
+(define/user (win-bottom!)
   "Move the cursor to the bottom of the window"
-  (thunk (window-move-bottom! (current-window))))
+  (widget-move-bottom (widget-focus view-widget)))
 
-(define/user win-top!
+(define/user (win-top!)
   "Move the cursor to the top of the window"
-  (thunk (window-move-top! (current-window))))
+  (widget-move-top (widget-focus view-widget)))
 
-(define/user win-activate!
+(define/user (win-activate!)
   "Activate the row at the cursor"
-  (thunk (window-activate! (current-window))))
+  (widget-activate (widget-focus view-widget)))
 
-(define/user win-deactivate!
+(define/user (win-deactivate!)
   "Deactivate the window"
-  (thunk (window-deactivate! (current-window))))
+  (widget-deactivate (widget-focus view-widget)))
 
-(define/user win-add!
+(define/user (win-add!)
   "Add the selected row"
-  (thunk (view-add! (current-view))))
+  (widget-add (widget-focus view-widget)))
 
-(define/user win-remove!
+(define/user (win-remove!)
   "Remove the selected row"
-  (thunk (view-remove! (current-view))))
+  (widget-remove (widget-focus view-widget)))
 
-(define/user win-clear!
+(define/user (win-clear!)
   "Clear the current window"
-  (thunk (view-clear! (current-view))))
+  (widget-clear (widget-focus view-widget)))
 
 (define/user (win-move-tracks! #!optional (before #f))
   "Move the marked tracks to the cursor"
-  (view-move! (current-view) before))
-
-(define/user win-next!
-  "Switch to the next window in the current view"
-  (thunk (view-next! (current-view))))
-
-(define/user win-prev!
-  "Switch to the previous window in the current view"
-  (thunk (view-prev! (current-view))))
+  (widget-paste (widget-focus view-widget) before))
 
 (: enter-search-mode thunk)
-(define/user (enter-search-mode)
+(define/user (enter-search-mode #!optional (text "") (cursor-pos 0))
   "Set the input mode to search-mode"
   (command-line-get-string 'search
     (lambda (s)
-      (when s (window-search! (current-window) s)))))
+      (when s
+        (current-search-query s)
+        (widget-search (widget-focus view-widget) s #f)))
+    text
+    cursor-pos))
 
-(define/user (win-search! query)
+(define+user (win-search! query)
   "Search the current window"
-  (window-search! (current-window) query))
+  (current-search-query query)
+  (widget-search (widget-focus view-widget)
+                 (current-search-query)
+                 #f))
 
-(define/user win-search-next!
+(define+user (win-search-next!)
   "Move the cursor to the next search result"
-  (thunk (window-search-next! (current-window))))
+  (widget-search (widget-focus view-widget)
+                 (current-search-query)
+                 #f))
 
-(define/user win-search-prev!
+(define+user (win-search-prev!)
   "Move the cursor to the previous search result"
-  (thunk (window-search-prev! (current-window))))
+  (widget-search (widget-focus view-widget)
+                 (current-search-query)
+                 #t))
 
-(define/user win-edit!
+(define/user (win-edit!)
   "Edit the selected row"
-  (thunk (view-edit! (current-view))))
+  (widget-edit (widget-focus view-widget)))
 
-(define/user win-sel-pos
-  "Get the position of the cursor"
-  (lambda () (window-sel-pos (current-window))))
-
-(define/user win-selected
-  "Get the selected row"
-  (lambda () (window-selected (current-window))))
-
-(define/user win-mark!
+(define/user (win-mark!)
   "Mark the selected row"
-  (thunk (window-mark! (current-window))))
+  (widget-mark (widget-focus view-widget)))
 
-(define/user win-unmark!
+(define/user (win-unmark!)
   "Unmark the selected row"
-  (thunk (window-unmark! (current-window))))
+  (widget-unmark (widget-focus view-widget)))
 
-(define/user win-toggle-mark!
+(define/user (win-toggle-mark!)
   "Toggle the marked status of the selected row"
-  (thunk (window-toggle-mark! (current-window))))
+  (widget-toggle-mark (widget-focus view-widget)))
 
 (define/user win-clear-marked!
   "Unmark all marked rows"
-  (return-void win-clear-marked!))
-
-(define/user *win-marked
-  "Get the marked rows, excluding the selected row"
-  (lambda () (*window-marked (current-window))))
-
-(define/user win-marked
-  "Get the marked rows, including the selected row"
-  (lambda () (window-marked (current-window))))
+  (widget-clear-marked (widget-focus view-widget)))
 
 (define/user write-config!
   "Write the current configuration settings to a file"

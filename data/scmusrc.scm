@@ -64,9 +64,9 @@
 
 (bind! "enter" 'common '(win-activate!) #t)
 
-;; push! shortcuts
-(bind! "(" 'common '(push! "()" -1) #t)
-(bind! "!" 'common '(push! "(shell! )" -1) #t)
+;; enter-eval-mode shortcuts
+(bind! "(" 'common '(enter-eval-mode "()" 1) #t)
+(bind! "!" 'common '(enter-eval-mode "(shell! )" 8) #t)
 
 ;; library view
 (bind! "h"     'library '(win-deactivate!) #t)

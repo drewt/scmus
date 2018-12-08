@@ -67,11 +67,11 @@
               (lambda () local)
               (lambda (x) (set! local x))))))))
 
-  (define/getter-setter current-status '())
-  (define/getter-setter current-stats '())
-  (define/getter-setter current-track '())
-  (define/getter-setter current-queue '())
-  (define/getter-setter current-connection #f)
+  (define current-status (make-parameter '()))
+  (define current-stats (make-parameter '()))
+  (define current-track (make-parameter '()))
+  (define current-queue (make-parameter '()))
+  (define current-connection (make-parameter #f))
 
   (: current-track? (track -> boolean))
   (define (current-track? track)
@@ -145,8 +145,8 @@
 
   (: scmus-elapsed-tick! (number -> undefined))
   (define (scmus-elapsed-tick! n)
-    (set! (current-status) (alist-update 'elapsed (+ (scmus-elapsed) n)
-                                         (current-status))))
+    (current-status (alist-update 'elapsed (+ (scmus-elapsed) n)
+                                  (current-status))))
 
   (stat-selector scmus-uptime 'uptime)
   (stat-selector scmus-playtime 'playtime)

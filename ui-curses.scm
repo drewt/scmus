@@ -15,186 +15,36 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension coops)
+(declare (export connect!
+                 current-search-query
+                 curses-update
+                 exit-curses
+                 init-curses))
 
-(declare (export current-view current-window curses-update cursor-off cursor-on
-                 exit-curses get-window init-curses redraw-ui set-view!
-                 connect!))
+(import drewt.ncurses
+        scmus.base
+        scmus.client
+        scmus.command-line
+        scmus.error
+        scmus.event
+        scmus.format
+        scmus.keys
+        scmus.option
+        scmus.status
+        scmus.tui
+        scmus.widgets)
 
-(import drewt.ncurses)
-(import scmus.base scmus.client scmus.command-line scmus.editable scmus.error
-        scmus.event scmus.format scmus.input scmus.keys scmus.option
-        scmus.status scmus.window)
+(define current-line (make-format-text (get-format 'format-current)
+                                       (current-track)
+                                       'cursed CURSED-TITLELINE))
+(define status-line (make-format-text (get-format 'format-status)
+                                      (current-track)
+                                      'cursed CURSED-STATUSLINE))
+(define foot-pile (make-pile (list current-line status-line command-line-widget)))
+(define root-widget (make-frame 'body view-widget
+                                'footer foot-pile))
 
-(define *current-view* 'queue)
-
-;; windows {{{
-
-(: get-window (symbol -> window))
-(define (get-window view-name)
-  (view-window (alist-ref view-name *views*)))
-
-(: current-view (-> view))
-(define (current-view)
-  (alist-ref *current-view* *views*))
-
-(: current-window (-> window))
-(define (current-window)
-  (get-window *current-view*))
-
-(: current-view? (symbol -> boolean))
-(define (current-view? view-name)
-  (eqv? view-name *current-view*))
-
-(: set-view! (symbol -> undefined))
-(define (set-view! view-name)
-  (when (memv view-name *view-names*)
-    (set! *current-view* view-name)
-    (widget-damaged! (get-view view-name))))
-
-;; windows }}}
-;; screen updates {{{
-
-(: print-view! (view -> undefined))
-(define (print-view! view)
-  (when (> (LINES) 3)
-    (print-widget! view 0 0 (COLS) (- (LINES) 3))))
-
-(define-method (print-widget! (view <view>) x y cols rows)
-  (print-line! (scmus-format (view-title-fmt view) cols (view-title-data view))
-               x
-               y
-               cols
-               CURSED-WIN-TITLE)
-  (when (> rows 1)
-    (print-widget! (view-widget view) x (+ 1 y) cols (- rows 1))))
-
-(define-method (print-widget! (separator <separator>) x y cols rows)
-  (let loop ((row y))
-    (when (< (- row y) rows)
-      (move row x)
-      (let loop ((col 0))
-        (when (< col cols)
-          (addch (separator-char separator))
-          (loop (+ col 1))))
-      (loop (+ row 1)))))
-
-(define-method (print-widget! (container <container>) x y cols rows)
-  (define (adjust-positions layout)
-    (append (list (car layout)
-                  (+ x (cadr layout))
-                  (+ y (caddr layout)))
-            (cdddr layout)))
-  (for-each (lambda (child)
-              (apply print-widget! (adjust-positions child)))
-            (compute-layout container cols rows)))
-
-(define-method (print-widget! (window <window>) x y cols rows)
-  (let loop ((data (window-top window))
-             (lines rows))
-    (when (> lines 0)
-      (let ((line-nr (+ y (- rows lines))))
-        (if (null? data)
-          (begin
-            (cursed-set! CURSED-WIN)
-            (print-line! "" x line-nr cols CURSED-WIN))
-          (let ((cursed (window-cursed window (car data) line-nr)))
-            (print-line! (window-print-line window (car data) cols)
-                         x
-                         line-nr
-                         cols
-                         cursed)))
-        (loop (if (null? data) '() (cdr data)) (- lines 1))))))
-
-(: print-line! (string fixnum fixnum fixnum fixnum -> undefined))
-(define (print-line! str col line nr-cols cursed)
-  (move line col)
-  (cursed-set! cursed)
-  (let ((written (format-addstr! (string-truncate str nr-cols) cursed)))
-    (when (< written nr-cols)
-      (addstr (make-string (- nr-cols written) #\space)))))
-
-(: update-current-line thunk)
-(define (update-current-line)
-  (when (> (LINES) 2)
-    (cursed-set! CURSED-TITLELINE)
-    (print-line! (scmus-format (get-format 'format-current)
-                               (COLS)
-                               (current-track))
-                 0
-                 (- (LINES) 3)
-                 (COLS)
-                 CURSED-TITLELINE)))
-
-(: update-status-line thunk)
-(define (update-status-line)
-  (when (> (LINES) 1)
-    (cursed-set! CURSED-STATUSLINE)
-    (print-line! (scmus-format (get-format 'format-status)
-                               (COLS)
-                               (current-track))
-                 0
-                 (- (LINES) 2)
-                 (COLS)
-                 CURSED-STATUSLINE)))
-
-(: update-status thunk)
-(define (update-status)
-  (set! (window-data (get-window 'status)) (alist->kv-rows (current-status)))
-  (update-status-line))
-
-(: update-current thunk)
-(define (update-current)
-  (update-current-line))
-
-(: update-command-line thunk)
-(define (update-command-line)
-  (when (> (COLS) 1)
-   (let ((cursed (case (command-line-mode)
-                  ((info)  CURSED-INFO)
-                  ((error) CURSED-ERROR)
-                  (else    CURSED-CMDLINE))))
-    (cursed-set! cursed)
-    (move (- (LINES) 1) 0)
-    (clrtoeol)
-    (addch (case (command-line-mode)
-             ((eval)    #\$)
-             ((search)  #\/)
-             ((command) #\:)
-             (else #\space)))
-    (format-addstr! (string-truncate (command-line-text)
-                                     (- (COLS) 2))
-                    cursed))))
-
-(: update-db thunk)
-(define (update-db)
-  (scmus-update-stats!))
-
-(: update-cursor thunk)
-(define (update-cursor)
-  (if (current-editable)
-    (let ((pos (cursor-pos)))
-      (move (car pos) (cdr pos)))))
-
-(define (update-current-view!)
-  (let ((view (current-view)))
-    (when (widget-damaged view)
-      (print-view! view)
-      (set! (widget-damaged view) #f))))
-
-(: redraw-ui thunk)
-(define (redraw-ui)
-  (define (update-geometry view)
-    (widget-geometry-set! (view-widget (cdr view))
-                          (max 0 (- (COLS) 2))
-                          (max 0 (- (LINES) 4))))
-  (for-each update-geometry *views*)
-  (print-view! (alist-ref *current-view* *views*))
-  (update-current)
-  (update-status)
-  (update-command-line))
-
-;; screen updates }}}
+(define current-search-query (make-parameter #f))
 
 ;; If an operation is likely to stall the UI, then this macro can be used to
 ;; inform the user about what is going on during that time.
@@ -205,7 +55,7 @@
 
 (define (call-with-info-message message thunk)
   (command-line-print-info! message)
-  (update-command-line)
+  (reprint-widget! command-line-widget)
   (refresh)
   (let ((retval (thunk)))
     (when (string=? (command-line-text) message)
@@ -226,76 +76,90 @@
     (with-info-message (format "Connecting to ~a:~a..." host port)
       (scmus-connect! host port pass))))
 
-(: handle-key (symbol fixnum -> undefined))
-(define (handle-key view key)
-  (cond
-    ((= key KEY_RESIZE) (redraw-ui))
-    (else
-      (case (input-mode)
-        ((normal-mode) (normal-mode-key view key))
-        ((edit-mode)   (editable-key (current-editable) key))))))
-
-(: handle-char (symbol char -> undefined))
-(define (handle-char view ch)
-  (case (input-mode)
-    ((normal-mode) (normal-mode-key view ch))
-    ((edit-mode)   (editable-char (current-editable) ch))))
-
-(: handle-input (symbol -> undefined))
-(define (handle-input view)
-  (let-values (((ch rc) (get-char)))
-    (cond
-      ((= rc KEY_CODE_YES) (handle-key view ch))
-      ((= rc ERR) #f)
-      (else (handle-char view (integer->char ch))))))
-
 (: curses-update thunk)
 (define (curses-update)
   (let ((err (handle-events!)))
-    (if err (scmus-error-set! err)))
-  (update-current-view!)
-  (update-cursor)
-  (handle-input *current-view*))
+    (if err (scmus-error err)))
+  (update-ui root-widget))
+
+(define (get-color-option name)
+  (let ((option (get-option name)))
+    (assert (list? option))
+    (list (attr->number (car option))
+          (safe-color->number (cadr option))
+          (safe-color->number (caddr option)))))
+
+ (define (update-colors!)
+  (palette-set!
+    `((,CURSED-CMDLINE     . ,(get-color-option 'color-cmdline))
+      (,CURSED-ERROR       . ,(get-color-option 'color-error))
+      (,CURSED-INFO        . ,(get-color-option 'color-info))
+      (,CURSED-STATUSLINE  . ,(get-color-option 'color-statusline))
+      (,CURSED-TITLELINE   . ,(get-color-option 'color-titleline))
+      (,CURSED-WIN         . ,(get-color-option 'color-win))
+      (,CURSED-WIN-CUR     . ,(get-color-option 'color-win-cur))
+      (,CURSED-WIN-CUR-SEL . ,(get-color-option 'color-win-cur-sel))
+      (,CURSED-WIN-SEL     . ,(get-color-option 'color-win-sel))
+      (,CURSED-WIN-MARKED  . ,(get-color-option 'color-win-marked))
+      (,CURSED-WIN-TITLE   . ,(get-color-option 'color-win-title)))))
 
 (: init-curses thunk)
 (define (init-curses)
-  (initscr)
-  (ui-initialized!)
-  (cbreak)
-  (keypad (stdscr) #t)
-  (halfdelay 5)
-  (noecho)
-  (when (has_colors)
-    (start_color)
-    (use_default_colors))
+  (init-ui root-widget)
   (update-colors!)
+  (ui-initialized? #t)
   (init-views!)
-  (redraw-ui)
-  (set-input-mode! 'normal-mode))
+  (set-view! 'queue)
+  (draw-ui root-widget))
 
 (: exit-curses thunk)
 (define (exit-curses)
   (handle-exceptions exn (void)
     (endwin)))
 
-(define-view status
-  (make-view (make-window 'data (alist->kv-rows (current-status))
-                          'format *key-value-format*)
-             " MPD Status"))
+(define (make-status-rows)
+  (map (lambda (pair)
+         (make-window-row `((key   . ,(car pair))
+                            (value . ,(cdr pair)))
+                          'key-value
+                          (lambda (_) *key-value-format*)))
+       (current-status)))
 
-(define (list->rows lines)
-  (map (lambda (line) `(row . ((text . ,line)))) lines))
+(define *status-window*
+  (make-window 'data (make-status-rows)
+               'cursed CURSED-WIN
+               'cursed-fn (win-cursed-fn)))
+
+(define-view status
+  (make-frame 'body   *status-window*
+              'header (make-text " MPD Status" 'cursed CURSED-WIN-TITLE)))
+
+(define (make-error-rows)
+  (map (lambda (line)
+         (make-text line 'cursed CURSED-WIN))
+       (string-split-lines (scmus-error))))
+
+(define *error-text* (make-text "" 'cursed CURSED-WIN))
 
 (define-view error
-  (make-view (make-window 'data (list->rows (string-split-lines (scmus-error))))
-             " Error"))
+  (make-frame 'body   *error-text*
+              'header (make-text " Error" 'cursed CURSED-WIN-TITLE)))
 
-(define-event-handler command-line-changed () update-command-line)
-(define-event-handler current-line-changed () update-current)
-(define-event-handler color-changed () update-colors!)
-(define-event-handler format-changed () redraw-ui)
-(define-event-handler db-changed () update-db)
-(define-event-handler status-changed () update-status)
+(define-event-handler (current-track-changed) ()
+  (set! (format-text-format current-line) (get-format 'format-current))
+  (set! (format-text-data current-line) (current-track)))
+
+(define-event-handler (status-changed) ()
+  (set! (window-data *status-window*) (make-status-rows))
+  (set! (format-text-format status-line) (get-format 'format-status))
+  (set! (format-text-data status-line) (current-track)))
+
 (define-event-handler (error-changed) ()
-  (set! (window-data (get-window 'error))
-    (list->rows (string-split-lines (scmus-error)))))
+  (set! (text-text *error-text*) (scmus-error)))
+
+(define-event-handler color-changed () update-colors!)
+
+(define-event-handler db-changed () scmus-update-stats!)
+
+(define-event-handler (format-changed) ()
+  (draw-ui root-widget))

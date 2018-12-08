@@ -108,11 +108,11 @@
   (: scmus-connect! (string (or boolean fixnum) (or boolean string) -> boolean))
   (define (scmus-connect! host port pass)
     (handle-exceptions e
-      (begin (scmus-error-set! e) #f)
+      (begin (scmus-error e) #f)
       (let ((con (mpd:connect host port pass)))
         (if (scmus-connected?)
           (mpd:disconnect (current-connection)))
-        (set! (current-connection) con)
+        (current-connection con)
         (do-full-update)
         (register-event! 'db-changed)
         #t)))
@@ -145,12 +145,12 @@
   (: scmus-try-reconnect thunk)
   (define (scmus-try-reconnect)
     (condition-case
-      (begin (set! (current-connection) (mpd:reconnect (current-connection))) #t)
-      (e () (scmus-error-set! e) #f)))
+      (begin (current-connection (mpd:reconnect (current-connection))) #t)
+      (e () (scmus-error e) #f)))
 
   (: scmus-update-stats! thunk)
   (define (scmus-update-stats!)
-    (set! (current-stats) (scmus-stats)))
+    (current-stats (scmus-stats)))
 
   (: scmus-update-status! thunk)
   (define (scmus-update-status!)
@@ -159,7 +159,7 @@
       (when (and (alist-ref 'updating_db old-status)
                  (not (alist-ref 'updating_db new-status)))
         (register-event! 'db-changed))
-      (set! (current-status) new-status)
+      (current-status new-status)
       (register-event! 'status-changed)
       (unless (= (alist-ref 'songid old-status eqv? -1)
                  (alist-ref 'songid new-status eqv? -1))
@@ -168,13 +168,13 @@
 
   (: scmus-update-current-song! thunk)
   (define (scmus-update-current-song!)
-    (set! (current-track) (scmus-current-song))
+    (current-track (scmus-current-song))
     (register-event! 'queue-changed)
-    (register-event! 'current-line-changed))
+    (register-event! 'current-track-changed))
 
   (: scmus-update-queue! thunk)
   (define (scmus-update-queue!)
-    (set! (current-queue) (scmus-playlist-info))
+    (current-queue (scmus-playlist-info))
     (register-event! 'queue-data-changed))
 
   (: do-full-update thunk)
@@ -186,7 +186,7 @@
           (scmus-update-current-song!))
         (unless (= version (scmus-queue-version))
           (scmus-update-queue!)))
-      (e () (scmus-error-set! e)
+      (e () (scmus-error e)
             (scmus-try-reconnect))))
 
   ;; Status update timer.  Ticks every 0.5 seconds.  Does a full status update
@@ -207,14 +207,14 @@
   (: scmus-bail! (* -> null))
   (define (scmus-bail! e)
     (scmus-disconnect!)
-    (scmus-error-set! e)
+    (scmus-error e)
     '())
 
   (: *scmus-command ((mpd-connection #!rest * -> *) #!rest * -> list))
   (define (*scmus-command mpd-fn . args)
     (if (scmus-connected?)
       (condition-case (apply mpd-fn (current-connection) args)
-        (e () (scmus-error-set! e)
+        (e () (scmus-error e)
               (unless (scmus-try-reconnect)
                 (scmus-disconnect!))
               '()))

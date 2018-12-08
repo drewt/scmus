@@ -58,8 +58,13 @@
 (module scmus.command (define-command
                        register-command!
                        run-command)
-  (import ports srfi-69)
-  (import scmus.base scmus.command-line scmus.error scmus.ueval scmus.event)
+  (import ports
+          srfi-69
+          scmus.base
+          scmus.command-line
+          scmus.error
+          scmus.ueval
+          scmus.event)
 
   (define *commands* (make-hash-table test: string=?
                                       hash: string-hash))
@@ -140,8 +145,11 @@
               (command-line-print-error! (format "Unknown command: ~s" (car cmd))))))))
     (condition-case (*run-command)
       (e (exn syntax)
+        (scmus-error e)
         (command-line-print-error! (format "Read error: ~a" (exn-message e))))
       (e (exn sandbox)
+        (scmus-error e)
         (command-line-print-error! (format "Error during eval: ~a" (exn-message e))))
       (e (exn)
+        (scmus-error e)
         (command-line-print-error! (format "Error: ~a" (exn-message e)))))))
