@@ -15,8 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (export make-options-view option-edit!))
-
 (import drewt.ncurses)
 (import scmus.base
         scmus.error
@@ -29,10 +27,6 @@
 (: option-changed! thunk)
 (define (option-changed!)
   (widget-damaged! (get-view 'options)))
-
-(: option-edit! (window -> undefined))
-(define (option-edit! window)
-  (text-input-begin (split-pane-right-child (window-selected window)) steal-focus: #t))
 
 (define (option-commit-edit! widget)
   (let ((text (text-input-get-text widget)))
@@ -50,16 +44,25 @@
                                            'on-commit option-commit-edit!)))
        (options)))
 
+(define-class <options-window> (<window>))
+
+(define-method (widget-edit (window <options-window>))
+  (unless (window-empty? window)
+    (text-input-begin (split-pane-right-child (window-selected window)) steal-focus: #t)))
+
+(define-method (widget-activate (window <options-window>))
+  (widget-edit window))
+
+(define *options-window*
+  (make <options-window>
+        'data       (make-options-data)
+        'format     *key-value-format*
+        'cursed     CURSED-WIN
+        'cursed-fn (win-cursed-fn)))
+
 (define-view options
-  (make-frame 'body   (make-window 'data       (make-options-data)
-                                   'activate   option-edit!
-                                   'edit       option-edit!
-                                   'format     *key-value-format*
-                                   'cursed     CURSED-WIN
-                                   'cursed-fn (win-cursed-fn))
+  (make-frame 'body   *options-window*
               'header (make-text " Options" 'cursed CURSED-WIN-TITLE)))
 
 (define-event-handler (option-data-changed) ()
-  (let ((window (get-window 'options)))
-    (set! (window-data window)
-      (make-options-data))))
+  (set! (window-data *options-window*) (make-options-data)))

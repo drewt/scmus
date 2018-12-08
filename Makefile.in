@@ -86,7 +86,7 @@ ui-lib_deps         = base format ncurses option tui widgets
 user-api_deps       = base client command command-line config ueval event format \
                       keys ncurses option status track tui widgets
 view_deps           = base tui keys widgets
-widgets_deps        = base format tui
+widgets_deps        = base format track tui
 tui_deps            = $(tui_mods)
 tui/display_deps    = base ncurses
 tui/frame_deps      = base tui/display tui/misc tui/widget

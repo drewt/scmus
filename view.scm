@@ -80,23 +80,6 @@
 (define (get-view name)
   (widget-bag-ref view-widget name))
 
-;; FIXME: This is an ugly hack; we should not depend on there being a <window>
-;;        in the widget hierarchy.  The problem is, how else do we implement
-;;        WINDOW-MOVE, etc. for user code?
-;; IDEA:  Decouple verb from noun in WINDOW-* functions by implementing the
-;;        verbs as methods on <WIDGET>s.  Any widget that doesn't implement a
-;;        particular method can pass the message to its parent.
-(define (*get-window widget)
-  (let loop ((widget (widget-focus widget)))
-    (cond
-      ((not widget)
-        #f)
-      ((instance-of? widget <window>) widget)
-      (else (loop (widget-parent widget))))))
-
-(define (get-window view-name)
-  (*get-window (get-view view-name)))
-
 (: current-view (-> frame))
 (define (current-view)
   (widget-wrap-widget view-widget))
@@ -104,9 +87,6 @@
 (: current-view-name (-> symbol))
 (define (current-view-name)
   (widget-bag-active view-widget))
-
-(define (current-window)
-  (*get-window (current-view)))
 
 (: current-view? (symbol -> boolean))
 (define (current-view? view-name)
@@ -117,26 +97,3 @@
 (define (set-view! view-name)
   (when (widget-bag-ref view-widget view-name)
     (set! (widget-bag-active view-widget) view-name)))
-
-(: view-add! (frame -> undefined))
-(define (view-add! view)
-  (window-add! (view-window view)))
-
-(: view-remove! (frame -> undefined))
-(define (view-remove! view)
-  (window-remove! (view-window view)))
-
-(: view-clear! (frame -> undefined))
-(define (view-clear! view)
-  (window-clear! (view-window view)))
-
-(: view-edit! (frame -> undefined))
-(define (view-edit! view)
-  (window-edit! (view-window view)))
-
-(: view-move! (frame boolean -> undefined))
-(define (view-move! view before)
-  (window-move! (view-window view) before))
-
-(define (view-window view)
-  (*get-window view))

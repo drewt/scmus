@@ -15,9 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (export make-search-view search-edit! search-clear! search-add!
-                 search-remove!))
-
 (import coops-utils
         drewt.ncurses)
 (import scmus.base
@@ -30,7 +27,16 @@
 (define (search-format row)
   (get-format 'format-search-file))
 
-(define (search-activate! window)
+
+(define (make-search-field)
+  (make-text-input "" "* " 'on-commit search-field-commit!))
+
+(define (search-field-commit! widget)
+  (void))
+
+(define-class <search-window> (<window>))
+
+(define-method (widget-activate (window <search-window>))
   (define (string->tag str)
     (string->symbol (string-trim-both (string-downcase str))))
   (define (search-field->constraint w)
@@ -54,11 +60,12 @@
                                               (make-window-row track 'file search-format))
                                             results)))))
 
-(define (search-match row query)
-  (and (instance-of? row <window-row>)
-       (track-match (window-row-data row) query)))
+(define-method (widget-edit (window <search-window>))
+  (let ((selected (window-selected window)))
+    (when (instance-of? selected <text-input>)
+      (text-input-begin selected steal-focus: #t))))
 
-(define (search-add! window)
+(define-method (widget-add (window <search-window>))
   (let ((selected (window-selected window)))
     (cond
       ((instance-of? selected <text-input>)
@@ -87,7 +94,7 @@
                 (scmus-add! (track-file (window-row-data row)))))
             (window-all-selected window)))
 
-(define (search-remove! window)
+(define-method (widget-remove (window <search-window>))
   (let-values (((prev rest) (split-at (window-data window)
                                       (window-sel-pos window))))
     ; FIXME: this should remove all marked rows, not just the selected row
@@ -99,34 +106,18 @@
       ((not (instance-of? (car rest) <window-separator>))
         (set! (window-data window) (append prev (cdr rest)))))))
 
-(define (search-clear! window)
+(define-method (widget-clear (window <search-window>))
   (let loop ((data (window-data window)) (result '()))
     (if (or (null? data) (instance-of? (car data) <window-row>))
       (set! (window-data window) (reverse result))
       (loop (cdr data) (cons (car data) result)))))
 
-(define (search-edit! window)
-  (let ((selected (window-selected window)))
-    (when (instance-of? selected <text-input>)
-      (text-input-begin selected steal-focus: #t))))
-
-(define (make-search-field)
-  (make-text-input "" "* " 'on-commit search-field-commit!))
-
-(define (search-field-commit! widget)
-  (void))
-
 (define-view search
-  (make-frame 'body   (make-window 'data       (list (make-search-field)
-                                                     (make <window-separator>
-                                                           'text "Results"
-                                                           'cursed CURSED-WIN-TITLE))
-                                   'activate   search-activate!
-                                   'match      search-match
-                                   'add        search-add!
-                                   'remove     search-remove!
-                                   'clear      search-clear!
-                                   'edit       search-edit!
-                                   'cursed     CURSED-WIN
-                                   'cursed-fn  (win-cursed-fn))
+  (make-frame 'body   (make <search-window>
+                            'data       (list (make-search-field)
+                                              (make <window-separator>
+                                                    'text "Results"
+                                                    'cursed CURSED-WIN-TITLE))
+                            'cursed     CURSED-WIN
+                            'cursed-fn  (win-cursed-fn))
               'header (make-text " Search" 'cursed CURSED-WIN-TITLE)))

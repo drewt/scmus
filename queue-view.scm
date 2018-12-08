@@ -25,13 +25,23 @@
         scmus.tui
         scmus.widgets)
 
-(define (queue-activate! w)
-  (scmus-play-track! (window-row-data (window-selected w))))
+(define queue-cursed
+  (win-cursed-fn (lambda (row) (current-track? (window-row-data row)))))
 
-(define (queue-match row query)
-  (track-match (window-row-data row) query))
+(define (queue-format _)
+  (get-format 'format-queue))
 
-(define (queue-remove! window)
+(define (queue-make-rows)
+  (map (lambda (x) (make-window-row x 'file queue-format))
+       (current-queue)))
+
+(define-class <queue-window> (<window>))
+
+(define-method (widget-activate (window <queue-window>))
+  (unless (window-empty? window)
+    (scmus-play-track! (window-row-data (window-selected window)))))
+
+(define-method (widget-remove (window <queue-window>))
   (let loop ((marked (sort (window-marked window) >)))
     (unless (null? marked)
       (scmus-delete! (car marked))
@@ -39,10 +49,13 @@
   (window-clear-marked! window)
   (scmus-update-queue!))
 
-(define (queue-move! window before)
+(define-method (widget-clear (window <queue-window>))
+  (scmus-clear!))
+
+(define-method (widget-paste (window <queue-window>) before?)
   (let loop ((marked (sort (*window-marked window) <))
              (pos    (- (window-sel-pos window)
-                        (if before 1 0))))
+                        (if before? 1 0))))
     (unless (null? marked)
       (if (< (car marked) pos)
         (begin
@@ -56,30 +69,19 @@
   (window-clear-marked! window)
   (scmus-update-queue!))
 
-(define queue-cursed
-  (win-cursed-fn (lambda (row) (current-track? (window-row-data row)))))
-
-(define (queue-format _)
-  (get-format 'format-queue))
-
-(define (queue-make-rows)
-  (map (lambda (x) (make-window-row x 'file queue-format))
-       (current-queue)))
+(define *queue-window*
+  (make <queue-window>
+        'data      (queue-make-rows)
+        'cursed    CURSED-WIN
+        'cursed-fn queue-cursed))
 
 (define-view queue
   (make-frame
-    'body (make-window 'data      (queue-make-rows)
-                       'activate  queue-activate!
-                       'match     queue-match
-                       'remove    queue-remove!
-                       'clear     (lambda (w) (scmus-clear!))
-                       'move      queue-move!
-                       'cursed    CURSED-WIN
-                       'cursed-fn queue-cursed)
+    'body   *queue-window*
     'header (make-format-text " Queue - ~{queue-length} tracks" '() 'cursed CURSED-WIN-TITLE)))
 
 (define-event-handler (queue-changed) ()
   (widget-damaged! (get-view 'queue)))
 
 (define-event-handler (queue-data-changed) ()
-  (set! (window-data (get-window 'queue)) (queue-make-rows)))
+  (set! (window-data *queue-window*) (queue-make-rows)))

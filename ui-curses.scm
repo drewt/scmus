@@ -15,9 +15,11 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (export current-window curses-update cursor-off cursor-on
-                 exit-curses get-window init-curses set-view!
-                 connect!))
+(declare (export connect!
+                 current-search-query
+                 curses-update
+                 exit-curses
+                 init-curses))
 
 (import drewt.ncurses
         scmus.base
@@ -41,6 +43,10 @@
 (define foot-pile (make-pile (list current-line status-line command-line-widget)))
 (define root-widget (make-frame 'body view-widget
                                 'footer foot-pile))
+
+;(define *current-search-query* #f)
+;(define (current-search-query) *current-search-query*)
+(define current-search-query (make-parameter #f))
 
 ;; If an operation is likely to stall the UI, then this macro can be used to
 ;; inform the user about what is going on during that time.
@@ -121,20 +127,26 @@
                           (lambda (_) *key-value-format*)))
        (current-status)))
 
+(define *status-window*
+  (make-window 'data (make-status-rows)
+               'cursed CURSED-WIN
+               'cursed-fn (win-cursed-fn)))
+
 (define-view status
-  (make-frame 'body   (make-window 'data (make-status-rows)
-                                   'cursed CURSED-WIN
-                                   'cursed-fn (win-cursed-fn))
+  (make-frame 'body   *status-window*
               'header (make-text " MPD Status" 'cursed CURSED-WIN-TITLE)))
 
 (define (make-error-rows)
   (map (lambda (line)
-         (make-text (string-append " " line) 'cursed CURSED-WIN))
+         (make-text line 'cursed CURSED-WIN))
        (string-split-lines (scmus-error))))
 
+(define *error-window*
+  (make-window 'data   (make-error-rows)
+               'cursed CURSED-WIN))
+
 (define-view error
-  (make-frame 'body   (make-window 'data   (make-error-rows)
-                                   'cursed CURSED-WIN)
+  (make-frame 'body   *error-window*
               'header (make-text " Error" 'cursed CURSED-WIN-TITLE)))
 
 (define-event-handler (current-track-changed) ()
@@ -142,12 +154,12 @@
   (set! (format-text-data current-line) (current-track)))
 
 (define-event-handler (status-changed) ()
-  (set! (window-data (get-window 'status)) (make-status-rows))
+  (set! (window-data *status-window*) (make-status-rows))
   (set! (format-text-format status-line) (get-format 'format-status))
   (set! (format-text-data status-line) (current-track)))
 
 (define-event-handler (error-changed) ()
-  (set! (window-data (get-window 'error))
+  (set! (window-data *error-window*)
     (make-error-rows)))
 
 (define-event-handler color-changed () update-colors!)

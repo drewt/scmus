@@ -194,24 +194,24 @@
             (- (scmus-volume) (parse-vol (string-drop arg 1))))
           (else (parse-vol arg)))))))
 
-(define-command ("win-activate")   (window-activate! (current-window)))
-(define-command ("win-deactivate") (window-deactivate! (current-window)))
-(define-command ("win-add")        (view-add! (current-view)))
-(define-command ("win-remove")     (view-remove! (current-view)))
-(define-command ("win-clear")      (view-clear! (current-view)))
+(map-command "win-activate"   'win-activate!)
+(map-command "win-deactivate" 'win-deactivate!)
+(map-command "win-add"        'win-add!)
+(map-command "win-remove"     'win-remove!)
+(map-command "win-clear"      'win-clear!)
 
-(define-command ("win-search" query) (window-search! (current-window) query))
-(define-command ("win-search-next")  (window-search-next! (current-window)))
-(define-command ("win-search-prev")  (window-search-prev! (current-window)))
+(map-command "win-search" 'win-search!)
+(map-command "win-search-next" 'win-search-next!)
+(map-command "win-search-prev" 'win-search-prev!)
 
 (define-command/flags ("win-move" ((#\r relative)) n)
   (unless (param-is-integer? n)
     (invalid-argument-error (if relative 2 1) "Not a number"))
-  (window-move-cursor! (current-window) (string->number n) relative))
+  (widget-move (widget-focus view-widget) (string->number n) relative))
 
-(define-command ("win-top") (window-move-top! (current-window)))
-(define-command ("win-bottom") (window-move-bottom! (current-window)))
+(map-command "win-top" 'win-top!)
+(map-command "win-bottom" 'win-bottom!)
 
 (define-command/flags ("win-move-tracks" ((#\b before)))
-  (view-move! (current-view) before))
+  (widget-paste (widget-focus view-widget) before))
 

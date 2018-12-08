@@ -47,9 +47,6 @@
                                               'on-commit binding-commit-edit!)
                 args)))
 
-(define (binding-edit! window)
-  (text-input-begin (split-pane-right-child (window-selected window)) steal-focus: #t))
-
 (define (binding-commit-edit! widget)
   (let ((text    (text-input-get-text widget))
         (context (binding-row-context (widget-parent widget)))
@@ -85,14 +82,27 @@
             (sort! (binding-list->rows (cdr context) (car context)) binding-row<?))))
   (apply append (map context->rows (sort (bindings) context<?))))
 
+(define-class <bindings-window> (<window>))
+
+(define-method (widget-edit (window <bindings-window>))
+  (unless (window-empty? window)
+    (text-input-begin (split-pane-right-child (window-selected window)) steal-focus: #t)))
+
+(define-method (widget-activate (window <bindings-window>))
+  (widget-edit window))
+
+(define *bindings-window*
+  (make <bindings-window>
+        'data       (make-bindings-data)
+        'cursed     CURSED-WIN
+        'cursed-fn  (win-cursed-fn)))
+
 (define-view bindings
-  (make-frame 'body   (make-window 'data       (make-bindings-data)
-                                   'activate   binding-edit!
-                                   'edit       binding-edit!
-                                   'cursed     CURSED-WIN
-                                   'cursed-fn  (win-cursed-fn))
+  (make-frame 'body   (make <bindings-window>
+                            'data       (make-bindings-data)
+                            'cursed     CURSED-WIN
+                            'cursed-fn  (win-cursed-fn))
               'header (make-text " Key Bindings" 'cursed CURSED-WIN-TITLE)))
 
 (define-event-handler (binding-data-changed) ()
-  (let ((window (get-window 'bindings)))
-    (set! (window-data window) (make-bindings-data))))
+  (set! (window-data *bindings-window*) (make-bindings-data)))

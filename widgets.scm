@@ -20,20 +20,80 @@
           coops-utils
           scmus.base
           scmus.format
+          scmus.track
           scmus.tui)
 
-  (define-class <window-separator> (<separator>)
-    ((text   initform: ""
-             accessor: window-separator-text)
-     (indent initform: 0
-             accessor: window-separator-indent)))
+  ;; special verbs {{{
+  ;;
+  ;; Generic actions that widgets can implement if they want to. By default, the
+  ;; message is passed up to the parent.
+  ;;
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (define-method (print-widget! (widget <window-separator>) x y cols rows)
-    (let ((text (string-append (make-string (window-separator-indent widget)
-                                            (separator-char widget))
-                               (window-separator-text widget))))
-      (print-line! text x y cols (separator-char widget))))
+  (define-method (widget-activate (widget <widget>))
+    (when (widget-parent widget)
+      (widget-activate (widget-parent widget))))
 
+  (define-method (widget-deactivate (widget <widget>))
+    (when (widget-parent widget)
+      (widget-deactivate (widget-parent widget))))
+
+  (define-method (widget-edit (widget <widget>))
+    (when (widget-parent widget)
+      (widget-edit (widget-parent widget))))
+
+  (define-method (widget-add (widget <widget>))
+    (when (widget-parent widget)
+      (widget-add (widget-parent widget))))
+
+  (define-method (widget-remove (widget <widget>))
+    (when (widget-parent widget)
+      (widget-remove (widget-parent widget))))
+
+  (define-method (widget-clear (widget <widget>))
+    (when (widget-parent widget)
+      (widget-clear (widget-parent widget))))
+
+  (define-method (widget-move (widget <widget>) n relative?)
+    (when (widget-parent widget)
+      (widget-move (widget-parent widget) n relative?)))
+
+  (define-method (widget-move-top (widget <widget>))
+    (when (widget-parent widget)
+      (widget-move-top (widget-parent widget))))
+
+  (define-method (widget-move-bottom (widget <widget>))
+    (when (widget-parent widget)
+      (widget-move-bottom (widget-parent widget))))
+
+  (define-method (widget-mark (widget <widget>))
+    (when (widget-parent widget)
+      (widget-mark (widget-parent widget))))
+  
+  (define-method (widget-unmark (widget <widget>))
+    (when (widget-parent widget)
+      (widget-unmark (widget-parent widget))))
+
+  (define-method (widget-toggle-mark (widget <widget>))
+    (when (widget-parent widget)
+      (widget-toggle-mark (widget-parent widget))))
+
+  (define-method (widget-clear-marked (widget <widget>))
+    (when (widget-parent widget)
+      (widget-clear-marked (widget-parent widget))))
+
+  (define-method (widget-paste (widget <widget>) before?)
+    (when (widget-parent widget)
+      (widget-paste (widget-parent widget) before?)))
+
+  (define-method (widget-search (widget <widget>) query backward?)
+    (when (widget-parent widget)
+      (widget-search (widget-parent widget) query backward?)))
+
+  (define-method (widget-match (widget <widget>) query)
+    #f)
+
+  ;; special verbs }}}
   ;; <format-text> {{{
 
   (define-class <format-text> (<textual>)
@@ -102,26 +162,8 @@
      (marked     initform: '()
                  ; writer below
                  reader:   *window-marked)
-     (query      initform: ""
-                 accessor: window-query) 
      (h-border   initform: 1
                  accessor: window-h-border)
-     (activate   initform: void
-                 accessor: window-activate)
-     (deactivate initform: void
-                 accessor: window-deactivate)
-     (match      initform: (lambda (e q) #f)
-                 accessor: window-match)
-     (add        initform: void
-                 accessor: window-add)
-     (remove     initform: void
-                 accessor: window-remove)
-     (clear      initform: void
-                 accessor: window-clear)
-     (edit       initform: void
-                 accessor: window-edit)
-     (move       initform: void
-                 accessor: window-move)
      (cursed-fn  initform: (lambda (w r l) #f)
                  reader:   *window-cursed)
      (format     initform: #f
@@ -171,6 +213,9 @@
   (define (make-window . args)
     (apply make <window> args))
 
+  (define (window-empty? window)
+    (zero? (window-data-len window)))
+
   (: window-sel-offset (window -> fixnum))
   (define (window-sel-offset window)
     (- (window-sel-pos window)
@@ -200,36 +245,36 @@
                            (cdr acc))))
                  '(0 . ())
                  lst)))
-    (let* ((sel-pos (window-sel-pos window))
-           (marked (window-marked window)))
-      (reverse (select-from marked (window-data window)))))
+    (if (window-empty? window)
+      '()
+      (let* ((sel-pos (window-sel-pos window))
+             (marked (window-marked window)))
+        (reverse (select-from marked (window-data window))))))
 
   ;; XXX: selected row counts as marked
   (: window-marked (window -> list))
   (define (window-marked window)
-    (let ((sel-pos (window-sel-pos window))
-          (marked (*window-marked window)))
-      (if (member sel-pos marked)
-        marked
-        (cons sel-pos marked))))
+    (if (window-empty? window)
+      '()
+      (let ((sel-pos (window-sel-pos window))
+            (marked (*window-marked window)))
+        (if (member sel-pos marked)
+          marked
+          (cons sel-pos marked)))))
 
-  (: window-mark! (window -> undefined))
-  (define (window-mark! window)
+  (define-method (widget-mark (window <window>))
     (let ((sel-pos (window-sel-pos window))
           (marked (*window-marked window)))
       (unless (or (<= (window-data-len window) 0) (member sel-pos marked))
         (set! (*window-marked window) (cons sel-pos marked)))))
 
-  (: window-unmark! (window -> undefined))
-  (define (window-unmark! window)
+  (define-method (widget-unmark (window <window>))
     (let ((sel-pos (window-sel-pos window))
           (marked (*window-marked window)))
       (if (and (positive? (window-data-len window)) (member sel-pos marked))
         (set! (*window-marked window) (remove (lambda (x) (= x sel-pos)) marked)))))
 
-  ;; toggles the 'marked' status of the selected row
-  (: window-toggle-mark! (window -> undefined))
-  (define (window-toggle-mark! window)
+  (define-method (widget-toggle-mark (window <window>))
     (let ((sel-pos (window-sel-pos window))
           (marked (*window-marked window)))
       (when (positive? (window-data-len window))
@@ -237,45 +282,9 @@
           (set! (*window-marked window) (remove (lambda (x) (= x sel-pos)) marked))
           (set! (*window-marked window) (cons sel-pos marked))))))
 
-  (: window-clear-marked! (window -> undefined))
-  (define (window-clear-marked! window)
+  (define-method (widget-clear-marked (window <window>))
     (set! (*window-marked window) '())
     (widget-damaged! window))
-
-  (: window-activate! (window -> undefined))
-  (define (window-activate! window)
-    (when (positive? (window-data-len window))
-      ((window-activate window) window)))
-
-  (: window-deactivate! (window -> undefined))
-  (define (window-deactivate! window)
-    (when (positive? (window-data-len window))
-      ((window-deactivate window) window)))
-
-  (: window-add! (window -> undefined))
-  (define (window-add! window)
-    (when (positive? (window-data-len window))
-      ((window-add window) window)))
-
-  (: window-remove! (window -> undefined))
-  (define (window-remove! window)
-    (when (positive? (window-data-len window))
-      ((window-remove window) window)))
-
-  (: window-clear! (window -> undefined))
-  (define (window-clear! window)
-    (when (positive? (window-data-len window))
-      ((window-clear window) window)))
-
-  (: window-edit! (window -> undefined))
-  (define (window-edit! window)
-    (when (positive? (window-data-len window))
-      ((window-edit window) window)))
-
-  (: window-move! (window boolean -> undefined))
-  (define (window-move! window before)
-    (when (positive? (window-data-len window))
-      ((window-move window) window before)))
 
   (: window-cursed (window * fixnum -> undefined))
   (define (window-cursed window row line-nr)
@@ -315,7 +324,6 @@
     (window-select! window (- (window-data-len window) 1))
     (void))
 
-  ;; FIXME: this should be named window-move!, but it's taken
   (define (window-move-cursor! window n #!optional relative)
     (let ((nr-lines (if relative
                       (integer-scale (widget-rows window) n)
@@ -323,6 +331,23 @@
       (if (> nr-lines 0)
         (window-move-down! window nr-lines)
         (window-move-up! window (abs nr-lines))))
+    (void))
+
+  (define-method (widget-move (window <window>) n relative?)
+    (let ((nr-lines (if relative?
+                      (integer-scale (widget-rows window) n)
+                      n)))
+      (if (> nr-lines 0)
+        (window-move-down! window nr-lines)
+        (window-move-up! window (abs nr-lines))))
+    (void))
+
+  (define-method (widget-move-top (window <window>))
+    (window-select! window 0)
+    (void))
+
+  (define-method (widget-move-bottom (window <window>))
+    (window-select! window (- (window-data-len window) 1))
     (void))
 
   (: window-select! (window fixnum -> undefined))
@@ -333,22 +358,16 @@
         ((> diff 0) (window-move-up! window diff))
         ((< diff 0) (window-move-down! window (abs diff))))))
 
-  (: window-search-init! (window string -> undefined))
-  (define (window-search-init! window query)
-    (set! (window-query window) query))
+  ;; search {{{
+  (define-method (widget-search (window <window>) query backward?)
+    (unless (window-empty? window)
+      (let ((i (if backward?
+                 (window-search-backward window query)
+                 (window-search-forward window query))))
+        (when i (window-select! window i)))))
 
-  (: *window-search (window string list -> (or fixnum boolean)))
-  (define (*window-search window query data)
-    (let loop ((data data) (i 0))
-      (cond
-        ((null? data) #f)
-        (((window-match window) (car data) query) i)
-        (else (loop (cdr data) (+ 1 i))))))
-
-  (: window-next-match! (window -> (or fixnum boolean)))
-  (define (window-next-match! window)
-    (let* ((query    (window-query window))
-           (data     (window-data window))
+  (define (window-search-forward window query)
+    (let* ((data     (window-data window))
            (next-pos (+ 1 (window-sel-pos window)))
            (next-len (- (window-data-len window) next-pos))
            (shifted  (append (drop data next-pos)
@@ -359,10 +378,8 @@
         ((>= match next-len) (- match next-len))
         (else                (+ next-pos match)))))
 
-  (: window-prev-match! (window -> (or fixnum boolean)))
-  (define (window-prev-match! window)
-    (let* ((query    (window-query window))
-           (data     (window-data window))
+  (define (window-search-backward window query)
+    (let* ((data     (window-data window))
            (prev-pos (- (window-sel-pos window) 1))
            (shifted  (append (reverse (take data (+ 1 prev-pos)))
                              (reverse (drop data (+ 1 prev-pos)))))
@@ -373,20 +390,13 @@
                                (abs (- prev-pos match))))
         (else               (- prev-pos match)))))
 
-  (: window-search-next! (window -> undefined))
-  (define (window-search-next! window)
-    (let ((i (window-next-match! window)))
-      (when i (window-select! window i))))
-
-  (: window-search-prev! (window -> undefined))
-  (define (window-search-prev! window)
-    (let ((i (window-prev-match! window)))
-      (when i (window-select! window i))))
-
-  (: window-search! (window string -> undefined))
-  (define (window-search! window query)
-    (window-search-init! window query)
-    (window-search-next! window))
+  (define (*window-search window query data)
+    (let loop ((data data) (i 0))
+      (cond
+        ((null? data) #f)
+        ((widget-match (car data) query) i)
+        (else (loop (cdr data) (+ 1 i))))))
+  ;; search }}}
 
   (define-method (container-children (window <window>))
     (window-data window))
@@ -413,23 +423,51 @@
                              (- cols (* 2 (window-h-border window)))
                              1)))
           (loop (if (null? data) '() (cdr data)) (- lines 1))))))
+
   ;; <window> }}}
   ;; <window-row> {{{
 
-(define-class <window-row> (<textual>)
-  ((data   reader: window-row-data)
-   (type   reader: window-row-type)
-   (format reader: window-row-format)))
+  (define-class <window-row> (<textual>)
+    ((data   reader: window-row-data)
+     (type   reader: window-row-type)
+     (format reader: window-row-format)))
 
-(define (make-window-row data type format)
-  (make <window-row> 'data data 'type type 'format format))
+  (define (make-window-row data type format)
+    (make <window-row> 'data data 'type type 'format format))
 
-(define-method (text-text (widget <window-row>))
-  (list (scmus-format ((window-row-format widget) widget)
-                      (widget-cols widget)
-                      (window-row-data widget))))
+  (define-method (text-text (widget <window-row>))
+    (list (scmus-format ((window-row-format widget) widget)
+                        (widget-cols widget)
+                        (window-row-data widget))))
+
+  (define-method (widget-match (row <window-row>) query)
+    (let ((data (window-row-data row)))
+      (case (window-row-type row)
+        ((directory playlist artist album)
+          (substring-match (cdar data) query))
+        ((file)
+          (track-match data query))
+        ((metadata)
+          (or (substring-match (format "~a" (cdar data)) query)
+              (substring-match (format "~a" (cdadr data)) query)))
+        (else #f))))
 
   ;; <window-row> }}}
+  ;; <window-separator> {{{
+
+  (define-class <window-separator> (<separator>)
+    ((text   initform: ""
+             accessor: window-separator-text)
+     (indent initform: 0
+             accessor: window-separator-indent)))
+
+  (define-method (print-widget! (widget <window-separator>) x y cols rows)
+    (let ((text (string-append (make-string (window-separator-indent widget)
+                                            (separator-char widget))
+                               (window-separator-text widget))))
+      (print-line! text x y cols (separator-char widget))))
+
+  ;; <window-separator> }}}
   ;; <scheme-text> {{{
   ;; Text widget that displays a stored scheme expression.
 
