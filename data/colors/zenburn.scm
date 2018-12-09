@@ -6,6 +6,6 @@
 (set-option! 'color-win         '(default 237 188))
 (set-option! 'color-win-cur     '(default 237 172))
 (set-option! 'color-win-title   '(default 235 174))
-(set-option! 'color-win-cur-sel '(default 235 172))
-(set-option! 'color-win-sel     '(default 235 223))
+(set-option! 'color-win-cur-sel '(default 236 172))
+(set-option! 'color-win-sel     '(default 236 223))
 (set-option! 'color-win-marked  '(default 235 223))
