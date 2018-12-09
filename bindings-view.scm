@@ -98,10 +98,7 @@
         'cursed-fn  (win-cursed-fn)))
 
 (define-view bindings
-  (make-frame 'body   (make <bindings-window>
-                            'data       (make-bindings-data)
-                            'cursed     CURSED-WIN
-                            'cursed-fn  (win-cursed-fn))
+  (make-frame 'body   *bindings-window*
               'header (make-text " Key Bindings" 'cursed CURSED-WIN-TITLE)))
 
 (define-event-handler (binding-data-changed) ()

@@ -20,16 +20,14 @@
 ;;       rework cmus's format_print.c and make a wrapper.
 ;;
 
-(require-extension srfi-1)
-
 (module scmus.format (scmus-format
                       process-format
                       format-string-valid?)
-  (import scmus.base scmus.error scmus.ueval scmus.status scmus.track)
-
-  (: swap (pair -> pair))
-  (define (swap pair)
-    (cons (cdr pair) (car pair)))
+  (import scmus.base
+          scmus.error
+          scmus.ueval
+          scmus.status
+          scmus.track)
 
   (: scmus-state-character (symbol -> string))
   (define (scmus-state->character state)

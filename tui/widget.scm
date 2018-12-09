@@ -121,8 +121,7 @@
   (define-class <container> (<widget>))
 
   ;; Ensure that WIDGET-PARENT is set correctly on all children.
-  (define-method (initialize-instance (container <container>))
-    (call-next-method)
+  (define-method (initialize-instance after: (container <container>))
     (for-each (lambda (child)
                 (set! (widget-parent child) container))
               (container-children container)))

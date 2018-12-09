@@ -18,6 +18,7 @@
 (module scmus.widgets *
   (import coops
           coops-utils
+          vector-lib
           scmus.base
           scmus.format
           scmus.track
@@ -149,12 +150,8 @@
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
   (define-class <window> (<container>)
-    ((data       initform: '()
-                 ; writer below
-                 reader:   window-data)
-     (data-len   initform: 0
-                 ; writer below
-                 reader:   window-data-len)
+    ((data       initform: #()
+                 reader:   *window-data)
      (top-pos    initform: 0
                  accessor: window-top-pos)
      (sel-pos    initform: 0
@@ -171,29 +168,41 @@
 
   (define-method (initialize-instance (window <window>))
     (call-next-method)
-    (set! (window-data-len window) (length (window-data window)))
+    ; allow giving window-data as a list
+    (cond
+      ((vector? (*window-data window)) (void))
+      ((list? (*window-data window))
+        (set! (slot-value window 'data) (list->vector (*window-data window))))
+      (else (assert #f "initialize-instance" window)))
     ; allow giving a format string directly instead of a procedure
     (let ((format (window-format window)))
       (if (and format (not (procedure? format)))
         (set! (slot-value window 'format) (lambda (tag) format)))))
 
-  (define-method ((setter window-data) (window <window>) data)
-    (set! (slot-value window 'data) data)
-    (set! (window-data-len window) (length (window-data window)))
-    (for-each (lambda (row)
-                (set! (widget-parent row) window))
-              data)
-    (widget-damaged! window))
+  (define-method (window-data (window <window>))
+    (vector->list (slot-value window 'data)))
 
-  ;; Whenever the length of the window data changes, we need to make sure that
-  ;; the values of top-pos and sel-pos still make sense.
-  (define-method ((setter window-data-len) (window <window>) len)
-    (set! (slot-value window 'data-len) len)
-    (when (>= (window-sel-pos window) len)
-      (set! (window-sel-pos window) (max 0 (- len 1))))
-    (when (>= (window-top-pos window) len)
-      (set! (window-top-pos window) (max 0 (- len 1))))
-    (widget-damaged! window))
+  (define-method ((setter window-data) (window <window>) data)
+    ; convert data to vector
+    (let* ((data (cond
+                   ((vector? data) data)
+                   ((list? data)   (list->vector data))
+                   (else           (assert #f "(setter window-data)" window data))))
+           (len  (vector-length data)))
+      (set! (slot-value window 'data) data)
+      ; set parent on children
+      (vector-for-each (lambda (i row)
+                         (set! (widget-parent row) window))
+                       data)
+      ; update pointers into data
+      (when (>= (window-sel-pos window) len)
+        (set! (window-sel-pos window) (max 0 (- len 1))))
+      (when (>= (window-top-pos window) len)
+        (set! (window-top-pos window) (max 0 (- len 1))))
+      (widget-damaged! window)))
+
+  (define-method (window-length (window <window>))
+    (vector-length (*window-data window)))
 
   (define-method ((setter *window-marked) (window <window>) marked)
     (set! (slot-value window 'marked) marked)
@@ -213,43 +222,29 @@
   (define (make-window . args)
     (apply make <window> args))
 
-  (define (window-empty? window)
-    (zero? (window-data-len window)))
+  (define-method (window-empty? (window <window>))
+    (zero? (window-length window)))
 
   (: window-sel-offset (window -> fixnum))
   (define (window-sel-offset window)
     (- (window-sel-pos window)
        (window-top-pos window)))
 
-  (: window-top (window -> list))
-  (define (window-top window)
-    (assert (>= (length (window-data window)) (window-top-pos window)))
-    (list-tail (window-data window) (window-top-pos window)))
-
   (: window-selected (window -> *))
   (define (window-selected window)
-    (assert (> (length (window-data window)) (window-sel-pos window))
+    (assert (> (window-length window) (window-sel-pos window))
             "window-selected"
-            (length (window-data window))
+            (window-length window)
             (window-sel-pos window))
-    (list-ref (window-data window) (window-sel-pos window)))
+    (vector-ref (*window-data window) (window-sel-pos window)))
 
   (: window-all-selected (window -> list))
   (define (window-all-selected window)
-    (define (select-from indices lst)
-      (cdr (fold (lambda (x acc)
-                   (if (member (car acc) indices)
-                     (cons (+ (car acc) 1)
-                           (cons x (cdr acc)))
-                     (cons (+ (car acc) 1)
-                           (cdr acc))))
-                 '(0 . ())
-                 lst)))
     (if (window-empty? window)
       '()
-      (let* ((sel-pos (window-sel-pos window))
-             (marked (window-marked window)))
-        (reverse (select-from marked (window-data window))))))
+      (let ((data   (*window-data window))
+            (marked (window-marked window)))
+        (map (lambda (x) (vector-ref data x)) marked))))
 
   ;; XXX: selected row counts as marked
   (: window-marked (window -> list))
@@ -265,19 +260,21 @@
   (define-method (widget-mark (window <window>))
     (let ((sel-pos (window-sel-pos window))
           (marked (*window-marked window)))
-      (unless (or (<= (window-data-len window) 0) (member sel-pos marked))
+      (unless (or (window-empty? window)
+                  (member sel-pos marked))
         (set! (*window-marked window) (cons sel-pos marked)))))
 
   (define-method (widget-unmark (window <window>))
     (let ((sel-pos (window-sel-pos window))
           (marked (*window-marked window)))
-      (if (and (positive? (window-data-len window)) (member sel-pos marked))
+      (if (and (not (window-empty? window))
+               (member sel-pos marked))
         (set! (*window-marked window) (remove (lambda (x) (= x sel-pos)) marked)))))
 
   (define-method (widget-toggle-mark (window <window>))
     (let ((sel-pos (window-sel-pos window))
           (marked (*window-marked window)))
-      (when (positive? (window-data-len window))
+      (when (not (window-empty? window))
         (if (member sel-pos marked)
           (set! (*window-marked window) (remove (lambda (x) (= x sel-pos)) marked))
           (set! (*window-marked window) (cons sel-pos marked))))))
@@ -294,7 +291,7 @@
   (define (window-move-down! window n)
     (let* ((top-pos  (window-top-pos window))
            (sel-pos  (window-sel-pos window))
-           (data-len (window-data-len window))
+           (data-len (window-length window))
            (nr-lines (widget-rows window))
            (can-move (max 0 (min n (- data-len sel-pos 1))))
            (scroll   (max 0 (+ 1 (- (+ sel-pos can-move)
@@ -321,7 +318,7 @@
 
   (: window-move-bottom! (window -> undefined))
   (define (window-move-bottom! window)
-    (window-select! window (- (window-data-len window) 1))
+    (window-select! window (- (window-length window) 1))
     (void))
 
   (define (window-move-cursor! window n #!optional relative)
@@ -347,7 +344,7 @@
     (void))
 
   (define-method (widget-move-bottom (window <window>))
-    (window-select! window (- (window-data-len window) 1))
+    (window-select! window (- (window-length window) 1))
     (void))
 
   (: window-select! (window fixnum -> undefined))
@@ -367,39 +364,36 @@
         (when i (window-select! window i)))))
 
   (define (window-search-forward window query)
-    (let* ((data     (window-data window))
-           (next-pos (+ 1 (window-sel-pos window)))
-           (next-len (- (window-data-len window) next-pos))
-           (shifted  (append (drop data next-pos)
-                             (take data next-pos)))
-           (match    (*window-search window query shifted)))
-      (cond
-        ((not match)         #f)
-        ((>= match next-len) (- match next-len))
-        (else                (+ next-pos match)))))
+    (define (match-fun row)
+      (widget-match row query))
+    (or (window-index window match-fun (+ 1 (window-sel-pos window)))
+        (window-index window match-fun 0 (+ 1 (window-sel-pos window)))))
 
   (define (window-search-backward window query)
-    (let* ((data     (window-data window))
-           (prev-pos (- (window-sel-pos window) 1))
-           (shifted  (append (reverse (take data (+ 1 prev-pos)))
-                             (reverse (drop data (+ 1 prev-pos)))))
-           (match    (*window-search window query shifted)))
-      (cond
-        ((not match)        #f)
-        ((> match prev-pos) (- (window-data-len window)
-                               (abs (- prev-pos match))))
-        (else               (- prev-pos match)))))
+    (define (match-fun row)
+      (widget-match row query))
+    (or (window-index-right window match-fun 0 (window-sel-pos window))
+        (window-index-right window match-fun (window-sel-pos window))))
 
-  (define (*window-search window query data)
-    (let loop ((data data) (i 0))
-      (cond
-        ((null? data) #f)
-        ((widget-match (car data) query) i)
-        (else (loop (cdr data) (+ 1 i))))))
+  (define (window-index window pred? #!optional (start 0) (end (window-length window)))
+    (let ((data (*window-data window)))
+      (let loop ((i start))
+        (cond
+          ((>= i end) #f)
+          ((pred? (vector-ref data i)) i)
+          (else (loop (+ i 1)))))))
+
+  (define (window-index-right window pred? #!optional (start 0) (end (window-length window)))
+    (let ((data (*window-data window)))
+      (let loop ((i (- end 1)))
+        (cond
+          ((< i start) #f)
+          ((pred? (vector-ref data i)) i)
+          (else (loop (- i 1)))))))
   ;; search }}}
 
   (define-method (container-children (window <window>))
-    (window-data window))
+    (vector->list (*window-data window)))
 
   (define-method (widget-focus (window <window>))
     (widget-focus (window-selected window)))
@@ -407,21 +401,22 @@
   ;; Even though <window>s are <container>s, we still implement PRINT-WIDGET!
   ;; so that we can use WITH-CURSED per-line.
   (define-method (print-widget! (window <window>) x y cols rows)
-    (let loop ((data (window-top window))
-               (lines rows))
-      (when (> lines 0)
-        (let ((line-nr (+ y (- rows lines))))
-          (unless (or (null? data)
-                      (< cols (* 2 (window-h-border window))))
-            (with-cursed (or (widget-cursed (car data))
-                             (window-cursed window (car data) line-nr))
-              (print-line! "" x line-nr cols) ; FIXME: fill in border properly
-              (print-widget! (car data)
+    (let ((data     (*window-data window))
+          (top-pos  (window-top-pos window))
+          (data-len (window-length window)))
+      (let loop ((line top-pos))
+        (when (and (< line data-len)
+                   (< line (+ top-pos rows)))
+          (let ((row    (vector-ref data line))
+                (row-nr (- line top-pos)))
+            (with-cursed (or (widget-cursed row)
+                             (window-cursed window row (+ y row-nr)))
+              (print-widget! row
                              (+ x (window-h-border window))
-                             line-nr
+                             (+ y row-nr)
                              (- cols (* 2 (window-h-border window)))
                              1)))
-          (loop (if (null? data) '() (cdr data)) (- lines 1))))))
+            (loop (+ line 1))))))
 
   ;; <window> }}}
   ;; <window-row> {{{

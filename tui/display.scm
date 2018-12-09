@@ -16,9 +16,9 @@
 ;;
 
 (module scmus.tui.display *
-  (import coops)
-  (import drewt.ncurses)
-  (import scmus.base)
+  (import coops
+          drewt.ncurses
+          scmus.base)
 
   (define current-cursed (make-parameter 1))
 

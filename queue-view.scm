@@ -46,7 +46,7 @@
     (unless (null? marked)
       (scmus-delete! (car marked))
       (loop (cdr marked))))
-  (window-clear-marked! window)
+  (widget-clear-marked window)
   (scmus-update-queue!))
 
 (define-method (widget-clear (window <queue-window>))
@@ -66,7 +66,7 @@
         (begin
           (scmus-move! (car marked) (+ 1 pos))
           (loop (cdr marked) (+ 1 pos))))))
-  (window-clear-marked! window)
+  (widget-clear-marked window)
   (scmus-update-queue!))
 
 (define *queue-window*
