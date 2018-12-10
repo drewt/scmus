@@ -115,8 +115,27 @@
 (define (log-filter log-type)
   (or *verbose* (memv log-type '(error warning))))
 
+(define (get-environment-mpd-host)
+  (let ((str (get-environment-variable "MPD_HOST")))
+    (if (not str)
+      #f
+      (let ((i (string-index-right str #\@)))
+        (if (not i)
+          str
+          (substring/shared str (+ i 1)))))))
+
+(define (get-environment-mpd-password)
+  (let ((str (get-environment-variable "MPD_HOST")))
+    (if (not str)
+      #f
+      (let ((i (string-index-right str #\@)))
+        (if (not i)
+          #f
+          (substring/shared str 0 i))))))
+
 ;; initialize scmus
 (let ((opts (process-opts (command-line-arguments) *cmdline-opts*)))
+  ; process command-line options
   (if (alist-ref 'help opts) (usage *cmdline-opts* 0))
   (if (alist-ref 'version opts) (version))
   (if (alist-ref 'verbose opts) (set! *verbose* #t))
@@ -124,8 +143,12 @@
   (if (alist-ref 'unix opts)
     (set! opts (alist-update! 'address (alist-ref 'unix opts)
                               (alist-update! 'port #f opts))))
+
+  ; set up logger
   (current-logger (make <port-logger> 'filter log-filter
                                       'port   *console-error-port*))
+
+  ; initialize various stuff
   (handle-exceptions exn
     (begin (display "\nFailed to initialize scmus.  Exiting.\n")
            (exit-all)
@@ -148,9 +171,14 @@
     (initialize "curses"
       (init-curses))
     (initialize "mpd connection"
-      (connect! (alist-ref 'address opts)
-                (alist-ref 'port opts eqv? 'default)
-                (alist-ref 'password opts eqv? 'default)))))
+      (connect! (or (alist-ref 'address opts)
+                    (get-environment-mpd-host))
+                (or (alist-ref 'port opts eqv?)
+                    (get-environment-variable "MPD_PORT")
+                    'default)
+                (or (alist-ref 'password opts eqv?)
+                    (get-environment-mpd-password)
+                    'default)))))
 
 ;; enter main loop, and clean up on exit
 (let ((code (call/cc main)))
