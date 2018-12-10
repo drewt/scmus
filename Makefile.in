@@ -39,7 +39,7 @@ eggs = coops coops-utils regex sandbox unix-sockets utf8 vector-lib
 units    = bindings-view browser-view commands library-view options options-view queue-view \
 	   search-view ui-curses ui-lib user-api view
 tui_mods = $(addprefix tui/,display frame input misc split-pane widget)
-imodules = base client command command-line config ueval event format keys option \
+imodules = base client command command-line config ueval event format keys log option \
 	   error status track tui $(tui_mods) widgets
 omodules = getopt iter mpd-client ncurses
 modules  = $(imodules) $(omodules)
@@ -59,24 +59,25 @@ all: $(target)
 # dependencies {{{
 
 # BUILD dependencies
-main_deps           = base client config ueval getopt
+main_deps           = base client config ueval getopt log
+base_deps           = config ncurses
 bindings-view_deps  = base event keys ncurses error tui widgets
 browser-view_deps   = base client event ncurses track tui widgets
+client_deps         = base event mpd-client option error status track
 command-line_deps   = base event iter ncurses tui
 command_deps        = base command-line error ueval event
 commands_deps       = base client command command-line ueval keys status tui widgets
+error_deps          = base command-line event log
 ueval_deps          = base event option error
 event_deps          = base
 format_deps         = base ueval error status track
 keys_deps           = base ueval event ncurses
 library-view_deps   = base client event format ncurses track tui widgets
+log_deps            = base
 option_deps         = base event
 options_deps        = base event format option
 options-view_deps   = base event ncurses option error tui widgets
 queue-view_deps     = base client event status track tui widgets
-base_deps           = config ncurses
-client_deps         = base event mpd-client option error status track
-error_deps          = base command-line event
 search-view_deps    = base client format ncurses track tui widgets
 status_deps         = base mpd-client track
 track_deps          = base

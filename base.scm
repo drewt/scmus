@@ -30,8 +30,10 @@
     srfi-1
     utf8 utf8-srfi-13 utf8-srfi-14)
 
-  (import drewt.ncurses)
-  (import scmus.config)
+  (import ports
+          posix
+          drewt.ncurses
+          scmus.config)
 
   (define ui-initialized? (make-parameter #f))
 
@@ -51,33 +53,27 @@
   ;; the exit routine; initially (exit), becomes a continuation
   (define scmus-exit exit)
 
-  (define-type printf (#!rest * -> undefined))
-  (define-type pp (* -> undefined))
+  (define *console-output-port*
+    (make-output-port
+      (lambda (str)
+        (without-curses (file-write fileno/stdout str)))
+      void))
 
-  (: verbose-printf printf)
-  (define (verbose-printf . args)
-    (if *verbose*
-      (apply console-printf args)))
+  (define *console-error-port*
+    (make-output-port
+      (lambda (str)
+        (without-curses (file-write fileno/stderr str)))
+      void))
 
-  (: debug-printf printf)
-  (define (debug-printf . args)
-    (if *debug*
-      (apply console-printf args)))
+  (current-output-port *console-output-port*)
+  (current-error-port  *console-error-port*)
 
-  (: debug-pp pp)
-  (define (debug-pp sexp)
-    (if *debug*
-      (console-pp sexp)))
-
-  (: console-printf printf)
-  (define (console-printf . args)
-    (without-curses
-      (apply printf args)))
-
-  (: console-pp pp)
-  (define (console-pp sexp)
-    (without-curses
-      (pp sexp)))
+  (define (list-truncate in-lst n)
+    (let loop ((lst in-lst) (n n) (result '()))
+      (cond
+        ((null? lst) in-lst)
+        ((zero? n)   (reverse result))
+        (else        (loop (cdr lst) (- n 1) (cons (car lst) result))))))
 
   (: port-valid? (* -> boolean))
   (define (port-valid? port)

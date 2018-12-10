@@ -17,8 +17,12 @@
 
 (foreign-declare "#include <locale.h>")
 
-(import drewt.getopt)
-(import scmus.base scmus.client scmus.config scmus.ueval)
+(import drewt.getopt
+        scmus.base
+        scmus.client
+        scmus.config
+        scmus.log
+        scmus.ueval)
 
 (define *error* #f)
 
@@ -65,6 +69,7 @@
 ;; main loop
 (define (main return)
   (set! scmus-exit return)
+
   (handle-exceptions exn
     (begin (set! *error* exn) 1)
     (let loop ()
@@ -77,11 +82,12 @@
 
 (define-syntax initialize
   (syntax-rules ()
-    ((initialize message first rest ...)
-       (handle-exceptions exn (begin (verbose-printf "FAIL~n") (signal exn))
-         (verbose-printf "~a... " message)
+    ((initialize system first rest ...)
+       (handle-exceptions exn
+         (begin (log-write! 'error (format "Initialization failed: ~a" system))
+                (signal exn))
          (begin first rest ...)
-         (verbose-printf "OK~n")))))
+         (log-write! 'info (format "Initialized ~a" system))))))
 
 (define (read-plugins)
   (if (file-exists? *plugins-dir*)
@@ -106,6 +112,9 @@
 
 (set-title! "scmus")
 
+(define (log-filter log-type)
+  (or *verbose* (memv log-type '(error warning))))
+
 ;; initialize scmus
 (let ((opts (process-opts (command-line-arguments) *cmdline-opts*)))
   (if (alist-ref 'help opts) (usage *cmdline-opts* 0))
@@ -115,29 +124,30 @@
   (if (alist-ref 'unix opts)
     (set! opts (alist-update! 'address (alist-ref 'unix opts)
                               (alist-update! 'port #f opts))))
+  (current-logger (make <port-logger> 'filter log-filter
+                                      'port   *console-error-port*))
   (handle-exceptions exn
-    (begin (console-printf "~nFailed to initialize scmus.  Exiting.~n")
-           (debug-pp (condition->list exn))
+    (begin (display "\nFailed to initialize scmus.  Exiting.\n")
            (exit-all)
            (exit 1))
-    (initialize "Initializing signals"
+    (initialize "signals"
       (set-signal-handler! signal/chld void))
-    (initialize "Initializing locale"
+    (initialize "locale"
       (foreign-code "setlocale(LC_CTYPE, \"\");")
       (foreign-code "setlocale(LC_COLLATE, \"\");"))
-    (initialize "Loading plugins"
+    (initialize "plugins"
       (load-plugins (read-plugins)))
-    (initialize "Loading config files"
+    (initialize "config"
       (handle-exceptions x
-        (printf "WARNING: failed to load ~a~n" *sysrc-path*)
+        (log-write! 'warning (format "failed to load ~a" *sysrc-path*))
         (user-load *sysrc-path*))
       (let ((config (alist-ref 'config opts eqv? *scmusrc-path*)))
         (handle-exceptions x
-          (verbose-printf "failed to load ~a~n" config)
+          (log-write! 'error (format "failed to load ~a" config))
           (user-load config))))
-    (initialize "Initializing curses"
+    (initialize "curses"
       (init-curses))
-    (initialize "Connecting to server"
+    (initialize "mpd connection"
       (connect! (alist-ref 'address opts)
                 (alist-ref 'port opts eqv? 'default)
                 (alist-ref 'password opts eqv? 'default)))))

@@ -18,7 +18,8 @@
 (module scmus.error (scmus-error)
   (import scmus.base
           scmus.command-line
-          scmus.event)
+          scmus.event
+          scmus.log)
 
   (define scmus-error
     (make-parameter #f
@@ -27,7 +28,9 @@
           ""
           (let ((out (open-output-string)))
             (pretty-print (condition->list error) out)
-            (verbose-printf "~a~n" (get-output-string out))
+            (log-write! 'error (format "~a: ~s" (get-condition-property error 'exn 'message)
+                                                (get-condition-property error 'exn 'arguments))
+                               (string-trim-both (get-output-string out)))
             (if ((condition-predicate 'exn) error)
               (command-line-print-error!
                 (format "~a: ~s" (get-condition-property error 'exn 'message)
