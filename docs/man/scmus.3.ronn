@@ -127,7 +127,7 @@ scmus(3) -- scmus Scripting Environment
   Remove all tracks from the play queue.
 
 * (`colorscheme!` *name*):
-  Load the coloscheme *name*.  This function looks for a file named *name*.scm in the scmus colorscheme directory (usually `/usr/local/share/scmus/colors/`).
+  Load the colorscheme *name*.  This function looks for a file named *name*.scm in the scmus colorscheme directory (usually `/usr/local/share/scmus/colors/`).
 
 * (`connect!` *\[host \[port \[password\]\]\]*):
   Connect to the MPD server given by *password*@*host*:*port*, using the values of the `mpd-address`, `mpd-port` and `mpd-password` options if they are not provided as arguments.

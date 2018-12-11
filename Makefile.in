@@ -195,17 +195,17 @@ all.types: $(types)
 eggs:
 	chicken-install $(eggs)
 
-docs/scmus.1 docs/scmus.1.html: private MANFLAGS += --manual="General Commands Manual"
-docs/scmus.3 docs/scmus.3.html: private MANFLAGS += --manual="scmus Programmer\'s Manual"
+docs/man/scmus.1 docs/man/scmus.1.html: private MANFLAGS += --manual="General Commands Manual"
+docs/man/scmus.3 docs/man/scmus.3.html: private MANFLAGS += --manual="scmus Scripting Reference"
 
-man: docs/scmus.1 docs/scmus.3
-web: docs/scmus.1.html docs/scmus.3.html
+man: docs/man/scmus.1 docs/man/scmus.3
+web: docs/man/scmus.1.html docs/man/scmus.3.html
 
 install: all
 	$(INSTALL) -m755 $(bindir) scmus
 	$(INSTALL) -m644 $(datadir)/scmus data/scmusrc.scm
 	$(INSTALL) -m644 $(datadir)/scmus/colors $(wildcard data/colors/*)
-	$(INSTALL) -m644 $(mandir)/man1 docs/scmus.1
-	$(INSTALL) -m644 $(mandir)/man3 docs/scmus.3
+	$(INSTALL) -m644 $(mandir)/man1 docs/man/scmus.1
+	$(INSTALL) -m644 $(mandir)/man3 docs/man/scmus.3
 
 # rules }}}

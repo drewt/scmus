@@ -43,7 +43,8 @@ Installation
 Manual
 ------
 
-    $ man scmus
+[scmus(1)](http://drewt.github.io/scmus/man/scmus.1.html) (general program documentation)  
+[scmus(3)](http://drewt.github.io/scmus/man/scmus.3.html) (scripting reference)
 
 
 Git Repository
