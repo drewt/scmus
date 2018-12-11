@@ -150,14 +150,23 @@ run: all
 	$(call cmd,types)
 
 %.1: %.1.ronn
-	$(call cmd,ronn)
+	$(call cmd,man)
 
 %.3: %.3.ronn
-	$(call cmd,ronn)
+	$(call cmd,man)
+
+%.1.html: %.1.ronn
+	$(call cmd,wman)
+
+%.3.html: %.3.ronn
+	$(call cmd,wman)
 
 # generate roff output from ronn markdown
-quiet_cmd_ronn  = MAN     $@
-      cmd_ronn  = ronn --roff $(MANFLAGS) $^
+quiet_cmd_man   = MAN     $@
+      cmd_man   = ronn --roff $(MANFLAGS) $^
+
+quiet_cmd_wman  = HTML    $@
+      cmd_wman  = ronn --html $(MANFLAGS) $^
 
 # scheme compile for object files
 quiet_cmd_csc   = CSC     $@
@@ -186,17 +195,17 @@ all.types: $(types)
 eggs:
 	chicken-install $(eggs)
 
-doc/scmus.1: private MANFLAGS += --manual="General Commands Manual"
+docs/scmus.1 docs/scmus.1.html: private MANFLAGS += --manual="General Commands Manual"
+docs/scmus.3 docs/scmus.3.html: private MANFLAGS += --manual="scmus Programmer\'s Manual"
 
-doc/scmus.3: private MANFLAGS += --manual="scmus Programmer\'s Manual"
-
-man: doc/scmus.1 doc/scmus.3
+man: docs/scmus.1 docs/scmus.3
+web: docs/scmus.1.html docs/scmus.3.html
 
 install: all
 	$(INSTALL) -m755 $(bindir) scmus
 	$(INSTALL) -m644 $(datadir)/scmus data/scmusrc.scm
 	$(INSTALL) -m644 $(datadir)/scmus/colors $(wildcard data/colors/*)
-	$(INSTALL) -m644 $(mandir)/man1 doc/scmus.1
-	$(INSTALL) -m644 $(mandir)/man3 doc/scmus.3
+	$(INSTALL) -m644 $(mandir)/man1 docs/scmus.1
+	$(INSTALL) -m644 $(mandir)/man3 docs/scmus.3
 
 # rules }}}

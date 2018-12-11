@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv='content-type' value='text/html;charset=utf8'>
+  <meta name='generator' value='Ronn/v0.7.3 (http://github.com/rtomayko/ronn/tree/0.7.3)'>
+  <title>scmus(1) - Scheme MPD Client</title>
+  <style type='text/css' media='all'>
+  /* style: man */
+  body#manpage {margin:0}
+  .mp {max-width:100ex;padding:0 9ex 1ex 4ex}
+  .mp p,.mp pre,.mp ul,.mp ol,.mp dl {margin:0 0 20px 0}
+  .mp h2 {margin:10px 0 0 0}
+  .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left:8ex}
+  .mp h3 {margin:0 0 0 4ex}
+  .mp dt {margin:0;clear:left}
+  .mp dt.flush {float:left;width:8ex}
+  .mp dd {margin:0 0 0 9ex}
+  .mp h1,.mp h2,.mp h3,.mp h4 {clear:left}
+  .mp pre {margin-bottom:20px}
+  .mp pre+h2,.mp pre+h3 {margin-top:22px}
+  .mp h2+pre,.mp h3+pre {margin-top:5px}
+  .mp img {display:block;margin:auto}
+  .mp h1.man-title {display:none}
+  .mp,.mp code,.mp pre,.mp tt,.mp kbd,.mp samp,.mp h3,.mp h4 {font-family:monospace;font-size:14px;line-height:1.42857142857143}
+  .mp h2 {font-size:16px;line-height:1.25}
+  .mp h1 {font-size:20px;line-height:2}
+  .mp {text-align:justify;background:#fff}
+  .mp,.mp code,.mp pre,.mp pre code,.mp tt,.mp kbd,.mp samp {color:#131211}
+  .mp h1,.mp h2,.mp h3,.mp h4 {color:#030201}
+  .mp u {text-decoration:underline}
+  .mp code,.mp strong,.mp b {font-weight:bold;color:#131211}
+  .mp em,.mp var {font-style:italic;color:#232221;text-decoration:none}
+  .mp a,.mp a:link,.mp a:hover,.mp a code,.mp a pre,.mp a tt,.mp a kbd,.mp a samp {color:#0000ff}
+  .mp b.man-ref {font-weight:normal;color:#434241}
+  .mp pre {padding:0 4ex}
+  .mp pre code {font-weight:normal;color:#434241}
+  .mp h2+pre,h3+pre {padding-left:0}
+  ol.man-decor,ol.man-decor li {margin:3px 0 10px 0;padding:0;float:left;width:33%;list-style-type:none;text-transform:uppercase;color:#999;letter-spacing:1px}
+  ol.man-decor {width:100%}
+  ol.man-decor li.tl {text-align:left}
+  ol.man-decor li.tc {text-align:center;letter-spacing:4px}
+  ol.man-decor li.tr {text-align:right;float:right}
+  </style>
+</head>
+<!--
+  The following styles are deprecated and will be removed at some point:
+  div#man, div#man ol.man, div#man ol.head, div#man ol.man.
+
+  The .man-page, .man-decor, .man-head, .man-foot, .man-title, and
+  .man-navigation should be used instead.
+-->
+<body id='manpage'>
+  <div class='mp' id='man'>
+
+  <div class='man-navigation' style='display:none'>
+    <a href="#NAME">NAME</a>
+    <a href="#SYNOPSIS">SYNOPSIS</a>
+    <a href="#DESCRIPTION">DESCRIPTION</a>
+    <a href="#OPTIONS">OPTIONS</a>
+    <a href="#VIEWS">VIEWS</a>
+    <a href="#COMMAND-MODE-AND-EVAL-MODE">COMMAND MODE AND EVAL MODE</a>
+    <a href="#SEARCHING">SEARCHING</a>
+    <a href="#STATUS-LINE">STATUS LINE</a>
+    <a href="#KEY-BINDINNGS">KEY BINDINNGS</a>
+    <a href="#COMMANDS">COMMANDS</a>
+    <a href="#SCHEME-ENVIRONMENT">SCHEME ENVIRONMENT</a>
+    <a href="#CONFIGURATION-OPTIONS">CONFIGURATION OPTIONS</a>
+    <a href="#COLORS">COLORS</a>
+    <a href="#FORMAT-STRINGS">FORMAT STRINGS</a>
+    <a href="#FILES">FILES</a>
+    <a href="#BUGS">BUGS</a>
+    <a href="#SEE-ALSO">SEE ALSO</a>
+    <a href="#AUTHOR">AUTHOR</a>
+  </div>
+
+  <ol class='man-decor man-head man head'>
+    <li class='tl'>scmus(1)</li>
+    <li class='tc'>General Commands Manual</li>
+    <li class='tr'>scmus(1)</li>
+  </ol>
+
+  <h2 id="NAME">NAME</h2>
+<p class="man-name">
+  <code>scmus</code> - <span class="man-whatis">Scheme MPD Client</span>
+</p>
+
+<h2 id="SYNOPSIS">SYNOPSIS</h2>
+
+<p><code>scmus</code> [options]</p>
+
+<h2 id="DESCRIPTION">DESCRIPTION</h2>
+
+<p>scmus is an ncurses based client for the Music Player Daemon, written and
+scriptable in the Scheme programming language.</p>
+
+<h2 id="OPTIONS">OPTIONS</h2>
+
+<dl>
+<dt><code>-a,--address</code> <em>ADDRESS</em></dt><dd><p>Specify the address to use when connecting to the MPD server.</p></dd>
+<dt><code>-c,--command</code> <em>COMMAND</em></dt><dd><p>Send a command to the MPD server and print the response (as a Scheme object)
+to standard output.</p></dd>
+<dt><code>--config</code> <em>PATH</em></dt><dd><p>Specify the path to a config file to use instead of the default.</p></dd>
+<dt><code>-h,--help</code></dt><dd><p>Print a help message and exit.</p></dd>
+<dt><code>--password</code> <em>PASSWORD</em></dt><dd><p>Specify the password to use when connecting to the MPD server.</p></dd>
+<dt><code>-p,--port</code> <em>PORT</em></dt><dd><p>Specify the port to use when connecting to the MPD server.</p></dd>
+<dt><code>-u,--unix</code> <em>PATH</em></dt><dd><p>Specify the path to a UNIX domain socket to use when connecting to the MPD
+server.</p></dd>
+<dt><code>-v,--version</code></dt><dd><p>Print scmus's version and exit.</p></dd>
+<dt><code>--verbose</code></dt><dd><p>Print some extra information to the console while scmus is running.</p></dd>
+</dl>
+
+
+<h2 id="VIEWS">VIEWS</h2>
+
+<p>There are 8 views in scmus.  Press keys 1-8 to change the active view.</p>
+
+<dl>
+<dt><code>Library View</code> (1)</dt><dd><p>In this view you can browse the entire music database.  The database is
+organized hierarchically, with artists at the top level, then albums, then
+tracks.  The arrow keys or <code>hjkl</code> are used to navigate through the
+hierarchy.</p></dd>
+<dt><code>Queue view</code> (2)</dt><dd><p>Displays the tracks in the play queue.</p></dd>
+<dt><code>Search View</code> (3)</dt><dd><p>Used for searching MPD's music database.  This view is split vertically into
+two panes: the top pane has a list of search fields, and the bottom pane
+lists the results of the search.  To edit a search field, hit the <code>i</code> key
+with the cursor over the search field.</p>
+
+<p>Search fields should contain simple keywords, or a <em>tag:value</em> pair
+(e.g. <em>artist:boris</em>).  To perform the search, hit the <code>enter</code> key.  A list
+of results will appear in the bottom pane.</p></dd>
+<dt><code>Browser View</code> (4)</dt><dd><p>Like the library view, except that this view is organized as a file system
+rather than by artist/album/track.</p></dd>
+<dt><code>Status View</code> (5)</dt><dd><p>Displays the response to the last <em>status</em> MPD command.  This is used for
+debugging and is likely to be removed in the future.</p></dd>
+<dt><code>Error View</code> (6)</dt><dd><p>Displays a message describing the last error encountered by scmus.  This
+should be a network/mpd related error, or an exception triggered by your own
+code executed in <code>eval mode</code>.  If not, consider filing a bug report.</p>
+
+<p>This view will be replaced by a more featureful log viewer in the future.</p></dd>
+<dt><code>Options View</code> (7)</dt><dd><p>Used for viewing and editing scmus's options.  The edit an option, hit the
+<code>i</code> key with the cursor over the desired option.</p></dd>
+<dt><code>Bindings View</code> (8)</dt><dd><p>Used for viewing and editing key bindings.  Only keys that are already bound
+will appear here.  See the <code>bind</code> command for how to create new key bindings.</p></dd>
+</dl>
+
+
+<h2 id="COMMAND-MODE-AND-EVAL-MODE">COMMAND MODE AND EVAL MODE</h2>
+
+<p>Everything in scmus ban be controlled by entering commands or Scheme
+expressions on the <em>command-line</em> (the bottommost line).  To enter <code>command
+mode</code> press <code>:</code>.  To enter <code>eval mode</code> press <code>$</code>.  After typing in your
+command/expression, press <code>ENTER</code> to execute it or <code>ESC</code> to cancel.</p>
+
+<dl>
+<dt>Examples:</dt><dd><p></p>
+
+<p>;; add the selected track to the play queue<br />
+:add        # command mode<br />
+$(win-add!) ; eval mode</p>
+
+<p>;; start playing<br />
+;; you could just press 'x' which is the default binding for this function<br />
+:play    # command mode<br />
+$(play!) ; eval mode</p>
+
+<p>;; clear current window<br />
+:win-clear    # command mode<br />
+$(win-clear!) ; eval mode</p></dd>
+</dl>
+
+
+<h2 id="SEARCHING">SEARCHING</h2>
+
+<p>Search mode works like eval mode.  To enter search mode press <code>/</code> and then type
+the search query and press <code>ENTER</code>.  Press <code>n</code> to find the next match using the
+same search query, or <code>N</code> to find the previous match.</p>
+
+<p>scmus uses a simple substring match search.  When the current window contains a
+list of tracks, artist, album, albumartist and title are searched.</p>
+
+<h2 id="STATUS-LINE">STATUS LINE</h2>
+
+<dl>
+<dt>The right hand side of the status line (second row from the bottom) consists of the following fields:</dt><dd><p></p>
+
+<p>single (<code>S</code>) repeat (<code>R</code>) random (<code>r</code>) consume (<code>C</code>)</p></dd>
+</dl>
+
+
+<p>These can be toggled by pressing the <code>S</code>, <code>R</code>, <code>r</code>, and <code>C</code> keys respectively.</p>
+
+<p><em>Single</em> means that scmus will play a single song and then stop.</p>
+
+<p><em>Repeat</em> means that scmus will continue playing from the beginning of the play
+queue after it reaches the end.</p>
+
+<p><em>Random</em> means that scmus will play tracks in a random order.</p>
+
+<p><em>Consume</em> means that tracks are removed from the play queue when they are
+finished playing.</p>
+
+<h2 id="KEY-BINDINNGS">KEY BINDINNGS</h2>
+
+<p>In scmus, a key or sequence of keys can be bound to a Scheme expression.  When
+that key or sequence of keys is pressed, the expression is evaluated.</p>
+
+<p>See the <code>bind</code> and <code>unbind</code> commands in the <a href="#COMMANDS" title="COMMANDS" data-bare-link="true">COMMANDS</a> section for a
+description of how keys can be bound or unbound.</p>
+
+<p>To see a list of the current key bindings, open the <code>bindings view</code> by hitting
+the <code>8</code> key.</p>
+
+<h2 id="COMMANDS">COMMANDS</h2>
+
+<p>This section describes scmus's commands.</p>
+
+<p>Optional parameters are in [<em>square brackets</em>].</p>
+
+<dl>
+<dt>Scheme expressions can be embedded within a command using the <code>$</code> character.  The expression following the <code>$</code> character is evaluated and its result is spliced into the command, formatted as if by <code>DISPLAY</code>.  E.g.:</dt><dd><p></p>
+
+<p>echo $a-scheme-variable</p></dd>
+<dt>Scheme expressions may be optionally delimited by curly braces, e.g.:</dt><dd><p></p>
+
+<p>echo ${a-scheme-variable}!</p></dd>
+<dt><code>bind</code> [<em>-f</em>] <em>context</em> <em>keys</em> [<em>expression</em>]</dt><dd><p>Add a key binding.</p>
+
+<p><em>-f</em> overwrite existing binding</p>
+
+<p>There's one context for each view.  common is a special context on which
+bound keys in every view.  Keys bound in the common context can be overridden
+in other contexts.</p>
+
+<p><code>Valid key contexts</code>
+common library queue search browser status error options bindings</p></dd>
+<dt class="flush"><code>clear</code></dt><dd><p>Remove all tracks from the play queue.</p></dd>
+<dt><code>colorscheme</code> <em>name</em></dt><dd><p>Change color scheme.  Color schemes are found in <em>/user/local/share/scmus/colors/</em> or <em>$XDG_CONFIG_HOME/scmus/colors/</em>.</p></dd>
+<dt><code>connect</code> [<em>host</em>] [<em>port</em> [<em>password</em>]]]</dt><dd><p>Connect to an MPD server.</p>
+
+<p>If <em>host</em> is given, it should be the hostname of the MPD server.</p>
+
+<p>If <em>port</em> is given, it should be the port number of the MPD server, or one of the strings <em>unix</em> or <em>default</em>.  If the <em>port</em> is given as <em>unix</em>, then <em>host</em> is interpreted as the path to a UNIX domain socket.  If <em>port</em> is <em>default</em>, then the default configured port number is used.</p>
+
+<p>If <em>pass</em> is given, it should be the password for the MPD server.</p></dd>
+<dt><code>echo</code> <em>arg</em>...</dt><dd><p>Display arguments on the command line.</p></dd>
+<dt><code>load</code> <em>playlist</em></dt><dd><p>Load the named playlist to the play queue.</p></dd>
+<dt class="flush"><code>next</code></dt><dd><p>Skip to the next track.</p></dd>
+<dt class="flush"><code>pause</code></dt><dd><p>Toggle pause.</p></dd>
+<dt class="flush"><code>prev</code></dt><dd><p>Skip to the previous track.</p></dd>
+<dt><code>save</code> <em>playlist-name</em></dt><dd><p>Save the contents of the play queue as a playlist named <em>playlist-name</em>.</p></dd>
+<dt><code>seek</code> [<em>+-</em>](<em>num</em>[<em>mh</em>] | [<em>HH</em>:]<em>MM</em>:<em>SS</em>)</dt><dd><p>Seek to absolute or relative position within the current track.  Position can be given in seconds (default), minutes (<em>m</em>), hours (<em>h</em>) or <em>HH</em>:<em>MM</em>:<em>SS</em> format (where <em>HH:</em> is optional.</p>
+
+<p>Seek 1 minute backward:<br />
+:<code>seek</code> <em>-1m</em></p>
+
+<p>Seek 5 seconds forward:
+:<code>seek</code> <em>+5</em></p>
+
+<p>Seek to absolute position 1h:
+:<code>seek</code> <em>1h</em></p>
+
+<p>Seek 90 seconds forward:
+:<code>seek</code> <em>+1:30</em></p></dd>
+<dt class="flush"><code>stop</code></dt><dd><p>Stop playback.</p></dd>
+<dt><code>unbind</code> [<em>-f</em>] <em>context</em> <em>keys</em></dt><dd><p>Remove a key binding.</p>
+
+<p><em>-f</em> Don't throw an error if the binding is not known.</p></dd>
+<dt class="flush"><code>update</code></dt><dd><p>Initiate an MPD database update.</p></dd>
+<dt><code>vol</code> [<em>+-</em>]<em>NUM</em></dt><dd><p>Set, increase or decrease volume.</p>
+
+<p>To increase or decrease the volume, use a <em>+</em> or <em>-</em> prefix.  Otherwise the value is treated as an absolute volume level.</p></dd>
+<dt><code>win-activate</code></dt><dd><p>Activate the currently selected item.  The meaning of this command varies depending on what is selected.</p>
+
+<p>In the <code>library</code> and <code>browser</code> views, it descends into the next level or the artist/album/track or directory hierarchy.  In the <code>queue</code> view it plays the selected track.  In the <code>options</code> and <code>bindings</code> biews it begins editing the selected option/binding.  In <code>search</code> view it executes the search query.</p></dd>
+<dt class="flush"><code>win-add</code></dt><dd><p>Add the currently marked or selected track(s) to the play queue.</p></dd>
+<dt><code>win-bottom</code></dt><dd><p>Move the cursor to the bottom of the active window.</p></dd>
+<dt><code>win-clear</code></dt><dd><p>In <code>queue</code> view, clears the play queue.  In <code>search</code> view, clears the search results.</p></dd>
+<dt><code>win-deactivate</code></dt><dd><p>In the <code>library</code> and <code>browser</code> views, ascend to the next level in the artist/album/track or directory hierarchy.</p></dd>
+<dt><code>win-move</code> [<em>-r</em>] [<em>-</em>]<em>n</em></dt><dd><p>Move the cursor up or down.</p>
+
+<p><em>-r</em> Interpret <em>n</em> as a percentage of the visible number of lines.</p></dd>
+<dt><code>win-move-tracks</code> [<em>-b</em>]</dt><dd><p>Move the marked or selected track(s) to the cursor location.</p>
+
+<p><em>-b</em> Move the tracks "before" (under) the cursor.</p></dd>
+<dt><code>win-remove</code></dt><dd><p>Remove the selected entry.</p></dd>
+<dt><code>win-search</code> <em>query</em></dt><dd><p>Search the active window.  This is the same as entering <em>query</em> in search mode.</p></dd>
+<dt><code>win-search-next</code></dt><dd><p>Move the cursor to the next search result.</p></dd>
+<dt><code>win-search-prev</code></dt><dd><p>Move the cursor to the previous search result.</p></dd>
+<dt class="flush"><code>win-top</code></dt><dd><p>Move the cursor to the top of the active window.</p></dd>
+</dl>
+
+
+<h2 id="SCHEME-ENVIRONMENT">SCHEME ENVIRONMENT</h2>
+
+<p>See <span class="man-ref">scmus<span class="s">(3)</span></span> for documentation of the Scheme programming environment in scmus.</p>
+
+<h2 id="CONFIGURATION-OPTIONS">CONFIGURATION OPTIONS</h2>
+
+<p>This section describes scmus's options that can be altered with the <code>set-option!</code> function.  Default values are in parentheses.</p>
+
+<dl>
+<dt><code>color-cmdline</code> (<em>'(default default default)</em>)</dt><dd><p>Command line colors.</p></dd>
+<dt><code>color-error</code> (<em>'(default default red)</em>)</dt><dd><p>Colors for error messages displayed on the command line.</p></dd>
+<dt><code>color-info</code> (<em>'(default default yellow)</em>)</dt><dd><p>Colors for informational messages displayed on the command line.</p></dd>
+<dt><code>color-statusline</code> (<em>'(default white black)</em>)</dt><dd><p>Status line colors.</p></dd>
+<dt><code>color-titleline</code> (<em>'(default blue white)</em>)</dt><dd><p>Title line colors.</p></dd>
+<dt><code>color-win</code> (<em>'(default default default)</em>)</dt><dd><p>Window colors.</p></dd>
+<dt><code>color-win-cur</code> (<em>'(default default yellow)</em>)</dt><dd><p>Colors for the currently playing track.</p></dd>
+<dt><code>color-win-cur-sel</code> (<em>'(default blue white)</em>)</dt><dd><p>Colors for the selected row which is also the currently playing track.</p></dd>
+<dt><code>color-win-marked</code> (<em>'(default blue white)</em>)</dt><dd><p>Colors for marked rows.</p></dd>
+<dt><code>color-win-sel</code> (<em>'(default blue white)</em>)</dt><dd><p>Colors for the selected row.</p></dd>
+<dt><code>color-win-title</code> (<em>'(default blue white)</em>)</dt><dd><p>Colors for window titles (topmost line of the screen).</p></dd>
+<dt><code>eval-mode-print</code> (<em>#f</em>)</dt><dd><p>In eval mode, print the result of evaluating the entered expression as if by <code>WRITE</code>.</p></dd>
+<dt><code>format-browser-dir</code> (<em>"~{directory}"</em>)</dt><dd><p>Format string for directories in the <code>browser</code> view.</p></dd>
+<dt><code>format-browser-file</code> (<em>"~{path}"</em>)</dt><dd><p>Format string for files in the <code>browser</code> view.</p></dd>
+<dt><code>format-browser-metadata</code> (<em>"~-50%{tag} ~{value}"</em>)</dt><dd><p>Format string for file metadata in the <code>browser</code> view.</p></dd>
+<dt><code>format-browser-playlist</code> (<em>"[~{playlist}"</em>)</dt><dd><p>Format string for playlists in the <code>browser</code> view.</p></dd>
+<dt><code>format-current</code> (<em>" ~a - ~l ~n. ~t~= ~y"</em>)</dt><dd><p>Format string for the line displaying the current track.</p></dd>
+<dt><code>format-library-album</code> (<em>"~{album}"</em>)</dt><dd><p>Format for albums in the <code>library</code> view.</p></dd>
+<dt><code>format-library-artist</code> (<em>"~{artist}"</em>)</dt><dd><p>Format for artists in the <code>library</code> view.</p></dd>
+<dt><code>format-library-file</code> (<em>"~-25%a ~3n. ~t~= ~-4y ~d"</em>)</dt><dd><p>Format for files in the <code>library</code> view.</p></dd>
+<dt><code>format-library-metadata</code> (<em>"~-50%{tag} ~{value}"</em>)</dt><dd><p>Format for file metadata in the <code>library</code> view.</p></dd>
+<dt><code>format-library-playlist</code> (<em>"~{playlist}"</em>)</dt><dd><p>Format for playlists in the <code>library</code> view.</p></dd>
+<dt><code>format-queue</code> (<em>"~-25%a ~3n. ~t~= ~-4y ~d"</em>)</dt><dd><p>Format string for tracks in the <code>queue</code> view.</p></dd>
+<dt><code>format-search-file</code> (<em>"~-25%a ~3n. ~t~= ~-4y ~d"</em>)</dt><dd><p>Format string for files in the <code>search</code> view.</p></dd>
+<dt><code>mpd-address</code> (<em>"localhost"</em>)</dt><dd><p>Hostname of the MPD server.</p></dd>
+<dt><code>mpd-password</code> (<em>#f</em>)</dt><dd><p>Password to use for the MPD server.</p></dd>
+<dt><code>mpd-port</code> (<em>6600</em>)</dt><dd><p>Port number of the MPD server.</p></dd>
+<dt><code>status-update-interval</code> (<em>1.5</em>)</dt><dd><p>Number of seconds to wait between MPD status updates.  Consider increasing this if the latency to the MPD server is high.</p></dd>
+</dl>
+
+
+<h2 id="COLORS">COLORS</h2>
+
+<p>Colors are integers in the range -1...255.</p>
+
+<p>The following color symbols are recognized:</p>
+
+<dl>
+<dt>Terminal's default color, <em>-1</em></dt><dd><p>default</p></dd>
+<dt class="flush"><em>0..7</em></dt><dd><p>black, read, green, yellow, blue, magenta, cyan, white</p></dd>
+<dt class="flush"><em>8..15</em></dt><dd><p>dark-gray, light-red, light-green, light-yellow, light-blue, light-magenta, light-cyan, gray</p></dd>
+<dt>Attributes may also be used, such as bold or underline.  The following attribute symbols are recognized</dt><dd><p>default normal underline reverse blink bold dim invis standout</p></dd>
+</dl>
+
+
+<p>Color options are specified as 3-tuples <em>(attribute background-color foreground-color)</em>.</p>
+
+<h2 id="FORMAT-STRINGS">FORMAT STRINGS</h2>
+
+<p>Format strings control the display of text throughout scmus.</p>
+
+<dl>
+<dt>Special Keys:</dt><dd><p></p>
+
+<p>~a ~{artist}<br />
+~A ~{albumartist}<br />
+~l ~{album}<br />
+~D ~{discnumber}<br />
+~n ~{tracknumber}<br />
+~t ~{title}<br />
+~g ~{genre}<br />
+~c ~{comment}<br />
+~y ~{date}<br />
+~d ~{duration}<br />
+~f ~{path}<br />
+~F ~{filename}<br />
+~P ~{playing}<br />
+~p ~{current}<br />
+~T ~{db-playtime}<br />
+~v ~{volume}<br />
+~R ~{repeat}<br />
+~r ~{random}<br />
+~s ~{single}<br />
+~C ~{consume}<br />
+~{bitrate}<br />
+~{host}<br />
+~{port}</p>
+
+<dl>
+<dt class="flush">~^</dt><dd>start align center (use at most once)</dd>
+<dt class="flush">~=</dt><dd>start align right (use at most once)</dd>
+<dt class="flush">~~</dt><dd>literal tilde character</dd>
+</dl>
+</dd>
+</dl>
+
+
+<p>If the string inside a <em>~{}</em> specifier is not one of the predefined values above, scmus will still try to find a metadata field with that name.  So ~{} can be used to display abritrary metadata, so long as the metadata is reporteed by MPD.</p>
+
+<p>Colors may be specified in format strings with the <em>~&lt;&gt;</em> specifier.  Numbers between -1 and 255 as well as color names (e.g. <em>green</em>) are supported.  <em>~&lt;reset&gt;</em> or <em>~&lt;!&gt;</em> can be used to reset the color to the default after using color specifiers.</p>
+
+<p>Arbitrary Scheme code can be embedded in a format string inside of <em>~[]</em>.  The code will be evaluated and the result substituted for the <em>~[]</em> specifier, as if formatted by <code>DISPLAY</code>.  If the code evaluates to a function, the function is called with a track object and the formatted string's max width as arguments, and the return value is substituted.</p>
+
+<p>Groups can be defined within format strings with the <em>~()</em> specifier.  The text inside the parentheses will be treated as a unit with respect to width, alignment and padding.  Groups should always be used in conjunction with a width specifier.</p>
+
+<p>You can use printf style formatting (width, alignment, padding).  As an extension, the width can have a <em>%</em>-suffix, to specify a percentage of the available width.</p>
+
+<dl>
+<dt>Examples:</dt><dd><p></p>
+
+<p>(set-option! 'format-current "~a - ~l ~n. ~t~= ~y")<br />
+(set-option! 'format-queue "~-25%a ~3n. ~t~= ~-4y ~d")<br />
+(set-option! 'format-queue "~{musicbrainz_trackid}")<br />
+(set-option! 'format-queue "~&lt;5&gt;~-25%a~&lt;!&gt; ~3n. ~t~= ~-4y ~d")<br />
+(set-option! 'format-queue "~[(lambda (x) (track-file x))]")<br />
+(set-option! 'format-queue "~25%(Artist: ~a)")</p></dd>
+</dl>
+
+
+<h2 id="FILES">FILES</h2>
+
+<p>scmus reads its configuration from 2 files.</p>
+
+<dl>
+<dt><em>$XDG_CONFIG_HOME/scmus/rc.scm</em></dt><dd><p>Per-user configuration.  (<em>$XDG_CONFIG_HOME</em> defaults to <em>$HOME/.config</em> if it is not set.)</p></dd>
+<dt><em>/usr/local/share/scmus/scmusrc.scm</em></dt><dd><p>System-wide configuration.  This contains default settings, which can be overriden on a per-user basis.</p></dd>
+</dl>
+
+
+<p><code>Color Schemes</code><br />
+There are some color schemes in <em>/usr/local/share/scmus/colors/</em>.  You can switch them using the <code>colorscheme!</code> function.</p>
+
+<h2 id="BUGS">BUGS</h2>
+
+<p>You can submit bugs to the issue tracker on Github (https://github.com/drewt/scmus/issues).</p>
+
+<h2 id="SEE-ALSO">SEE ALSO</h2>
+
+<p><code>scmus</code>(3)</p>
+
+<h2 id="AUTHOR">AUTHOR</h2>
+
+<p>scmus was written by Drew Thoreson &lt;<em>drew.thoreson@alumni.ubc.ca</em>&gt;.</p>
+
+<p>This man page is based heavily on the <code>cmus</code> man page, written by Frank Terbeck, Timo Hirvonen and Clay Barnes.</p>
+
+
+  <ol class='man-decor man-foot man foot'>
+    <li class='tl'></li>
+    <li class='tc'>December 2018</li>
+    <li class='tr'>scmus(1)</li>
+  </ol>
+
+  </div>
+</body>
+</html>
