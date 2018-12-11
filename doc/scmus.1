@@ -1,1483 +1,636 @@
-.TH SCMUS 1 20/08/2014 scmus "scmus Manual"
-.nh
-.ad l
-.SH NAME
-scmus \- Scheme MPD Client
-.SH SYNOPSIS
-scmus [\fBoptions\fR]
-.SH DESCRIPTION
-scmus is an ncurses based client for for the Music Player Daemon, written and
-scriptable in the Scheme programming language.
-.SH OPTIONS
-\-a,\-\-address ADDR
-.RS
-IP address or hostname of MPD server.
-.RE
-
-\-c,\-\-command
-.RS
-Send a command to the MPD server and print the response (as a scheme object)
-to standard output.
-.RE
-
-\-h,\-\-help
-.RS
-Print a help message and exit.
-.RE
-
-\-p,\-\-port PORT
-.RS
-Port number that MPD is listening on.
-.RE
-
-\-v,\-\-version
-.RS
-Print scmus's version and exit.
-.RE
-
-\-\-verbose
-.RS
-Print some extra information to the console at run time.
-.RE
-.SH VIEWS
-There are N [TODO] views in scmus.  Press keys 1\-N to change the active view.
-
-Library view (1)
-.RS
-In this view you can browse the entire music database.  The database is
-organized hierarchically, with artists at the top level, then albums, then
-tracks.  The arrow keys or \fBhjkl\fR are used to navigate through the
-hierarchy.
-.RE
-
-Queue view (2)
-.RS
-Displays the tracks in the play queue.
-.RE
-
-Search view (3)
-.RS
-Used for searching MPD's music database.  This view is split into two panes:
-the top pane has a list of search fields, and the bottom lists the results of
-the search.  To edit a search field, run the \fBwin\-edit!\fR function with the
-field selected.  Search fields should contain simple keywords, or a tag:value
-pair (e.g. "artist:boris").  To perform the search, use the
-\fBwin\-activate!\fR function.
-.RE
-
-Browser view (4)
-.RS
-Like the library view, except that this view is organized as a file system
-rather than by artist/album/track.
-.RE
-
-Status view (5)
-.RS
-Displays the response to the last "status" MPD command.
-.RE
-
-Error view (6)
-.RS
-Displays a message describing the last error encountered by scmus.  This should
-be a network/mpd related error, or an exception triggered by your own code
-executed in eval mode.  If not, consider filing a bug report.
-.RE
-
-Options view (7)
-.RS
-Used for viewing and editing scmus's options.  To edit an option, select it
-and run the \fBwin\-edit!\fR function.
-.RE
-.SH COMMAND MODE AND EVAL MODE
-Everything in scmus can be controlled by entering commands or scheme
-expressions on the "command line" (the bottommost line).  To enter command mode
-press \fB$\fR.  To enter eval mode press \fB:\fR.  To evaluate a
-command/expression press \fBENTER\fR or to cancel press \fBESC\fR.
-
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "SCMUS" "1" "December 2018" "" "General Commands Manual"
+.
+.SH "NAME"
+\fBscmus\fR \- Scheme MPD Client
+.
+.SH "SYNOPSIS"
+\fBscmus\fR [options]
+.
+.SH "DESCRIPTION"
+scmus is an ncurses based client for the Music Player Daemon, written and scriptable in the Scheme programming language\.
+.
+.SH "OPTIONS"
+.
+.TP
+\fB\-a,\-\-address\fR \fIADDRESS\fR
+Specify the address to use when connecting to the MPD server\.
+.
+.TP
+\fB\-c,\-\-command\fR \fICOMMAND\fR
+Send a command to the MPD server and print the response (as a Scheme object) to standard output\.
+.
+.TP
+\fB\-\-config\fR \fIPATH\fR
+Specify the path to a config file to use instead of the default\.
+.
+.TP
+\fB\-h,\-\-help\fR
+Print a help message and exit\.
+.
+.TP
+\fB\-\-password\fR \fIPASSWORD\fR
+Specify the password to use when connecting to the MPD server\.
+.
+.TP
+\fB\-p,\-\-port\fR \fIPORT\fR
+Specify the port to use when connecting to the MPD server\.
+.
+.TP
+\fB\-u,\-\-unix\fR \fIPATH\fR
+Specify the path to a UNIX domain socket to use when connecting to the MPD server\.
+.
+.TP
+\fB\-v,\-\-version\fR
+Print scmus\'s version and exit\.
+.
+.TP
+\fB\-\-verbose\fR
+Print some extra information to the console while scmus is running\.
+.
+.SH "VIEWS"
+There are 8 views in scmus\. Press keys 1\-8 to change the active view\.
+.
+.TP
+\fBLibrary View\fR (1)
+In this view you can browse the entire music database\. The database is organized hierarchically, with artists at the top level, then albums, then tracks\. The arrow keys or \fBhjkl\fR are used to navigate through the hierarchy\.
+.
+.TP
+\fBQueue view\fR (2)
+Displays the tracks in the play queue\.
+.
+.TP
+\fBSearch View\fR (3)
+Used for searching MPD\'s music database\. This view is split vertically into two panes: the top pane has a list of search fields, and the bottom pane lists the results of the search\. To edit a search field, hit the \fBi\fR key with the cursor over the search field\.
+.
+.IP
+Search fields should contain simple keywords, or a \fItag:value\fR pair (e\.g\. \fIartist:boris\fR)\. To perform the search, hit the \fBenter\fR key\. A list of results will appear in the bottom pane\.
+.
+.TP
+\fBBrowser View\fR (4)
+Like the library view, except that this view is organized as a file system rather than by artist/album/track\.
+.
+.TP
+\fBStatus View\fR (5)
+Displays the response to the last \fIstatus\fR MPD command\. This is used for debugging and is likely to be removed in the future\.
+.
+.TP
+\fBError View\fR (6)
+Displays a message describing the last error encountered by scmus\. This should be a network/mpd related error, or an exception triggered by your own code executed in \fBeval mode\fR\. If not, consider filing a bug report\.
+.
+.IP
+This view will be replaced by a more featureful log viewer in the future\.
+.
+.TP
+\fBOptions View\fR (7)
+Used for viewing and editing scmus\'s options\. The edit an option, hit the \fBi\fR key with the cursor over the desired option\.
+.
+.TP
+\fBBindings View\fR (8)
+Used for viewing and editing key bindings\. Only keys that are already bound will appear here\. See the \fBbind\fR command for how to create new key bindings\.
+.
+.SH "COMMAND MODE AND EVAL MODE"
+Everything in scmus ban be controlled by entering commands or Scheme expressions on the \fIcommand\-line\fR (the bottommost line)\. To enter \fBcommand mode\fR press \fB:\fR\. To enter \fBeval mode\fR press \fB$\fR\. After typing in your command/expression, press \fBENTER\fR to execute it or \fBESC\fR to cancel\.
+.
+.TP
 Examples:
-
-.RS
-.nf
+.
+.IP
 ;; add the selected track to the play queue
-:add        # command mode
-$(win-add!) ; eval mode
-
+.
+.br
+:add # command mode
+.
+.br
+$(win\-add!) ; eval mode
+.
+.IP
 ;; start playing
-;; you could just press 'x' which is the default
-;; binding for this function
-:play    # command mode
+.
+.br
+;; you could just press \'x\' which is the default binding for this function
+.
+.br
+:play # command mode
+.
+.br
 $(play!) ; eval mode
-
+.
+.IP
 ;; clear current window
-:win-clear    # command-mode
-$(win-clear!) ; eval mode
-.fi
-.RE
-.SH SEARCHING
-Search mode works like eval mode.  To enter search mode press \fB/\fR and then
-type the search words and press \fBENTER\fR.  Press \fBn\fR to search next
-using the same search words.
-
-scmus uses a simple substring match search.  When the current window contains
-a list of tracks, artist, album, albumartist and title are searched.
-.SH STATUS LINE
-The right hand side of the status line (second row from the bottom) consists
-of the following fields:
-
-.nf
-single (S) repeat (R) random (r) consume (C)
-.fi
-
-These can be toggled by pressing the \fBS\fR, \fBR\fR, \fBr\fR and \fBC\fR
-keys.
-
-Single means that scmus will play a single song and then stop.
-
-Repeat means that scmus will continue playing from the beginning of the play
-queue when it reaches the end.
-
-Random means that scmus will play tracks in a random order.
-
-Consume means that tracks are removed from the play queue when they are
-finished.
-.SH KEY BINDINGS
-
-In scmus, a key or sequence of keys can be bound to an expression.  When that
-key or sequence of keys is pressed, the expression is evaluated.
-
-Here's a list of default keybindings.  See the \fBbind!\fR and \fBunbind!\fR
-functions in the SCHEME ENVIRONMENT section for a description of how keys
-can be bound or unbound.
-.SS Common Context
-.nf
-1              (set-view! 'library)
-2              (set-view! 'queue)
-3              (set-view! 'search)
-4              (set-view! 'browser)
-5              (set-view! 'status)
-6              (set-view! 'error)
-7              (set-view! 'options)
-j,down         (win-move! 1)
-k,up           (win-move! \-1)
-^D             (win-move! 50 #t)
-^U             (win-move! \-50 #t)
-page_down      (win-move! 100 #t)
-page_up        (win-move! \-100 #t)
-h,left         (seek! \-5)
-l,right        (seek! 5)
-g              (win-top!)
-G              (win-bottom!)
-space          (begin (win-toggle-mark!) (win-move! 1))
-i              (win-edit!)
-z              (prev!)
-x              (play!)
-c              (pause!)
-v              (stop!)
-b              (next!)
-S              (toggle-single!)
-R              (toggle-repeat!)
-r              (toggle-random!)
-C              (toggle-consume!)
-<              (seek! -60)
->              (seek! 60)
-n              (win-search-next!)
-N              (win-search-prev!)
-a              (win-add!)
-d              (win-remove!)
-D              (win-clear!)
-enter          (win-activate!)
-(              (enter-eval-mode "()" 1)
-!              (enter-eval-mode "(shell! )" 8)
-.fi
-.SS Library Context
-.nf
-h,left         (win-deactivate!)
-l,right        (win-activate!)
-.fi
-.SS Queue Context
-.nf
-p              (win-move-tracks!)
-P              (win-move-tracks! #t)
-.fI
-.SS Browser Context
-.nf
-h,left         (win-deactivate!)
-l,right        (win-activate!)
-.fi
-.SH COMMANDS
-This section describes scmus' commands.
-
-Optional parameters are in brackets, obligatory parameters in angle brackets.
-
-Scheme expressions can be embedded within a command using the \fI$\fR character.
-The expression following the \fI$\fR character is evaluated and its result it
-spliced into the command, formatted as if by \fIDISPLAY\fR.  E.g.
-
-.RS
-echo $a-scheme-variable
-.RE
-
-Scheme expressions may be optionally delimited by curly braces, e.g.
-
-.RS
-echo ${a-scheme-variable}!
-.RE
-
-bind [-f] <context> <keys> [expression]
-.RS
-Add a key binding.
-
-\fI-f\fR overwrite existing binding
-
-\fBValid key contexts\fR
-.RS
-common library queue search browser status error options bindings
-.RE
-
-There's one context for each view.  Common is a special context on which bound
-keys work in every view.  Keys bound in the common context can be overriden
-in other contexts.
-.RE
-
-clear
-.RS
-Remove all tracks from the play queue.
-.RE
-
-colorscheme <name>
-.RS
-Change color scheme.  Color schemes are found in
-\fI/usr/local/share/scmus/colors/\fR or \fI$XDG_CONFIG_HOME/scmus/colors/\fR.
-.RE
-
-connect [host] [port] [pass]
-.RS
-Connect to an MPD server.
-
-If \fIhost\fR is given, it should be the hostname of the MPD server.
-
-If \fIport\fR is given, it should be the post number of the MPD server, or one
-of the strings \fIunix\fR or \fIdefault\fR.  If the \fIport\fR is given as
-\fIunix\fR, then \fIhost\fR is interpreted as the path to a UNIX domain
-socket.  If \fIport\fR is \fIdefault\fR, then the default configured port
-number is used.
-
-If \fIpass\fR is given, it should be the password of the MPD server.
-.RE
-
-echo <arg>...
-.RS
-Display arguments on the command line.
-.RE
-
-load <playlist>
-.RS
-Load the given playlist to the play queue.
-.RE
-
-next
-.RS
-Skip to the next track.
-.RE
-
-pause
-.RS
-Toggle pause.
-.RE
-
-prev
-.RS
-Skip to the previous track.
-.RE
-
-save <playlist-name>
-.RS
-Save the contents of the play queue as a playlist named \fIplaylist-name\fR.
-.RE
-
-seek [+-](<num>[mh] | [HH:]MM:SS)
-.RS
-Seek to absolute or relative position.  Position can be given in seconds,
-minutes (m), hours (h) or HH:MM:SS format where HH: is optional.
-
-Seek 1 minute backward
-.RS
-:seek -1m
-.RE
-
-Seek 5 seconds forward
-.RS
-:seek +5
-.RE
-
-Seek to absolute position 1h
-.RS
-:seek 1h
-.RE
-
-Seek 90 seconds forward
-.RS
-:seek +1:30
-.RE
-.RE
-
-stop
-.RS
-Stop playback.
-.RE
-
-unbind [-f] <context> <keys>
-.RS
-Remove a key binding.
-
-\fI-f\fR Don't throw an error if the binding is not known
-.RE
-
-update
-.RS
-Initiate an MPD database update.
-.RE
-
-vol [+-]NUM
-.RS
-Set, increase or decrease volume.
-
-To increase or decrease volume prefix the value with \fB-\fR or \fB+\fR,
-otherwise the value is treated as an absolute volume level.
-.RE
-
-win-activate
-.RS
-Activate the currently selected item.  The meaning of this command varies
-depending on what is selected.
-
-In the library and browser views, it descends into the next level of the
-artist/album/track or directory hierarchy.  In queue view it plays the selected
-track.  In options and bindings view it begins editing the selected
-option/binding.
-.RE
-
-win-add
-.RS
-Add the currently marked or selected track(s) to the play queue.
-.RE
-
-win-bottom
-.RS
-Move the cursor to the bottom of the active window.
-.RE
-
-win-clear
-.RS
-In queue view, clears the play queue.  In search view, clears the search
-results.
-.RE
-
-win-deactivate
-.RS
-In the library and browser views, ascend to the next level in the
-artist/album/track or directory hierarchy.
-.RE
-
-win-move [-r] [-]<n>
-.RS
-Move the cursor up or down.
-
-\fI-r\fR Interpret \fIn\fR as a percentage of the visible number of lines.
-.RE
-
-win-move-tracks [-b]
-.RS
-Move the marked or selected track(s) to the cursor location.
-
-\fI-b\fR Move the tracks "before" or "under" the cursor location.
-.RE
-
-win-remove
-.RS
-Remove the selected entry.
-.RE
-
-win-search <query>
-.RS
-Search the active window.  This is the same as entering \fIquery\fR in search
-mode.
-.RE
-
-win-search-next
-.RS
-Move the cursor to the next search result.
-.RE
-
-win-search-prev
-.RS
-Move the cursor to the previous search result.
-.RE
-
-win-top
-.RS
-Move the cursor to the top of the active window.
-.RE
-
-.SH SCHEME ENVIRONMENT
-This section describes the functions and variables available in eval mode.
-
-Optional parameters are in brackets.  Obligatory parameters are in angle
-brackets.
-
-;; bind! : string symbol any [boolean] \-> boolean
-.br
-(bind! <keys> <context> <expression> [force])
-.RS
-Bind \fIkeys\fR to \fIexpression\fR in \fIcontext\fR.  If \fIforce\fR is
-\fB#t\fR, then any binding conflicting with \fIkeys\fR is first unbound.
-Otherwise, if there is a conflicting binding, this function fail to bind
-\fIkeys\fR and returns \fB#f\fR.
-.RE
-
-;; clear\-queue! : void \-> void
-.br
-(clear\-queue!)
-.RS
-Removes all tracks from the queue.
-.RE
-
-;; colorscheme! : string \-> void
-.br
-(colorscheme! <name>)
-.RS
-Loads the colorscheme \fIname\fR.  This function looks for a file named
-\fIname\fR.scm in the scmus colors directory (usually
-/usr/local/share/scmus/colors).
-.RE
-
-;; connect! : [string] [integer] [string] \-> boolean
-.br
-(connect! [host] [port] [password])
-.RS
-Connects the the MPD server given by host:port with the given password, using
-the values of the mpd-address, mpd-port and mpd-password options if they are
-not provided as arguments.
-.RE
-
-;; consume? : void \-> boolean
-.br
-(consume?)
-.RS
-Returns #t if MPD is currently in consume mode, otherwise #f.
-.RE
-
-;; consume\-set! : boolean \-> void
-.br
-(consume\-set! <value>)
-.RS
-Sets the value of the \fBconsume\fR MPD option.
-.RE
-
-;; current\-bitrate : void \-> integer
-.br
-(current\-bitrate)
-.RS
-Returns the current bitrate of the playing audio.
-.RE
-
-;; current\-elapsed : void \-> float
-.br
-(current\-elapsed)
-.RS
-Returns the position within the current track as a number of seconds.
-.RE
-
-;; current\-track : void \-> track
-.br
-(current\-track)
-.RS
-Returns the track object for the currently playing track.
-.RE
-
-;; current\-volume: void \-> integer
-.br
-(current\-volume)
-.RS
-Returns the current volume.
-.RE
-
-;; describe : * \-> string
-.br
-(describe <object>)
-.RS
-Print a description of \fIobject\fR on the command line.  If \fIobject\fR is a
-symbol, then a description is printed for the object bound to the symbol.
-.RE
-
-;; disconnect! : void \-> void
-.br
-(disconnect!)
-.RS
-Disconnects from the current MPD server.
-.RE
-
-;; echo! : string \-> void
-.br
-(echo! <str>)
-.RS
-Prints the given string to the command line.
-.RE
-
-;; enter-eval-mode : [string] [integer] \-> void
-.br
-(enter-eval-mode [text] [cursor-pos])
-.RS
-Enter eval-mode (a mode in which scheme expressions may be entered on the
-command line).  If \fItext\fR is given, then the text is added on the command
-line.  If \fIcursor-pos\fR is given, then the cursor is moved to the given
-position within \fItext\fR.
-.RE
-
-;; enter-command-mode : [string] [integer] : \-> void
-.br
-(enter-command-mode [text] [cursor-pos])
-.RS
-Enter command mode (a mode in which commands may be entered on the command
-line).  See \fIenter-eval-mode\fR for a description of arguments.
-.RE
-
-;; enter-search-mode : [string] [integer] : \-> void
-.br
-(enter-search-mode [text] [cursor-pos])
-.RS
-Enter search mode (a mode in which search terms may be entered on the command
-line).  See \fIenter-eval-mode\fR for a description of arguments.
-.RE
-
-;; get-environment-variable : string \-> string
-.br
-(get\-environment\-variable <name>)
-.RS
-Returns the value of the environment variable \fIname\fR.
-.RE
-
-;; get\-option : symbol \-> ???
-.br
-(get\-option! <name>)
-.RS
-Returns the value of the option \fIname\fR.
-.RE
-
-;; load : string \-> void
-.br
-(load <filename>)
-.RS
-Loads the given file into the current environment.  This differs from the
-standard \fBload\fR function in that exceptions are ignored.
-.RE
-
-;; mixramp\-db : void \-> float
-.br
-(mixramp\-db)
-.RS
-Returns the current value of the mixrampdb MPD setting.
-.RE
-
-;; mixramp\-delay : void \-> float
-.br
-(mixramp\-delay)
-.RS
-Returns the current value of the mixrampdelay MPD setting.
-.RE
-
-;; mpd\-address : void \-> string
-.br
-(mpd\-address)
-.RS
-Returns the IP address of the connected MPD server in XXX.XXX.XXX.XXX notation.
-.RE
-
-;; mpd\-host : void \-> string
-.br
-(mpd\-host)
-.RS
-Returns the hostname of the connected MPD server.
-.RE
-
-;; mpd\-port : void \-> integer
-.br
-(mpd\-port)
-.RS
-Returns the port number of the connected MPD server.
-.RE
-
-;; next! : void \-> void
-.br
-(next!)
-.RS
-Skip to the next track.
-.RE
-
-;; next\-id : void \-> integer
-.br
-(next\-id)
-.RS
-Returns the ID of the next track.
-.RE
-
-;; next\-pos : void \-> integer
-.br
-(next\-pos)
-.RS
-Returns the position of the next track.
-.RE
-
-;; pause! : void \-> void
-.br
-(pause!)
-.RS
-Toggle pause.
-.RE
-
-;; play! : void \-> void
-.br
-(play!)
-.RS
-Play the current track.  If there is no current track, then the first song in
-the play queue is starts playing.
-.RE
-
-;; playlist\-clear! : string \-> void
-.br
-(playlist\-clear! <name>)
-.RS
-Clears the given playlist.
-.RE
-
-;; playlist\-add! : string string \-> void
-.br
-(playlist\-add! <name> <uri>)
-.RS
-Adds \fIuri\fR to the given playlist.
-.RE
-
-;; playlist\-move! : string integer integer \-> void
-.br
-(playlist\-move! <name> <songid> <songpos>)
-.RS
-Adds \fIsongid\fR in the given playlist to the position \fIsongpos\fR.
-.RE
-
-;; playlist\-delete! : string integer \-> void
-.br
-(playlist\-delete! : <name> <songpos>)
-.RS
-Deletes \fIsongpos\fR from the given playlist.
-.RE
-
-;; playlist\-save! : string \-> void
-.br
-(playlist\-save! <name>)
-.RS
-Saves the current playlist (i.e. the play queue) as \fIname\fR.
-.RE
-
-;; playlist\-load! : string \-> void
-.br
-(playlist\-load! <name>)
-.RS
-Loads the given playlist to the play queue.
-.RE
-
-;; playlist\-rename! : string string \-> void
-.br
-(playlist\-rename! <name> <newname>)
-.RS
-Renames the playlist \fIname\fR to \fInewname\fR.
-.RE
-
-;; playlist-rm! : string \-> void
-.br
-(playlist\-rm! <name>)
-.RS
-Removes the given playlist.
-.RE
-
-;; prev! : void \-> void
-.br
-(prev!)
-.RS
-Skip to the previous track.
-.RE
-
-;; queue\-delete! : (or integer range) \-> void
-.br
-(queue\-delete! <pos>)
-(queue\-delete! (<start> . <end>))
-.RS
-Removes the given pos/range from the play queue.
-.RE
-
-;; queue\-delete\-id! : integer \-> void
-.br
-(queue\-delete\-id! <songid>)
-.RS
-Removes \fIsongid\fR from the play queue.
-.RE
-
-;; queue\-length : void \-> integer
-.br
-(queue\-length)
-.RS
-Returns the length of the play queue (number of tracks).
-.RE
-
-;; queue\-move! : (or integer range) integer \-> void
-.br
-(queue\-move! <from> <to>)
-(queue\-move! (<start> . <end>) <to>)
-.RS
-Moves the given pos/range to the position \fIto\fR in the play queue.
-.RE
-
-;; queue\-move\-id! : integer integer \-> void
-.br
-(queue\-move\-to! <from> <to>)
-.RS
-Moves the track with id \fIfrom\fR to position \fIto\fR in the play queue.
-.RE
-
-;; queue\-swap! : integer integer \-> void
-.br
-(queue\-swap! <track1> <track2>)
-.RS
-Swaps the tracks at positions \fItrack1\fR and \fItrack2\fR in the play queue.
-.RE
-
-;; queue\-swap\-id! : integer integer \-> void
-.br
-(queue\-swap\-id! <track1> <track2>)
-.RS
-Swaps the tracks with ids \fItrack1\fR and \fItrack2\fR in the play queue.
-.RE
-
-;; queue\-version : void \-> integer
-.br
-(queue\-version)
-.RS
-Returns the current version of the queue.
-.RE
-
-;; random? : void \-> boolean
-.br
-(random?)
-.RS
-Returns #t if MPD is currently in random mode, otherwise #f.
-.RE
-
-;; random\-set! : boolean \-> void
-.br
-(random\-set! <value>)
-.RS
-Sets the value of the \fBrandom\fR MPD option.
-.RE
-
-;; refresh\-library! : void \-> void
-.br
-(refresh\-library!)
-.RS
-Refresh the data in the library view.  Normally scmus will do this
-automatically when changes are made to the db, but in case it doesn't a
-refresh may be triggered manually with this function.
-.RE
-
-;; register\-event\-handler! : symbol thunk \-> void
-.br
-(register\-event\-handler! event handler)
-.RS
-Register \fIhandler\fR as a handler for \fIevent\fR.  See the \fBEvents\fR
-section for a listing and description of the events that can be handled.
-.RE
-
-;; repeat? : void \-> boolean
-.br
-(repeat?)
-.RS
-Returns #t if MPD is currently in repeat mode, otherwise #f.
-.RE
-
-;; repeat\-set! : boolean \-> void
-.br
-(repeat\-set! <value>)
-.RS
-Sets the value of the \fBrepeat\fR MPD option.
-.RE
-
-;; rescan! : [string] \-> void
-.br
-(rescan! [path])
-.RS
-Like update!, but also rescans unmodified files.
-.RE
-
-;; scmus\-format : string [track] integer \-> string
-.br
-(scmus\-format <format> [track] [length])
-.RS
-Returns a string formatted according to the given format string, track and
-maximum length.  If [track] is not given, it defaults to the null track.  If
-length is not given, it defaults to the current terminal width minus two.  See
-the \fBFormat Strings\fR section for information on format strings in scmus.
-.RE
-
-;; seek! : integer \-> void
-.br
-(seek! <seconds>)
-.RS
-Seeks \fIseconds\fR relative the current position in the current track.
-.RE
-
-;; set\-option! : symbol ??? \-> void
-.br
-(set\-option! <name> <value>)
-.RS
-Set the value of the option \fIname\fR to \fIvalue\fR.
-.RE
-
-;; set\-view! : symbol \-> void
-.br
-(set\-view! <name>)
-.RS
-Changes the current view to the view specified by \fIname\fR.
-.RE
-
-;; set\-volume! : integer [boolean] \-> void
-.br
-(set\-volume! <value> [relative])
-.RS
-Sets MPD's volume.  If \fIrelative\fR is #t, then \fIvalue\fR is interpreted
-relative to the current volume setting.
-.RE
-
-;; shell! : string . strings \-> void
-.br
-(shell! <command> . <args>)
-.RS
-Runs the command \fIcommand\fR with arguments \fIargs\fR in a separate process.
-.RE
-
-;; shell\-sync! : string . strings \-> integer
-.br
-(shell\-sync! <command> . <args>)
-.RS
-Like \fBshell!\fR, except that this function waits for the process to exit and
-returns its exit status.
-.RE
-
-;; shell\-term! : string . strings \-> integer
-.br
-(shell\-term! <command> . <args>)
-.RS
-Like \fBshell-sync!\fR, except that curses is temporarily disabled while the
-command runs.
-.RE
-
-;; shuffle! : void \-> void
-.br
-(shuffle!)
-.RS
-Shuffles the order of tracks in the play queue.
-.RE
-
-;; single\-set! : boolean \-> void
-.br
-(single\-set! <value>)
-.RS
-Sets the value of the \fBsingle\fR MPD option.
-.RE
-
-;; state : void \-> symbol
-.br
-(state)
-.RS
-Returns one of 'pause 'play 'stop 'unknown if MPD is paused, playing, stopped
-or in an unknown state, respectively.
-.RE
-
-;; toggle\-consume! : void \-> void
-.br
-(toggle\-consume!)
-.RS
-Toggles the value fo the \fBconsume\fR MPD option.
-.RE
-
-;; toggle\-random! : void \-> void
-.br
-(toggle\-random!)
-.RS
-Toggles the value of the \fBrandom\fR MPD option.
-.RE
-
-;; toggle\-repeat! : void \-> void
-.br
-(toggle\-repeat!)
-.RS
-Toggles the value of the \fBrepeat\fR MPD option.
-.RE
-
-;; toggle\-single! : void \-> void
-.br
-(toggle\-single!)
-.RS
-Toggles the value of the \fBsingle\fR MPD option.
-.RE
-
-;; track\-album : track \-> string
-.br
-(track\-album <track>)
-.RS
-Returns the album tag for the given track.
-.RE
-
-;; track\-albumartist : track \-> string
-.br
-(track\-albumartist <track>)
-.RS
-Returns the albumartist tag for the given track.
-.RE
-
-;; track\-artist : track \-> string
-.br
-(track\-artist <track>)
-.RS
-Returns the artist tag for the given track.
-.RE
-
-;; track\-composer : track \-> string
-.br
-(track\-composer <track>)
-.RS
-Returns the composer tag for the given track.
-.RE
-
-;; track\-date : track \-> string
-.br
-(track\-date <track>)
-.RS
-Returns the date tag for the given track.
-.RE
-
-;; track\-disc : track \-> string
-.br
-(track\-disc <track>)
-.RS
-Returns the disc number tag for the given track.
-.RE
-
-;; track\-duration : track \-> integer
-.br
-(track\-duration <track>)
-.RS
-Returns the duration of the given track.
-.RE
-
-;; track\-end : track\-> integer
-.br
-(track\-end <track>)
-.RS
-Returns the end position for the given track.
-.RE
-
-;; track\-file : track\-> string
-.br
-(track\-file <track>)
-.RS
-Returns the filename for the given track.
-.RE
-
-;; track\-genre : track\-> string
-.br
-(track\-genre <track>)
-.RS
-Returns the genre tag for the given track.
-.RE
-
-;; track\-id : track \-> integer
-.br
-(track\-id <track>)
-.RS
-Returns the id of the given track.  Undefined if \fItrack\fR wasn't obtained
-from the queue.
-.RE
-
-;; track\-last\-modified : track \-> integer
-.br
-(track\-last\-modified <track>)
-.RS
-Returns the POSIX UTC time stamp for the given track.
-.RE
-
-;; track\-name : track \-> string
-.br
-(track\-name <track>)
-.RS
-Returns the name tag for the given track.
-.RE
-
-;; track\-performer : track \-> string
-.br
-(track\-performer <track>)
-.RS
-Returns the performer tag for the given track.
-.RE
-
-;; track\-pos : track \-> integer
-.br
-(track\-pos <track>)
-.RS
-Returns the position of the given track in the queue.  Undefined if \fItrack\fR
-wasn't obtained from the queue.
-.RE
-
-;; track\-prio : track \-> integer
-.br
-(track\-prio <track>)
-.RS
-Returns the priority of the given track in the queue.  Undefined if \fItrack\fR
-wasn't obtained from the queue.
-.RE
-
-;; track\-start : track \-> integer
-.br
-(track\-start <track>)
-.RS
-Returns the start position for the given track.
-.RE
-
-;; track\-title : track \-> string
-.br
-(track\-title <track>)
-.RS
-Returns the title tag for the given track.
-.RE
-
-;; track\-track : track \-> string
-.br
-(track\-track <track>)
-.RS
-Returns the track number tag for the given track.
-.RE
-
-;; unbind! : string symbol \-> boolean
-.br
-(unbind! <keys> <context>)
-.RS
-Removes the binding for \fIkeys\fR in \fIcontext\fR, or any bindings in
-conflict with \fIkeys\fR.
-.RE
-
-;; update! : [string] \-> void
-.br
-(update! [path])
-.RS
-Updates the music database.  If \fIpath\fR is given, then only that path is
-updated.
-.RE
-
-;; win\-activate! : void \-> void
-.br
-(win\-activate!)
-.RS
-Activates the current window.  What this means depends on the view and the
-current selection, e.g. in \fBqueue\fR view, this function will play the
-selected track.
-.RE
-
-;; win\-add! : void \-> void
-.br
-(win\-add!)
-.RS
-Adds the current selection to the play queue (only works in \fBlibrary\fR
-view).
-.RE
-
-;; win\-bottom! : void \-> void
-.br
-(win\-bottom!)
-.RS
-Moves the cursor to the last line in the current window.
-.RE
-
-;; win\-clear! : void \-> void
-.br
-(win\-clear!)
-.RS
-Clears the current window (only works in \fBqueue\fR view).
-.RE
-
-;; win\-deactivate! : void \-> void
-.br
-(win\-deactivate!)
-.RS
-Deactivates the current window.  What this means depends on the view and the
-current selection, e.g. in \fBlibrary\fR view, this navigates backwards in the
-hierarchy.
-.RE
-
-;; win\-edit! : void \-> void
-.br
-(win\-edit!)
-.RS
-Begins editing the selected row in the current window, when applicable.
-.RE
-
-;; win\-move! : integer [boolean] \-> void
-.br
-(win\-move! <nr> [relative?])
-.RS
-Moves the cursor up or down \fInr\fR rows.  Positive values for \fInr\fR mean
-move down.  Negative values mean move up.  If \fIrelative\fR is \fB#t\fR, then
-\fInr\fR is interpreted as a percentage of the visible rows.
-.RE
-
-;; win\-remove! : void \-> void
-.br
-(win\-remove!)
-.RS
-Removes the selection (only works in \fBqueue\fR view).
-.RE
-
-;; win\-search! : string \-> void
-.br
-(win\-search <query>)
-.RS
-Searches for \fIquery\fR in the current window.
-.RE
-
-;; win\-search\-next! : void \-> void
-.br
-(win\-search\-next!)
-.RS
-Selects the next match for the most recent search.
-.RE
-
-;; win\-search\-prev! : void \-> void
-.br
-(win\-search\-prev!)
-.RS
-Selects the previous match for the most recent search.
-.RE
-
-;; win\-selected : void \-> ???
-.br
-(win\-selected)
-.RS
-Returns the value of the selection in the current window.  The type of this
-value depends on the current window, e.g. in a track window, a track object is
-returned.
-.RE
-
-;; win\-top! : void \-> void
-.br
-(win\-top!)
-.RS
-Moves the cursor to the first line in the current window.
-.RE
-
-;; write\-config! : string \-> void
-.br
-(write\-config! <filename>)
-.RS
-Writes the current options to \fIfilename\fR, such that a subsequent call to
-\fBload\fR on the same file would restore scmus's options to their current
-values.
-.RE
-
-;; xfade : void \-> integer
-.br
-(xfade)
-.RS
-Returns the current value of the xfade MPD option.
-.RE
-.SH CONFIGURATION OPTIONS
-This section describes scmus's options that can be altered with the
-\fBset\-option!\fR function.  Default values are in parentheses.
-
-color\-cmdline ('(default default default))
-.RS
-Command line colors.
-.RE
-
-color\-error ('(default default red))
-.RS
-Colors for error messages displayed on the command line.
-.RE
-
-color\-info ('(default default yellow))
-.RS
-Colors for informational messages displayed on the command line.
-.RE
-
-color\-statusline ('(default white black))
-.RS
-Status line colors.
-.RE
-
-color\-titleline ('(default blue white))
-.RS
-Title line colors.
-.RE
-
-color\-win ('(default default default))
-.RS
-Window colors.
-.RE
-
-color\-win\-cur ('(default default yellow))
-.RS
-Colors for currently playing track.
-.RE
-
-color\-win\-cur\-sel ('(default blue yellow))
-.RS
-Colors for the selected row which is also the currently playing track in the
-active window.
-.RE
-
-color\-win\-sel ('(default blue white))
-.RS
-Colors for the selected row in the active window.
-.RE
-
-color\-win\-title ('(default blue white))
-.RS
-Colors for window titles (topmost line of the screen).
-.RE
-
-eval\-mode\-print (#f)
-.RS
-In eval mode, print the result of evaluating the entered expression as if by
-(format "~s" <expr>).
-.RE
-
-format\-browser\-dir ("~{directory}/")
-.RS
-Format string for directories in the \fBbrowser\fR view.
-.RE
-
-format\-browser\-file ("~{path}")
-.RS
-Format string for files in the \fBbrowser\fR view.
-.RE
-
-format\-browser\-playlist ("[~{playlist}]")
-.RS
-Format string for playlists in the \fBbrowser\fR view.
-.RE
-
-format\-current ("~a \- ~l ~n. ~t~= ~y")
-.RS
-Format string for the line displaying the currently playing track.
-.RE
-
-format\-library ("~\-25%a ~3n. ~t~= ~\-4y ~d")
-.RS
-Format string for tracks in the \fBlibrary\fR view.
-.RE
-
-format\-queue ("~\-25%a ~3n. ~t~= ~\-4y ~d")
-.RS
-Format string for tracks in the \fBqueue\fR view.
-.RE
-
-format\-queue\-title ("Play Queue \- ~{queue-length} tracks")
-.RS
-Format string for the title of the \fBqueue\fR window.
-.RE
-
-format\-status ("~P ~p / ~d \- ~T vol: ~v~= ~S~R~r~C")
-.RS
-Format string for the status line.
-.RE
-
-mpd\-address ("localhost")
-.RS
-Hostname of the MPD server.
-.RE
-
-mpd\-password (#f)
-.RS
-Password to use with the MPD server.
-.RE
-
-mpd\-port (6600)
-.RS
-Port number of the MPD server.
-.RE
-
-status\-update\-interval (0.5)
-.RS
-Number of seconds to wait between MPD status updates.  Consider increasing this
-if the latency to the MPD server is high.
-.RE
-.SS Colors
-Colors are integers in the range \-1...255.
-
+.
+.br
+:win\-clear # command mode
+.
+.br
+$(win\-clear!) ; eval mode
+.
+.SH "SEARCHING"
+Search mode works like eval mode\. To enter search mode press \fB/\fR and then type the search query and press \fBENTER\fR\. Press \fBn\fR to find the next match using the same search query, or \fBN\fR to find the previous match\.
+.
+.P
+scmus uses a simple substring match search\. When the current window contains a list of tracks, artist, album, albumartist and title are searched\.
+.
+.SH "STATUS LINE"
+.
+.TP
+The right hand side of the status line (second row from the bottom) consists of the following fields:
+.
+.IP
+single (\fBS\fR) repeat (\fBR\fR) random (\fBr\fR) consume (\fBC\fR)
+.
+.P
+These can be toggled by pressing the \fBS\fR, \fBR\fR, \fBr\fR, and \fBC\fR keys respectively\.
+.
+.P
+\fISingle\fR means that scmus will play a single song and then stop\.
+.
+.P
+\fIRepeat\fR means that scmus will continue playing from the beginning of the play queue after it reaches the end\.
+.
+.P
+\fIRandom\fR means that scmus will play tracks in a random order\.
+.
+.P
+\fIConsume\fR means that tracks are removed from the play queue when they are finished playing\.
+.
+.SH "KEY BINDINNGS"
+In scmus, a key or sequence of keys can be bound to a Scheme expression\. When that key or sequence of keys is pressed, the expression is evaluated\.
+.
+.P
+See the \fBbind\fR and \fBunbind\fR commands in the \fICOMMANDS\fR section for a description of how keys can be bound or unbound\.
+.
+.P
+To see a list of the current key bindings, open the \fBbindings view\fR by hitting the \fB8\fR key\.
+.
+.SH "COMMANDS"
+This section describes scmus\'s commands\.
+.
+.P
+Optional parameters are in [\fIsquare brackets\fR]\.
+.
+.TP
+Scheme expressions can be embedded within a command using the \fB$\fR character\. The expression following the \fB$\fR character is evaluated and its result is spliced into the command, formatted as if by \fBDISPLAY\fR\. E\.g\.:
+.
+.IP
+echo $a\-scheme\-variable
+.
+.TP
+Scheme expressions may be optionally delimited by curly braces, e\.g\.:
+.
+.IP
+echo ${a\-scheme\-variable}!
+.
+.TP
+\fBbind\fR [\fI\-f\fR] \fIcontext\fR \fIkeys\fR [\fIexpression\fR]
+Add a key binding\.
+.
+.IP
+\fI\-f\fR overwrite existing binding
+.
+.IP
+There\'s one context for each view\. common is a special context on which bound keys in every view\. Keys bound in the common context can be overridden in other contexts\.
+.
+.IP
+\fBValid key contexts\fR common library queue search browser status error options bindings
+.
+.TP
+\fBclear\fR
+Remove all tracks from the play queue\.
+.
+.TP
+\fBcolorscheme\fR \fIname\fR
+Change color scheme\. Color schemes are found in \fI/user/local/share/scmus/colors/\fR or \fI$XDG_CONFIG_HOME/scmus/colors/\fR\.
+.
+.TP
+\fBconnect\fR [\fIhost\fR] [\fIport\fR [\fIpassword\fR]]]
+Connect to an MPD server\.
+.
+.IP
+If \fIhost\fR is given, it should be the hostname of the MPD server\.
+.
+.IP
+If \fIport\fR is given, it should be the port number of the MPD server, or one of the strings \fIunix\fR or \fIdefault\fR\. If the \fIport\fR is given as \fIunix\fR, then \fIhost\fR is interpreted as the path to a UNIX domain socket\. If \fIport\fR is \fIdefault\fR, then the default configured port number is used\.
+.
+.IP
+If \fIpass\fR is given, it should be the password for the MPD server\.
+.
+.TP
+\fBecho\fR \fIarg\fR\.\.\.
+Display arguments on the command line\.
+.
+.TP
+\fBload\fR \fIplaylist\fR
+Load the named playlist to the play queue\.
+.
+.TP
+\fBnext\fR
+Skip to the next track\.
+.
+.TP
+\fBpause\fR
+Toggle pause\.
+.
+.TP
+\fBprev\fR
+Skip to the previous track\.
+.
+.TP
+\fBsave\fR \fIplaylist\-name\fR
+Save the contents of the play queue as a playlist named \fIplaylist\-name\fR\.
+.
+.TP
+\fBseek\fR [\fI+\-\fR](\fInum\fR[\fImh\fR] | [\fIHH\fR:]\fIMM\fR:\fISS\fR)
+Seek to absolute or relative position within the current track\. Position can be given in seconds (default), minutes (\fIm\fR), hours (\fIh\fR) or \fIHH\fR:\fIMM\fR:\fISS\fR format (where \fIHH:\fR is optional\.
+.
+.IP
+Seek 1 minute backward:
+.
+.br
+:\fBseek\fR \fI\-1m\fR
+.
+.IP
+Seek 5 seconds forward: :\fBseek\fR \fI+5\fR
+.
+.IP
+Seek to absolute position 1h: :\fBseek\fR \fI1h\fR
+.
+.IP
+Seek 90 seconds forward: :\fBseek\fR \fI+1:30\fR
+.
+.TP
+\fBstop\fR
+Stop playback\.
+.
+.TP
+\fBunbind\fR [\fI\-f\fR] \fIcontext\fR \fIkeys\fR
+Remove a key binding\.
+.
+.IP
+\fI\-f\fR Don\'t throw an error if the binding is not known\.
+.
+.TP
+\fBupdate\fR
+Initiate an MPD database update\.
+.
+.TP
+\fBvol\fR [\fI+\-\fR]\fINUM\fR
+Set, increase or decrease volume\.
+.
+.IP
+To increase or decrease the volume, use a \fI+\fR or \fI\-\fR prefix\. Otherwise the value is treated as an absolute volume level\.
+.
+.TP
+\fBwin\-activate\fR
+Activate the currently selected item\. The meaning of this command varies depending on what is selected\.
+.
+.IP
+In the \fBlibrary\fR and \fBbrowser\fR views, it descends into the next level or the artist/album/track or directory hierarchy\. In the \fBqueue\fR view it plays the selected track\. In the \fBoptions\fR and \fBbindings\fR biews it begins editing the selected option/binding\. In \fBsearch\fR view it executes the search query\.
+.
+.TP
+\fBwin\-add\fR
+Add the currently marked or selected track(s) to the play queue\.
+.
+.TP
+\fBwin\-bottom\fR
+Move the cursor to the bottom of the active window\.
+.
+.TP
+\fBwin\-clear\fR
+In \fBqueue\fR view, clears the play queue\. In \fBsearch\fR view, clears the search results\.
+.
+.TP
+\fBwin\-deactivate\fR
+In the \fBlibrary\fR and \fBbrowser\fR views, ascend to the next level in the artist/album/track or directory hierarchy\.
+.
+.TP
+\fBwin\-move\fR [\fI\-r\fR] [\fI\-\fR]\fIn\fR
+Move the cursor up or down\.
+.
+.IP
+\fI\-r\fR Interpret \fIn\fR as a percentage of the visible number of lines\.
+.
+.TP
+\fBwin\-move\-tracks\fR [\fI\-b\fR]
+Move the marked or selected track(s) to the cursor location\.
+.
+.IP
+\fI\-b\fR Move the tracks "before" (under) the cursor\.
+.
+.TP
+\fBwin\-remove\fR
+Remove the selected entry\.
+.
+.TP
+\fBwin\-search\fR \fIquery\fR
+Search the active window\. This is the same as entering \fIquery\fR in search mode\.
+.
+.TP
+\fBwin\-search\-next\fR
+Move the cursor to the next search result\.
+.
+.TP
+\fBwin\-search\-prev\fR
+Move the cursor to the previous search result\.
+.
+.TP
+\fBwin\-top\fR
+Move the cursor to the top of the active window\.
+.
+.SH "SCHEME ENVIRONMENT"
+See scmus(3) for documentation of the Scheme programming environment in scmus\.
+.
+.SH "CONFIGURATION OPTIONS"
+This section describes scmus\'s options that can be altered with the \fBset\-option!\fR function\. Default values are in parentheses\.
+.
+.TP
+\fBcolor\-cmdline\fR (\fI\'(default default default)\fR)
+Command line colors\.
+.
+.TP
+\fBcolor\-error\fR (\fI\'(default default red)\fR)
+Colors for error messages displayed on the command line\.
+.
+.TP
+\fBcolor\-info\fR (\fI\'(default default yellow)\fR)
+Colors for informational messages displayed on the command line\.
+.
+.TP
+\fBcolor\-statusline\fR (\fI\'(default white black)\fR)
+Status line colors\.
+.
+.TP
+\fBcolor\-titleline\fR (\fI\'(default blue white)\fR)
+Title line colors\.
+.
+.TP
+\fBcolor\-win\fR (\fI\'(default default default)\fR)
+Window colors\.
+.
+.TP
+\fBcolor\-win\-cur\fR (\fI\'(default default yellow)\fR)
+Colors for the currently playing track\.
+.
+.TP
+\fBcolor\-win\-cur\-sel\fR (\fI\'(default blue white)\fR)
+Colors for the selected row which is also the currently playing track\.
+.
+.TP
+\fBcolor\-win\-marked\fR (\fI\'(default blue white)\fR)
+Colors for marked rows\.
+.
+.TP
+\fBcolor\-win\-sel\fR (\fI\'(default blue white)\fR)
+Colors for the selected row\.
+.
+.TP
+\fBcolor\-win\-title\fR (\fI\'(default blue white)\fR)
+Colors for window titles (topmost line of the screen)\.
+.
+.TP
+\fBeval\-mode\-print\fR (\fI#f\fR)
+In eval mode, print the result of evaluating the entered expression as if by \fBWRITE\fR\.
+.
+.TP
+\fBformat\-browser\-dir\fR (\fI"~{directory}"\fR)
+Format string for directories in the \fBbrowser\fR view\.
+.
+.TP
+\fBformat\-browser\-file\fR (\fI"~{path}"\fR)
+Format string for files in the \fBbrowser\fR view\.
+.
+.TP
+\fBformat\-browser\-metadata\fR (\fI"~\-50%{tag} ~{value}"\fR)
+Format string for file metadata in the \fBbrowser\fR view\.
+.
+.TP
+\fBformat\-browser\-playlist\fR (\fI"[~{playlist}"\fR)
+Format string for playlists in the \fBbrowser\fR view\.
+.
+.TP
+\fBformat\-current\fR (\fI" ~a \- ~l ~n\. ~t~= ~y"\fR)
+Format string for the line displaying the current track\.
+.
+.TP
+\fBformat\-library\-album\fR (\fI"~{album}"\fR)
+Format for albums in the \fBlibrary\fR view\.
+.
+.TP
+\fBformat\-library\-artist\fR (\fI"~{artist}"\fR)
+Format for artists in the \fBlibrary\fR view\.
+.
+.TP
+\fBformat\-library\-file\fR (\fI"~\-25%a ~3n\. ~t~= ~\-4y ~d"\fR)
+Format for files in the \fBlibrary\fR view\.
+.
+.TP
+\fBformat\-library\-metadata\fR (\fI"~\-50%{tag} ~{value}"\fR)
+Format for file metadata in the \fBlibrary\fR view\.
+.
+.TP
+\fBformat\-library\-playlist\fR (\fI"~{playlist}"\fR)
+Format for playlists in the \fBlibrary\fR view\.
+.
+.TP
+\fBformat\-queue\fR (\fI"~\-25%a ~3n\. ~t~= ~\-4y ~d"\fR)
+Format string for tracks in the \fBqueue\fR view\.
+.
+.TP
+\fBformat\-search\-file\fR (\fI"~\-25%a ~3n\. ~t~= ~\-4y ~d"\fR)
+Format string for files in the \fBsearch\fR view\.
+.
+.TP
+\fBmpd\-address\fR (\fI"localhost"\fR)
+Hostname of the MPD server\.
+.
+.TP
+\fBmpd\-password\fR (\fI#f\fR)
+Password to use for the MPD server\.
+.
+.TP
+\fBmpd\-port\fR (\fI6600\fR)
+Port number of the MPD server\.
+.
+.TP
+\fBstatus\-update\-interval\fR (\fI1\.5\fR)
+Number of seconds to wait between MPD status updates\. Consider increasing this if the latency to the MPD server is high\.
+.
+.SH "COLORS"
+Colors are integers in the range \-1\.\.\.255\.
+.
+.P
 The following color symbols are recognized:
-
-Terminal's default color, \-1
-.RS
+.
+.TP
+Terminal\'s default color, \fI\-1\fR
 default
-.RE
-
-0..7
-.RS
-black, red, green, yellow, blue, magenta, cyan, white
-.RE
-
-8..15
-.RS
-dark\-gray, light\-red, light\-green, light\-yellow, light\-blue, light\-magenta,
-light\-cyan, gray
-.RE
-
-Attributes may also be used, such as bold or underline.  The following
-attribute symbols are recognized:
-
-.RS
+.
+.TP
+\fI0\.\.7\fR
+black, read, green, yellow, blue, magenta, cyan, white
+.
+.TP
+\fI8\.\.15\fR
+dark\-gray, light\-red, light\-green, light\-yellow, light\-blue, light\-magenta, light\-cyan, gray
+.
+.TP
+Attributes may also be used, such as bold or underline\. The following attribute symbols are recognized
 default normal underline reverse blink bold dim invis standout
-.RE
-
-Color options are specified as 3-tuples (attribute background-color
-foreground-color).
-.SS Events
-The \fBregister\-event\-handler!\fR function can be used to associate handler
-functions with events, which scmus will fire off when cetain conditions are
-met.  The following events are available:
-
-track-changed
-.RS
-The currently playing track changed.
-.RE
-.SS Format Strings
-Format strings control the display of text throughout scmus.
-
+.
+.P
+Color options are specified as 3\-tuples \fI(attribute background\-color foreground\-color)\fR\.
+.
+.SH "FORMAT STRINGS"
+Format strings control the display of text throughout scmus\.
+.
+.TP
 Special Keys:
-
-.RS
-~a  ~{artist}
+.
+.IP
+~a ~{artist}
+.
 .br
-~A  ~{albumartist}
+~A ~{albumartist}
+.
 .br
-~l  ~{album}
+~l ~{album}
+.
 .br
-~D  ~{discnumber}
+~D ~{discnumber}
+.
 .br
-~n  ~{tracknumber}
+~n ~{tracknumber}
+.
 .br
-~t  ~{title}
+~t ~{title}
+.
 .br
-~g  ~{genre}
+~g ~{genre}
+.
 .br
-~c  ~{comment}
+~c ~{comment}
+.
 .br
-~y  ~{date}
+~y ~{date}
+.
 .br
-~d  ~{duration}
+~d ~{duration}
+.
 .br
-~f  ~{path}
+~f ~{path}
+.
 .br
-~F  ~{filename}
+~F ~{filename}
+.
 .br
-~P  ~{playing}
+~P ~{playing}
+.
 .br
-~p  ~{current}
+~p ~{current}
+.
 .br
-~T  ~{db\-playtime}
+~T ~{db\-playtime}
+.
 .br
-~v  ~{volume}
+~v ~{volume}
+.
 .br
-~R  ~{repeat}
+~R ~{repeat}
+.
 .br
-~r  ~{random}
+~r ~{random}
+.
 .br
-~S  ~{single}
+~s ~{single}
+.
 .br
-~C  ~{consume}
+~C ~{consume}
+.
 .br
 ~{bitrate}
+.
 .br
 ~{host}
+.
 .br
 ~{port}
-.br
+.
+.TP
 ~^
-.RS
 start align center (use at most once)
-.RE
+.
+.TP
 ~=
-.RS
 start align right (use at most once)
-.RE
+.
+.TP
 ~~
-.RS
-literal \fB~\fR
-.RE
+literal tilde character
 
-If the string inside a ~{} specifier is not one of the predefined values above,
-scmus will still try to find a metadata field with that name.  So ~{} can be
-used to display arbitrary metadata, so long as the metadata is reported by MPD.
-
-Colors may be specified in format strings with the ~<> specifier.  Numbers
-between \-1 and 255 as well as color names (e.g. "green") are supported.
-~<reset> or ~<!> is used to reset the color to the default after using color
-specifiers.
-
-Arbitrary scheme code can be embedded in a format string inside of ~[].  The
-code will be evaluated and the result substituted for the ~[] specifier, as if
-formatted by (format "~a" <code>).  If the code evaluates to a function, the
-function is called with a track object and the formatted string's max width as
-arguments, and the return value is substituted.
-
-Groups can be defined within format strings with the ~() specifier.  The text
-inside the parentheses will be treated as a unit with respect to width,
-alignment and padding.  Groups should always be used in conjunction with a
-width specifier.
-
-You can use printf style formatting (width, alignment, padding).  As an
-extension, the width can have a %\-suffix, to specify a precentage of the
-terminal width.
-
-Examples
-
-.RS
-.nf
-(set\-option! 'format\-current "~a \- ~l ~n. ~t~= ~y")
-(set\-option! 'format\-queue "~\-25%a ~3n. ~t~= ~\-4y ~d")
-(set\-option! 'format\-queue "~{musicbrainz_trackid}")
-(set\-option! 'format\-queue "~~<5>\-25%a~<!> ~3n. ~t~= ~\-4y ~d")
-(set\-option! 'format\-queue "~[(lambda (x) (track\-file x))]")
-(set\-option! 'format\-queue "~25%(Artist: ~a)")
-.fi
-.RE
-.SH FILES
-scmus reads its configuration from 2 files.
-
-\fI$XDG_CONFIG_HOME/scmus/rc.scm\fR
-.RS
-Per-user configuration.  ($XDG_CONFIG_HOME defaults to $HOME/.config if it is
-not set.)
-.RE
-
-\fI/usr/local/share/scmus/scmusrc.scm\fR
-.RS
-System-wide configuration.  This contains default settings, which can be
-overriden on a per-user basis.
-.RE
-.SS Color Schemes
-There are some color schemes in \fI/usr/local/share/scmus/colors\fR.  You can
-switch them using the \fBcolorscheme!\fR function.
-.SH BUGS
-You can submit bugs to the issue tracker on Github
-(https://github.com/drewt/scmus/issues).
-.SH AUTHOR
-scmus was written by Drew Thoreson <drew.thoreson@alumni.ubc.ca>.
-
-This man page is based almost entirely on the cmus man page, written by
-Frank Terbeck, Timo Hirvonen and Clay Barnes.
+.
+.P
+If the string inside a \fI~{}\fR specifier is not one of the predefined values above, scmus will still try to find a metadata field with that name\. So ~{} can be used to display abritrary metadata, so long as the metadata is reporteed by MPD\.
+.
+.P
+Colors may be specified in format strings with the \fI~<>\fR specifier\. Numbers between \-1 and 255 as well as color names (e\.g\. \fIgreen\fR) are supported\. \fI~<reset>\fR or \fI~<!>\fR can be used to reset the color to the default after using color specifiers\.
+.
+.P
+Arbitrary Scheme code can be embedded in a format string inside of \fI~[]\fR\. The code will be evaluated and the result substituted for the \fI~[]\fR specifier, as if formatted by \fBDISPLAY\fR\. If the code evaluates to a function, the function is called with a track object and the formatted string\'s max width as arguments, and the return value is substituted\.
+.
+.P
+Groups can be defined within format strings with the \fI~()\fR specifier\. The text inside the parentheses will be treated as a unit with respect to width, alignment and padding\. Groups should always be used in conjunction with a width specifier\.
+.
+.P
+You can use printf style formatting (width, alignment, padding)\. As an extension, the width can have a \fI%\fR\-suffix, to specify a percentage of the available width\.
+.
+.TP
+Examples:
+.
+.IP
+(set\-option! \'format\-current "~a \- ~l ~n\. ~t~= ~y")
+.
+.br
+(set\-option! \'format\-queue "~\-25%a ~3n\. ~t~= ~\-4y ~d")
+.
+.br
+(set\-option! \'format\-queue "~{musicbrainz_trackid}")
+.
+.br
+(set\-option! \'format\-queue "~<5>~\-25%a~<!> ~3n\. ~t~= ~\-4y ~d")
+.
+.br
+(set\-option! \'format\-queue "~[(lambda (x) (track\-file x))]")
+.
+.br
+(set\-option! \'format\-queue "~25%(Artist: ~a)")
+.
+.SH "FILES"
+scmus reads its configuration from 2 files\.
+.
+.TP
+\fI$XDG_CONFIG_HOME/scmus/rc\.scm\fR
+Per\-user configuration\. (\fI$XDG_CONFIG_HOME\fR defaults to \fI$HOME/\.config\fR if it is not set\.)
+.
+.TP
+\fI/usr/local/share/scmus/scmusrc\.scm\fR
+System\-wide configuration\. This contains default settings, which can be overriden on a per\-user basis\.
+.
+.P
+\fBColor Schemes\fR
+.
+.br
+There are some color schemes in \fI/usr/local/share/scmus/colors/\fR\. You can switch them using the \fBcolorscheme!\fR function\.
+.
+.SH "BUGS"
+You can submit bugs to the issue tracker on Github (https://github\.com/drewt/scmus/issues)\.
+.
+.SH "SEE ALSO"
+\fBscmus\fR(3)
+.
+.SH "AUTHOR"
+scmus was written by Drew Thoreson <\fIdrew\.thoreson@alumni\.ubc\.ca\fR>\.
+.
+.P
+This man page is based heavily on the \fBcmus\fR man page, written by Frank Terbeck, Timo Hirvonen and Clay Barnes\.

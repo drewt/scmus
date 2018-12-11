@@ -20,17 +20,17 @@ features-@CONFIG_WIDE_CHAR@ += -feature wide-char
 types-cflags-$(typed) = -types all.types
 types-prereq-$(typed) = all.types
 
-CSC      = csc
-TFLAGS   = -uses base -prologue prologue.scm $(features-y) 
-CSCFLAGS = -scrutinize -C -Wno-int-to-pointer-cast -C -Wno-cpp $(TFLAGS) \
-           -C '-DSCMUS_DIR=\"$(datadir)/scmus\"' \
-           -C '-DVERSION=\"$(VERSION)\"' \
-	   -R coops \
-	   -R coops-utils
-           $(types-cflags-y)
-LD       = csc
-LDFLAGS  =
-INSTALL  = @scripts/install
+CSC       = csc
+TFLAGS    = -uses base -prologue prologue.scm $(features-y) 
+CSCFLAGS  = -scrutinize -C -Wno-int-to-pointer-cast -C -Wno-cpp $(TFLAGS) \
+            -C '-DSCMUS_DIR=\"$(datadir)/scmus\"' \
+            -C '-DVERSION=\"$(VERSION)\"' \
+	    -R coops \
+	    -R coops-utils
+            $(types-cflags-y)
+LD        = csc
+LDFLAGS   =
+INSTALL   = @scripts/install
 
 objfiles = $(foreach f,$(1),$(addsuffix .@OBJEXT@,$(f)))
 
@@ -149,6 +149,16 @@ run: all
 %.types: %.scm
 	$(call cmd,types)
 
+%.1: %.1.ronn
+	$(call cmd,ronn)
+
+%.3: %.3.ronn
+	$(call cmd,ronn)
+
+# generate roff output from ronn markdown
+quiet_cmd_ronn  = MAN     $@
+      cmd_ronn  = ronn --roff $(MANFLAGS) $^
+
 # scheme compile for object files
 quiet_cmd_csc   = CSC     $@
       cmd_csc   = $(CSC) -c $(CSCFLAGS) -J -o $@ $<
@@ -176,10 +186,17 @@ all.types: $(types)
 eggs:
 	chicken-install $(eggs)
 
+doc/scmus.1: private MANFLAGS += --manual="General Commands Manual"
+
+doc/scmus.3: private MANFLAGS += --manual="scmus Programmer\'s Manual"
+
+man: doc/scmus.1 doc/scmus.3
+
 install: all
 	$(INSTALL) -m755 $(bindir) scmus
 	$(INSTALL) -m644 $(datadir)/scmus data/scmusrc.scm
 	$(INSTALL) -m644 $(datadir)/scmus/colors $(wildcard data/colors/*)
-	$(INSTALL) -m644 $(mandir)/man1 $(wildcard doc/*.1)
+	$(INSTALL) -m644 $(mandir)/man1 doc/scmus.1
+	$(INSTALL) -m644 $(mandir)/man3 doc/scmus.3
 
 # rules }}}

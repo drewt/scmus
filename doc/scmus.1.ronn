@@ -1,0 +1,475 @@
+scmus(1) -- Scheme MPD Client
+=============================
+
+## SYNOPSIS
+
+`scmus` \[options\]
+
+## DESCRIPTION
+
+scmus is an ncurses based client for the Music Player Daemon, written and
+scriptable in the Scheme programming language.
+
+## OPTIONS
+
+* `-a,--address` *ADDRESS*:
+  Specify the address to use when connecting to the MPD server.
+
+* `-c,--command` *COMMAND*:
+  Send a command to the MPD server and print the response (as a Scheme object)
+  to standard output.
+
+* `--config` *PATH*:
+  Specify the path to a config file to use instead of the default.
+
+* `-h,--help`:
+  Print a help message and exit.
+
+* `--password` *PASSWORD*:
+  Specify the password to use when connecting to the MPD server.
+
+* `-p,--port` *PORT*:
+  Specify the port to use when connecting to the MPD server.
+
+* `-u,--unix` *PATH*:
+  Specify the path to a UNIX domain socket to use when connecting to the MPD
+  server.
+
+* `-v,--version`:
+  Print scmus's version and exit.
+
+* `--verbose`:
+  Print some extra information to the console while scmus is running.
+
+## VIEWS
+
+There are 8 views in scmus.  Press keys 1-8 to change the active view.
+
+* `Library View` (1):
+  In this view you can browse the entire music database.  The database is
+  organized hierarchically, with artists at the top level, then albums, then
+  tracks.  The arrow keys or `hjkl` are used to navigate through the
+  hierarchy.
+
+* `Queue view` (2):
+  Displays the tracks in the play queue.
+
+* `Search View` (3):
+  Used for searching MPD's music database.  This view is split vertically into
+  two panes: the top pane has a list of search fields, and the bottom pane
+  lists the results of the search.  To edit a search field, hit the `i` key
+  with the cursor over the search field.
+
+  Search fields should contain simple keywords, or a *tag:value* pair
+  (e.g. *artist:boris*).  To perform the search, hit the `enter` key.  A list
+  of results will appear in the bottom pane.
+
+* `Browser View` (4):
+  Like the library view, except that this view is organized as a file system
+  rather than by artist/album/track.
+
+* `Status View` (5):
+  Displays the response to the last *status* MPD command.  This is used for
+  debugging and is likely to be removed in the future.
+
+* `Error View` (6):
+  Displays a message describing the last error encountered by scmus.  This
+  should be a network/mpd related error, or an exception triggered by your own
+  code executed in `eval mode`.  If not, consider filing a bug report.
+
+  This view will be replaced by a more featureful log viewer in the future.
+
+* `Options View` (7):
+  Used for viewing and editing scmus's options.  The edit an option, hit the
+  `i` key with the cursor over the desired option.
+
+* `Bindings View` (8):
+  Used for viewing and editing key bindings.  Only keys that are already bound
+  will appear here.  See the `bind` command for how to create new key bindings.
+
+## COMMAND MODE AND EVAL MODE
+
+Everything in scmus ban be controlled by entering commands or Scheme
+expressions on the *command-line* (the bottommost line).  To enter `command
+mode` press `:`.  To enter `eval mode` press `$`.  After typing in your
+command/expression, press `ENTER` to execute it or `ESC` to cancel.
+
+* Examples:
+
+  ;; add the selected track to the play queue  
+  :add        # command mode  
+  $(win-add!) ; eval mode
+
+  ;; start playing  
+  ;; you could just press 'x' which is the default binding for this function  
+  :play    # command mode  
+  $(play!) ; eval mode  
+
+  ;; clear current window  
+  :win-clear    # command mode  
+  $(win-clear!) ; eval mode  
+
+## SEARCHING
+
+Search mode works like eval mode.  To enter search mode press `/` and then type
+the search query and press `ENTER`.  Press `n` to find the next match using the
+same search query, or `N` to find the previous match.
+
+scmus uses a simple substring match search.  When the current window contains a
+list of tracks, artist, album, albumartist and title are searched.
+
+## STATUS LINE
+
+* The right hand side of the status line (second row from the bottom) consists of the following fields:
+
+  single (`S`) repeat (`R`) random (`r`) consume (`C`)
+
+These can be toggled by pressing the `S`, `R`, `r`, and `C` keys respectively.
+
+*Single* means that scmus will play a single song and then stop.
+
+*Repeat* means that scmus will continue playing from the beginning of the play
+queue after it reaches the end.
+
+*Random* means that scmus will play tracks in a random order.
+
+*Consume* means that tracks are removed from the play queue when they are
+finished playing.
+
+## KEY BINDINNGS
+
+In scmus, a key or sequence of keys can be bound to a Scheme expression.  When
+that key or sequence of keys is pressed, the expression is evaluated.
+
+See the `bind` and `unbind` commands in the [COMMANDS][] section for a
+description of how keys can be bound or unbound.
+
+To see a list of the current key bindings, open the `bindings view` by hitting
+the `8` key.
+
+## COMMANDS
+
+This section describes scmus's commands.
+
+Optional parameters are in \[*square brackets*\].
+
+* Scheme expressions can be embedded within a command using the `$` character.  The expression following the `$` character is evaluated and its result is spliced into the command, formatted as if by `DISPLAY`.  E.g.:
+
+  echo $a-scheme-variable
+
+* Scheme expressions may be optionally delimited by curly braces, e.g.:
+
+  echo ${a-scheme-variable}!
+
+* `bind` \[*-f*\] *context* *keys* \[*expression*\]:
+  Add a key binding.
+
+  *-f* overwrite existing binding
+
+  There's one context for each view.  common is a special context on which
+  bound keys in every view.  Keys bound in the common context can be overridden
+  in other contexts.
+
+  `Valid key contexts`
+  common library queue search browser status error options bindings
+
+
+* `clear`:
+  Remove all tracks from the play queue.
+
+* `colorscheme` *name*:
+  Change color scheme.  Color schemes are found in */user/local/share/scmus/colors/* or *$XDG_CONFIG_HOME/scmus/colors/*.
+
+* `connect` \[*host*\] \[*port* \[*password*\]\]\]:
+  Connect to an MPD server.
+
+  If *host* is given, it should be the hostname of the MPD server.
+
+  If *port* is given, it should be the port number of the MPD server, or one of the strings *unix* or *default*.  If the *port* is given as *unix*, then *host* is interpreted as the path to a UNIX domain socket.  If *port* is *default*, then the default configured port number is used.
+
+  If *pass* is given, it should be the password for the MPD server.
+
+* `echo` *arg*...:
+  Display arguments on the command line.
+
+* `load` *playlist*:
+  Load the named playlist to the play queue.
+
+* `next`:
+  Skip to the next track.
+
+* `pause`:
+  Toggle pause.
+
+* `prev`:
+  Skip to the previous track.
+
+* `save` *playlist-name*:
+  Save the contents of the play queue as a playlist named *playlist-name*.
+
+* `seek` \[*+-*\](*num*\[*mh*\] | \[*HH*:\]*MM*:*SS*):
+  Seek to absolute or relative position within the current track.  Position can be given in seconds (default), minutes (*m*), hours (*h*) or *HH*:*MM*:*SS* format (where *HH:* is optional.
+
+  Seek 1 minute backward:  
+  :`seek` *-1m*
+
+  Seek 5 seconds forward:
+  :`seek` *+5*
+
+  Seek to absolute position 1h:
+  :`seek` *1h*
+
+  Seek 90 seconds forward:
+  :`seek` *+1:30*
+
+* `stop`:
+  Stop playback.
+
+* `unbind` \[*-f*\] *context* *keys*:
+  Remove a key binding.
+
+  *-f* Don't throw an error if the binding is not known.
+
+* `update`:
+  Initiate an MPD database update.
+
+* `vol` \[*+-*\]*NUM*:
+  Set, increase or decrease volume.
+
+  To increase or decrease the volume, use a *+* or *-* prefix.  Otherwise the value is treated as an absolute volume level.
+
+* `win-activate`:
+  Activate the currently selected item.  The meaning of this command varies depending on what is selected.
+
+  In the `library` and `browser` views, it descends into the next level or the artist/album/track or directory hierarchy.  In the `queue` view it plays the selected track.  In the `options` and `bindings` biews it begins editing the selected option/binding.  In `search` view it executes the search query.
+
+* `win-add`:
+  Add the currently marked or selected track(s) to the play queue.
+
+* `win-bottom`:
+  Move the cursor to the bottom of the active window.
+
+* `win-clear`:
+  In `queue` view, clears the play queue.  In `search` view, clears the search results.
+
+* `win-deactivate`:
+  In the `library` and `browser` views, ascend to the next level in the artist/album/track or directory hierarchy.
+
+* `win-move` \[*-r*\] \[*-*\]*n*:
+  Move the cursor up or down.
+
+  *-r* Interpret *n* as a percentage of the visible number of lines.
+
+* `win-move-tracks` \[*-b*\]:
+  Move the marked or selected track(s) to the cursor location.
+
+  *-b* Move the tracks "before" (under) the cursor.
+
+* `win-remove`:
+  Remove the selected entry.
+
+* `win-search` *query*:
+  Search the active window.  This is the same as entering *query* in search mode.
+
+* `win-search-next`:
+  Move the cursor to the next search result.
+
+* `win-search-prev`:
+  Move the cursor to the previous search result.
+
+* `win-top`:
+  Move the cursor to the top of the active window.
+
+## SCHEME ENVIRONMENT
+
+See scmus(3) for documentation of the Scheme programming environment in scmus.
+
+## CONFIGURATION OPTIONS
+
+This section describes scmus's options that can be altered with the `set-option!` function.  Default values are in parentheses.
+
+* `color-cmdline` (*'(default default default)*):
+  Command line colors.
+
+* `color-error` (*'(default default red)*):
+  Colors for error messages displayed on the command line.
+
+* `color-info` (*'(default default yellow)*):
+  Colors for informational messages displayed on the command line.
+
+* `color-statusline` (*'(default white black)*):
+  Status line colors.
+
+* `color-titleline` (*'(default blue white)*):
+  Title line colors.
+
+* `color-win` (*'(default default default)*):
+  Window colors.
+
+* `color-win-cur` (*'(default default yellow)*):
+  Colors for the currently playing track.
+
+* `color-win-cur-sel` (*'(default blue white)*):
+  Colors for the selected row which is also the currently playing track.
+
+* `color-win-marked` (*'(default blue white)*):
+  Colors for marked rows.
+
+* `color-win-sel` (*'(default blue white)*):
+  Colors for the selected row.
+
+* `color-win-title` (*'(default blue white)*):
+  Colors for window titles (topmost line of the screen).
+
+* `eval-mode-print` (*#f*):
+  In eval mode, print the result of evaluating the entered expression as if by `WRITE`.
+
+* `format-browser-dir` (*"~{directory}"*):
+  Format string for directories in the `browser` view.
+
+* `format-browser-file` (*"~{path}"*):
+  Format string for files in the `browser` view.
+
+* `format-browser-metadata` (*"~-50%{tag} ~{value}"*):
+  Format string for file metadata in the `browser` view.
+
+* `format-browser-playlist` (*"[~{playlist}"*):
+  Format string for playlists in the `browser` view.
+
+* `format-current` (*" ~a - ~l ~n. ~t~= ~y"*):
+  Format string for the line displaying the current track.
+
+* `format-library-album` (*"~{album}"*):
+  Format for albums in the `library` view.
+
+* `format-library-artist` (*"~{artist}"*):
+  Format for artists in the `library` view.
+
+* `format-library-file` (*"~-25%a ~3n. ~t~= ~-4y ~d"*):
+  Format for files in the `library` view.
+
+* `format-library-metadata` (*"~-50%{tag} ~{value}"*):
+  Format for file metadata in the `library` view.
+
+* `format-library-playlist` (*"~{playlist}"*):
+  Format for playlists in the `library` view.
+
+* `format-queue` (*"~-25%a ~3n. ~t~= ~-4y ~d"*):
+  Format string for tracks in the `queue` view.
+
+* `format-search-file` (*"~-25%a ~3n. ~t~= ~-4y ~d"*):
+  Format string for files in the `search` view.
+
+* `mpd-address` (*"localhost"*):
+  Hostname of the MPD server.
+
+* `mpd-password` (*#f*):
+  Password to use for the MPD server.
+
+* `mpd-port` (*6600*):
+  Port number of the MPD server.
+
+* `status-update-interval` (*1.5*):
+  Number of seconds to wait between MPD status updates.  Consider increasing this if the latency to the MPD server is high.
+
+## COLORS
+
+Colors are integers in the range -1...255.
+
+The following color symbols are recognized:
+
+* Terminal's default color, *-1*:
+  default
+
+* *0..7*:
+  black, read, green, yellow, blue, magenta, cyan, white
+
+* *8..15*:
+  dark-gray, light-red, light-green, light-yellow, light-blue, light-magenta, light-cyan, gray
+
+* Attributes may also be used, such as bold or underline.  The following attribute symbols are recognized:
+  default normal underline reverse blink bold dim invis standout
+
+Color options are specified as 3-tuples *(attribute background-color foreground-color)*.
+
+## FORMAT STRINGS
+
+Format strings control the display of text throughout scmus.
+
+* Special Keys:
+
+  ~a ~{artist}  
+  ~A ~{albumartist}  
+  ~l ~{album}  
+  ~D ~{discnumber}  
+  ~n ~{tracknumber}  
+  ~t ~{title}  
+  ~g ~{genre}  
+  ~c ~{comment}  
+  ~y ~{date}  
+  ~d ~{duration}  
+  ~f ~{path}  
+  ~F ~{filename}  
+  ~P ~{playing}  
+  ~p ~{current}  
+  ~T ~{db-playtime}  
+  ~v ~{volume}  
+  ~R ~{repeat}  
+  ~r ~{random}  
+  ~s ~{single}  
+  ~C ~{consume}  
+  ~{bitrate}  
+  ~{host}  
+  ~{port}  
+  * ~^:
+    start align center (use at most once)
+  * ~=:
+    start align right (use at most once)
+  * ~~:
+    literal tilde character
+
+If the string inside a *~{}* specifier is not one of the predefined values above, scmus will still try to find a metadata field with that name.  So ~{} can be used to display abritrary metadata, so long as the metadata is reporteed by MPD.
+
+Colors may be specified in format strings with the *~&lt;&gt;* specifier.  Numbers between -1 and 255 as well as color names (e.g. *green*) are supported.  *~&lt;reset&gt;* or *~&lt;!&gt;* can be used to reset the color to the default after using color specifiers.
+
+Arbitrary Scheme code can be embedded in a format string inside of *~\[\]*.  The code will be evaluated and the result substituted for the *~\[\]* specifier, as if formatted by `DISPLAY`.  If the code evaluates to a function, the function is called with a track object and the formatted string's max width as arguments, and the return value is substituted.
+
+Groups can be defined within format strings with the *~\(\)* specifier.  The text inside the parentheses will be treated as a unit with respect to width, alignment and padding.  Groups should always be used in conjunction with a width specifier.
+
+You can use printf style formatting (width, alignment, padding).  As an extension, the width can have a *%*-suffix, to specify a percentage of the available width.
+
+* Examples:
+
+  (set-option! 'format-current "~a - ~l ~n. ~t~= ~y")  
+  (set-option! 'format-queue "~-25%a ~3n. ~t~= ~-4y ~d")  
+  (set-option! 'format-queue "~{musicbrainz_trackid}")  
+  (set-option! 'format-queue "~&lt;5&gt;~-25%a~&lt;!&gt; ~3n. ~t~= ~-4y ~d")  
+  (set-option! 'format-queue "~[(lambda (x) (track-file x))]")  
+  (set-option! 'format-queue "~25%(Artist: ~a)")  
+
+## FILES
+
+scmus reads its configuration from 2 files.
+
+* *$XDG_CONFIG_HOME/scmus/rc.scm*:
+  Per-user configuration.  (*$XDG_CONFIG_HOME* defaults to *$HOME/.config* if it is not set.)
+
+* */usr/local/share/scmus/scmusrc.scm*:
+  System-wide configuration.  This contains default settings, which can be overriden on a per-user basis.
+
+`Color Schemes`  
+There are some color schemes in */usr/local/share/scmus/colors/*.  You can switch them using the `colorscheme!` function.
+
+## BUGS
+
+You can submit bugs to the issue tracker on Github (https://github.com/drewt/scmus/issues).
+
+## SEE ALSO
+
+`scmus`(3)
+
+## AUTHOR
+
+scmus was written by Drew Thoreson &lt;*drew.thoreson@alumni.ubc.ca*&gt;.
+
+This man page is based heavily on the `cmus` man page, written by Frank Terbeck, Timo Hirvonen and Clay Barnes.
