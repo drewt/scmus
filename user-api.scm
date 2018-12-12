@@ -170,9 +170,12 @@
   "Get the value of a configuration option"
   get-option)
 
-(define/user load
-  "Load a Scheme file"
-  (return-void user-load))
+(define/user (load file)
+  "Load a Scheme file or command script"
+  (cond
+    ((string-suffix-ci? ".scm"  file) (user-load file))
+    ((string-suffix-ci? ".scmd" file) (load-command-script file)))
+  (void))
 
 (define/user mixramp-db
   "Get the current mixramp-db value"

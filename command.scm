@@ -56,6 +56,7 @@
 ;; expression with the result formatted as if by the DISPLAY function.
 ;;
 (module scmus.command (define-command
+                       load-command-script
                        register-command!
                        run-command)
   (import ports
@@ -77,27 +78,57 @@
       ((define-command (name . args) first . rest)
         (register-command! name (lambda args first . rest)))))
 
+  ; Helper routines {{{
+
+  ;; Read until the first non-whitespace character.
+  (define (read-whitespace/all)
+    (let ((c (peek-char)))
+      (when (and (not (eof-object? c))
+                 (char-whitespace? c))
+        (read-char)
+        (read-whitespace/all))))
+
+  ;; Like READ-WHITESPACE/ALL, except that this procedure terminates before
+  ;; reading a #\newline character.
+  (define (read-whitespace/non-terminal)
+    (let ((c (peek-char)))
+      (when (and (not (eof-object? c))
+                 (char-whitespace? c)
+                 (not (char=? c #\newline)))
+        (read-char)
+        (read-whitespace/non-terminal))))
+
+  ;; Read until #\newline or #!eof.
+  (define (read-comment)
+    (let ((c (peek-char)))
+      (unless (or (eof-object? c)
+                  (char=? c #\newline))
+        (read-char)
+        (read-comment))))
+
+  ;; Read and evaluate a Scheme expression, returning the result formatted
+  ;; as if by DISPLAY.
+  (define (read-datum)
+    (reverse (string->list (format #f "~a" (user-eval/raw (read))))))
+
+  ; Helper routines }}}
+
   (define (read-word)
-    (define (read-datum)
-      (reverse (string->list (format #f "~a" (user-eval/raw (read))))))
-    ; consume leading whitespace chars
-    (let loop ()
-      (let ((c (peek-char)))
-        (when (and (not (eof-object? c))
-                   (char-whitespace? c))
-          (read-char)
-          (loop))))
-    ; read word chars
     (let loop ((result '()) (escaping #f) (quoting #f))
       (let ((c (read-char)))
         (cond
+          ; Terminate after reaching EOF
           ((eof-object? c)
+            ; TODO: warn if we're escaping or quoting
             (if (null? result)
-              c ; #!eof
-              (list->string (reverse result))))
+              (values c #t) ; return #!eof
+              (values (list->string (reverse result)) #t)))
+          ; If the last character was a backslash, escape the current character
           (escaping
-            ; escape codes?
-            (loop (cons c result) #f quoting))
+            (case c
+              ((#\newline) (loop result #f quoting))
+              (else        (loop (cons c result) #f quoting))))
+          ; Quoting...
           ((char=? c #\')
             (cond ((eqv? quoting 'double) (loop (cons c result) #f quoting))
                   ((eqv? quoting 'single) (loop result #f #f))
@@ -108,8 +139,10 @@
                   (else                   (loop result #f 'double))))
           ((eqv? quoting 'single)
             (loop (cons c result) #f quoting))
+          ; Backslash: escape the next character
           ((char=? c #\\)
             (loop result #t quoting))
+          ; Evaluate embedded Scheme expression
           ((char=? c #\$)
             (let ((chars (if (char=? (peek-char) #\{)
                            (let ((chars (begin (read-char) (read-datum))))
@@ -120,36 +153,52 @@
                              chars)
                            (read-datum))))
               (loop (append chars result) #f quoting)))
+          ; Comment
+          ((char=? c #\#)
+            (read-comment)
+            (loop result escaping quoting))
+          ; Unquoted whitespace: terminate
           ((and (not quoting)
                 (char-whitespace? c))
-            (list->string (reverse result)))
+            (values (list->string (reverse result)) (char=? c #\newline)))
+          ; Regular character
           (else
             (loop (cons c result) #f quoting))))))
   
+  ;; Read a command from CURRENT-INPUT-PORT, and return it as a list of strings.
   (define (read-command)
+    (read-whitespace/all)
     (let loop ((result '()))
-      (let ((word (read-word)))
-        (if (eof-object? word)
-          (reverse result)
-          (loop (cons word result))))))
+      (read-whitespace/non-terminal)
+      (let-values (((word end-of-command?) (read-word)))
+        (cond
+          ((eof-object? word) (reverse result))
+          (end-of-command?    (reverse (cons word result)))
+          (else               (loop (cons word result)))))))
+
+  (define (eval-command cmd)
+    (let ((fun (hash-table-ref/default *commands* (car cmd) #f)))
+      (if fun
+        (apply fun (cdr cmd))
+        ; TODO: raise an exception
+        (command-line-print-error! (format "Unknown command: ~s" (car cmd))))))
+
+  (define (load-command-script file)
+    (define (read-eval-loop)
+      (let ((cmd (read-command)))
+        (unless (null? cmd)
+          (eval-command cmd)
+          (read-eval-loop))))
+    (with-input-from-file file read-eval-loop))
  
   (define (run-command str)
-    (define (exn-message e)
-      ((condition-property-accessor 'exn 'message) e))
-    (define (*run-command)
-      (let ((cmd (with-input-from-string str read-command)))
-        (when (not (null? cmd))
-          (let ((fun (hash-table-ref/default *commands* (car cmd) #f)))
-            (if fun
-              (apply fun (cdr cmd))
-              (command-line-print-error! (format "Unknown command: ~s" (car cmd))))))))
-    (condition-case (*run-command)
-      (e (exn syntax)
-        (scmus-error e)
-        (command-line-print-error! (format "Read error: ~a" (exn-message e))))
-      (e (exn sandbox)
-        (scmus-error e)
-        (command-line-print-error! (format "Error during eval: ~a" (exn-message e))))
-      (e (exn)
-        (scmus-error e)
-        (command-line-print-error! (format "Error: ~a" (exn-message e)))))))
+    (define (handle-error e msg)
+      (scmus-error e)
+      (command-line-print-error!
+        (format "~a: ~a" msg ((condition-property-accessor 'exn 'message) e))))
+    (condition-case (let ((cmd (with-input-from-string str read-command)))
+                      (unless (null? cmd)
+                        (eval-command cmd)))
+      (e (exn syntax)  (handle-error e "Read error"))
+      (e (exn sandbox) (handle-error e "Error during eval"))
+      (e (exn)         (handle-error e "Error")))))

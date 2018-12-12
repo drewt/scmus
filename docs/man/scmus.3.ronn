@@ -178,7 +178,7 @@ scmus(3) -- scmus Scripting Environment
   Returns the value of the option *name*.
 
 * (`load` *path*):
-  Loads the file at *path* into the current environment.  This differs from the standard `load` procedure in that exceptions are ignored.
+  Loads the file at *path*, which can be either a Scheme source file (with extension `.scm`) or a command script (extension `.scmd`).
 
 * (`mixramp-db`):
   Returns the current value of the `mixrampdb` MPD setting.
