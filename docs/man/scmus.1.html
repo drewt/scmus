@@ -219,10 +219,14 @@ the <code>8</code> key.</p>
 <dl>
 <dt>Scheme expressions can be embedded within a command using the <code>$</code> character.  The expression following the <code>$</code> character is evaluated and its result is spliced into the command, formatted as if by <code>DISPLAY</code>.  E.g.:</dt><dd><p></p>
 
-<p>echo $a-scheme-variable</p></dd>
+<p><code>echo</code> <em>$a-scheme-variable</em></p></dd>
 <dt>Scheme expressions may be optionally delimited by curly braces, e.g.:</dt><dd><p></p>
 
-<p>echo ${a-scheme-variable}!</p></dd>
+<p><code>echo</code> <em>${a-scheme-variable}!</em></p></dd>
+<dt>You can assign to variables in the Scheme environment by using the <em>VAR</em>=<em>VALUE</em> syntax:</dt><dd><p></p>
+
+<p><em>VAR</em>=<em>VALUE</em> # assigns the string <em>"VALUE"</em> to the variable <em>VAR</em><br />
+<code>echo</code> <em>$VAR</em> # prints <em>VALUE</em> to the command line</p></dd>
 <dt><code>bind</code> [<em>-f</em>] <em>context</em> <em>keys</em> [<em>expression</em>]</dt><dd><p>Add a key binding.</p>
 
 <p><em>-f</em> overwrite existing binding</p>

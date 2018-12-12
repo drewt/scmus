@@ -155,11 +155,16 @@ Optional parameters are in \[*square brackets*\].
 
 * Scheme expressions can be embedded within a command using the `$` character.  The expression following the `$` character is evaluated and its result is spliced into the command, formatted as if by `DISPLAY`.  E.g.:
 
-  echo $a-scheme-variable
+  `echo` *$a-scheme-variable*
 
 * Scheme expressions may be optionally delimited by curly braces, e.g.:
 
-  echo ${a-scheme-variable}!
+  `echo` *${a-scheme-variable}!*
+
+* You can assign to variables in the Scheme environment by using the *VAR*=*VALUE* syntax:
+
+  *VAR*=*VALUE* # assigns the string *"VALUE"* to the variable *VAR*  
+  `echo` *$VAR* # prints *VALUE* to the command line
 
 * `bind` \[*-f*\] *context* *keys* \[*expression*\]:
   Add a key binding.

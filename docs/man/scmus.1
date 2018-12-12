@@ -175,13 +175,22 @@ Optional parameters are in [\fIsquare brackets\fR]\.
 Scheme expressions can be embedded within a command using the \fB$\fR character\. The expression following the \fB$\fR character is evaluated and its result is spliced into the command, formatted as if by \fBDISPLAY\fR\. E\.g\.:
 .
 .IP
-echo $a\-scheme\-variable
+\fBecho\fR \fI$a\-scheme\-variable\fR
 .
 .TP
 Scheme expressions may be optionally delimited by curly braces, e\.g\.:
 .
 .IP
-echo ${a\-scheme\-variable}!
+\fBecho\fR \fI${a\-scheme\-variable}!\fR
+.
+.TP
+You can assign to variables in the Scheme environment by using the \fIVAR\fR=\fIVALUE\fR syntax:
+.
+.IP
+\fIVAR\fR=\fIVALUE\fR # assigns the string \fI"VALUE"\fR to the variable \fIVAR\fR
+.
+.br
+\fBecho\fR \fI$VAR\fR # prints \fIVALUE\fR to the command line
 .
 .TP
 \fBbind\fR [\fI\-f\fR] \fIcontext\fR \fIkeys\fR [\fIexpression\fR]

@@ -177,11 +177,18 @@
           (else               (loop (cons word result)))))))
 
   (define (eval-command cmd)
-    (let ((fun (hash-table-ref/default *commands* (car cmd) #f)))
-      (if fun
-        (apply fun (cdr cmd))
-        ; TODO: raise an exception
-        (command-line-print-error! (format "Unknown command: ~s" (car cmd))))))
+    (let ((i (string-index (car cmd) #\=)))
+      (if i
+        ; assignment
+        ; TODO: warn about junk after assignment if (cdr cmd) is non-null
+        (user-eval `(set! ,(string->symbol (substring/shared (car cmd) 0 i))
+                          ,(substring/shared (car cmd) (+ i 1))))
+        ; regular command invocation
+        (let ((fun (hash-table-ref/default *commands* (car cmd) #f)))
+         (if fun
+           (apply fun (cdr cmd))
+           ; TODO: raise an exception
+           (command-line-print-error! (format "Unknown command: ~s" (car cmd))))))))
 
   (define (load-command-script file)
     (define (read-eval-loop)
