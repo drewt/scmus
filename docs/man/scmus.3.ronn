@@ -207,8 +207,8 @@ scmus(3) -- scmus Scripting Environment
 * (`pause!`):
   Toggle pause.
 
-* (`play!`):
-  Play the current track.  If there is no current track, then the first song in the play queue starts playing.
+* (`play!` *\[track-or-pos\]*):
+  Begin playing a track.  If *track-or-pos* is a track object, then the given track is played.  If *track-or-pos* is an integer, then the track at that position in the play queue is played.  If *track-or-pos* is ommitted then the current track is played from the beginning.
 
 * (`playlist-add!` *name* *uri*):
   Add *uri* to the playlist given by *name*.

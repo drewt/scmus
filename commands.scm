@@ -122,10 +122,7 @@
 
 (map-command "next" 'next!)
 (map-command "pause" 'pause!)
-; This command as implemented below is superfluous.  It should begin playing
-; at the beginning of the track, and optionally take a track number/id as an
-; argument.
-;(map-command "play" 'play!)
+(map-command "play" 'play!)
 (map-command "prev" 'prev!)
 (map-command "stop" 'stop!)
 

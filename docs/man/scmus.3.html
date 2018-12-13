@@ -221,7 +221,7 @@
 <dt>(<code>next-id</code>)</dt><dd><p>Returns the ID of the next track in the play queue.</p></dd>
 <dt>(<code>next-pos</code>)</dt><dd><p>Returns the position of the next track in the play queue.</p></dd>
 <dt>(<code>pause!</code>)</dt><dd><p>Toggle pause.</p></dd>
-<dt class="flush">(<code>play!</code>)</dt><dd><p>Play the current track.  If there is no current track, then the first song in the play queue starts playing.</p></dd>
+<dt>(<code>play!</code> <em>[track-or-pos]</em>)</dt><dd><p>Begin playing a track.  If <em>track-or-pos</em> is a track object, then the given track is played.  If <em>track-or-pos</em> is an integer, then the track at that position in the play queue is played.  If <em>track-or-pos</em> is ommitted then the current track is played from the beginning.</p></dd>
 <dt>(<code>playlist-add!</code> <em>name</em> <em>uri</em>)</dt><dd><p>Add <em>uri</em> to the playlist given by <em>name</em>.</p></dd>
 <dt>(<code>playlist-clear!</code> <em>name</em>)</dt><dd><p>Clear the playlist given by <em>name</em>.</p></dd>
 <dt>(<code>playlist-delete!</code> <em>name</em> <em>song-pos</em>)</dt><dd><p>Delete the track at <em>song-pos</em> from the playlist given by <em>name</em>.</p></dd>

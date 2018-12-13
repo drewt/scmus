@@ -467,8 +467,8 @@ Returns the position of the next track in the play queue\.
 Toggle pause\.
 .
 .TP
-(\fBplay!\fR)
-Play the current track\. If there is no current track, then the first song in the play queue starts playing\.
+(\fBplay!\fR \fI[track\-or\-pos]\fR)
+Begin playing a track\. If \fItrack\-or\-pos\fR is a track object, then the given track is played\. If \fItrack\-or\-pos\fR is an integer, then the track at that position in the play queue is played\. If \fItrack\-or\-pos\fR is ommitted then the current track is played from the beginning\.
 .
 .TP
 (\fBplaylist\-add!\fR \fIname\fR \fIuri\fR)

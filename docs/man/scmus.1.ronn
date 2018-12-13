@@ -206,6 +206,9 @@ Optional parameters are in \[*square brackets*\].
 * `pause`:
   Toggle pause.
 
+* `play`:
+  Play the current track from the beginning.
+
 * `prev`:
   Skip to the previous track.
 

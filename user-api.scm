@@ -213,9 +213,15 @@
   "Pause the current track"
   (return-void scmus-toggle-pause!))
 
-(define/user play!
+(define/user (play! #!optional (track-or-pos (current-track)))
   "Play the current track"
-  (return-void scmus-play!))
+  (cond
+    ((and (list? track-or-pos)
+          (>= (track-id track-or-pos) 0))
+      (scmus-play-id! (track-id track-or-pos)))
+    ((integer? track-or-pos)
+      (scmus-play-pos! track-or-pos)))
+  (void))
 
 (define/user playlist-clear!
   "Clear the given playlist"
