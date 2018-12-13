@@ -63,12 +63,12 @@
 
 ; TODO: this command should take arguments, or not exist at all.  The below is
 ;       equivalent to the win-add command.
-;(map-command "add" 'win-add!)
+;(map-command 'add 'win-add!)
 
 ;; bind [-f] <context> <keys> [command]
 ;; bind common a-b-c '(do-something 42)'
 ;; If COMMAND is ommitted, then the current binding is printed.
-(define-command/flags ("bind" ((#\f forced)) context keys #!optional command)
+(define-command/flags (bind ((#\f forced)) context keys #!optional command)
   (let ((context (with-input-from-string context read))
         (keys    (string-split keys "-"))
         (command (if command (with-input-from-string command read) #f)))
@@ -84,7 +84,7 @@
                                                context))))))
 
 ;; unbind [-f] <context> <keys>
-(define-command/flags ("unbind" ((#\f forced)) context keys)
+(define-command/flags (unbind ((#\f forced)) context keys)
   (let ((context (with-input-from-string context read))
         (keys    (string-split keys "-")))
     (unless (binding-keys-valid? keys)
@@ -93,9 +93,9 @@
              (not forced))
       (invalid-argument-error 1 "No binding for keys"))))
 
-(define-command ("clear") (scmus-clear!))
+(define-command (clear) (scmus-clear!))
 
-(map-command "colorscheme" 'colorscheme!)
+(map-command 'colorscheme 'colorscheme!)
 
 ;; connect [host [port [pass]]]
 ;; connect
@@ -103,7 +103,7 @@
 ;; connect localhost 6601
 ;; connect /path/to/socket unix
 ;; connect localhost 6601 hunter2
-(define-command ("connect" #!optional (host #f) (port #f) (pass #f))
+(define-command (connect #!optional (host #f) (port #f) (pass #f))
   (cond ((not host) (connect!))
         ((not port) (connect! host))
         ((string-ci=? port "unix") (connect! host #f pass))
@@ -111,22 +111,22 @@
         (else (connect! host (string->number port) pass))))
 
 ;; echo [args...]
-(define-command ("echo" . args)
+(define-command (echo . args)
   (command-line-print-info! (fold (lambda (x a)
                                     (string-append a " " x))
                                   (car args)
                                   (cdr args))))
 
-(map-command "load" 'playlist-load!)
-(map-command "save" 'playlist-save!)
+(map-command 'load 'playlist-load!)
+(map-command 'save 'playlist-save!)
 
-(map-command "next" 'next!)
-(map-command "pause" 'pause!)
-(map-command "play" 'play!)
-(map-command "prev" 'prev!)
-(map-command "stop" 'stop!)
+(map-command 'next 'next!)
+(map-command 'pause 'pause!)
+(map-command 'play 'play!)
+(map-command 'prev 'prev!)
+(map-command 'stop 'stop!)
 
-(define-command ("seek" arg)
+(define-command (seek arg)
   ;; Parse ARG as a time string, returning a number of seconds.
   (define (parse-time arg)
     (define (*parse-time match h m s)
@@ -160,7 +160,7 @@
 ;; e.g. :set consume on       ; for setting consume/repeat/random/single
 ;;      :set [option] [value] ; for setting scmus options
 
-(define-command ("set" option value)
+(define-command (set option value)
   (if (member option '("consume" "random" "repeat" "single"))
     (let ((fun (case (string->symbol option)
                  ((consume) scmus-consume-set!)
@@ -173,10 +173,10 @@
     ; TODO: scmus options
     (invalid-argument-error 1 "Invalid option for 'set'")))
 
-(define-command ("update")
+(define-command (update)
   (scmus-update!))
 
-(define-command ("vol" arg)
+(define-command (vol arg)
   (define (parse-vol arg)
     (unless (string-every char-set:digit arg)
       (invalid-argument-error 1 "Invalid volume format"))
@@ -191,24 +191,24 @@
             (- (scmus-volume) (parse-vol (string-drop arg 1))))
           (else (parse-vol arg)))))))
 
-(map-command "win-activate"   'win-activate!)
-(map-command "win-deactivate" 'win-deactivate!)
-(map-command "win-add"        'win-add!)
-(map-command "win-remove"     'win-remove!)
-(map-command "win-clear"      'win-clear!)
+(map-command 'win-activate   'win-activate!)
+(map-command 'win-deactivate 'win-deactivate!)
+(map-command 'win-add        'win-add!)
+(map-command 'win-remove     'win-remove!)
+(map-command 'win-clear      'win-clear!)
 
-(map-command "win-search" 'win-search!)
-(map-command "win-search-next" 'win-search-next!)
-(map-command "win-search-prev" 'win-search-prev!)
+(map-command 'win-search 'win-search!)
+(map-command 'win-search-next 'win-search-next!)
+(map-command 'win-search-prev 'win-search-prev!)
 
-(define-command/flags ("win-move" ((#\r relative)) n)
+(define-command/flags (win-move ((#\r relative)) n)
   (unless (param-is-integer? n)
     (invalid-argument-error (if relative 2 1) "Not a number"))
   (widget-move (widget-focus view-widget) (string->number n) relative))
 
-(map-command "win-top" 'win-top!)
-(map-command "win-bottom" 'win-bottom!)
+(map-command 'win-top 'win-top!)
+(map-command 'win-bottom 'win-bottom!)
 
-(define-command/flags ("win-move-tracks" ((#\b before)))
+(define-command/flags (win-move-tracks ((#\b before)))
   (widget-paste (widget-focus view-widget) before))
 

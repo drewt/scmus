@@ -71,12 +71,14 @@
                                       hash: string-hash))
 
   (define (register-command! name handler)
-    (hash-table-set! *commands* name handler))
+    (if (symbol? name)
+      (hash-table-set! *commands* (string-downcase (symbol->string name)) handler)
+      (hash-table-set! *commands* name handler)))
 
   (define-syntax define-command
     (syntax-rules ()
       ((define-command (name . args) first . rest)
-        (register-command! name (lambda args first . rest)))))
+        (register-command! (quote name) (lambda args first . rest)))))
 
   ; Helper routines {{{
 
