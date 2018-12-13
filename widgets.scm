@@ -19,6 +19,7 @@
   (import coops
           coops-utils
           vector-lib
+          drewt.ncurses
           scmus.base
           scmus.format
           scmus.track
@@ -411,12 +412,15 @@
                 (row-nr (- line top-pos)))
             (with-cursed (or (widget-cursed row)
                              (window-cursed window row (+ y row-nr)))
+              ; FIXME: really shouldn't be using direct ncurses code here
+              (mvaddch (+ y row-nr) x #\space)
+              (mvaddch (+ y row-nr) (+ x (- cols 1)) #\space)
               (print-widget! row
                              (+ x (window-h-border window))
                              (+ y row-nr)
                              (- cols (* 2 (window-h-border window)))
                              1)))
-            (loop (+ line 1))))))
+          (loop (+ line 1))))))
 
   ;; <window> }}}
   ;; <window-row> {{{
