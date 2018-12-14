@@ -44,10 +44,11 @@
     (alist-ref (widget-bag-active bag) (widget-bag-widgets bag))))
 
 (define-method ((setter widget-bag-active) (bag <widget-bag>) name)
-  (let ((widget (alist-ref name (widget-bag-widgets bag))))
-    (when widget
-      (widget-wrap-swap! bag widget)
-      (set! (slot-value bag 'active) name))))
+  (unless (eqv? (widget-bag-active bag) name)
+    (let ((widget (alist-ref name (widget-bag-widgets bag))))
+      (when widget
+        (widget-wrap-swap! bag widget)
+        (set! (slot-value bag 'active) name)))))
 
 (define-method (widget-bag-add! (bag <widget-bag>) (widget <widget>) name)
   (set! (widget-bag-widgets bag)
