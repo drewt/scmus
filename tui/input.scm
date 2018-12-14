@@ -21,6 +21,42 @@
           scmus.base
           scmus.tui.widget
           scmus.tui.misc)
+  (reexport (only drewt.ncurses
+              mouse-event-id
+              mouse-event-x
+              mouse-event-y
+              mouse-event-z
+              mouse-event-bstate
+              BUTTON1_PRESSED
+              BUTTON1_RELEASED
+              BUTTON1_CLICKED
+              BUTTON1_DOUBLE_CLICKED
+              BUTTON1_TRIPLE_CLICKED
+              BUTTON2_PRESSED
+              BUTTON2_RELEASED
+              BUTTON2_CLICKED
+              BUTTON2_DOUBLE_CLICKED
+              BUTTON2_TRIPLE_CLICKED
+              BUTTON3_PRESSED
+              BUTTON3_RELEASED
+              BUTTON3_CLICKED
+              BUTTON3_DOUBLE_CLICKED
+              BUTTON3_TRIPLE_CLICKED
+              BUTTON4_PRESSED
+              BUTTON4_RELEASED
+              BUTTON4_CLICKED
+              BUTTON4_DOUBLE_CLICKED
+              BUTTON4_TRIPLE_CLICKED
+              BUTTON5_PRESSED
+              BUTTON5_RELEASED
+              BUTTON5_CLICKED
+              BUTTON5_DOUBLE_CLICKED
+              BUTTON5_TRIPLE_CLICKED
+              BUTTON_SHIFT
+              BUTTON_CTRL
+              BUTTON_ALT
+              ALL_MOUSE_EVENTS
+              REPORT_MOUSE_POSITION))
 
   ;; FOREIGN-VALUE constants don't work in CASE expressions, so we
   ;; have to use a chain of IFs.
@@ -33,6 +69,21 @@
         (if (member key (list choices ...))
           (begin first rest ...)
           (key-case key others ...)))))
+
+  (define-syntax *mouse-case
+    (syntax-rules (else)
+      ((*mouse-case bstate) (void))
+      ((*mouse-case bstate (else first rest ...))
+        (begin first rest ...))
+      ((*mouse-case bstate ((choices ...) first rest ...) others ...)
+        (if (zero? (bitwise-and bstate (bitwise-ior choices ...)))
+          (*mouse-case bstate others ...)
+          (begin first rest ...)))))
+
+  (define-syntax mouse-case
+    (syntax-rules ()
+      ((mouse-case mev choices ...)
+        (*mouse-case (mouse-event-bstate mev) choices ...))))
 
   ;; Text widget of the form '<prefix><text>' where
   ;;   <prefix> is optional descriptive text
@@ -116,7 +167,7 @@
     (set! (text-input-cursor-pos widget)
       (max 0 (- (text-input-length widget) n))))
 
-  (define-method (handle-input (widget <text-input>) input)
+  (define-method (handle-input (widget <text-input>) input event)
     (if (text-input-editing? widget)
       (key-case input
         ((#\newline)     (text-input-commit widget))
@@ -204,4 +255,10 @@
     (set! *focus-override* #f))
 
   (define (do-handle-input widget input)
-    (handle-input (or *focus-override* (widget-focus widget)) input)))
+    (if (eqv? input KEY_MOUSE)
+      (let ((mev (getmouse)))
+        (handle-input (get-widget-at widget (mouse-event-x mev) (mouse-event-y mev)) input mev))
+      (handle-input (or *focus-override* (widget-focus widget)) input #f)))
+
+  (define (mouse-input? mev input-type)
+    (not (zero? (bitwise-and (mouse-event-bstate mev) input-type)))))

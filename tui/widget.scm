@@ -59,8 +59,6 @@
 
   (define-method (widget-visible? (widget <widget>))
     (and (slot-value widget 'visible)
-         (and (> (widget-cols widget) 0)
-              (> (widget-rows widget) 0))
          (or (not (widget-parent widget))
              (widget-visible? (widget-parent widget)))))
 
@@ -101,17 +99,31 @@
       (print-widget! w (widget-x w) (widget-y w) (widget-cols w) (widget-rows w))))
 
   (define-method (print-widget! around: (widget <widget>) x y cols rows)
-    (call-with-cursed call-next-method (widget-cursed widget)))
+    (when (widget-visible? widget)
+      (call-with-cursed call-next-method (widget-cursed widget))))
 
   ;; Input handler.  If the widget doesn't handle the input, it should invoke
   ;; CALL-NEXT-METHOD to allow the superclass to handle the input.  If the input
   ;; is handled, HANDLE-INPUT should return #t so that the default handler is
   ;; not called.
-  (define-method (handle-input (widget <widget>) input)
+  (define-method (handle-input (widget <widget>) input event)
     (let ((parent (widget-parent widget)))
       (if parent
-        (handle-input parent input)
+        (handle-input parent input event)
         #f)))
+
+  ;; Return the child widget at position X,Y in WIDGET.  Used for sending mouse
+  ;; events to the appropriate widget.
+  (define-method (widget-child/pos (widget <widget>) x y)
+    #f)
+
+  (define (get-widget-at widget x y)
+    (let ((child (widget-child/pos widget x y)))
+      (if child
+        (get-widget-at child
+                       (- x (widget-x child))
+                       (- y (widget-y child)))
+        widget)))
 
   ;;
   ;; Container
@@ -135,10 +147,6 @@
   ;;   * Y is the Y coordinate of WIDGET (relative to the container's X,Y coordinates)
   ;;   * COLS is the number of columns allocated to WIDGET
   ;;   * ROWS is the number of rows allocated to WIDGET
-  ;;
-  ;; This method is called in the generic PRINT-WIDGET! implementation for containers.
-  ;; It is not necessary to implement this method in a subclass that overrides
-  ;; PRINT-WIDGET!.
   (define-abstract-method (compute-layout (container <container>) cols rows))
 
   (define-method (widget-first (container <container>))
@@ -154,6 +162,26 @@
 
   (define-method (widget-focus (container <container>))
     (car (container-children container)))
+
+  ;; By default, we call COMPUTE-LAYOUT to find the child.  This is pretty inefficient,
+  ;; but it's probably not worthwhile to override this given that it's only called on
+  ;; mouse input.
+  (define-method (widget-child/pos (container <container>) x y)
+    (let loop ((children (compute-layout container
+                                         (widget-cols container)
+                                         (widget-rows container))))
+      (if (null? children)
+        #f
+        (let* ((x-from (second (car children)))
+               (x-to   (+ x-from (fourth (car children))))
+               (y-from (third (car children)))
+               (y-to   (+ y-from (fifth (car children)))))
+          (if (and (>= x x-from)
+                   (<  x x-to)
+                   (>= y y-from)
+                   (<  y y-to))
+            (first (car children))
+            (loop (cdr children)))))))
 
   ;; Generic <container> printing method.  Subclasses can override this to add borders, etc.
   (define-method (print-widget! (container <container>) x y cols rows)
@@ -222,16 +250,22 @@
     (list (list (car (container-children stack)) 0 0 cols rows)))
 
   (define-method (widget-stack-push! (stack <widget-stack>) (widget <widget>))
-    (set! (slot-value stack 'stack)
-      (cons widget (slot-value stack 'stack)))
+    (let ((stack-data (slot-value stack 'stack)))
+      (unless (null? stack-data)
+        (set! (widget-visible (car stack-data)) #f))
+      (set! (widget-visible widget) #t)
+      (set! (slot-value stack 'stack)
+        (cons widget stack-data)))
     (set! (widget-parent widget) stack)
     (widget-damaged! stack))
 
   (define-method (widget-stack-pop! (stack <widget-stack>))
-    (unless (null? (cdr (container-children stack)))
-      (set! (slot-value stack 'stack)
-        (cdr (slot-value stack 'stack)))
-      (widget-damaged! stack)))
+    (let ((stack-data (slot-value stack 'stack)))
+      (unless (null? (cdr stack-data))
+        (set! (widget-visible (first stack-data)) #f)
+        (set! (widget-visible (second stack-data)) #t)
+        (set! (slot-value stack 'stack) (cdr stack-data))
+        (widget-damaged! stack))))
 
   (define-method  (widget-stack-peek (stack <widget-stack>))
     (let ((s (cdr (container-children stack))))

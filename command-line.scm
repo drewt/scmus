@@ -75,7 +75,7 @@
 
   (define-class <command-line> (<text-input>))
 
-  (define-method (handle-input (widget <command-line>) input)
+  (define-method (handle-input (widget <command-line>) input event)
     (key-case input
       ((KEY_UP)
         (history-next!)

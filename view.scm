@@ -57,7 +57,7 @@
 (define-method (widget-bag-ref (bag <widget-bag>) name)
   (alist-ref name (widget-bag-widgets bag)))
 
-(define-method (handle-input (bag <widget-bag>) input)
+(define-method (handle-input (bag <widget-bag>) input event)
   (normal-mode-key (widget-bag-active bag) input))
 
 (define view-widget (make-widget-bag '() 'none))

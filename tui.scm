@@ -33,7 +33,8 @@
     (noecho)
     (when (has_colors)
       (start_color)
-      (use_default_colors)))
+      (use_default_colors))
+    (mousemask ALL_MOUSE_EVENTS))
 
   (define (draw-ui root-widget)
     (print-widget! root-widget 0 0 (COLS) (LINES)))

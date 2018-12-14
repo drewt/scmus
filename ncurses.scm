@@ -322,15 +322,56 @@
    mvwhline
    mvvline
    mvwvline
+
    bkgdset
    getbkgd
    putp
    use_default_colors
-   get-char)
+   get-char
+
+   getmouse
+   has_mouse
+   mouse-event-id
+   mouse-event-x
+   mouse-event-y
+   mouse-event-z
+   mouse-event-bstate
+   mousemask
+   BUTTON1_PRESSED
+   BUTTON1_RELEASED
+   BUTTON1_CLICKED
+   BUTTON1_DOUBLE_CLICKED
+   BUTTON1_TRIPLE_CLICKED
+   BUTTON2_PRESSED
+   BUTTON2_RELEASED
+   BUTTON2_CLICKED
+   BUTTON2_DOUBLE_CLICKED
+   BUTTON2_TRIPLE_CLICKED
+   BUTTON3_PRESSED
+   BUTTON3_RELEASED
+   BUTTON3_CLICKED
+   BUTTON3_DOUBLE_CLICKED
+   BUTTON3_TRIPLE_CLICKED
+   BUTTON4_PRESSED
+   BUTTON4_RELEASED
+   BUTTON4_CLICKED
+   BUTTON4_DOUBLE_CLICKED
+   BUTTON4_TRIPLE_CLICKED
+   BUTTON5_PRESSED
+   BUTTON5_RELEASED
+   BUTTON5_CLICKED
+   BUTTON5_DOUBLE_CLICKED
+   BUTTON5_TRIPLE_CLICKED
+   BUTTON_SHIFT
+   BUTTON_CTRL
+   BUTTON_ALT
+   ALL_MOUSE_EVENTS
+   REPORT_MOUSE_POSITION)
 
    (import scheme)
    (import chicken)
    (import foreign)
+   (import lolevel)
    (import extras)
    (import easyffi)
 
@@ -825,4 +866,72 @@
           (cond
             ((= r ERR) (values 0 ERR))
             ((> r 255) (values r KEY_CODE_YES))
-            (else      (values r OK))))))))
+            (else      (values r OK)))))))
+
+  (define-foreign-type mouse-event c-pointer)
+
+  (define mouse-event-id
+    (foreign-lambda* short ((mouse-event mev))
+      "C_return(((MEVENT*)mev)->id);"))
+
+  (define mouse-event-x
+    (foreign-lambda* int ((mouse-event mev))
+      "C_return (((MEVENT*)mev)->x);"))
+
+  (define mouse-event-y
+    (foreign-lambda* int ((mouse-event mev))
+      "C_return (((MEVENT*)mev)->y);"))
+
+  (define mouse-event-z
+    (foreign-lambda* int ((mouse-event mev))
+      "C_return (((MEVENT*)mev)->z);"))
+
+  (define mouse-event-bstate
+    (foreign-lambda* unsigned-long ((mouse-event mev))
+      "C_return (((MEVENT*)mev)->bstate);"))
+
+  (define (getmouse)
+    (let ((r ((foreign-lambda* mouse-event ()
+                "MEVENT *mev = malloc(sizeof(MEVENT));"
+                "getmouse(mev);"
+                "C_return(mev);"))))
+      (set-finalizer! r free)
+      r))
+
+  (define has_mouse
+    (foreign-lambda* bool () "return(has_mouse());"))
+
+  (define mousemask
+    (foreign-lambda* unsigned-long ((unsigned-long newmask))
+      "C_return(mousemask(newmask, NULL));"))
+
+  (defkey BUTTON1_PRESSED)
+  (defkey BUTTON1_RELEASED)
+  (defkey BUTTON1_CLICKED)
+  (defkey BUTTON1_DOUBLE_CLICKED)
+  (defkey BUTTON1_TRIPLE_CLICKED)
+  (defkey BUTTON2_PRESSED)
+  (defkey BUTTON2_RELEASED)
+  (defkey BUTTON2_CLICKED)
+  (defkey BUTTON2_DOUBLE_CLICKED)
+  (defkey BUTTON2_TRIPLE_CLICKED)
+  (defkey BUTTON3_PRESSED)
+  (defkey BUTTON3_RELEASED)
+  (defkey BUTTON3_CLICKED)
+  (defkey BUTTON3_DOUBLE_CLICKED)
+  (defkey BUTTON3_TRIPLE_CLICKED)
+  (defkey BUTTON4_PRESSED)
+  (defkey BUTTON4_RELEASED)
+  (defkey BUTTON4_CLICKED)
+  (defkey BUTTON4_DOUBLE_CLICKED)
+  (defkey BUTTON4_TRIPLE_CLICKED)
+  (defkey BUTTON5_PRESSED)
+  (defkey BUTTON5_RELEASED)
+  (defkey BUTTON5_CLICKED)
+  (defkey BUTTON5_DOUBLE_CLICKED)
+  (defkey BUTTON5_TRIPLE_CLICKED)
+  (defkey BUTTON_SHIFT)
+  (defkey BUTTON_CTRL)
+  (defkey BUTTON_ALT)
+  (defkey ALL_MOUSE_EVENTS)
+  (defkey REPORT_MOUSE_POSITION))

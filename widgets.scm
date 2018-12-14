@@ -399,6 +399,14 @@
   (define-method (widget-focus (window <window>))
     (widget-focus (window-selected window)))
 
+  (define-method (compute-layout (window <window>) cols rows)
+    (let ((data     (*window-data window))
+          (top-pos  (window-top-pos window))
+          (data-len (window-length window)))
+      (map (lambda (i)
+             (list (vector-ref data (+ top-pos i)) 0 i cols 1))
+           (iota (min rows (- data-len top-pos))))))
+
   ;; Even though <window>s are <container>s, we still implement PRINT-WIDGET!
   ;; so that we can use WITH-CURSED per-line.
   (define-method (print-widget! (window <window>) x y cols rows)
@@ -421,6 +429,20 @@
                              (- cols (* 2 (window-h-border window)))
                              1)))
           (loop (+ line 1))))))
+
+  (define-method (handle-input (window <window>) input event)
+    (if (not (eqv? input KEY_MOUSE))
+      (call-next-method)
+      (let ((row (+ (window-top-pos window)
+                    (- (mouse-event-y event) (widget-y window)))))
+        (mouse-case event
+          ((BUTTON1_CLICKED) (window-select! window row))
+          ((BUTTON1_DOUBLE_CLICKED)
+            (when (< row (window-length window))
+              (window-select! window row)
+              (widget-activate window)))
+          ((BUTTON4_PRESSED) (window-move-up! window 3))
+          ((BUTTON5_PRESSED) (window-move-down! window 3))))))
 
   ;; <window> }}}
   ;; <window-row> {{{
