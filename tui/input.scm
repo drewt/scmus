@@ -27,6 +27,7 @@
               mouse-event-y
               mouse-event-z
               mouse-event-bstate
+              KEY_MOUSE
               BUTTON1_PRESSED
               BUTTON1_RELEASED
               BUTTON1_CLICKED

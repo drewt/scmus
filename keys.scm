@@ -45,7 +45,25 @@
                     make-binding!
                     normal-mode-key
                     register-context!
-                    unbind!)
+                    unbind!
+
+                    LEFT_MOUSE_PRESS
+                    LEFT_MOUSE_RELEASE
+                    LEFT_MOUSE_CLICK
+                    LEFT_MOUSE_DOUBLE_CLICK
+                    LEFT_MOUSE_TRIPLE_CLICK
+                    RIGHT_MOUSE_PRESS
+                    RIGHT_MOUSE_RELEASE
+                    RIGHT_MOUSE_CLICK
+                    RIGHT_MOUSE_DOUBLE_CLICK
+                    RIGHT_MOUSE_TRIPLE_CLICK
+                    MIDDLE_MOUSE_PRESS
+                    MIDDLE_MOUSE_RELEASE
+                    MIDDLE_MOUSE_CLICK
+                    MIDDLE_MOUSE_DOUBLE_CLICK
+                    MIDDLE_MOUSE_TRIPLE_CLICK
+                    SCROLL_WHEEL_DOWN
+                    SCROLL_WHEEL_UP)
 
   (import srfi-69)
   (import scmus.base scmus.ueval scmus.event drewt.ncurses)
@@ -253,10 +271,46 @@
                          acc))
                      #f))
 
+  (define LEFT_MOUSE_PRESS          -1)
+  (define LEFT_MOUSE_RELEASE        -2)
+  (define LEFT_MOUSE_CLICK          -3)
+  (define LEFT_MOUSE_DOUBLE_CLICK   -4)
+  (define LEFT_MOUSE_TRIPLE_CLICK   -5)
+  (define RIGHT_MOUSE_PRESS         -6)
+  (define RIGHT_MOUSE_RELEASE       -7)
+  (define RIGHT_MOUSE_CLICK         -8)
+  (define RIGHT_MOUSE_DOUBLE_CLICK  -9)
+  (define RIGHT_MOUSE_TRIPLE_CLICK  -10)
+  (define MIDDLE_MOUSE_PRESS        -11)
+  (define MIDDLE_MOUSE_RELEASE      -12)
+  (define MIDDLE_MOUSE_CLICK        -13)
+  (define MIDDLE_MOUSE_DOUBLE_CLICK -14)
+  (define MIDDLE_MOUSE_TRIPLE_CLICK -15)
+  (define SCROLL_WHEEL_DOWN         -16)
+  (define SCROLL_WHEEL_UP           -17)
+
   (: *key-table* hash-table)
   (define *key-table*
     (alist->hash-table 
-      `(( "!"              . 33)
+      `(("left_mouse_press"          . ,LEFT_MOUSE_PRESS)
+        ("left_mouse_release"        . ,LEFT_MOUSE_RELEASE)
+        ("left_mouse_click"          . ,LEFT_MOUSE_CLICK)
+        ("left_mouse_double_click"   . ,LEFT_MOUSE_DOUBLE_CLICK)
+        ("left_mouse_triple_click"   . ,LEFT_MOUSE_TRIPLE_CLICK)
+        ("right_mouse_press"         . ,RIGHT_MOUSE_PRESS)
+        ("right_mouse_release"       . ,RIGHT_MOUSE_RELEASE)
+        ("right_mouse_click"         . ,RIGHT_MOUSE_CLICK)
+        ("right_mouse_double_click"  . ,RIGHT_MOUSE_DOUBLE_CLICK)
+        ("right_mouse_triple_click"  . ,RIGHT_MOUSE_TRIPLE_CLICK)
+        ("middle_mouse_press"        . ,MIDDLE_MOUSE_PRESS)
+        ("middle_mouse_release"      . ,MIDDLE_MOUSE_RELEASE)
+        ("middle_mouse_click"        . ,MIDDLE_MOUSE_CLICK)
+        ("middle_mouse_double_click" . ,MIDDLE_MOUSE_DOUBLE_CLICK)
+        ("middle_mouse_triple_click" . ,MIDDLE_MOUSE_TRIPLE_CLICK)
+        ("scroll_wheel_down"         . ,SCROLL_WHEEL_DOWN)
+        ("scroll_wheel_up"           . ,SCROLL_WHEEL_UP)
+
+        ( "!"              . 33)
         ( "\""             . 34)
         ( "#"              . 35)
         ( "$"              . 36)

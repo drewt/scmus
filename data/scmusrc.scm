@@ -33,6 +33,11 @@
 (bind! "g" 'common '(win-top!) #t)
 (bind! "G" 'common '(win-bottom!) #t)
 
+;; mouse
+(bind! "left_mouse_double_click" 'common '(win-activate!) #t)
+(bind! "scroll_wheel_up"         'common '(win-move! -3)  #t)
+(bind! "scroll_wheel_down"       'common '(win-move!  3)  #t)
+
 (bind! "space" 'common '(begin (win-toggle-mark!) (win-move! 1)) #t)
 
 (bind! "i" 'common '(win-edit!) #t)

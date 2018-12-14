@@ -431,18 +431,13 @@
           (loop (+ line 1))))))
 
   (define-method (handle-input (window <window>) input event)
-    (if (not (eqv? input KEY_MOUSE))
-      (call-next-method)
+    (when (eqv? input KEY_MOUSE)
       (let ((row (+ (window-top-pos window)
                     (- (mouse-event-y event) (widget-y window)))))
         (mouse-case event
-          ((BUTTON1_CLICKED) (window-select! window row))
-          ((BUTTON1_DOUBLE_CLICKED)
-            (when (< row (window-length window))
-              (window-select! window row)
-              (widget-activate window)))
-          ((BUTTON4_PRESSED) (window-move-up! window 3))
-          ((BUTTON5_PRESSED) (window-move-down! window 3))))))
+          ((BUTTON1_CLICKED BUTTON1_DOUBLE_CLICKED)
+            (window-select! window row)))))
+    (call-next-method))
 
   ;; <window> }}}
   ;; <window-row> {{{
