@@ -23,6 +23,7 @@
                      user-eval
                      user-eval/raw
                      user-eval-string
+                     user-export!
                      user-load
                      user-macro-set!
                      user-value-ref
