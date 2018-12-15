@@ -38,7 +38,7 @@
   (define ui-initialized? (make-parameter #f))
 
   (define (call-without-curses thunk)
-    (if (ui-initialized?)
+    (if (and (ui-initialized?) (not (isendwin)))
       (begin (endwin)
              (let ((r (thunk)))
                (refresh)
