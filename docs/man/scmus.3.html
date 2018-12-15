@@ -84,6 +84,7 @@
 (<code>current-elapsed</code>)<br />
 (<code>current-track</code>)<br />
 (<code>current-volume</code>)<br />
+(<code>define-command</code> (<em>name</em> <em>args</em> ...) <em>body</em> ...)<br />
 (<code>describe</code> <em>object</em>)<br />
 (<code>disconnect!</code>)<br />
 (<code>echo!</code> <em>string</em>)<br />
@@ -126,6 +127,7 @@
 (<code>random?</code>)<br />
 (<code>random-set!</code> <em>true-or-false</em>)<br />
 (<code>refresh-library!</code>)<br />
+(<code>register-command!</code> <em>name</em> <em>handler</em> <em>[force?]</em>)<br />
 (<code>register-event-handler!</code> <em>event</em> <em>handler</em>)<br />
 (<code>repeat?</code>)<br />
 (<code>repeat-set!</code> <em>true-or-false</em>)<br />
@@ -202,6 +204,7 @@
 <dt>(<code>current-elapsed</code>)</dt><dd><p>Returns the position within the current track as a number of seconds.</p></dd>
 <dt>(<code>current-track</code>)</dt><dd><p>Returns the track object for the currently playing track.</p></dd>
 <dt>(<code>current-volume</code>)</dt><dd><p>Returns the current volume level.</p></dd>
+<dt>(<code>define-command</code> (<em>name</em> <em>args</em> ...) <em>body</em> ...)</dt><dd><p>Defines a handler for the command <em>name</em>, taking arguments <em>args</em> and executing <em>body</em> when the command is run.  A dotted tail may be used in the argument list to accept an arbitrary number of arguments.</p></dd>
 <dt>(<code>describe</code> <em>object</em>)</dt><dd><p>Print a description of <em>object</em> on the command line.  If <em>object</em> is a symbol, then a description is printed for the object bound to the symbol.</p></dd>
 <dt>(<code>disconnect!</code>)</dt><dd><p>Disconnects from the current MPD server.</p></dd>
 <dt>(<code>echo!</code> <em>string</em>)</dt><dd><p>Prints <em>string</em> to the command line.</p></dd>
@@ -244,6 +247,7 @@
 <dt>(<code>random?</code>)</dt><dd><p>Returns <code>#t</code> if MPD is currently in <code>random</code> mode, otherwise <code>#f</code>.</p></dd>
 <dt>(<code>random-set!</code> <em>true-or-false</em>)</dt><dd><p>Set the value of the <code>random</code> MPD option to <em>true-or-false</em>.</p></dd>
 <dt>(<code>refresh-library!</code>)</dt><dd><p>Refresh the data in the library view.</p></dd>
+<dt>(<code>register-command!</code> <em>name</em> <em>handler</em> <em>[force?]</em>)</dt><dd><p>Register <em>handler</em> as a handler for the command <em>name</em>.  If <em>force?</em> is <code>#t</code>, then <em>handler</em> will be registered even if a handler already exists for <em>name</em>.  Returns <code>#t</code> if <em>handler</em> was successfully registered, otherwise <code>#f</code>.</p></dd>
 <dt>(<code>register-event-handler!</code> <em>event</em> <em>handler</em>)</dt><dd><p>Register <em>handler</em> as a handler for the event <em>event</em>.</p></dd>
 <dt>(<code>repeat?</code>)</dt><dd><p>Returns <code>#t</code> if MPD is currently in <code>repeat</code> mode, otherwise <code>#f</code>.</p></dd>
 <dt>(<code>repeat-set!</code> <em>true-or-false</em>)</dt><dd><p>Set the value of the <code>repeat</code> MPD option to <em>true-or-false</em>.</p></dd>

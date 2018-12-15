@@ -37,6 +37,9 @@
 (\fBcurrent\-volume\fR)
 .
 .br
+(\fBdefine\-command\fR (\fIname\fR \fIargs\fR \.\.\.) \fIbody\fR \.\.\.)
+.
+.br
 (\fBdescribe\fR \fIobject\fR)
 .
 .br
@@ -161,6 +164,9 @@
 .
 .br
 (\fBrefresh\-library!\fR)
+.
+.br
+(\fBregister\-command!\fR \fIname\fR \fIhandler\fR \fI[force?]\fR)
 .
 .br
 (\fBregister\-event\-handler!\fR \fIevent\fR \fIhandler\fR)
@@ -391,6 +397,10 @@ Returns the track object for the currently playing track\.
 Returns the current volume level\.
 .
 .TP
+(\fBdefine\-command\fR (\fIname\fR \fIargs\fR \.\.\.) \fIbody\fR \.\.\.)
+Defines a handler for the command \fIname\fR, taking arguments \fIargs\fR and executing \fIbody\fR when the command is run\. A dotted tail may be used in the argument list to accept an arbitrary number of arguments\.
+.
+.TP
 (\fBdescribe\fR \fIobject\fR)
 Print a description of \fIobject\fR on the command line\. If \fIobject\fR is a symbol, then a description is printed for the object bound to the symbol\.
 .
@@ -557,6 +567,10 @@ Set the value of the \fBrandom\fR MPD option to \fItrue\-or\-false\fR\.
 .TP
 (\fBrefresh\-library!\fR)
 Refresh the data in the library view\.
+.
+.TP
+(\fBregister\-command!\fR \fIname\fR \fIhandler\fR \fI[force?]\fR)
+Register \fIhandler\fR as a handler for the command \fIname\fR\. If \fIforce?\fR is \fB#t\fR, then \fIhandler\fR will be registered even if a handler already exists for \fIname\fR\. Returns \fB#t\fR if \fIhandler\fR was successfully registered, otherwise \fB#f\fR\.
 .
 .TP
 (\fBregister\-event\-handler!\fR \fIevent\fR \fIhandler\fR)

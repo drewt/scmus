@@ -15,22 +15,35 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(import drewt.ncurses)
-(import scmus.base scmus.client scmus.command scmus.command-line scmus.config
-        scmus.ueval scmus.event scmus.format scmus.keys scmus.option
-        scmus.status scmus.track scmus.tui scmus.widgets)
+(require-extension matchable)
+
+(import drewt.ncurses
+        scmus.base
+        scmus.client
+        scmus.command
+        scmus.command-line
+        scmus.config
+        scmus.ueval
+        scmus.event
+        scmus.format
+        scmus.keys
+        scmus.option
+        scmus.status
+        scmus.track
+        scmus.tui
+        scmus.widgets)
 
 (define-syntax export/user
   (syntax-rules ()
     ((export/user name doc)
-      (register-user-value! (quote name) name doc))))
+      (user-value-set! (quote name) name doc))))
 
 (define-syntax define/user
   (syntax-rules ()
     ((define/user (name . args) doc first . rest)
-      (register-user-value! (quote name) (lambda args first . rest) doc))
+      (user-value-set! (quote name) (lambda args first . rest) doc))
     ((define/user name doc value)
-      (register-user-value! (quote name) value doc))))
+      (user-value-set! (quote name) value doc))))
 
 (define-syntax define+user
   (syntax-rules ()
@@ -53,6 +66,30 @@
 (: *user-events* (list-of symbol))
 (define *user-events*
   '(track-changed))
+
+;; macros {{{
+
+(define (user-syntax-error name arg-list)
+  (abort (make-composite-condition
+           (make-property-condition 'exn
+                                    'message (format "Syntax error: in expansion of ~a" name)
+                                    'arguments (cons name arg-list)
+                                    'location name)
+           (make-property-condition 'syntax))))
+
+(user-macro-set! (string->symbol "\u03bb")
+  (lambda (args) (cons 'lambda args)))
+
+(user-macro-set! 'define-command
+  (match-lambda
+    ((((? symbol? name) . args) first . rest)
+      `(register-command! (quote ,name)
+         (lambda ,args ,first . ,rest)
+         #t))
+    (expr (user-syntax-error 'define-command expr))))
+
+;; macros {{{
+;; procedures {{{
 
 (define/user (bind! keys context expr #!optional (force #f))
   "Bind a key sequence to a Scheme expression"
@@ -302,6 +339,13 @@
 (define/user refresh-library!
   "Refresh the library view's data"
   (thunk (register-event! 'db-changed)))
+
+(define/user (register-command! name handler #!optional force?)
+  "Register a procedure to handle a command"
+  (if (and (not force?)
+           (command-exists? name))
+    #f
+    (begin (register-command! name handler) #t)))
 
 (define/user (register-event-handler! event handler)
   "Register an event handler"
@@ -628,3 +672,5 @@
 (define/user xfade
   "Get the value of the xfade setting"
   scmus-xfade)
+
+;; procedures }}}

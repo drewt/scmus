@@ -34,7 +34,7 @@ INSTALL   = @scripts/install
 
 objfiles = $(foreach f,$(1),$(addsuffix .@OBJEXT@,$(f)))
 
-eggs = coops coops-utils regex sandbox unix-sockets utf8 vector-lib
+eggs = coops coops-utils matchable regex sandbox unix-sockets utf8 vector-lib
 
 units    = bindings-view browser-view commands library-view options options-view queue-view \
 	   search-view ui-curses ui-lib user-api view

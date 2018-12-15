@@ -13,6 +13,7 @@ scmus(3) -- scmus Scripting Environment
 (`current-elapsed`)  
 (`current-track`)  
 (`current-volume`)  
+(`define-command` (*name* *args* ...) *body* ...)  
 (`describe` *object*)  
 (`disconnect!`)  
 (`echo!` *string*)  
@@ -55,6 +56,7 @@ scmus(3) -- scmus Scripting Environment
 (`random?`)  
 (`random-set!` *true-or-false*)  
 (`refresh-library!`)  
+(`register-command!` *name* *handler* *\[force?\]*)  
 (`register-event-handler!` *event* *handler*)  
 (`repeat?`)  
 (`repeat-set!` *true-or-false*)  
@@ -149,6 +151,9 @@ scmus(3) -- scmus Scripting Environment
 
 * (`current-volume`):
   Returns the current volume level.
+
+* (`define-command` (*name* *args* ...) *body* ...):
+  Defines a handler for the command *name*, taking arguments *args* and executing *body* when the command is run.  A dotted tail may be used in the argument list to accept an arbitrary number of arguments.
 
 * (`describe` *object*):
   Print a description of *object* on the command line.  If *object* is a symbol, then a description is printed for the object bound to the symbol.
@@ -275,6 +280,9 @@ scmus(3) -- scmus Scripting Environment
 
 * (`refresh-library!`):
   Refresh the data in the library view.
+
+* (`register-command!` *name* *handler* *\[force?\]*):
+  Register *handler* as a handler for the command *name*.  If *force?* is `#t`, then *handler* will be registered even if a handler already exists for *name*.  Returns `#t` if *handler* was successfully registered, otherwise `#f`.
 
 * (`register-event-handler!` *event* *handler*):
   Register *handler* as a handler for the event *event*.

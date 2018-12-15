@@ -19,22 +19,23 @@
 (require-extension sandbox)
  
 ;; XXX: Naming a unit "eval" causes segfault -- hence ueval
-(module scmus.ueval (register-user-value!
-                     user-value-ref
-                     user-doc-ref
+(module scmus.ueval (user-doc-ref
                      user-eval
                      user-eval/raw
                      user-eval-string
-                     user-load)
+                     user-load
+                     user-macro-set!
+                     user-value-ref
+                     user-value-set!)
   (import ports srfi-69)
   (import sandbox)
   (import scmus.base scmus.error scmus.event scmus.option)
 
   (define *user-env* (make-safe-environment parent: default-safe-environment
                                             mutable: #t))
-  (safe-environment-macro-set! *user-env* (string->symbol "\u03bb")
-    (lambda (args)
-      (cons 'lambda args)))
+
+  (define (user-macro-set! name macro)
+    (safe-environment-macro-set! *user-env* name macro))
 
   (define (user-export! name obj)
     (safe-environment-set! *user-env* name obj))
@@ -42,8 +43,8 @@
   (define *user-api* (make-hash-table test: eqv?
                                       hash: symbol-hash))
 
-  (: register-user-value! (symbol * string -> undefined))
-  (define (register-user-value! name value doc)
+  (: user-value-set! (symbol * string -> undefined))
+  (define (user-value-set! name value doc)
     (hash-table-set! *user-api* name (cons value doc))
     (user-export! name value))
 

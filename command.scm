@@ -55,7 +55,8 @@
 ;; Scheme expression from the command string, evaluates it, and replaces the
 ;; expression with the result formatted as if by the DISPLAY function.
 ;;
-(module scmus.command (define-command
+(module scmus.command (command-exists?
+                       define-command
                        load-command-script
                        register-command!
                        run-command)
@@ -70,10 +71,16 @@
   (define *commands* (make-hash-table test: string=?
                                       hash: string-hash))
 
-  (define (register-command! name handler)
+  (define (command-name name)
     (if (symbol? name)
-      (hash-table-set! *commands* (string-downcase (symbol->string name)) handler)
-      (hash-table-set! *commands* name handler)))
+      (string-downcase (symbol->string name))
+      name))
+
+  (define (command-exists? name)
+    (hash-table-exists? *commands* (command-name name)))
+
+  (define (register-command! name handler)
+    (hash-table-set! *commands* (command-name name) handler))
 
   (define-syntax define-command
     (syntax-rules ()

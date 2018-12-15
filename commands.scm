@@ -51,10 +51,15 @@
                    (apply (lambda args first . rest) params))
                  flag-map))))))
 
-(define (invalid-argument-error nr msg)
-  (abort (make-property-condition 'invalid-argument
-                                  'argno nr
-                                  'message msg)))
+(define (invalid-argument-error nr msg #!optional location)
+  (abort (make-composite-condition
+           (make-property-condition 'invalid-argument
+                                    'argno nr
+                                    'message msg)
+           (make-property-condition 'exn
+                                    'message "Invalid argument"
+                                    'arguments '()
+                                    'location location))))
 
 (define (map-command name sym)
   (register-command! name
@@ -73,7 +78,7 @@
         (keys    (string-split keys "-"))
         (command (if command (with-input-from-string command read) #f)))
     (unless (binding-keys-valid? keys)
-      (invalid-argument-error 2 "Invalid keys"))
+      (invalid-argument-error 2 "Invalid keys" "bind"))
     (if command
       (begin
         (when forced
@@ -88,10 +93,10 @@
   (let ((context (with-input-from-string context read))
         (keys    (string-split keys "-")))
     (unless (binding-keys-valid? keys)
-      (invalid-argument-error 2 "Invalid keys"))
+      (invalid-argument-error 2 "Invalid keys" "unbind"))
     (if (and (not (unbind! keys context))
              (not forced))
-      (invalid-argument-error 1 "No binding for keys"))))
+      (invalid-argument-error 1 "No binding for keys" "unbind"))))
 
 (define-command (clear) (scmus-clear!))
 
@@ -148,7 +153,7 @@
                   ((string=? units "h") (*parse-time m 1 #f #f))
                   ((string=? units "m") (*parse-time m #f 1 #f))
                   (else (*parse-time m #f #f 1))))))
-          (else (invalid-argument-error 1 "Invalid time format"))))
+          (else (invalid-argument-error 1 "Invalid time format" "seek"))))
   (if (or (char=? (string-ref arg 0) #\+)
           (char=? (string-ref arg 0) #\-))
     (scmus-seek-cur! (string-append (string (string-ref arg 0))
@@ -169,9 +174,9 @@
                  ((single)  scmus-single-set!))))
       (if (member value '("on" "off"))
         (fun (string=? value "on"))
-        (invalid-argument-error 2 "Invalid value for option")))
+        (invalid-argument-error 2 "Invalid value for option" "set")))
     ; TODO: scmus options
-    (invalid-argument-error 1 "Invalid option for 'set'")))
+    (invalid-argument-error 1 "Invalid option for 'set'" "set")))
 
 (define-command (update)
   (scmus-update!))
@@ -179,7 +184,7 @@
 (define-command (vol arg)
   (define (parse-vol arg)
     (unless (string-every char-set:digit arg)
-      (invalid-argument-error 1 "Invalid volume format"))
+      (invalid-argument-error 1 "Invalid volume format" "vol"))
     (string->number arg))
   (scmus-volume-set!
     (max 0
@@ -203,7 +208,7 @@
 
 (define-command/flags (win-move ((#\r relative)) n)
   (unless (param-is-integer? n)
-    (invalid-argument-error (if relative 2 1) "Not a number"))
+    (invalid-argument-error (if relative 2 1) "Not a number" "win-move"))
   (widget-move (widget-focus view-widget) (string->number n) relative))
 
 (map-command 'win-top 'win-top!)
