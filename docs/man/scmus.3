@@ -7,22 +7,22 @@
 \fBscmus\fR \- scmus Scripting Environment
 .
 .SH "SYNOPSIS"
-(\fBbind!\fR \fIkeys context expression [force]\fR)
+(\fBbind\fR \fIkeys context expression [force]\fR)
 .
 .br
-(\fBclear\-queue!\fR)
+(\fBclear\-queue\fR)
 .
 .br
-(\fBcolorscheme!\fR \fIname\fR)
+(\fBcolorscheme\fR \fIname\fR)
 .
 .br
-(\fBconnect!\fR \fI[host [port [password]]]\fR)
+(\fBconnect\fR \fI[host [port [password]]]\fR)
 .
 .br
 (\fBconsume?\fR)
 .
 .br
-(\fBconsume\-set!\fR \fItrue\-or\-false\fR)
+(\fBconsume\-set\fR \fItrue\-or\-false\fR)
 .
 .br
 (\fBcurrent\-bitrate\fR)
@@ -43,10 +43,10 @@
 (\fBdescribe\fR \fIobject\fR)
 .
 .br
-(\fBdisconnect!\fR)
+(\fBdisconnect\fR)
 .
 .br
-(\fBecho!\fR \fIstring\fR)
+(\fBecho\fR \fIstring\fR)
 .
 .br
 (\fBenter\-command\-mode\fR \fI[text [cursor\-pos]]\fR)
@@ -85,7 +85,7 @@
 (\fBmpd\-port\fR)
 .
 .br
-(\fBnext!\fR)
+(\fBnext\fR)
 .
 .br
 (\fBnext\-id\fR)
@@ -94,64 +94,64 @@
 (\fBnext\-pos\fR)
 .
 .br
-(\fBpause!\fR)
+(\fBpause\fR)
 .
 .br
-(\fBplay!\fR)
+(\fBplay\fR)
 .
 .br
-(\fBplaylist\-add!\fR \fIname\fR \fIuri\fR)
+(\fBplaylist\-add\fR \fIname\fR \fIuri\fR)
 .
 .br
-(\fBplaylist\-clear!\fR \fIname\fR)
+(\fBplaylist\-clear\fR \fIname\fR)
 .
 .br
-(\fBplaylist\-delete!\fR \fIname\fR \fIsong\-pos\fR)
+(\fBplaylist\-delete\fR \fIname\fR \fIsong\-pos\fR)
 .
 .br
-(\fBplaylist\-load!\fR \fIname\fR)
+(\fBplaylist\-load\fR \fIname\fR)
 .
 .br
-(\fBplaylist\-move!\fR \fIname\fR \fIsong\-id\fR \fIsong\-pos\fR)
+(\fBplaylist\-move\fR \fIname\fR \fIsong\-id\fR \fIsong\-pos\fR)
 .
 .br
-(\fBplaylist\-rename!\fR \fIname\fR \fInew\-name\fR)
+(\fBplaylist\-rename\fR \fIname\fR \fInew\-name\fR)
 .
 .br
-(\fBplaylist\-rm!\fR \fIname\fR)
+(\fBplaylist\-rm\fR \fIname\fR)
 .
 .br
-(\fBplaylist\-save!\fR \fIname\fR)
+(\fBplaylist\-save\fR \fIname\fR)
 .
 .br
-(\fBprev!\fR)
+(\fBprev\fR)
 .
 .br
-(\fBqueue\-delete!\fR \fIpos\fR)
+(\fBqueue\-delete\fR \fIpos\fR)
 .
 .br
-(\fBqueue\-delete!\fR (\fIstart\fR \. \fIend\fR))
+(\fBqueue\-delete\fR (\fIstart\fR \. \fIend\fR))
 .
 .br
-(\fBqueue\-delete\-id!\fR \fIsong\-id\fR)
+(\fBqueue\-delete\-id\fR \fIsong\-id\fR)
 .
 .br
 (\fBqueue\-length\fR)
 .
 .br
-(\fBqueue\-move!\fR \fIfrom\fR \fIto\fR)
+(\fBqueue\-move\fR \fIfrom\fR \fIto\fR)
 .
 .br
-(\fBqueue\-move!\fR (\fIstart\fR \. \fIend\fR) \fIto\fR)
+(\fBqueue\-move\fR (\fIstart\fR \. \fIend\fR) \fIto\fR)
 .
 .br
-(\fBqueue\-move\-id!\fR \fIsong\-id\fR \fIto\fR)
+(\fBqueue\-move\-id\fR \fIsong\-id\fR \fIto\fR)
 .
 .br
-(\fBqueue\-swap!\fR \fIpos\-a\fR \fIpos\-b\fR)
+(\fBqueue\-swap\fR \fIpos\-a\fR \fIpos\-b\fR)
 .
 .br
-(\fBqueue\-swap\-id!\fR \fIid\-a\fR \fIid\-b\fR)
+(\fBqueue\-swap\-id\fR \fIid\-a\fR \fIid\-b\fR)
 .
 .br
 (\fBqueue\-version\fR)
@@ -160,82 +160,82 @@
 (\fBrandom?\fR)
 .
 .br
-(\fBrandom\-set!\fR \fItrue\-or\-false\fR)
+(\fBrandom\-set\fR \fItrue\-or\-false\fR)
 .
 .br
-(\fBrefresh\-library!\fR)
+(\fBrefresh\-library\fR)
 .
 .br
-(\fBregister\-command!\fR \fIname\fR \fIhandler\fR \fI[force?]\fR)
+(\fBregister\-command\fR \fIname\fR \fIhandler\fR \fI[force?]\fR)
 .
 .br
-(\fBregister\-event\-handler!\fR \fIevent\fR \fIhandler\fR)
+(\fBregister\-event\-handler\fR \fIevent\fR \fIhandler\fR)
 .
 .br
 (\fBrepeat?\fR)
 .
 .br
-(\fBrepeat\-set!\fR \fItrue\-or\-false\fR)
+(\fBrepeat\-set\fR \fItrue\-or\-false\fR)
 .
 .br
-(\fBrescan!\fR \fI[path]\fR)
+(\fBrescan\fR \fI[path]\fR)
 .
 .br
 (\fBscmus\-format\fR \fIformat\fR \fI[track [length]]\fR)
 .
 .br
-(\fBseek!\fR \fIseconds\fR)
+(\fBseek\fR \fIseconds\fR)
 .
 .br
-(\fBset\-option!\fR \fIname\fR \fIvalue\fR)
+(\fBset\-option\fR \fIname\fR \fIvalue\fR)
 .
 .br
-(\fBset\-view!\fR \fIname\fR)
+(\fBset\-view\fR \fIname\fR)
 .
 .br
-(\fBset\-volume!\fR \fIvalue\fR \fI[relative?]\fR)
+(\fBset\-volume\fR \fIvalue\fR \fI[relative?]\fR)
 .
 .br
-(\fBshell!\fR \fIcommand\fR \. \fIargs\fR)
+(\fBshell\fR \fIcommand\fR \. \fIargs\fR)
 .
 .br
-(\fBshell\-sync!\fR \fIcommand\fR \. \fIargs\fR)
+(\fBshell\-sync\fR \fIcommand\fR \. \fIargs\fR)
 .
 .br
-(\fBshell\-term!\fR \fIcommand\fR \. \fIargs\fR)
+(\fBshell\-term\fR \fIcommand\fR \. \fIargs\fR)
 .
 .br
-(\fBshell!/capture\-stdout\fR \fIcommand\fR \. \fIargs\fR)
+(\fBshell/capture\-stdout\fR \fIcommand\fR \. \fIargs\fR)
 .
 .br
-(\fBshuffle!\fR)
+(\fBshuffle\fR)
 .
 .br
 (\fBsingle?\fR)
 .
 .br
-(\fBsingle\-set!\fR \fItrue\-or\-false\fR)
+(\fBsingle\-set\fR \fItrue\-or\-false\fR)
 .
 .br
-(\fBstart\-timer!\fR \fIthunk\fR \fIseconds\fR #!key (\fIrecurring?\fR \fI#f\fR))
+(\fBstart\-timer\fR \fIthunk\fR \fIseconds\fR #!key (\fIrecurring?\fR \fI#f\fR))
 .
 .br
 (\fBstate\fR)
 .
 .br
-(\fBstop!\fR)
+(\fBstop\fR)
 .
 .br
-(\fBtoggle\-consume!\fR)
+(\fBtoggle\-consume\fR)
 .
 .br
-(\fBtoggle\-random!\fR)
+(\fBtoggle\-random\fR)
 .
 .br
-(\fBtoggle\-repeat!\fR)
+(\fBtoggle\-repeat\fR)
 .
 .br
-(\fBtoggle\-single!\fR)
+(\fBtoggle\-single\fR)
 .
 .br
 (\fBtrack\-album\fR \fItrack\fR)
@@ -295,61 +295,61 @@
 (\fBtrack\-track\fR \fItrack\fR)
 .
 .br
-(\fBunbind!\fR \fIkeys\fR \fIcontext\fR)
+(\fBunbind\fR \fIkeys\fR \fIcontext\fR)
 .
 .br
-(\fBupdate!\fR \fI[path]\fR)
+(\fBupdate\fR \fI[path]\fR)
 .
 .br
-(\fBwin\-activate!\fR)
+(\fBwin\-activate\fR)
 .
 .br
-(\fBwin\-add!\fR)
+(\fBwin\-add\fR)
 .
 .br
-(\fBwin\-bottom!\fR)
+(\fBwin\-bottom\fR)
 .
 .br
-(\fBwin\-clear!\fR)
+(\fBwin\-clear\fR)
 .
 .br
-(\fBwin\-clear\-marked!\fR)
+(\fBwin\-clear\-marked\fR)
 .
 .br
-(\fBwin\-deactivate!\fR)
+(\fBwin\-deactivate\fR)
 .
 .br
-(\fBwin\-edit!\fR)
+(\fBwin\-edit\fR)
 .
 .br
-(\fBwin\-mark!\fR)
+(\fBwin\-mark\fR)
 .
 .br
-(\fBwin\-unmark!\fR)
+(\fBwin\-unmark\fR)
 .
 .br
-(\fBwin\-move!\fR \fInr\fR \fI[relative?]\fR)
+(\fBwin\-move\fR \fInr\fR \fI[relative?]\fR)
 .
 .br
-(\fBwin\-remove!\fR)
+(\fBwin\-remove\fR)
 .
 .br
-(\fBwin\-search!\fR \fIquery\fR)
+(\fBwin\-search\fR \fIquery\fR)
 .
 .br
-(\fBwin\-search\-next!\fR)
+(\fBwin\-search\-next\fR)
 .
 .br
-(\fBwin\-search\-prev!\fR)
+(\fBwin\-search\-prev\fR)
 .
 .br
-(\fBwin\-toggle\-mark!\fR)
+(\fBwin\-toggle\-mark\fR)
 .
 .br
-(\fBwin\-top!\fR)
+(\fBwin\-top\fR)
 .
 .br
-(\fBwrite\-config!\fR \fIfilename\fR)
+(\fBwrite\-config\fR \fIfilename\fR)
 .
 .br
 (\fBxfade\fR)
@@ -357,19 +357,19 @@
 .SH "DESCRIPTION"
 .
 .TP
-(\fBbind!\fR \fIkeys context expression [force]\fR)
+(\fBbind\fR \fIkeys context expression [force]\fR)
 Bind \fIkeys\fR to \fIexpression\fR in \fIcontext\fR\. If \fIforce\fR is \fB#t\fR, then any binding conflicting with \fIkeys\fR is first unbound\. Otherwise, if there is a conflicting binding then this function will fail to bind \fIkeys\fR and return \fB#f\fR\.
 .
 .TP
-(\fBclear\-queue!\fR)
+(\fBclear\-queue\fR)
 Remove all tracks from the play queue\.
 .
 .TP
-(\fBcolorscheme!\fR \fIname\fR)
+(\fBcolorscheme\fR \fIname\fR)
 Load the colorscheme \fIname\fR\. This function looks for a file named \fIname\fR\.scm in the scmus colorscheme directory (usually \fB/usr/local/share/scmus/colors/\fR)\.
 .
 .TP
-(\fBconnect!\fR \fI[host [port [password]]]\fR)
+(\fBconnect\fR \fI[host [port [password]]]\fR)
 Connect to the MPD server given by \fIpassword\fR@\fIhost\fR:\fIport\fR, using the values of the \fBmpd\-address\fR, \fBmpd\-port\fR and \fBmpd\-password\fR options if they are not provided as arguments\.
 .
 .TP
@@ -377,7 +377,7 @@ Connect to the MPD server given by \fIpassword\fR@\fIhost\fR:\fIport\fR, using t
 Returns \fB#t\fR if MPD is currently in consume mode, otherwise \fB#f\fR\.
 .
 .TP
-(\fBconsume\-set!\fR \fItrue\-or\-false\fR)
+(\fBconsume\-set\fR \fItrue\-or\-false\fR)
 Set the value of the \fBconsume\fR MPD option to \fItrue\-or\-false\fR\.
 .
 .TP
@@ -405,11 +405,11 @@ Defines a handler for the command \fIname\fR, taking arguments \fIargs\fR and ex
 Print a description of \fIobject\fR on the command line\. If \fIobject\fR is a symbol, then a description is printed for the object bound to the symbol\.
 .
 .TP
-(\fBdisconnect!\fR)
+(\fBdisconnect\fR)
 Disconnects from the current MPD server\.
 .
 .TP
-(\fBecho!\fR \fIstring\fR)
+(\fBecho\fR \fIstring\fR)
 Prints \fIstring\fR to the command line\.
 .
 .TP
@@ -461,7 +461,7 @@ Returns the hostname of the connected MPD server\.
 Returns the port number of the connected MPD server\.
 .
 .TP
-(\fBnext!\fR)
+(\fBnext\fR)
 Skip to the next track\.
 .
 .TP
@@ -473,59 +473,59 @@ Returns the ID of the next track in the play queue\.
 Returns the position of the next track in the play queue\.
 .
 .TP
-(\fBpause!\fR)
+(\fBpause\fR)
 Toggle pause\.
 .
 .TP
-(\fBplay!\fR \fI[track\-or\-pos]\fR)
+(\fBplay\fR \fI[track\-or\-pos]\fR)
 Begin playing a track\. If \fItrack\-or\-pos\fR is a track object, then the given track is played\. If \fItrack\-or\-pos\fR is an integer, then the track at that position in the play queue is played\. If \fItrack\-or\-pos\fR is ommitted then the current track is played from the beginning\.
 .
 .TP
-(\fBplaylist\-add!\fR \fIname\fR \fIuri\fR)
+(\fBplaylist\-add\fR \fIname\fR \fIuri\fR)
 Add \fIuri\fR to the playlist given by \fIname\fR\.
 .
 .TP
-(\fBplaylist\-clear!\fR \fIname\fR)
+(\fBplaylist\-clear\fR \fIname\fR)
 Clear the playlist given by \fIname\fR\.
 .
 .TP
-(\fBplaylist\-delete!\fR \fIname\fR \fIsong\-pos\fR)
+(\fBplaylist\-delete\fR \fIname\fR \fIsong\-pos\fR)
 Delete the track at \fIsong\-pos\fR from the playlist given by \fIname\fR\.
 .
 .TP
-(\fBplaylist\-load!\fR \fIname\fR)
+(\fBplaylist\-load\fR \fIname\fR)
 Load the playlist given by \fIname\fR to the play queue\.
 .
 .TP
-(\fBplaylist\-move!\fR \fIname\fR \fIsongid\fR \fIsong\-pos\fR)
+(\fBplaylist\-move\fR \fIname\fR \fIsongid\fR \fIsong\-pos\fR)
 Add \fIsong\-id\fR in the playlist given by \fIname\fR to the position \fIsong\-pos\fR\.
 .
 .TP
-(\fBplaylist\-rename!\fR \fIname\fR \fInew\-name\fR)
+(\fBplaylist\-rename\fR \fIname\fR \fInew\-name\fR)
 Rename the playlist \fIname\fR to \fInew\-name\fR\.
 .
 .TP
-(\fBplaylist\-rm!\fR \fIname\fR)
+(\fBplaylist\-rm\fR \fIname\fR)
 Delete the playlist given by \fIname\fR\.
 .
 .TP
-(\fBplaylist\-save!\fR \fIname\fR)
+(\fBplaylist\-save\fR \fIname\fR)
 Save the current playlist (i\.e\. the play queue) as \fIname\fR\.
 .
 .TP
-(\fBprev!\fR)
+(\fBprev\fR)
 Skip to the previous track\.
 .
 .TP
-(\fBqueue\-delete!\fR \fIpos\fR)
+(\fBqueue\-delete\fR \fIpos\fR)
 Remove the track at position \fIpos\fR from the play queue\.
 .
 .TP
-(\fBqueue\-delete!\fR (\fIstart\fR \. \fIend\fR))
+(\fBqueue\-delete\fR (\fIstart\fR \. \fIend\fR))
 Remove the tracks between positions \fIstart\fR (inclusive) and \fIend\fR (exclusive) from the play queue\.
 .
 .TP
-(\fBqueue\-delete\-id!\fR \fIsong\-id\fR)
+(\fBqueue\-delete\-id\fR \fIsong\-id\fR)
 Remove the track with ID \fIsong\-id\fR from the play queue\.
 .
 .TP
@@ -533,23 +533,23 @@ Remove the track with ID \fIsong\-id\fR from the play queue\.
 Returns the length of the play queue (the number of tracks)\.
 .
 .TP
-(\fBqueue\-move!\fR \fIfrom\fR \fIto\fR)
+(\fBqueue\-move\fR \fIfrom\fR \fIto\fR)
 Move the track at position \fIfrom\fR to position \fIto\fR in the play queue\.
 .
 .TP
-(\fBqueue\-move!\fR (\fIstart\fR \. \fIend\fR) \fIto\fR)
+(\fBqueue\-move\fR (\fIstart\fR \. \fIend\fR) \fIto\fR)
 Move the tracks between positions \fIstart\fR (inclusive) and \fIend\fR (exclusive) to position \fIto\fR in the play queue\.
 .
 .TP
-(\fBqueue\-move\-id!\fR \fIsong\-id\fR \fIto\fR)
+(\fBqueue\-move\-id\fR \fIsong\-id\fR \fIto\fR)
 Move the track with ID \fIsong\-id\fR to position \fIto\fR in the play queue\.
 .
 .TP
-(\fBqueue\-swap!\fR \fIpos\-a\fR \fIpos\-b\fR)
+(\fBqueue\-swap\fR \fIpos\-a\fR \fIpos\-b\fR)
 Swap the tracks at positions \fIpos\-a\fR and \fIpos\-b\fR in the play queue\.
 .
 .TP
-(\fBqueue\-swap\-id!\fR \fIid\-a\fR \fIid\-b\fR)
+(\fBqueue\-swap\-id\fR \fIid\-a\fR \fIid\-b\fR)
 Swap the tracks with IDs \fIid\-a\fR and \fIid\-b\fR in the play queue\.
 .
 .TP
@@ -561,19 +561,19 @@ Returns the current version of the queue\.
 Returns \fB#t\fR if MPD is currently in \fBrandom\fR mode, otherwise \fB#f\fR\.
 .
 .TP
-(\fBrandom\-set!\fR \fItrue\-or\-false\fR)
+(\fBrandom\-set\fR \fItrue\-or\-false\fR)
 Set the value of the \fBrandom\fR MPD option to \fItrue\-or\-false\fR\.
 .
 .TP
-(\fBrefresh\-library!\fR)
+(\fBrefresh\-library\fR)
 Refresh the data in the library view\.
 .
 .TP
-(\fBregister\-command!\fR \fIname\fR \fIhandler\fR \fI[force?]\fR)
+(\fBregister\-command\fR \fIname\fR \fIhandler\fR \fI[force?]\fR)
 Register \fIhandler\fR as a handler for the command \fIname\fR\. If \fIforce?\fR is \fB#t\fR, then \fIhandler\fR will be registered even if a handler already exists for \fIname\fR\. Returns \fB#t\fR if \fIhandler\fR was successfully registered, otherwise \fB#f\fR\.
 .
 .TP
-(\fBregister\-event\-handler!\fR \fIevent\fR \fIhandler\fR)
+(\fBregister\-event\-handler\fR \fIevent\fR \fIhandler\fR)
 Register \fIhandler\fR as a handler for the event \fIevent\fR\.
 .
 .TP
@@ -581,11 +581,11 @@ Register \fIhandler\fR as a handler for the event \fIevent\fR\.
 Returns \fB#t\fR if MPD is currently in \fBrepeat\fR mode, otherwise \fB#f\fR\.
 .
 .TP
-(\fBrepeat\-set!\fR \fItrue\-or\-false\fR)
+(\fBrepeat\-set\fR \fItrue\-or\-false\fR)
 Set the value of the \fBrepeat\fR MPD option to \fItrue\-or\-false\fR\.
 .
 .TP
-(\fBrescan!\fR \fI[path]\fR)
+(\fBrescan\fR \fI[path]\fR)
 Update the music data, rescanning even unmodified files\. If \fIpath\fR is given, then only that path is updated\.
 .
 .TP
@@ -593,39 +593,39 @@ Update the music data, rescanning even unmodified files\. If \fIpath\fR is given
 Returns a string formatted according to the format string \fIformat\fR\. If \fItrack\fR is given, then it is used as the data source for the format string, otherwise it defaults to the null track\. If \fIlength\fR is given, then it is used as the available size (in terminal columns) of the output string, otherwise it defaults to the current terminal width minus two\. See the \fBFormat Strings\fR section in \fBscmus\fR(1) for information about format strings in scmus\.
 .
 .TP
-(\fBseek!\fR \fIseconds\fR)
+(\fBseek\fR \fIseconds\fR)
 Seek \fIseconds\fR relative to the current position in the current track\.
 .
 .TP
-(\fBset\-option!\fR \fIname\fR \fIvalue\fR)
+(\fBset\-option\fR \fIname\fR \fIvalue\fR)
 Set the value of the option given by \fIname\fR to \fIvalue\fR\.
 .
 .TP
-(\fBset\-view!\fR \fIname\fR)
+(\fBset\-view\fR \fIname\fR)
 Change the current view to the view given by \fIname\fR\.
 .
 .TP
-(\fBset\-volume!\fR \fIvalue\fR \fI[relative?]\fR)
+(\fBset\-volume\fR \fIvalue\fR \fI[relative?]\fR)
 Set MPD\'s volume level\. If \fIrelative?\fR is given and not \fB#f\fR, then \fIvalue\fR is interpreted relative to the current volume level\.
 .
 .TP
-(\fBshell!\fR \fIcommand\fR \. \fIargs\fR)
+(\fBshell\fR \fIcommand\fR \. \fIargs\fR)
 Run the command \fIcommand\fR with arguments \fIargs\fR in a separate process\.
 .
 .TP
-(\fBshell\-sync!\fR \fIcommand\fR \. \fIargs\fR)
+(\fBshell\-sync\fR \fIcommand\fR \. \fIargs\fR)
 Run the command \fIcommand\fR with arguments \fIargs\fR in a separate process\. This function blocks until the child process exits, and returns the status code\.
 .
 .TP
-(\fBshell\-term!\fR \fIcommand\fR \. \fIargs\fR)
-Like \fBshell\-sync!\fR, except that curses is temporarily disabled while the command runs\.
+(\fBshell\-term\fR \fIcommand\fR \. \fIargs\fR)
+Like \fBshell\-sync\fR, except that curses is temporarily disabled while the command runs\.
 .
 .TP
-(\fBshell!/capture\-stdout\fR \fIcommand\fR \. \fIargs\fR)
-Like \fBshell\-sync!\fR, except that the child process\'s output on standard output is returned as a string instead of the status code\.
+(\fBshell/capture\-stdout\fR \fIcommand\fR \. \fIargs\fR)
+Like \fBshell\-sync\fR, except that the child process\'s output on standard output is returned as a string instead of the status code\.
 .
 .TP
-(\fBshuffle!\fR)
+(\fBshuffle\fR)
 Shuffles the order of tracks in the play queue\.
 .
 .TP
@@ -633,11 +633,11 @@ Shuffles the order of tracks in the play queue\.
 Returns \fB#t\fR if MPD is currently in \fBsingle\fR mode, otherwise \fB#f\fR\.
 .
 .TP
-(\fBsingle\-set!\fR \fItrue\-or\-false\fR)
+(\fBsingle\-set\fR \fItrue\-or\-false\fR)
 Set the value of the \fBsingle\fR MPD option to \fItrue\-or\-false\fR\.
 .
 .TP
-(\fBstart\-timer!\fR \fIthunk\fR \fIseconds\fR #!key (\fIrecurring?\fR \fI#f\fR))
+(\fBstart\-timer\fR \fIthunk\fR \fIseconds\fR #!key (\fIrecurring?\fR \fI#f\fR))
 Set a timer to expire in \fIseconds\fR seconds\. When the timer expires, the procedure \fIthunk\fR is called with no arguments\. If \fIrecurring?\fR is given and not \fB#f\fR, then the timer will re\-arm itself to expire again in \fIseconds\fR seconds after \fIthunk\fR returns\.
 .
 .TP
@@ -645,23 +645,23 @@ Set a timer to expire in \fIseconds\fR seconds\. When the timer expires, the pro
 Returns one of [\fBpause\fR \fBplay\fR \fBstop\fR \fBunknown\fR] if MPD is paused, playing, stopped or in an unknown state, respectively\.
 .
 .TP
-(\fBstop!\fR)
+(\fBstop\fR)
 Stop playing the current track\.
 .
 .TP
-(\fBtoggle\-consume!\fR)
+(\fBtoggle\-consume\fR)
 Toggle the value of the \fBconsume\fR MPD option\.
 .
 .TP
-(\fBtoggle\-random!\fR)
+(\fBtoggle\-random\fR)
 Toggle the value of the \fBrandom\fR MPD option\.
 .
 .TP
-(\fBtoggle\-repeat!\fR)
+(\fBtoggle\-repeat\fR)
 Toggle the value of the \fBrepeat\fR MPD option\.
 .
 .TP
-(\fBtoggle\-single!\fR)
+(\fBtoggle\-single\fR)
 Toggle the value of the \fBsingle\fR MPD option\.
 .
 .TP
@@ -741,79 +741,79 @@ Returns the \fBtitle\fR tag for the track \fItrack\fR\.
 Returns the \fBtrack number\fR tag for the track \fItrack\fR\.
 .
 .TP
-(\fBunbind!\fR \fIkeys\fR \fIcontext\fR)
+(\fBunbind\fR \fIkeys\fR \fIcontext\fR)
 Remove the binding for \fIkeys\fR in \fIcontext\fR, or any bindings in conflict with \fIkeys\fR\.
 .
 .TP
-(\fBupdate!\fR \fI[path]\fR)
+(\fBupdate\fR \fI[path]\fR)
 Update the music database\. If \fIpath\fR is given, then only that path is updated\.
 .
 .TP
-(\fBwin\-activate!\fR)
+(\fBwin\-activate\fR)
 Activate the current window\. What this means depends on the view and the current selection\. E\.g\. in \fBqueue\fR view, this function will begin playing the selected track\.
 .
 .TP
-(\fBwin\-add!\fR)
+(\fBwin\-add\fR)
 Add the current selection to the play queue\.
 .
 .TP
-(\fBwin\-bottom!\fR)
+(\fBwin\-bottom\fR)
 Move the cursor to the bottom of the current window\.
 .
 .TP
-(\fBwin\-clear!\fR)
+(\fBwin\-clear\fR)
 Clear the current window\.
 .
 .TP
-(\fBwin\-clear\-marked!\fR)
+(\fBwin\-clear\-marked\fR)
 Clear the marked items in the current window\.
 .
 .TP
-(\fBwin\-deactivate!\fR)
+(\fBwin\-deactivate\fR)
 Deactivate the current window\. What this means depends on the view and the current selection\. E\.g\. in \fBlibrary\fR view, this navigates backwards in the artist/album/file/metadata hierarchy\.
 .
 .TP
-(\fBwin\-edit!\fR)
+(\fBwin\-edit\fR)
 Begin editing the selected item in the current window (when applicable)\.
 .
 .TP
-(\fBwin\-mark!\fR)
+(\fBwin\-mark\fR)
 Mark the selected item in the current window\.
 .
 .TP
-(\fBwin\-unmark!\fR)
+(\fBwin\-unmark\fR)
 Clear the mark on the selected item in the current window\.
 .
 .TP
-(\fBwin\-move!\fR \fInr\fR \fI[relative?]\fR)
+(\fBwin\-move\fR \fInr\fR \fI[relative?]\fR)
 Move the cursor up or down \fInr\fR rows in the current window\. Positive values for \fInr\fR mean move down; negative values mean move up\. If \fIrelative\fR is \fB#t\fR then \fInr\fR is interpreted as a percentage of the visible rows\.
 .
 .TP
-(\fBwin\-remove!\fR)
+(\fBwin\-remove\fR)
 Remove the selected item in the current window (when applicable)\.
 .
 .TP
-(\fBwin\-search!\fR \fIquery\fR)
+(\fBwin\-search\fR \fIquery\fR)
 Search for \fIquery\fR in the current window\.
 .
 .TP
-(\fBwin\-search\-next!\fR)
+(\fBwin\-search\-next\fR)
 Select the next match after the cursor for the current search query\.
 .
 .TP
-(\fBwin\-search\-prev!\fR)
+(\fBwin\-search\-prev\fR)
 Select the next match before the cursor for the current search query\.
 .
 .TP
-(\fBwin\-toggle\-mark!\fR)
+(\fBwin\-toggle\-mark\fR)
 Toggle the marked status of the selected item in the current window\.
 .
 .TP
-(\fBwin\-top!\fR)
+(\fBwin\-top\fR)
 Move the cursor to the top of the current window\.
 .
 .TP
-(\fBwrite\-config!\fR \fIfilename\fR)
+(\fBwrite\-config\fR \fIfilename\fR)
 Write the current options to \fIfilename\fR, such that a subsequent call to (\fBload\fR \fIfilename\fR) would restore scmus\'s options to the current values\.
 .
 .TP

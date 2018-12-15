@@ -3,20 +3,20 @@ scmus(3) -- scmus Scripting Environment
 
 ## SYNOPSIS
 
-(`bind!` *keys context expression \[force\]*)  
-(`clear-queue!`)  
-(`colorscheme!` *name*)  
-(`connect!` *\[host \[port \[password\]\]\]*)  
+(`bind` *keys context expression \[force\]*)  
+(`clear-queue`)  
+(`colorscheme` *name*)  
+(`connect` *\[host \[port \[password\]\]\]*)  
 (`consume?`)  
-(`consume-set!` *true-or-false*)  
+(`consume-set` *true-or-false*)  
 (`current-bitrate`)  
 (`current-elapsed`)  
 (`current-track`)  
 (`current-volume`)  
 (`define-command` (*name* *args* ...) *body* ...)  
 (`describe` *object*)  
-(`disconnect!`)  
-(`echo!` *string*)  
+(`disconnect`)  
+(`echo` *string*)  
 (`enter-command-mode` *\[text \[cursor-pos\]\]*)  
 (`enter-eval-mode` *\[text \[cursor-pos\]\]*)  
 (`enter-search-mode` *\[text \[cursor-pos\]\]*)  
@@ -29,57 +29,57 @@ scmus(3) -- scmus Scripting Environment
 (`mpd-address`)  
 (`mpd-host`)  
 (`mpd-port`)  
-(`next!`)  
+(`next`)  
 (`next-id`)  
 (`next-pos`)  
-(`pause!`)  
-(`play!`)  
-(`playlist-add!` *name* *uri*)  
-(`playlist-clear!` *name*)  
-(`playlist-delete!` *name* *song-pos*)  
-(`playlist-load!` *name*)  
-(`playlist-move!` *name* *song-id* *song-pos*)  
-(`playlist-rename!` *name* *new-name*)  
-(`playlist-rm!` *name*)  
-(`playlist-save!` *name*)  
-(`prev!`)  
-(`queue-delete!` *pos*)  
-(`queue-delete!` (*start* . *end*))  
-(`queue-delete-id!` *song-id*)  
+(`pause`)  
+(`play`)  
+(`playlist-add` *name* *uri*)  
+(`playlist-clear` *name*)  
+(`playlist-delete` *name* *song-pos*)  
+(`playlist-load` *name*)  
+(`playlist-move` *name* *song-id* *song-pos*)  
+(`playlist-rename` *name* *new-name*)  
+(`playlist-rm` *name*)  
+(`playlist-save` *name*)  
+(`prev`)  
+(`queue-delete` *pos*)  
+(`queue-delete` (*start* . *end*))  
+(`queue-delete-id` *song-id*)  
 (`queue-length`)  
-(`queue-move!` *from* *to*)  
-(`queue-move!` (*start* . *end*) *to*)  
-(`queue-move-id!` *song-id* *to*)  
-(`queue-swap!` *pos-a* *pos-b*)  
-(`queue-swap-id!` *id-a* *id-b*)  
+(`queue-move` *from* *to*)  
+(`queue-move` (*start* . *end*) *to*)  
+(`queue-move-id` *song-id* *to*)  
+(`queue-swap` *pos-a* *pos-b*)  
+(`queue-swap-id` *id-a* *id-b*)  
 (`queue-version`)  
 (`random?`)  
-(`random-set!` *true-or-false*)  
-(`refresh-library!`)  
-(`register-command!` *name* *handler* *\[force?\]*)  
-(`register-event-handler!` *event* *handler*)  
+(`random-set` *true-or-false*)  
+(`refresh-library`)  
+(`register-command` *name* *handler* *\[force?\]*)  
+(`register-event-handler` *event* *handler*)  
 (`repeat?`)  
-(`repeat-set!` *true-or-false*)  
-(`rescan!` *\[path\]*)  
+(`repeat-set` *true-or-false*)  
+(`rescan` *\[path\]*)  
 (`scmus-format` *format* *\[track \[length\]\]*)  
-(`seek!` *seconds*)  
-(`set-option!` *name* *value*)  
-(`set-view!` *name*)  
-(`set-volume!` *value* *\[relative?\]*)  
-(`shell!` *command* . *args*)  
-(`shell-sync!` *command* . *args*)  
-(`shell-term!` *command* . *args*)  
-(`shell!/capture-stdout` *command* . *args*)  
-(`shuffle!`)  
+(`seek` *seconds*)  
+(`set-option` *name* *value*)  
+(`set-view` *name*)  
+(`set-volume` *value* *\[relative?\]*)  
+(`shell` *command* . *args*)  
+(`shell-sync` *command* . *args*)  
+(`shell-term` *command* . *args*)  
+(`shell/capture-stdout` *command* . *args*)  
+(`shuffle`)  
 (`single?`)  
-(`single-set!` *true-or-false*)  
-(`start-timer!` *thunk* *seconds* #!key (*recurring?* *#f*))  
+(`single-set` *true-or-false*)  
+(`start-timer` *thunk* *seconds* #!key (*recurring?* *#f*))  
 (`state`)  
-(`stop!`)  
-(`toggle-consume!`)  
-(`toggle-random!`)  
-(`toggle-repeat!`)  
-(`toggle-single!`)  
+(`stop`)  
+(`toggle-consume`)  
+(`toggle-random`)  
+(`toggle-repeat`)  
+(`toggle-single`)  
 (`track-album` *track*)  
 (`track-albumartist` *track*)  
 (`track-artist` *track*)  
@@ -99,45 +99,45 @@ scmus(3) -- scmus Scripting Environment
 (`track-start` *track*)  
 (`track-title` *track*)  
 (`track-track` *track*)  
-(`unbind!` *keys* *context*)  
-(`update!` *\[path\]*)  
-(`win-activate!`)  
-(`win-add!`)  
-(`win-bottom!`)  
-(`win-clear!`)  
-(`win-clear-marked!`)  
-(`win-deactivate!`)  
-(`win-edit!`)  
-(`win-mark!`)  
-(`win-unmark!`)  
-(`win-move!` *nr* *\[relative?\]*)  
-(`win-remove!`)  
-(`win-search!` *query*)  
-(`win-search-next!`)  
-(`win-search-prev!`)  
-(`win-toggle-mark!`)  
-(`win-top!`)  
-(`write-config!` *filename*)  
+(`unbind` *keys* *context*)  
+(`update` *\[path\]*)  
+(`win-activate`)  
+(`win-add`)  
+(`win-bottom`)  
+(`win-clear`)  
+(`win-clear-marked`)  
+(`win-deactivate`)  
+(`win-edit`)  
+(`win-mark`)  
+(`win-unmark`)  
+(`win-move` *nr* *\[relative?\]*)  
+(`win-remove`)  
+(`win-search` *query*)  
+(`win-search-next`)  
+(`win-search-prev`)  
+(`win-toggle-mark`)  
+(`win-top`)  
+(`write-config` *filename*)  
 (`xfade`)  
 
 ## DESCRIPTION
 
-* (`bind!` *keys context expression \[force\]*):
+* (`bind` *keys context expression \[force\]*):
   Bind *keys* to *expression* in *context*.  If *force* is `#t`, then any binding conflicting with *keys* is first unbound.  Otherwise, if there is a conflicting binding then this function will fail to bind *keys* and return `#f`.
 
-* (`clear-queue!`):
+* (`clear-queue`):
   Remove all tracks from the play queue.
 
-* (`colorscheme!` *name*):
+* (`colorscheme` *name*):
   Load the colorscheme *name*.  This function looks for a file named *name*.scm in the scmus colorscheme directory (usually `/usr/local/share/scmus/colors/`).
 
-* (`connect!` *\[host \[port \[password\]\]\]*):
+* (`connect` *\[host \[port \[password\]\]\]*):
   Connect to the MPD server given by *password*@*host*:*port*, using the values of the `mpd-address`, `mpd-port` and `mpd-password` options if they are not provided as arguments.
 
 * (`consume?`):
   Returns `#t` if MPD is currently in consume mode, otherwise `#f`.
 
-* (`consume-set!` *true-or-false*):
+* (`consume-set` *true-or-false*):
   Set the value of the `consume` MPD option to *true-or-false*.
 
 * (`current-bitrate`):
@@ -158,10 +158,10 @@ scmus(3) -- scmus Scripting Environment
 * (`describe` *object*):
   Print a description of *object* on the command line.  If *object* is a symbol, then a description is printed for the object bound to the symbol.
 
-* (`disconnect!`):
+* (`disconnect`):
   Disconnects from the current MPD server.
 
-* (`echo!` *string*):
+* (`echo` *string*):
   Prints *string* to the command line.
 
 * (`enter-command-mode` *\[text \[cursor-pos\]\]*):
@@ -200,7 +200,7 @@ scmus(3) -- scmus Scripting Environment
 * (`mpd-port`):
   Returns the port number of the connected MPD server.
 
-* (`next!`):
+* (`next`):
   Skip to the next track.
 
 * (`next-id`):
@@ -209,64 +209,64 @@ scmus(3) -- scmus Scripting Environment
 * (`next-pos`):
   Returns the position of the next track in the play queue.
 
-* (`pause!`):
+* (`pause`):
   Toggle pause.
 
-* (`play!` *\[track-or-pos\]*):
+* (`play` *\[track-or-pos\]*):
   Begin playing a track.  If *track-or-pos* is a track object, then the given track is played.  If *track-or-pos* is an integer, then the track at that position in the play queue is played.  If *track-or-pos* is ommitted then the current track is played from the beginning.
 
-* (`playlist-add!` *name* *uri*):
+* (`playlist-add` *name* *uri*):
   Add *uri* to the playlist given by *name*.
 
-* (`playlist-clear!` *name*):
+* (`playlist-clear` *name*):
   Clear the playlist given by *name*.
 
-* (`playlist-delete!` *name* *song-pos*):
+* (`playlist-delete` *name* *song-pos*):
   Delete the track at *song-pos* from the playlist given by *name*.
 
-* (`playlist-load!` *name*):
+* (`playlist-load` *name*):
   Load the playlist given by *name* to the play queue.
 
-* (`playlist-move!` *name* *songid* *song-pos*):
+* (`playlist-move` *name* *songid* *song-pos*):
   Add *song-id* in the playlist given by *name* to the position *song-pos*.
 
-* (`playlist-rename!` *name* *new-name*):
+* (`playlist-rename` *name* *new-name*):
   Rename the playlist *name* to *new-name*.
 
-* (`playlist-rm!` *name*):
+* (`playlist-rm` *name*):
   Delete the playlist given by *name*.
 
-* (`playlist-save!` *name*):
+* (`playlist-save` *name*):
   Save the current playlist (i.e. the play queue) as *name*.
 
-* (`prev!`):
+* (`prev`):
   Skip to the previous track.
 
-* (`queue-delete!` *pos*):
+* (`queue-delete` *pos*):
   Remove the track at position *pos* from the play queue.
 
-* (`queue-delete!` (*start* . *end*)):
+* (`queue-delete` (*start* . *end*)):
   Remove the tracks between positions *start* (inclusive) and *end* (exclusive) from the play queue.
 
-* (`queue-delete-id!` *song-id*):
+* (`queue-delete-id` *song-id*):
   Remove the track with ID *song-id* from the play queue.
 
 * (`queue-length`):
   Returns the length of the play queue (the number of tracks).
 
-* (`queue-move!` *from* *to*):
+* (`queue-move` *from* *to*):
   Move the track at position *from* to position *to* in the play queue.
 
-* (`queue-move!` (*start* . *end*) *to*):
+* (`queue-move` (*start* . *end*) *to*):
   Move the tracks between positions *start* (inclusive) and *end* (exclusive) to position *to* in the play queue.
 
-* (`queue-move-id!` *song-id* *to*):
+* (`queue-move-id` *song-id* *to*):
   Move the track with ID *song-id* to position *to* in the play queue.
 
-* (`queue-swap!` *pos-a* *pos-b*):
+* (`queue-swap` *pos-a* *pos-b*):
   Swap the tracks at positions *pos-a* and *pos-b* in the play queue.
 
-* (`queue-swap-id!` *id-a* *id-b*):
+* (`queue-swap-id` *id-a* *id-b*):
   Swap the tracks with IDs *id-a* and *id-b* in the play queue.
 
 * (`queue-version`):
@@ -275,83 +275,83 @@ scmus(3) -- scmus Scripting Environment
 * (`random?`):
   Returns `#t` if MPD is currently in `random` mode, otherwise `#f`.
 
-* (`random-set!` *true-or-false*):
+* (`random-set` *true-or-false*):
   Set the value of the `random` MPD option to *true-or-false*.
 
-* (`refresh-library!`):
+* (`refresh-library`):
   Refresh the data in the library view.
 
-* (`register-command!` *name* *handler* *\[force?\]*):
+* (`register-command` *name* *handler* *\[force?\]*):
   Register *handler* as a handler for the command *name*.  If *force?* is `#t`, then *handler* will be registered even if a handler already exists for *name*.  Returns `#t` if *handler* was successfully registered, otherwise `#f`.
 
-* (`register-event-handler!` *event* *handler*):
+* (`register-event-handler` *event* *handler*):
   Register *handler* as a handler for the event *event*.
 
 * (`repeat?`):
   Returns `#t` if MPD is currently in `repeat` mode, otherwise `#f`.
 
-* (`repeat-set!` *true-or-false*):
+* (`repeat-set` *true-or-false*):
   Set the value of the `repeat` MPD option to *true-or-false*.
 
-* (`rescan!` *\[path\]*):
+* (`rescan` *\[path\]*):
   Update the music data, rescanning even unmodified files.  If *path* is given, then only that path is updated.
 
 * (`scmus-format` *format* *\[track \[length\]\]*):
   Returns a string formatted according to the format string *format*.  If *track* is given, then it is used as the data source for the format string, otherwise it defaults to the null track.  If *length* is given, then it is used as the available size (in terminal columns) of the output string, otherwise it defaults to the current terminal width minus two.  See the `Format Strings` section in `scmus`(1) for information about format strings in scmus.
 
-* (`seek!` *seconds*):
+* (`seek` *seconds*):
   Seek *seconds* relative to the current position in the current track.
 
-* (`set-option!` *name* *value*):
+* (`set-option` *name* *value*):
   Set the value of the option given by *name* to *value*.
 
-* (`set-view!` *name*):
+* (`set-view` *name*):
   Change the current view to the view given by *name*.
 
-* (`set-volume!` *value* *\[relative?\]*):
+* (`set-volume` *value* *\[relative?\]*):
   Set MPD's volume level.  If *relative?* is given and not `#f`, then *value* is interpreted relative to the current volume level.
 
-* (`shell!` *command* . *args*):
+* (`shell` *command* . *args*):
   Run the command *command* with arguments *args* in a separate process.
 
-* (`shell-sync!` *command* . *args*):
+* (`shell-sync` *command* . *args*):
   Run the command *command* with arguments *args* in a separate process.  This function blocks until the child process exits, and returns the status code.
 
-* (`shell-term!` *command* . *args*):
-  Like `shell-sync!`, except that curses is temporarily disabled while the command runs.
+* (`shell-term` *command* . *args*):
+  Like `shell-sync`, except that curses is temporarily disabled while the command runs.
 
-* (`shell!/capture-stdout` *command* . *args*):
-  Like `shell-sync!`, except that the child process's output on standard output is returned as a
+* (`shell/capture-stdout` *command* . *args*):
+  Like `shell-sync`, except that the child process's output on standard output is returned as a
   string instead of the status code.
 
-* (`shuffle!`):
+* (`shuffle`):
   Shuffles the order of tracks in the play queue.
 
 * (`single?`):
   Returns `#t` if MPD is currently in `single` mode, otherwise `#f`.
 
-* (`single-set!` *true-or-false*):
+* (`single-set` *true-or-false*):
   Set the value of the `single` MPD option to *true-or-false*.
 
-* (`start-timer!` *thunk* *seconds* #!key (*recurring?* *#f*)):
+* (`start-timer` *thunk* *seconds* #!key (*recurring?* *#f*)):
   Set a timer to expire in *seconds* seconds.  When the timer expires, the procedure *thunk* is called with no arguments.  If *recurring?* is given and not `#f`, then the timer will re-arm itself to expire again in *seconds* seconds after *thunk* returns.
 
 * (`state`):
   Returns one of \[`pause` `play` `stop` `unknown`\] if MPD is paused, playing, stopped or in an unknown state, respectively.
 
-* (`stop!`):
+* (`stop`):
   Stop playing the current track.
 
-* (`toggle-consume!`):
+* (`toggle-consume`):
   Toggle the value of the `consume` MPD option.
 
-* (`toggle-random!`):
+* (`toggle-random`):
   Toggle the value of the `random` MPD option.
 
-* (`toggle-repeat!`):
+* (`toggle-repeat`):
   Toggle the value of the `repeat` MPD option.
 
-* (`toggle-single!`):
+* (`toggle-single`):
   Toggle the value of the `single` MPD option.
 
 * (`track-album` *track*):
@@ -411,61 +411,61 @@ scmus(3) -- scmus Scripting Environment
 * (`track-track` *track*):
   Returns the `track number` tag for the track *track*.
 
-* (`unbind!` *keys* *context*):
+* (`unbind` *keys* *context*):
   Remove the binding for *keys* in *context*, or any bindings in conflict with *keys*.
 
-* (`update!` *\[path\]*):
+* (`update` *\[path\]*):
   Update the music database.  If *path* is given, then only that path is updated.
 
-* (`win-activate!`):
+* (`win-activate`):
   Activate the current window.  What this means depends on the view and the current selection.  E.g. in `queue` view, this function will begin playing the selected track.
 
-* (`win-add!`):
+* (`win-add`):
   Add the current selection to the play queue.
 
-* (`win-bottom!`):
+* (`win-bottom`):
   Move the cursor to the bottom of the current window.
 
-* (`win-clear!`):
+* (`win-clear`):
   Clear the current window.
 
-* (`win-clear-marked!`):
+* (`win-clear-marked`):
   Clear the marked items in the current window.
 
-* (`win-deactivate!`):
+* (`win-deactivate`):
   Deactivate the current window.  What this means depends on the view and the current selection.  E.g. in `library` view, this navigates backwards in the artist/album/file/metadata hierarchy.
 
-* (`win-edit!`):
+* (`win-edit`):
   Begin editing the selected item in the current window (when applicable).
 
-* (`win-mark!`):
+* (`win-mark`):
   Mark the selected item in the current window.
 
-* (`win-unmark!`):
+* (`win-unmark`):
   Clear the mark on the selected item in the current window.
 
-* (`win-move!` *nr* *\[relative?\]*):
+* (`win-move` *nr* *\[relative?\]*):
   Move the cursor up or down *nr* rows in the current window.  Positive values for *nr* mean move down; negative values mean move up.  If *relative* is `#t` then *nr* is interpreted as a percentage of the visible rows.
 
-* (`win-remove!`):
+* (`win-remove`):
   Remove the selected item in the current window (when applicable).
 
-* (`win-search!` *query*):
+* (`win-search` *query*):
   Search for *query* in the current window.
 
-* (`win-search-next!`):
+* (`win-search-next`):
   Select the next match after the cursor for the current search query.
 
-* (`win-search-prev!`):
+* (`win-search-prev`):
   Select the next match before the cursor for the current search query. 
 
-* (`win-toggle-mark!`):
+* (`win-toggle-mark`):
   Toggle the marked status of the selected item in the current window.
 
-* (`win-top!`):
+* (`win-top`):
   Move the cursor to the top of the current window.
 
-* (`write-config!` *filename*):
+* (`write-config` *filename*):
   Write the current options to *filename*, such that a subsequent call to (`load` *filename*) would restore scmus's options to the current values.
 
 * (`xfade`):

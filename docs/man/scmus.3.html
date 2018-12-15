@@ -74,20 +74,20 @@
 
 <h2 id="SYNOPSIS">SYNOPSIS</h2>
 
-<p>(<code>bind!</code> <em>keys context expression [force]</em>)<br />
-(<code>clear-queue!</code>)<br />
-(<code>colorscheme!</code> <em>name</em>)<br />
-(<code>connect!</code> <em>[host [port [password]]]</em>)<br />
+<p>(<code>bind</code> <em>keys context expression [force]</em>)<br />
+(<code>clear-queue</code>)<br />
+(<code>colorscheme</code> <em>name</em>)<br />
+(<code>connect</code> <em>[host [port [password]]]</em>)<br />
 (<code>consume?</code>)<br />
-(<code>consume-set!</code> <em>true-or-false</em>)<br />
+(<code>consume-set</code> <em>true-or-false</em>)<br />
 (<code>current-bitrate</code>)<br />
 (<code>current-elapsed</code>)<br />
 (<code>current-track</code>)<br />
 (<code>current-volume</code>)<br />
 (<code>define-command</code> (<em>name</em> <em>args</em> ...) <em>body</em> ...)<br />
 (<code>describe</code> <em>object</em>)<br />
-(<code>disconnect!</code>)<br />
-(<code>echo!</code> <em>string</em>)<br />
+(<code>disconnect</code>)<br />
+(<code>echo</code> <em>string</em>)<br />
 (<code>enter-command-mode</code> <em>[text [cursor-pos]]</em>)<br />
 (<code>enter-eval-mode</code> <em>[text [cursor-pos]]</em>)<br />
 (<code>enter-search-mode</code> <em>[text [cursor-pos]]</em>)<br />
@@ -100,57 +100,57 @@
 (<code>mpd-address</code>)<br />
 (<code>mpd-host</code>)<br />
 (<code>mpd-port</code>)<br />
-(<code>next!</code>)<br />
+(<code>next</code>)<br />
 (<code>next-id</code>)<br />
 (<code>next-pos</code>)<br />
-(<code>pause!</code>)<br />
-(<code>play!</code>)<br />
-(<code>playlist-add!</code> <em>name</em> <em>uri</em>)<br />
-(<code>playlist-clear!</code> <em>name</em>)<br />
-(<code>playlist-delete!</code> <em>name</em> <em>song-pos</em>)<br />
-(<code>playlist-load!</code> <em>name</em>)<br />
-(<code>playlist-move!</code> <em>name</em> <em>song-id</em> <em>song-pos</em>)<br />
-(<code>playlist-rename!</code> <em>name</em> <em>new-name</em>)<br />
-(<code>playlist-rm!</code> <em>name</em>)<br />
-(<code>playlist-save!</code> <em>name</em>)<br />
-(<code>prev!</code>)<br />
-(<code>queue-delete!</code> <em>pos</em>)<br />
-(<code>queue-delete!</code> (<em>start</em> . <em>end</em>))<br />
-(<code>queue-delete-id!</code> <em>song-id</em>)<br />
+(<code>pause</code>)<br />
+(<code>play</code>)<br />
+(<code>playlist-add</code> <em>name</em> <em>uri</em>)<br />
+(<code>playlist-clear</code> <em>name</em>)<br />
+(<code>playlist-delete</code> <em>name</em> <em>song-pos</em>)<br />
+(<code>playlist-load</code> <em>name</em>)<br />
+(<code>playlist-move</code> <em>name</em> <em>song-id</em> <em>song-pos</em>)<br />
+(<code>playlist-rename</code> <em>name</em> <em>new-name</em>)<br />
+(<code>playlist-rm</code> <em>name</em>)<br />
+(<code>playlist-save</code> <em>name</em>)<br />
+(<code>prev</code>)<br />
+(<code>queue-delete</code> <em>pos</em>)<br />
+(<code>queue-delete</code> (<em>start</em> . <em>end</em>))<br />
+(<code>queue-delete-id</code> <em>song-id</em>)<br />
 (<code>queue-length</code>)<br />
-(<code>queue-move!</code> <em>from</em> <em>to</em>)<br />
-(<code>queue-move!</code> (<em>start</em> . <em>end</em>) <em>to</em>)<br />
-(<code>queue-move-id!</code> <em>song-id</em> <em>to</em>)<br />
-(<code>queue-swap!</code> <em>pos-a</em> <em>pos-b</em>)<br />
-(<code>queue-swap-id!</code> <em>id-a</em> <em>id-b</em>)<br />
+(<code>queue-move</code> <em>from</em> <em>to</em>)<br />
+(<code>queue-move</code> (<em>start</em> . <em>end</em>) <em>to</em>)<br />
+(<code>queue-move-id</code> <em>song-id</em> <em>to</em>)<br />
+(<code>queue-swap</code> <em>pos-a</em> <em>pos-b</em>)<br />
+(<code>queue-swap-id</code> <em>id-a</em> <em>id-b</em>)<br />
 (<code>queue-version</code>)<br />
 (<code>random?</code>)<br />
-(<code>random-set!</code> <em>true-or-false</em>)<br />
-(<code>refresh-library!</code>)<br />
-(<code>register-command!</code> <em>name</em> <em>handler</em> <em>[force?]</em>)<br />
-(<code>register-event-handler!</code> <em>event</em> <em>handler</em>)<br />
+(<code>random-set</code> <em>true-or-false</em>)<br />
+(<code>refresh-library</code>)<br />
+(<code>register-command</code> <em>name</em> <em>handler</em> <em>[force?]</em>)<br />
+(<code>register-event-handler</code> <em>event</em> <em>handler</em>)<br />
 (<code>repeat?</code>)<br />
-(<code>repeat-set!</code> <em>true-or-false</em>)<br />
-(<code>rescan!</code> <em>[path]</em>)<br />
+(<code>repeat-set</code> <em>true-or-false</em>)<br />
+(<code>rescan</code> <em>[path]</em>)<br />
 (<code>scmus-format</code> <em>format</em> <em>[track [length]]</em>)<br />
-(<code>seek!</code> <em>seconds</em>)<br />
-(<code>set-option!</code> <em>name</em> <em>value</em>)<br />
-(<code>set-view!</code> <em>name</em>)<br />
-(<code>set-volume!</code> <em>value</em> <em>[relative?]</em>)<br />
-(<code>shell!</code> <em>command</em> . <em>args</em>)<br />
-(<code>shell-sync!</code> <em>command</em> . <em>args</em>)<br />
-(<code>shell-term!</code> <em>command</em> . <em>args</em>)<br />
-(<code>shell!/capture-stdout</code> <em>command</em> . <em>args</em>)<br />
-(<code>shuffle!</code>)<br />
+(<code>seek</code> <em>seconds</em>)<br />
+(<code>set-option</code> <em>name</em> <em>value</em>)<br />
+(<code>set-view</code> <em>name</em>)<br />
+(<code>set-volume</code> <em>value</em> <em>[relative?]</em>)<br />
+(<code>shell</code> <em>command</em> . <em>args</em>)<br />
+(<code>shell-sync</code> <em>command</em> . <em>args</em>)<br />
+(<code>shell-term</code> <em>command</em> . <em>args</em>)<br />
+(<code>shell/capture-stdout</code> <em>command</em> . <em>args</em>)<br />
+(<code>shuffle</code>)<br />
 (<code>single?</code>)<br />
-(<code>single-set!</code> <em>true-or-false</em>)<br />
-(<code>start-timer!</code> <em>thunk</em> <em>seconds</em> #!key (<em>recurring?</em> <em>#f</em>))<br />
+(<code>single-set</code> <em>true-or-false</em>)<br />
+(<code>start-timer</code> <em>thunk</em> <em>seconds</em> #!key (<em>recurring?</em> <em>#f</em>))<br />
 (<code>state</code>)<br />
-(<code>stop!</code>)<br />
-(<code>toggle-consume!</code>)<br />
-(<code>toggle-random!</code>)<br />
-(<code>toggle-repeat!</code>)<br />
-(<code>toggle-single!</code>)<br />
+(<code>stop</code>)<br />
+(<code>toggle-consume</code>)<br />
+(<code>toggle-random</code>)<br />
+(<code>toggle-repeat</code>)<br />
+(<code>toggle-single</code>)<br />
 (<code>track-album</code> <em>track</em>)<br />
 (<code>track-albumartist</code> <em>track</em>)<br />
 (<code>track-artist</code> <em>track</em>)<br />
@@ -170,44 +170,44 @@
 (<code>track-start</code> <em>track</em>)<br />
 (<code>track-title</code> <em>track</em>)<br />
 (<code>track-track</code> <em>track</em>)<br />
-(<code>unbind!</code> <em>keys</em> <em>context</em>)<br />
-(<code>update!</code> <em>[path]</em>)<br />
-(<code>win-activate!</code>)<br />
-(<code>win-add!</code>)<br />
-(<code>win-bottom!</code>)<br />
-(<code>win-clear!</code>)<br />
-(<code>win-clear-marked!</code>)<br />
-(<code>win-deactivate!</code>)<br />
-(<code>win-edit!</code>)<br />
-(<code>win-mark!</code>)<br />
-(<code>win-unmark!</code>)<br />
-(<code>win-move!</code> <em>nr</em> <em>[relative?]</em>)<br />
-(<code>win-remove!</code>)<br />
-(<code>win-search!</code> <em>query</em>)<br />
-(<code>win-search-next!</code>)<br />
-(<code>win-search-prev!</code>)<br />
-(<code>win-toggle-mark!</code>)<br />
-(<code>win-top!</code>)<br />
-(<code>write-config!</code> <em>filename</em>)<br />
+(<code>unbind</code> <em>keys</em> <em>context</em>)<br />
+(<code>update</code> <em>[path]</em>)<br />
+(<code>win-activate</code>)<br />
+(<code>win-add</code>)<br />
+(<code>win-bottom</code>)<br />
+(<code>win-clear</code>)<br />
+(<code>win-clear-marked</code>)<br />
+(<code>win-deactivate</code>)<br />
+(<code>win-edit</code>)<br />
+(<code>win-mark</code>)<br />
+(<code>win-unmark</code>)<br />
+(<code>win-move</code> <em>nr</em> <em>[relative?]</em>)<br />
+(<code>win-remove</code>)<br />
+(<code>win-search</code> <em>query</em>)<br />
+(<code>win-search-next</code>)<br />
+(<code>win-search-prev</code>)<br />
+(<code>win-toggle-mark</code>)<br />
+(<code>win-top</code>)<br />
+(<code>write-config</code> <em>filename</em>)<br />
 (<code>xfade</code>)</p>
 
 <h2 id="DESCRIPTION">DESCRIPTION</h2>
 
 <dl>
-<dt>(<code>bind!</code> <em>keys context expression [force]</em>)</dt><dd><p>Bind <em>keys</em> to <em>expression</em> in <em>context</em>.  If <em>force</em> is <code>#t</code>, then any binding conflicting with <em>keys</em> is first unbound.  Otherwise, if there is a conflicting binding then this function will fail to bind <em>keys</em> and return <code>#f</code>.</p></dd>
-<dt>(<code>clear-queue!</code>)</dt><dd><p>Remove all tracks from the play queue.</p></dd>
-<dt>(<code>colorscheme!</code> <em>name</em>)</dt><dd><p>Load the colorscheme <em>name</em>.  This function looks for a file named <em>name</em>.scm in the scmus colorscheme directory (usually <code>/usr/local/share/scmus/colors/</code>).</p></dd>
-<dt>(<code>connect!</code> <em>[host [port [password]]]</em>)</dt><dd><p>Connect to the MPD server given by <em>password</em>@<em>host</em>:<em>port</em>, using the values of the <code>mpd-address</code>, <code>mpd-port</code> and <code>mpd-password</code> options if they are not provided as arguments.</p></dd>
+<dt>(<code>bind</code> <em>keys context expression [force]</em>)</dt><dd><p>Bind <em>keys</em> to <em>expression</em> in <em>context</em>.  If <em>force</em> is <code>#t</code>, then any binding conflicting with <em>keys</em> is first unbound.  Otherwise, if there is a conflicting binding then this function will fail to bind <em>keys</em> and return <code>#f</code>.</p></dd>
+<dt>(<code>clear-queue</code>)</dt><dd><p>Remove all tracks from the play queue.</p></dd>
+<dt>(<code>colorscheme</code> <em>name</em>)</dt><dd><p>Load the colorscheme <em>name</em>.  This function looks for a file named <em>name</em>.scm in the scmus colorscheme directory (usually <code>/usr/local/share/scmus/colors/</code>).</p></dd>
+<dt>(<code>connect</code> <em>[host [port [password]]]</em>)</dt><dd><p>Connect to the MPD server given by <em>password</em>@<em>host</em>:<em>port</em>, using the values of the <code>mpd-address</code>, <code>mpd-port</code> and <code>mpd-password</code> options if they are not provided as arguments.</p></dd>
 <dt>(<code>consume?</code>)</dt><dd><p>Returns <code>#t</code> if MPD is currently in consume mode, otherwise <code>#f</code>.</p></dd>
-<dt>(<code>consume-set!</code> <em>true-or-false</em>)</dt><dd><p>Set the value of the <code>consume</code> MPD option to <em>true-or-false</em>.</p></dd>
+<dt>(<code>consume-set</code> <em>true-or-false</em>)</dt><dd><p>Set the value of the <code>consume</code> MPD option to <em>true-or-false</em>.</p></dd>
 <dt>(<code>current-bitrate</code>)</dt><dd><p>Returns the current bitrate of the playing audio.</p></dd>
 <dt>(<code>current-elapsed</code>)</dt><dd><p>Returns the position within the current track as a number of seconds.</p></dd>
 <dt>(<code>current-track</code>)</dt><dd><p>Returns the track object for the currently playing track.</p></dd>
 <dt>(<code>current-volume</code>)</dt><dd><p>Returns the current volume level.</p></dd>
 <dt>(<code>define-command</code> (<em>name</em> <em>args</em> ...) <em>body</em> ...)</dt><dd><p>Defines a handler for the command <em>name</em>, taking arguments <em>args</em> and executing <em>body</em> when the command is run.  A dotted tail may be used in the argument list to accept an arbitrary number of arguments.</p></dd>
 <dt>(<code>describe</code> <em>object</em>)</dt><dd><p>Print a description of <em>object</em> on the command line.  If <em>object</em> is a symbol, then a description is printed for the object bound to the symbol.</p></dd>
-<dt>(<code>disconnect!</code>)</dt><dd><p>Disconnects from the current MPD server.</p></dd>
-<dt>(<code>echo!</code> <em>string</em>)</dt><dd><p>Prints <em>string</em> to the command line.</p></dd>
+<dt>(<code>disconnect</code>)</dt><dd><p>Disconnects from the current MPD server.</p></dd>
+<dt>(<code>echo</code> <em>string</em>)</dt><dd><p>Prints <em>string</em> to the command line.</p></dd>
 <dt>(<code>enter-command-mode</code> <em>[text [cursor-pos]]</em>)</dt><dd><p>Enter <code>command</code> mode (a mode in which commands may be entered on the command line).  If <em>text</em> is given, then the text is added on the command line.  If <em>cursor-pos</em> is given, then the cursor is moved to the given position within <em>text</em>.</p></dd>
 <dt>(<code>enter-eval-mode</code> <em>[text [cursor-pos]]</em>)</dt><dd><p>Enter <code>eval</code> mode (a mode in which scheme expressions may be entered on the command line).  See <em>enter-command-mode</em> for a description of the arguments to this procedure.</p></dd>
 <dt>(<code>enter-search-mode</code> <em>[text [cursor-pos]]</em>)</dt><dd><p>Enter <code>search</code> mode (a mode in which a search query may be entered on the command line).  See <em>enter-command-mode</em> for a description of the arguments to this procedure.</p></dd>
@@ -220,58 +220,58 @@
 <dt>(<code>mpd-address</code>)</dt><dd><p>Returns the IP address of the connected MPD server in XXX.XXX.XXX.XXX notation.</p></dd>
 <dt>(<code>mpd-host</code>)</dt><dd><p>Returns the hostname of the connected MPD server.</p></dd>
 <dt>(<code>mpd-port</code>)</dt><dd><p>Returns the port number of the connected MPD server.</p></dd>
-<dt class="flush">(<code>next!</code>)</dt><dd><p>Skip to the next track.</p></dd>
+<dt class="flush">(<code>next</code>)</dt><dd><p>Skip to the next track.</p></dd>
 <dt>(<code>next-id</code>)</dt><dd><p>Returns the ID of the next track in the play queue.</p></dd>
 <dt>(<code>next-pos</code>)</dt><dd><p>Returns the position of the next track in the play queue.</p></dd>
-<dt>(<code>pause!</code>)</dt><dd><p>Toggle pause.</p></dd>
-<dt>(<code>play!</code> <em>[track-or-pos]</em>)</dt><dd><p>Begin playing a track.  If <em>track-or-pos</em> is a track object, then the given track is played.  If <em>track-or-pos</em> is an integer, then the track at that position in the play queue is played.  If <em>track-or-pos</em> is ommitted then the current track is played from the beginning.</p></dd>
-<dt>(<code>playlist-add!</code> <em>name</em> <em>uri</em>)</dt><dd><p>Add <em>uri</em> to the playlist given by <em>name</em>.</p></dd>
-<dt>(<code>playlist-clear!</code> <em>name</em>)</dt><dd><p>Clear the playlist given by <em>name</em>.</p></dd>
-<dt>(<code>playlist-delete!</code> <em>name</em> <em>song-pos</em>)</dt><dd><p>Delete the track at <em>song-pos</em> from the playlist given by <em>name</em>.</p></dd>
-<dt>(<code>playlist-load!</code> <em>name</em>)</dt><dd><p>Load the playlist given by <em>name</em> to the play queue.</p></dd>
-<dt>(<code>playlist-move!</code> <em>name</em> <em>songid</em> <em>song-pos</em>)</dt><dd><p>Add <em>song-id</em> in the playlist given by <em>name</em> to the position <em>song-pos</em>.</p></dd>
-<dt>(<code>playlist-rename!</code> <em>name</em> <em>new-name</em>)</dt><dd><p>Rename the playlist <em>name</em> to <em>new-name</em>.</p></dd>
-<dt>(<code>playlist-rm!</code> <em>name</em>)</dt><dd><p>Delete the playlist given by <em>name</em>.</p></dd>
-<dt>(<code>playlist-save!</code> <em>name</em>)</dt><dd><p>Save the current playlist (i.e. the play queue) as <em>name</em>.</p></dd>
-<dt class="flush">(<code>prev!</code>)</dt><dd><p>Skip to the previous track.</p></dd>
-<dt>(<code>queue-delete!</code> <em>pos</em>)</dt><dd><p>Remove the track at position <em>pos</em> from the play queue.</p></dd>
-<dt>(<code>queue-delete!</code> (<em>start</em> . <em>end</em>))</dt><dd><p>Remove the tracks between positions <em>start</em> (inclusive) and <em>end</em> (exclusive) from the play queue.</p></dd>
-<dt>(<code>queue-delete-id!</code> <em>song-id</em>)</dt><dd><p>Remove the track with ID <em>song-id</em> from the play queue.</p></dd>
+<dt class="flush">(<code>pause</code>)</dt><dd><p>Toggle pause.</p></dd>
+<dt>(<code>play</code> <em>[track-or-pos]</em>)</dt><dd><p>Begin playing a track.  If <em>track-or-pos</em> is a track object, then the given track is played.  If <em>track-or-pos</em> is an integer, then the track at that position in the play queue is played.  If <em>track-or-pos</em> is ommitted then the current track is played from the beginning.</p></dd>
+<dt>(<code>playlist-add</code> <em>name</em> <em>uri</em>)</dt><dd><p>Add <em>uri</em> to the playlist given by <em>name</em>.</p></dd>
+<dt>(<code>playlist-clear</code> <em>name</em>)</dt><dd><p>Clear the playlist given by <em>name</em>.</p></dd>
+<dt>(<code>playlist-delete</code> <em>name</em> <em>song-pos</em>)</dt><dd><p>Delete the track at <em>song-pos</em> from the playlist given by <em>name</em>.</p></dd>
+<dt>(<code>playlist-load</code> <em>name</em>)</dt><dd><p>Load the playlist given by <em>name</em> to the play queue.</p></dd>
+<dt>(<code>playlist-move</code> <em>name</em> <em>songid</em> <em>song-pos</em>)</dt><dd><p>Add <em>song-id</em> in the playlist given by <em>name</em> to the position <em>song-pos</em>.</p></dd>
+<dt>(<code>playlist-rename</code> <em>name</em> <em>new-name</em>)</dt><dd><p>Rename the playlist <em>name</em> to <em>new-name</em>.</p></dd>
+<dt>(<code>playlist-rm</code> <em>name</em>)</dt><dd><p>Delete the playlist given by <em>name</em>.</p></dd>
+<dt>(<code>playlist-save</code> <em>name</em>)</dt><dd><p>Save the current playlist (i.e. the play queue) as <em>name</em>.</p></dd>
+<dt class="flush">(<code>prev</code>)</dt><dd><p>Skip to the previous track.</p></dd>
+<dt>(<code>queue-delete</code> <em>pos</em>)</dt><dd><p>Remove the track at position <em>pos</em> from the play queue.</p></dd>
+<dt>(<code>queue-delete</code> (<em>start</em> . <em>end</em>))</dt><dd><p>Remove the tracks between positions <em>start</em> (inclusive) and <em>end</em> (exclusive) from the play queue.</p></dd>
+<dt>(<code>queue-delete-id</code> <em>song-id</em>)</dt><dd><p>Remove the track with ID <em>song-id</em> from the play queue.</p></dd>
 <dt>(<code>queue-length</code>)</dt><dd><p>Returns the length of the play queue (the number of tracks).</p></dd>
-<dt>(<code>queue-move!</code> <em>from</em> <em>to</em>)</dt><dd><p>Move the track at position <em>from</em> to position <em>to</em> in the play queue.</p></dd>
-<dt>(<code>queue-move!</code> (<em>start</em> . <em>end</em>) <em>to</em>)</dt><dd><p>Move the tracks between positions <em>start</em> (inclusive) and <em>end</em> (exclusive) to position <em>to</em> in the play queue.</p></dd>
-<dt>(<code>queue-move-id!</code> <em>song-id</em> <em>to</em>)</dt><dd><p>Move the track with ID <em>song-id</em> to position <em>to</em> in the play queue.</p></dd>
-<dt>(<code>queue-swap!</code> <em>pos-a</em> <em>pos-b</em>)</dt><dd><p>Swap the tracks at positions <em>pos-a</em> and <em>pos-b</em> in the play queue.</p></dd>
-<dt>(<code>queue-swap-id!</code> <em>id-a</em> <em>id-b</em>)</dt><dd><p>Swap the tracks with IDs <em>id-a</em> and <em>id-b</em> in the play queue.</p></dd>
+<dt>(<code>queue-move</code> <em>from</em> <em>to</em>)</dt><dd><p>Move the track at position <em>from</em> to position <em>to</em> in the play queue.</p></dd>
+<dt>(<code>queue-move</code> (<em>start</em> . <em>end</em>) <em>to</em>)</dt><dd><p>Move the tracks between positions <em>start</em> (inclusive) and <em>end</em> (exclusive) to position <em>to</em> in the play queue.</p></dd>
+<dt>(<code>queue-move-id</code> <em>song-id</em> <em>to</em>)</dt><dd><p>Move the track with ID <em>song-id</em> to position <em>to</em> in the play queue.</p></dd>
+<dt>(<code>queue-swap</code> <em>pos-a</em> <em>pos-b</em>)</dt><dd><p>Swap the tracks at positions <em>pos-a</em> and <em>pos-b</em> in the play queue.</p></dd>
+<dt>(<code>queue-swap-id</code> <em>id-a</em> <em>id-b</em>)</dt><dd><p>Swap the tracks with IDs <em>id-a</em> and <em>id-b</em> in the play queue.</p></dd>
 <dt>(<code>queue-version</code>)</dt><dd><p>Returns the current version of the queue.</p></dd>
 <dt>(<code>random?</code>)</dt><dd><p>Returns <code>#t</code> if MPD is currently in <code>random</code> mode, otherwise <code>#f</code>.</p></dd>
-<dt>(<code>random-set!</code> <em>true-or-false</em>)</dt><dd><p>Set the value of the <code>random</code> MPD option to <em>true-or-false</em>.</p></dd>
-<dt>(<code>refresh-library!</code>)</dt><dd><p>Refresh the data in the library view.</p></dd>
-<dt>(<code>register-command!</code> <em>name</em> <em>handler</em> <em>[force?]</em>)</dt><dd><p>Register <em>handler</em> as a handler for the command <em>name</em>.  If <em>force?</em> is <code>#t</code>, then <em>handler</em> will be registered even if a handler already exists for <em>name</em>.  Returns <code>#t</code> if <em>handler</em> was successfully registered, otherwise <code>#f</code>.</p></dd>
-<dt>(<code>register-event-handler!</code> <em>event</em> <em>handler</em>)</dt><dd><p>Register <em>handler</em> as a handler for the event <em>event</em>.</p></dd>
+<dt>(<code>random-set</code> <em>true-or-false</em>)</dt><dd><p>Set the value of the <code>random</code> MPD option to <em>true-or-false</em>.</p></dd>
+<dt>(<code>refresh-library</code>)</dt><dd><p>Refresh the data in the library view.</p></dd>
+<dt>(<code>register-command</code> <em>name</em> <em>handler</em> <em>[force?]</em>)</dt><dd><p>Register <em>handler</em> as a handler for the command <em>name</em>.  If <em>force?</em> is <code>#t</code>, then <em>handler</em> will be registered even if a handler already exists for <em>name</em>.  Returns <code>#t</code> if <em>handler</em> was successfully registered, otherwise <code>#f</code>.</p></dd>
+<dt>(<code>register-event-handler</code> <em>event</em> <em>handler</em>)</dt><dd><p>Register <em>handler</em> as a handler for the event <em>event</em>.</p></dd>
 <dt>(<code>repeat?</code>)</dt><dd><p>Returns <code>#t</code> if MPD is currently in <code>repeat</code> mode, otherwise <code>#f</code>.</p></dd>
-<dt>(<code>repeat-set!</code> <em>true-or-false</em>)</dt><dd><p>Set the value of the <code>repeat</code> MPD option to <em>true-or-false</em>.</p></dd>
-<dt>(<code>rescan!</code> <em>[path]</em>)</dt><dd><p>Update the music data, rescanning even unmodified files.  If <em>path</em> is given, then only that path is updated.</p></dd>
+<dt>(<code>repeat-set</code> <em>true-or-false</em>)</dt><dd><p>Set the value of the <code>repeat</code> MPD option to <em>true-or-false</em>.</p></dd>
+<dt>(<code>rescan</code> <em>[path]</em>)</dt><dd><p>Update the music data, rescanning even unmodified files.  If <em>path</em> is given, then only that path is updated.</p></dd>
 <dt>(<code>scmus-format</code> <em>format</em> <em>[track [length]]</em>)</dt><dd><p>Returns a string formatted according to the format string <em>format</em>.  If <em>track</em> is given, then it is used as the data source for the format string, otherwise it defaults to the null track.  If <em>length</em> is given, then it is used as the available size (in terminal columns) of the output string, otherwise it defaults to the current terminal width minus two.  See the <code>Format Strings</code> section in <code>scmus</code>(1) for information about format strings in scmus.</p></dd>
-<dt>(<code>seek!</code> <em>seconds</em>)</dt><dd><p>Seek <em>seconds</em> relative to the current position in the current track.</p></dd>
-<dt>(<code>set-option!</code> <em>name</em> <em>value</em>)</dt><dd><p>Set the value of the option given by <em>name</em> to <em>value</em>.</p></dd>
-<dt>(<code>set-view!</code> <em>name</em>)</dt><dd><p>Change the current view to the view given by <em>name</em>.</p></dd>
-<dt>(<code>set-volume!</code> <em>value</em> <em>[relative?]</em>)</dt><dd><p>Set MPD's volume level.  If <em>relative?</em> is given and not <code>#f</code>, then <em>value</em> is interpreted relative to the current volume level.</p></dd>
-<dt>(<code>shell!</code> <em>command</em> . <em>args</em>)</dt><dd><p>Run the command <em>command</em> with arguments <em>args</em> in a separate process.</p></dd>
-<dt>(<code>shell-sync!</code> <em>command</em> . <em>args</em>)</dt><dd><p>Run the command <em>command</em> with arguments <em>args</em> in a separate process.  This function blocks until the child process exits, and returns the status code.</p></dd>
-<dt>(<code>shell-term!</code> <em>command</em> . <em>args</em>)</dt><dd><p>Like <code>shell-sync!</code>, except that curses is temporarily disabled while the command runs.</p></dd>
-<dt>(<code>shell!/capture-stdout</code> <em>command</em> . <em>args</em>)</dt><dd><p>Like <code>shell-sync!</code>, except that the child process's output on standard output is returned as a
+<dt>(<code>seek</code> <em>seconds</em>)</dt><dd><p>Seek <em>seconds</em> relative to the current position in the current track.</p></dd>
+<dt>(<code>set-option</code> <em>name</em> <em>value</em>)</dt><dd><p>Set the value of the option given by <em>name</em> to <em>value</em>.</p></dd>
+<dt>(<code>set-view</code> <em>name</em>)</dt><dd><p>Change the current view to the view given by <em>name</em>.</p></dd>
+<dt>(<code>set-volume</code> <em>value</em> <em>[relative?]</em>)</dt><dd><p>Set MPD's volume level.  If <em>relative?</em> is given and not <code>#f</code>, then <em>value</em> is interpreted relative to the current volume level.</p></dd>
+<dt>(<code>shell</code> <em>command</em> . <em>args</em>)</dt><dd><p>Run the command <em>command</em> with arguments <em>args</em> in a separate process.</p></dd>
+<dt>(<code>shell-sync</code> <em>command</em> . <em>args</em>)</dt><dd><p>Run the command <em>command</em> with arguments <em>args</em> in a separate process.  This function blocks until the child process exits, and returns the status code.</p></dd>
+<dt>(<code>shell-term</code> <em>command</em> . <em>args</em>)</dt><dd><p>Like <code>shell-sync</code>, except that curses is temporarily disabled while the command runs.</p></dd>
+<dt>(<code>shell/capture-stdout</code> <em>command</em> . <em>args</em>)</dt><dd><p>Like <code>shell-sync</code>, except that the child process's output on standard output is returned as a
 string instead of the status code.</p></dd>
-<dt>(<code>shuffle!</code>)</dt><dd><p>Shuffles the order of tracks in the play queue.</p></dd>
+<dt>(<code>shuffle</code>)</dt><dd><p>Shuffles the order of tracks in the play queue.</p></dd>
 <dt>(<code>single?</code>)</dt><dd><p>Returns <code>#t</code> if MPD is currently in <code>single</code> mode, otherwise <code>#f</code>.</p></dd>
-<dt>(<code>single-set!</code> <em>true-or-false</em>)</dt><dd><p>Set the value of the <code>single</code> MPD option to <em>true-or-false</em>.</p></dd>
-<dt>(<code>start-timer!</code> <em>thunk</em> <em>seconds</em> #!key (<em>recurring?</em> <em>#f</em>))</dt><dd><p>Set a timer to expire in <em>seconds</em> seconds.  When the timer expires, the procedure <em>thunk</em> is called with no arguments.  If <em>recurring?</em> is given and not <code>#f</code>, then the timer will re-arm itself to expire again in <em>seconds</em> seconds after <em>thunk</em> returns.</p></dd>
+<dt>(<code>single-set</code> <em>true-or-false</em>)</dt><dd><p>Set the value of the <code>single</code> MPD option to <em>true-or-false</em>.</p></dd>
+<dt>(<code>start-timer</code> <em>thunk</em> <em>seconds</em> #!key (<em>recurring?</em> <em>#f</em>))</dt><dd><p>Set a timer to expire in <em>seconds</em> seconds.  When the timer expires, the procedure <em>thunk</em> is called with no arguments.  If <em>recurring?</em> is given and not <code>#f</code>, then the timer will re-arm itself to expire again in <em>seconds</em> seconds after <em>thunk</em> returns.</p></dd>
 <dt class="flush">(<code>state</code>)</dt><dd><p>Returns one of [<code>pause</code> <code>play</code> <code>stop</code> <code>unknown</code>] if MPD is paused, playing, stopped or in an unknown state, respectively.</p></dd>
-<dt class="flush">(<code>stop!</code>)</dt><dd><p>Stop playing the current track.</p></dd>
-<dt>(<code>toggle-consume!</code>)</dt><dd><p>Toggle the value of the <code>consume</code> MPD option.</p></dd>
-<dt>(<code>toggle-random!</code>)</dt><dd><p>Toggle the value of the <code>random</code> MPD option.</p></dd>
-<dt>(<code>toggle-repeat!</code>)</dt><dd><p>Toggle the value of the <code>repeat</code> MPD option.</p></dd>
-<dt>(<code>toggle-single!</code>)</dt><dd><p>Toggle the value of the <code>single</code> MPD option.</p></dd>
+<dt class="flush">(<code>stop</code>)</dt><dd><p>Stop playing the current track.</p></dd>
+<dt>(<code>toggle-consume</code>)</dt><dd><p>Toggle the value of the <code>consume</code> MPD option.</p></dd>
+<dt>(<code>toggle-random</code>)</dt><dd><p>Toggle the value of the <code>random</code> MPD option.</p></dd>
+<dt>(<code>toggle-repeat</code>)</dt><dd><p>Toggle the value of the <code>repeat</code> MPD option.</p></dd>
+<dt>(<code>toggle-single</code>)</dt><dd><p>Toggle the value of the <code>single</code> MPD option.</p></dd>
 <dt>(<code>track-album</code> <em>track</em>)</dt><dd><p>Returns the <code>album</code> tag for the track <em>track</em>.</p></dd>
 <dt>(<code>track-albumartist</code> <em>track</em>)</dt><dd><p>Returns the <code>albumartist</code> tag for the track <em>track</em>.</p></dd>
 <dt>(<code>track-artist</code> <em>track</em>)</dt><dd><p>Returns the <code>artist</code> tag for the track <em>track</em>.</p></dd>
@@ -291,25 +291,25 @@ string instead of the status code.</p></dd>
 <dt>(<code>track-start</code> <em>track</em>)</dt><dd><p>Returns the start position of the track <em>track</em>.</p></dd>
 <dt>(<code>track-title</code> <em>track</em>)</dt><dd><p>Returns the <code>title</code> tag for the track <em>track</em>.</p></dd>
 <dt>(<code>track-track</code> <em>track</em>)</dt><dd><p>Returns the <code>track number</code> tag for the track <em>track</em>.</p></dd>
-<dt>(<code>unbind!</code> <em>keys</em> <em>context</em>)</dt><dd><p>Remove the binding for <em>keys</em> in <em>context</em>, or any bindings in conflict with <em>keys</em>.</p></dd>
-<dt>(<code>update!</code> <em>[path]</em>)</dt><dd><p>Update the music database.  If <em>path</em> is given, then only that path is updated.</p></dd>
-<dt>(<code>win-activate!</code>)</dt><dd><p>Activate the current window.  What this means depends on the view and the current selection.  E.g. in <code>queue</code> view, this function will begin playing the selected track.</p></dd>
-<dt>(<code>win-add!</code>)</dt><dd><p>Add the current selection to the play queue.</p></dd>
-<dt>(<code>win-bottom!</code>)</dt><dd><p>Move the cursor to the bottom of the current window.</p></dd>
-<dt>(<code>win-clear!</code>)</dt><dd><p>Clear the current window.</p></dd>
-<dt>(<code>win-clear-marked!</code>)</dt><dd><p>Clear the marked items in the current window.</p></dd>
-<dt>(<code>win-deactivate!</code>)</dt><dd><p>Deactivate the current window.  What this means depends on the view and the current selection.  E.g. in <code>library</code> view, this navigates backwards in the artist/album/file/metadata hierarchy.</p></dd>
-<dt>(<code>win-edit!</code>)</dt><dd><p>Begin editing the selected item in the current window (when applicable).</p></dd>
-<dt>(<code>win-mark!</code>)</dt><dd><p>Mark the selected item in the current window.</p></dd>
-<dt>(<code>win-unmark!</code>)</dt><dd><p>Clear the mark on the selected item in the current window.</p></dd>
-<dt>(<code>win-move!</code> <em>nr</em> <em>[relative?]</em>)</dt><dd><p>Move the cursor up or down <em>nr</em> rows in the current window.  Positive values for <em>nr</em> mean move down; negative values mean move up.  If <em>relative</em> is <code>#t</code> then <em>nr</em> is interpreted as a percentage of the visible rows.</p></dd>
-<dt>(<code>win-remove!</code>)</dt><dd><p>Remove the selected item in the current window (when applicable).</p></dd>
-<dt>(<code>win-search!</code> <em>query</em>)</dt><dd><p>Search for <em>query</em> in the current window.</p></dd>
-<dt>(<code>win-search-next!</code>)</dt><dd><p>Select the next match after the cursor for the current search query.</p></dd>
-<dt>(<code>win-search-prev!</code>)</dt><dd><p>Select the next match before the cursor for the current search query.</p></dd>
-<dt>(<code>win-toggle-mark!</code>)</dt><dd><p>Toggle the marked status of the selected item in the current window.</p></dd>
-<dt>(<code>win-top!</code>)</dt><dd><p>Move the cursor to the top of the current window.</p></dd>
-<dt>(<code>write-config!</code> <em>filename</em>)</dt><dd><p>Write the current options to <em>filename</em>, such that a subsequent call to (<code>load</code> <em>filename</em>) would restore scmus's options to the current values.</p></dd>
+<dt>(<code>unbind</code> <em>keys</em> <em>context</em>)</dt><dd><p>Remove the binding for <em>keys</em> in <em>context</em>, or any bindings in conflict with <em>keys</em>.</p></dd>
+<dt>(<code>update</code> <em>[path]</em>)</dt><dd><p>Update the music database.  If <em>path</em> is given, then only that path is updated.</p></dd>
+<dt>(<code>win-activate</code>)</dt><dd><p>Activate the current window.  What this means depends on the view and the current selection.  E.g. in <code>queue</code> view, this function will begin playing the selected track.</p></dd>
+<dt>(<code>win-add</code>)</dt><dd><p>Add the current selection to the play queue.</p></dd>
+<dt>(<code>win-bottom</code>)</dt><dd><p>Move the cursor to the bottom of the current window.</p></dd>
+<dt>(<code>win-clear</code>)</dt><dd><p>Clear the current window.</p></dd>
+<dt>(<code>win-clear-marked</code>)</dt><dd><p>Clear the marked items in the current window.</p></dd>
+<dt>(<code>win-deactivate</code>)</dt><dd><p>Deactivate the current window.  What this means depends on the view and the current selection.  E.g. in <code>library</code> view, this navigates backwards in the artist/album/file/metadata hierarchy.</p></dd>
+<dt>(<code>win-edit</code>)</dt><dd><p>Begin editing the selected item in the current window (when applicable).</p></dd>
+<dt>(<code>win-mark</code>)</dt><dd><p>Mark the selected item in the current window.</p></dd>
+<dt>(<code>win-unmark</code>)</dt><dd><p>Clear the mark on the selected item in the current window.</p></dd>
+<dt>(<code>win-move</code> <em>nr</em> <em>[relative?]</em>)</dt><dd><p>Move the cursor up or down <em>nr</em> rows in the current window.  Positive values for <em>nr</em> mean move down; negative values mean move up.  If <em>relative</em> is <code>#t</code> then <em>nr</em> is interpreted as a percentage of the visible rows.</p></dd>
+<dt>(<code>win-remove</code>)</dt><dd><p>Remove the selected item in the current window (when applicable).</p></dd>
+<dt>(<code>win-search</code> <em>query</em>)</dt><dd><p>Search for <em>query</em> in the current window.</p></dd>
+<dt>(<code>win-search-next</code>)</dt><dd><p>Select the next match after the cursor for the current search query.</p></dd>
+<dt>(<code>win-search-prev</code>)</dt><dd><p>Select the next match before the cursor for the current search query.</p></dd>
+<dt>(<code>win-toggle-mark</code>)</dt><dd><p>Toggle the marked status of the selected item in the current window.</p></dd>
+<dt>(<code>win-top</code>)</dt><dd><p>Move the cursor to the top of the current window.</p></dd>
+<dt>(<code>write-config</code> <em>filename</em>)</dt><dd><p>Write the current options to <em>filename</em>, such that a subsequent call to (<code>load</code> <em>filename</em>) would restore scmus's options to the current values.</p></dd>
 <dt class="flush">(<code>xfade</code>)</dt><dd><p>Returns the current value of the <code>xfade</code> MPD option.</p></dd>
 </dl>
 

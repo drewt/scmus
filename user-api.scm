@@ -69,6 +69,11 @@
     ((return-void fun)
        (lambda args (apply fun args) (void)))))
 
+(define-syntax user-synonym
+  (syntax-rules ()
+    ((user-synonym new old)
+      (user-export! (quote new) (*user-value-ref (quote old))))))
+
 (: *user-events* (list-of symbol))
 (define *user-events*
   '(track-changed))
@@ -97,7 +102,7 @@
 ;; macros {{{
 ;; procedures {{{
 
-(define/user (bind! keys context expr #!optional (force #f))
+(define/user (bind keys context expr #!optional (force #f))
   "Bind a key sequence to a Scheme expression"
   (let ((key-list (if (list? keys) keys (string-tokenize keys))))
     (if (binding-keys-valid? key-list)
@@ -106,31 +111,36 @@
           (unbind! key-list context))
         (make-binding! key-list context expr))
       #f)))
+(user-synonym bind! bind)
 
-(define/user clear-queue!
+(define/user clear-queue
   "Clear the queue"
   (return-void scmus-clear!))
+(user-synonym clear-queue! clear-queue)
 
-(define/user (colorscheme! str)
+(define/user (colorscheme str)
   "Set the color scheme"
   (cond
     ((file-exists? (format "~a/colors/~a.scm" *user-config-dir* str))
       => user-load)
     ((file-exists? (format "~a/colors/~a.scm" *scmus-dir* str))
       => user-load)))
+(user-synonym colorscheme! colorscheme)
 
-(define/user connect!
+(define/user connect
   "Connect to an MPD server"
   ; XXX: connect! not defined yet
   (lambda args (apply connect! args)))
+(user-synonym connect! connect)
 
 (define/user consume?
   "Check if MPD is in consume mode"
   scmus-consume?)
 
-(define/user consume-set!
+(define/user consume-set
   "Set consume mode on or off"
   (return-void scmus-consume-set!))
+(user-synonym consume-set! consume-set)
 
 (define/user current-bitrate
   "Get the current bitrate of the current track"
@@ -165,11 +175,12 @@
         (else
            (format "~a: ~a" symbol (cadr info)))))))
 
-(define/user disconnect!
+(define/user disconnect
   "Disconnect from the MPD server"
   (return-void scmus-disconnect!))
+(user-synonym disconnect! disconnect)
 
-(define/user (echo! arg)
+(define/user (echo arg)
   "Echo a value on the command line"
   (define (clean-text text)
     (string-delete (lambda (x)
@@ -179,6 +190,7 @@
                    text))
   (command-line-print-info! (clean-text (format #f "~a" arg)))
   arg)
+(user-synonym echo! echo)
 
 (define+user (enter-eval-mode #!optional (text "") (cursor-pos 0))
   "Set the input mode to eval-mode"
@@ -240,9 +252,10 @@
   "Get the port of the MPD server"
   scmus-port)
 
-(define/user next!
+(define/user next
   "Play the next track in the queue"
   (return-void scmus-next!))
+(user-synonym next! next)
 
 (define/user next-id
   "Get the ID of the next track in the queue"
@@ -252,11 +265,12 @@
   "Get the position of the next track in the queue"
   scmus-next-song)
 
-(define/user pause!
+(define/user pause
   "Pause the current track"
   (return-void scmus-toggle-pause!))
+(user-synonym pause! pause)
 
-(define/user (play! #!optional (track-or-pos (current-track)))
+(define/user (play #!optional (track-or-pos (current-track)))
   "Play the current track"
   (cond
     ((and (list? track-or-pos)
@@ -265,70 +279,86 @@
     ((integer? track-or-pos)
       (scmus-play-pos! track-or-pos)))
   (void))
+(user-synonym play! play)
 
-(define/user playlist-clear!
+(define/user playlist-clear
   "Clear the given playlist"
   (return-void scmus-playlist-clear!))
+(user-synonym playlist-clear! playlist-clear)
 
-(define/user playlist-add!
+(define/user playlist-add
   "Add a track to the given playlist"
   (return-void scmus-playlist-add!))
+(user-synonym playlist-add! playlist-add)
 
-(define/user playlist-move!
+(define/user playlist-move
   "Move a track in the given playlist"
   (return-void scmus-playlist-move!))
+(user-synonym playlist-move! playlist-move)
 
-(define/user playlist-delete!
+(define/user playlist-delete
   "Delete a track in the given playlist"
   (return-void scmus-playlist-delete!))
+(user-synonym playlist-delete! playlist-delete)
 
-(define/user playlist-save!
+(define/user playlist-save
   "Save the current contents of the queue as a playlist"
   (return-void scmus-playlist-save!))
+(user-synonym playlist-save! playlist-save)
 
-(define/user playlist-load!
+(define/user playlist-load
   "Load the given playlist into the queue"
   (return-void scmus-playlist-load!))
+(user-synonym playlist-load! playlist-load)
 
-(define/user playlist-rename!
+(define/user playlist-rename
   "Rename the given playlist"
   (return-void scmus-playlist-rename!))
+(user-synonym playlist-rename! playlist-rename)
 
-(define/user playlist-rm!
+(define/user playlist-rm
   "Delete the given playlist"
   (return-void scmus-playlist-rm!))
+(user-synonym playlist-rm! playlist-rm)
 
-(define/user prev!
+(define/user prev
   "Play the previous track in the queue"
   (return-void scmus-prev!))
+(user-synonym prev! prev)
 
-(define/user queue-delete!
+(define/user queue-delete
   "Delete a track from the queue"
   (return-void scmus-delete!))
+(user-synonym queue-delete! queue-delete)
 
-(define/user queue-delete-id!
+(define/user queue-delete-id
   "Delete a track from the queue by ID"
   (return-void scmus-delete-id!))
+(user-synonym queue-delete-id! queue-delete-id)
 
 (define/user queue-length
   "Get the length of the queue"
   scmus-queue-length)
 
-(define/user queue-move!
+(define/user queue-move
   "Move a track in the queue"
   (return-void scmus-move!))
+(user-synonym queue-move! queue-move)
 
-(define/user queue-move-id!
+(define/user queue-move-id
   "Move a track in the queue by ID"
   (return-void scmus-move-id!))
+(user-synonym queue-move-id! queue-move-id)
 
-(define/user queue-swap!
+(define/user queue-swap
   "Swap tracks in the queue"
   (return-void scmus-swap!))
+(user-synonym queue-swap! queue-swap)
 
-(define/user queue-swap-id!
+(define/user queue-swap-id
   "Swap tracks in the queue by ID"
   (return-void scmus-swap-id!))
+(user-synonym queue-swap-id! queue-swap-id)
 
 (define/user queue-version
   "Get the queue version"
@@ -338,39 +368,45 @@
   "Check if MPD is in random mode"
   scmus-random?)
 
-(define/user random-set!
+(define/user random-set
   "Set random mode on or off"
   (return-void scmus-random-set!))
+(user-synonym random-set! random-set)
 
-(define/user refresh-library!
+(define/user refresh-library
   "Refresh the library view's data"
   (thunk (register-event! 'db-changed)))
+(user-synonym refresh-library! refresh-library)
 
-(define/user (register-command! name handler #!optional force?)
+(define/user (register-command name handler #!optional force?)
   "Register a procedure to handle a command"
   (if (and (not force?)
            (command-exists? name))
     #f
     (begin (register-command! name handler) #t)))
+(user-synonym register-command! register-command)
 
-(define/user (register-event-handler! event handler)
+(define/user (register-event-handler event handler)
   "Register an event handler"
   (when (member event *user-events*)
     (register-event-handler! event handler)) 
   (void))
+(user-synonym register-event-handler! register-event-handler)
 
 (define/user repeat?
   "Check if MPD is in repeat mode"
   scmus-repeat?)
 
-(define/user repeat-set!
+(define/user repeat-set
   "Set repeat mode on or off"
   (return-void scmus-repeat-set!))
+(user-synonym repeat-set! repeat-set)
 
-(define/user (rescan! #!optional (path #f))
+(define/user (rescan #!optional (path #f))
   "Rescan the music database"
   (scmus-rescan!)
   (void))
+(user-synonym rescan! rescan)
 
 (define/user (scmus-format fmt #!optional (track '()) (len (- (COLS) 2)))
   "Generate formatted text"
@@ -382,37 +418,44 @@
                                  'arguments fmt)
         (make-property-condition 'scmus)))))
 
-(define/user seek!
+(define/user seek
   "Seek forwards or backwards in the current track"
   (return-void scmus-seek!))
+(user-synonym seek! seek)
 
-(define/user set-option!
+(define/user set-option
   "Set the value of an option"
   (return-void set-option!))
+(user-synonym set-option! set-option)
 
-(define/user set-view!
+(define/user set-view
   "Change the current view"
   (return-void set-view!))
+(user-synonym set-view! set-view)
 
-(define/user set-volume!
+(define/user set-volume
   "Set the volume"
   (return-void set-volume!))
+(user-synonym set-volume! set-volume)
 
-(define+user (shell! command . args)
+(define+user (shell command . args)
   "Run a shell command"
   (process-fork
     (lambda ()
       (handle-exceptions exn (void)
         (process-execute command args)))))
+(user-synonym shell! shell)
 
-(define+user (shell-sync! command . args)
+(define+user (shell-sync command . args)
   "Run a shell command synchronously"
-  (nth-value 2 (process-wait (apply shell! command args))))
+  (nth-value 2 (process-wait (apply shell command args))))
+(user-synonym shell-sync! shell-sync)
 
-(define/user (shell-term! command . args)
+(define/user (shell-term command . args)
   "Run a shell command synchronously, with curses off"
   (without-curses
-    (apply shell-sync! command args)))
+    (apply shell-sync command args)))
+(user-synonym shell-term! shell-term)
 
 ;; Spawn a shell command, capturing STDOUT and STDERR as input ports.
 ;; XXX: the returned ports MUST be closed by the caller.
@@ -443,7 +486,7 @@
       (file-close (port->fileno stderr))
       ret)))
 
-(define/user (shell!/capture-stdout command . args)
+(define/user (shell/capture-stdout command . args)
   "Run a shell command, returning the contents of standard output as a string"
   (apply call-with-shell
     (lambda (pid stdout stderr)
@@ -454,48 +497,57 @@
               (write-char (read-char stdout))
               (loop))))))
     command args))
+(user-synonym shell!/capture-stdout shell/capture-stdout)
 
-(define/user shuffle!
+(define/user shuffle
   "Shuffle the queue"
   (return-void scmus-shuffle!))
+(user-synonym shuffle! shuffle)
 
 (define/user single?
   "Check if MPD is in single mode"
   scmus-single?)
 
-(define/user single-set!
+(define/user single-set
   "Set single mode on or off"
   (return-void scmus-single-set!))
+(user-synonym single-set! single-set)
 
-(define/user (start-timer! thunk seconds #!key (recurring #f))
+(define/user (start-timer thunk seconds #!key (recurring #f))
   "Start a timer to run a thunk after a number of seconds"
   (let ((event (gensym)))
     (register-event-handler! event thunk)
     (register-timer-event! event seconds recurring: recurring)))
+(user-synonym start-timer! start-timer)
 
 (define/user state
   "Get the current player state"
   scmus-state)
 
-(define/user stop!
+(define/user stop
   "Stop playing"
   (return-void scmus-stop!))
+(user-synonym stop! stop)
 
-(define/user toggle-consume!
+(define/user toggle-consume
   "Toggle consume mode"
   (return-void scmus-toggle-consume!))
+(user-synonym toggle-consume! toggle-consume)
 
-(define/user toggle-random!
+(define/user toggle-random
   "Toggle random mode"
   (return-void scmus-toggle-random!))
+(user-synonym toggle-random! toggle-random)
 
-(define/user toggle-repeat!
+(define/user toggle-repeat
   "Toggle repeat mode"
   (return-void scmus-toggle-repeat!))
+(user-synonym toggle-repeat! toggle-repeat)
 
-(define/user toggle-single!
+(define/user toggle-single
   "Toggle single mode"
   (return-void scmus-toggle-single!))
+(user-synonym toggle-single! toggle-single)
 
 (define/user track-album
   "Get the album from a track object"
@@ -573,53 +625,64 @@
   "Get the track number from a track object"
   track-track)
 
-(define/user (unbind! keys context)
+(define/user (unbind keys context)
   "Unbind a key sequence"
   (let ((key-list (string-tokenize keys)))
     (if (binding-keys-valid? key-list)
       (unbind! key-list context)
       #f)))
+(user-synonym unbind! unbind)
 
-(define/user (update! #!optional (path #f))
+(define/user (update #!optional (path #f))
   "Update the music database"
   (scmus-update! path)
   (void))
+(user-synonym update! update)
 
-(define/user (win-move! n #!optional relative)
+(define/user (win-move n #!optional relative)
   "Move the cursor up or down"
   (widget-move (widget-focus view-widget) n relative))
+(user-synonym win-move! win-move)
 
-(define/user (win-bottom!)
+(define/user (win-bottom)
   "Move the cursor to the bottom of the window"
   (widget-move-bottom (widget-focus view-widget)))
+(user-synonym win-bottom! win-bottom)
 
-(define/user (win-top!)
+(define/user (win-top)
   "Move the cursor to the top of the window"
   (widget-move-top (widget-focus view-widget)))
+(user-synonym win-top! win-top)
 
-(define/user (win-activate!)
+(define/user (win-activate)
   "Activate the row at the cursor"
   (widget-activate (widget-focus view-widget)))
+(user-synonym win-activate! win-activate)
 
-(define/user (win-deactivate!)
+(define/user (win-deactivate)
   "Deactivate the window"
   (widget-deactivate (widget-focus view-widget)))
+(user-synonym win-deactivate! win-deactivate)
 
-(define/user (win-add!)
+(define/user (win-add)
   "Add the selected row"
   (widget-add (widget-focus view-widget)))
+(user-synonym win-add! win-add)
 
-(define/user (win-remove!)
+(define/user (win-remove)
   "Remove the selected row"
   (widget-remove (widget-focus view-widget)))
+(user-synonym win-remove! win-remove)
 
-(define/user (win-clear!)
+(define/user (win-clear)
   "Clear the current window"
   (widget-clear (widget-focus view-widget)))
+(user-synonym win-clear! win-clear)
 
-(define/user (win-move-tracks! #!optional (before #f))
+(define/user (win-move-tracks #!optional (before #f))
   "Move the marked tracks to the cursor"
   (widget-paste (widget-focus view-widget) before))
+(user-synonym win-move-tracks! win-move-tracks)
 
 (: enter-search-mode thunk)
 (define/user (enter-search-mode #!optional (text "") (cursor-pos 0))
@@ -632,48 +695,57 @@
     text
     cursor-pos))
 
-(define+user (win-search! query)
+(define+user (win-search query)
   "Search the current window"
   (current-search-query query)
   (widget-search (widget-focus view-widget)
                  (current-search-query)
                  #f))
+(user-synonym win-search! win-search)
 
-(define+user (win-search-next!)
+(define+user (win-search-next)
   "Move the cursor to the next search result"
   (widget-search (widget-focus view-widget)
                  (current-search-query)
                  #f))
+(user-synonym win-search-next! win-search-next)
 
-(define+user (win-search-prev!)
+(define+user (win-search-prev)
   "Move the cursor to the previous search result"
   (widget-search (widget-focus view-widget)
                  (current-search-query)
                  #t))
+(user-synonym win-search-prev! win-search-prev)
 
-(define/user (win-edit!)
+(define/user (win-edit)
   "Edit the selected row"
   (widget-edit (widget-focus view-widget)))
+(user-synonym win-edit! win-edit)
 
-(define/user (win-mark!)
+(define/user (win-mark)
   "Mark the selected row"
   (widget-mark (widget-focus view-widget)))
+(user-synonym win-mark! win-mark)
 
-(define/user (win-unmark!)
+(define/user (win-unmark)
   "Unmark the selected row"
   (widget-unmark (widget-focus view-widget)))
+(user-synonym win-unmark! win-unmark)
 
-(define/user (win-toggle-mark!)
+(define/user (win-toggle-mark)
   "Toggle the marked status of the selected row"
   (widget-toggle-mark (widget-focus view-widget)))
+(user-synonym win-toggle-mark! win-toggle-mark)
 
-(define/user win-clear-marked!
+(define/user (win-clear-marked)
   "Unmark all marked rows"
   (widget-clear-marked (widget-focus view-widget)))
+(user-synonym win-clear-marked! win-clear-marked)
 
-(define/user write-config!
+(define/user write-config
   "Write the current configuration settings to a file"
   (return-void write-config!))
+(user-synonym write-config! write-config)
 
 (define/user xfade
   "Get the value of the xfade setting"

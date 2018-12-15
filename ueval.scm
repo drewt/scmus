@@ -27,6 +27,7 @@
                      user-load
                      user-macro-set!
                      user-value-ref
+                     *user-value-ref
                      user-value-set!)
   (import ports srfi-69)
   (import sandbox)
@@ -52,6 +53,10 @@
   (: user-value-ref (symbol -> *))
   (define (user-value-ref name)
     (car (hash-table-ref *user-api* name)))
+
+  (: *user-value-ref (symbol -> *))
+  (define (*user-value-ref name)
+    (safe-environment-ref *user-env* name))
 
   (: user-doc-ref (symbol -> string))
   (define (user-doc-ref name)
