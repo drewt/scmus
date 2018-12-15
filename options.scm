@@ -17,7 +17,11 @@
 
 (declare (export get-format))
 
-(import scmus.base scmus.event scmus.format scmus.option)
+(import scmus.base
+        scmus.event
+        scmus.format
+        scmus.option
+        scmus.tui)
 
 ;; {{{ Miscellaneous
 (: boolean-set! option-setter)
@@ -45,11 +49,17 @@
              (positive? value))
     (option-value-set! option value)))
 
+(: enable-mouse-set! option-setter)
+(define (enable-mouse-set! option value)
+  (enable-mouse value)
+  (option-value-set! option (if value #t #f)))
+
 (register-option! 'mpd-address "localhost" mpd-address-set!)
 (register-option! 'mpd-port 6600 mpd-port-set!)
 (register-option! 'mpd-password #f mpd-password-set!)
 (register-option! 'status-update-interval 1.5 update-interval-set!)
 (register-option! 'eval-mode-print #f boolean-set!)
+(register-option! 'enable-mouse #t enable-mouse-set!)
 ;; }}} Miscellaneous
 ;; {{{ Colors
 (: color-symbol? predicate)

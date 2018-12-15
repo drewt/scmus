@@ -25,7 +25,7 @@
             scmus.tui.split-pane
             scmus.tui.widget)
 
-  (define (init-ui root-widget)
+  (define (init-ui root-widget #!key (enable-mouse? #t))
     (initscr)
     (cbreak)
     (keypad (stdscr) #t)
@@ -34,7 +34,8 @@
     (when (has_colors)
       (start_color)
       (use_default_colors))
-    (mousemask ALL_MOUSE_EVENTS))
+    (when enable-mouse?
+      (mousemask ALL_MOUSE_EVENTS)))
 
   (define (draw-ui root-widget)
     (print-widget! root-widget 0 0 (COLS) (LINES)))

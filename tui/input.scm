@@ -261,5 +261,8 @@
         (handle-input (get-widget-at widget (mouse-event-x mev) (mouse-event-y mev)) input mev))
       (handle-input (or *focus-override* (widget-focus widget)) input #f)))
 
+  (define (enable-mouse enable?)
+    (mousemask (if enable? ALL_MOUSE_EVENTS 0)))
+
   (define (mouse-input? mev input-type)
     (not (zero? (bitwise-and (mouse-event-bstate mev) input-type)))))
