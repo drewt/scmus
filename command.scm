@@ -62,25 +62,28 @@
                        run-command)
   (import ports
           srfi-69
+          drewt.trie
           scmus.base
           scmus.command-line
           scmus.error
           scmus.ueval
           scmus.event)
 
-  (define *commands* (make-hash-table test: string=?
-                                      hash: string-hash))
+  (define *commands* (empty-trie))
 
   (define (command-name name)
     (if (symbol? name)
       (string-downcase (symbol->string name))
       name))
 
+  (define (get-command name)
+    (trie-ref *commands* (string->list name)))
+
   (define (command-exists? name)
-    (hash-table-exists? *commands* (command-name name)))
+    (if (get-command name) #t #f))
 
   (define (register-command! name handler)
-    (hash-table-set! *commands* (command-name name) handler))
+    (trie-set! *commands* (string->list (command-name name)) handler))
 
   (define-syntax define-command
     (syntax-rules ()
@@ -193,7 +196,7 @@
         (user-eval `(set! ,(string->symbol (substring/shared (car cmd) 0 i))
                           ,(substring/shared (car cmd) (+ i 1))))
         ; regular command invocation
-        (let ((fun (hash-table-ref/default *commands* (car cmd) #f)))
+        (let ((fun (get-command (car cmd))))
          (if fun
            (apply fun (cdr cmd))
            ; TODO: raise an exception

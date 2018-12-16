@@ -41,7 +41,7 @@ units    = bindings-view browser-view commands library-view options options-view
 tui_mods = $(addprefix tui/,display frame input misc split-pane widget)
 imodules = base client command command-line config ueval event format keys log option \
 	   error status track tui $(tui_mods) widgets
-omodules = getopt iter mpd-client ncurses
+omodules = getopt iter mpd-client ncurses trie
 modules  = $(imodules) $(omodules)
 types    = $(foreach unit,$(units) $(modules),$(addsuffix .types,$(unit)))
 target   = scmus@EXEEXT@
@@ -65,7 +65,7 @@ bindings-view_deps  = base event keys ncurses error tui widgets
 browser-view_deps   = base client event ncurses track tui widgets
 client_deps         = base event mpd-client option error status track
 command-line_deps   = base event iter ncurses tui
-command_deps        = base command-line error ueval event
+command_deps        = base command-line error ueval event trie
 commands_deps       = base client command command-line ueval keys status tui widgets
 error_deps          = base command-line event log
 ueval_deps          = base event option error
