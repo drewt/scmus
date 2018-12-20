@@ -22,7 +22,14 @@
         scmus.client
         scmus.config
         scmus.log
+        scmus.tui
         scmus.ueval)
+
+(current-output-port *console-output-port*)
+(current-error-port  *console-error-port*)
+
+;; the exit routine; initially (exit), becomes a continuation
+(define scmus-exit exit)
 
 (define *error* #f)
 
@@ -44,7 +51,7 @@
                store-one)
         (mkopt 'port '("-p" "--port") '("PORT")
                "port number of the MPD server"
-               store-number port-valid?)
+               store-number (lambda (p) and (integer? p) (< p 65536)))
         (mkopt 'unix '("-u" "--unix") '("PATH")
                "path to UNIX domain socket"
                store-one)

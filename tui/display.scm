@@ -18,6 +18,7 @@
 (module scmus.tui.display *
   (import coops
           drewt.ncurses
+          drewt.ustring
           scmus.base)
 
   (define current-cursed (make-parameter 1))
@@ -211,6 +212,6 @@
   (: print-line! (string fixnum fixnum fixnum -> undefined))
   (define (print-line! str col line nr-cols #!optional (fill #\space))
     (move line col)
-    (let ((written (format-addstr! (string-truncate str nr-cols))))
+    (let ((written (format-addstr! (ustring-truncate str nr-cols))))
       (when (< written nr-cols)
         (safe-addstr (make-string (- nr-cols written) fill))))))

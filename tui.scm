@@ -16,7 +16,13 @@
 ;;
 
 (module scmus.tui *
-  (import drewt.ncurses
+  (import (only ports
+                make-output-port)
+          (only posix
+                file-write
+                fileno/stdout
+                fileno/stderr)
+          drewt.ncurses
           scmus.base)
   (reexport scmus.tui.display
             scmus.tui.frame
@@ -24,6 +30,33 @@
             scmus.tui.misc
             scmus.tui.split-pane
             scmus.tui.widget)
+
+  (define ui-initialized? (make-parameter #f))
+
+  (define (call-without-curses thunk)
+    (if (and (ui-initialized?) (not (isendwin)))
+      (begin (endwin)
+             (let ((r (thunk)))
+               (refresh)
+               r))
+      (thunk)))
+
+  (define-syntax without-curses
+    (syntax-rules ()
+      ((without-curses first rest ...)
+        (call-without-curses (lambda () first rest ...)))))
+
+  (define *console-output-port*
+    (make-output-port
+      (lambda (str)
+        (without-curses (file-write fileno/stdout str)))
+      void))
+
+  (define *console-error-port*
+    (make-output-port
+      (lambda (str)
+        (without-curses (file-write fileno/stderr str)))
+      void))
 
   (define (init-ui root-widget #!key (enable-mouse? #t))
     (initscr)
@@ -35,7 +68,8 @@
       (start_color)
       (use_default_colors))
     (when enable-mouse?
-      (mousemask ALL_MOUSE_EVENTS)))
+      (mousemask ALL_MOUSE_EVENTS))
+    (ui-initialized? #t))
 
   (define (draw-ui root-widget)
     (print-widget! root-widget 0 0 (COLS) (LINES)))

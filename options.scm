@@ -35,7 +35,9 @@
 
 (: mpd-port-set! option-setter)
 (define (mpd-port-set! option value)
-  (when (or (not value) (port-valid? value))
+  (when (or (not value)
+            (and (integer? value)
+                 (< value 65536)))
     (option-value-set! option value)))
 
 (: mpd-password-set! option-setter)

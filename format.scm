@@ -23,11 +23,40 @@
 (module scmus.format (scmus-format
                       process-format
                       format-string-valid?)
-  (import scmus.base
+  (import drewt.ncurses
+          drewt.ustring
+          scmus.base
           scmus.error
           scmus.ueval
           scmus.status
           scmus.track)
+
+  (: *->color-code (* -> fixnum))
+  (define (*->color-code x)
+    (cond
+      ((string? x) (or (*->color-code (string->number x))
+                       (*->color-code (string->symbol x))))
+      ((and (integer? x) (>= x -1) (< x 256)) x)
+      (else (case x
+              ((reset !)       -2)
+              ((default)       -1)
+              ((black)         COLOR_BLACK)
+              ((red)           COLOR_RED)
+              ((green)         COLOR_GREEN)
+              ((yellow)        COLOR_YELLOW)
+              ((blue)          COLOR_BLUE)
+              ((magenta)       COLOR_MAGENTA)
+              ((cyan)          COLOR_CYAN)
+              ((white)         COLOR_WHITE)
+              ((dark-gray)     8)
+              ((light-red)     9)
+              ((light-green)   10)
+              ((light-yellow)  11)
+              ((light-blue)    12)
+              ((light-magenta) 13)
+              ((light-cyan)    14)
+              ((gray)          15)
+              (else            #f)))))
 
   (: scmus-state-character (symbol -> string))
   (define (scmus-state->character state)

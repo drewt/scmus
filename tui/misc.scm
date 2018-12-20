@@ -102,7 +102,7 @@
       text))
 
   (define-method ((setter text-text) (text <text>) str)
-    (let ((lines (string-split-lines str)))
+    (let ((lines (string-split str "\n")))
       (set! (slot-value text 'text) lines)
       (set! (slot-value text 'w)    (fold max 0 (map string-length lines)))
       (set! (slot-value text 'h)    (length lines)))

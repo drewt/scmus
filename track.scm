@@ -89,10 +89,10 @@
 
   (: track-match (track string -> boolean))
   (define (track-match track query)
-    (if (or (substring-match (track-title track) query)
-            (substring-match (track-album track) query)
-            (substring-match (track-artist track) query)
-            (substring-match (track-albumartist track) query))
+    (if (or (string-contains-ci (track-title track) query)
+            (string-contains-ci (track-album track) query)
+            (string-contains-ci (track-artist track) query)
+            (string-contains-ci (track-albumartist track) query))
       #t
       #f))
 

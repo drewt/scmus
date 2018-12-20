@@ -47,7 +47,7 @@
                 (log-entry-short-message entry))
     (when (log-entry-long-message entry)
       (for-each (lambda (line) (format out "    ~a~n" line))
-                (string-split-lines (log-entry-long-message entry)))))
+                (string-split (log-entry-long-message entry) "\n"))))
 
   ;; Base logger class.  Keeps N entries in an in-memory log.
   (define-class <logger> ()
@@ -62,6 +62,9 @@
 
   (define (make-logger logger-class size)
     (make logger-class 'size size))
+
+  (define (list-truncate in-lst n)
+    (car (chop in-lst n)))
 
   ;; Read N entries of type TYPE from the logger.
   ;; If TYPE is not provided, entries of all types are returned.

@@ -137,7 +137,7 @@
 (define (make-error-rows)
   (map (lambda (line)
          (make-text line 'cursed CURSED-WIN))
-       (string-split-lines (scmus-error))))
+       (string-split (scmus-error) "\n")))
 
 (define *error-text* (make-text "" 'cursed CURSED-WIN))
 

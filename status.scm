@@ -55,8 +55,9 @@
                       scmus-songs
                       scmus-db-playtime
                       scmus-db-update)
-  (import drewt.mpd-client)
-  (import scmus.base scmus.track)
+  (import drewt.mpd-client
+          scmus.base
+          scmus.track)
 
   (define-syntax define/getter-setter
     (syntax-rules ()

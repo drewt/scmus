@@ -459,12 +459,12 @@
     (let ((data (window-row-data row)))
       (case (window-row-type row)
         ((directory playlist artist album)
-          (substring-match (cdar data) query))
+          (string-contains-ci (cdar data) query))
         ((file)
           (track-match data query))
         ((metadata)
-          (or (substring-match (format "~a" (cdar data)) query)
-              (substring-match (format "~a" (cdadr data)) query)))
+          (or (string-contains-ci (format "~a" (cdar data)) query)
+              (string-contains-ci (format "~a" (cdadr data)) query)))
         (else #f))))
 
   ;; <window-row> }}}
