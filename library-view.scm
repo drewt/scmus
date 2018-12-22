@@ -105,7 +105,6 @@
 (define (make-library-window data)
   (make <library-window>
         'data       data
-        'format     library-format
         'cursed     CURSED-WIN
         'cursed-fn  (win-cursed-fn)))
 

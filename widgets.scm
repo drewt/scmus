@@ -163,9 +163,7 @@
      (h-border   initform: 1
                  accessor: window-h-border)
      (cursed-fn  initform: (lambda (w r l) #f)
-                 reader:   *window-cursed)
-     (format     initform: #f
-                 reader:   window-format)))
+                 reader:   *window-cursed)))
 
   (define-method (initialize-instance (window <window>))
     (call-next-method)
@@ -174,11 +172,7 @@
       ((vector? (*window-data window)) (void))
       ((list? (*window-data window))
         (set! (slot-value window 'data) (list->vector (*window-data window))))
-      (else (assert #f "initialize-instance" window)))
-    ; allow giving a format string directly instead of a procedure
-    (let ((format (window-format window)))
-      (if (and format (not (procedure? format)))
-        (set! (slot-value window 'format) (lambda (tag) format)))))
+      (else (assert #f "initialize-instance" window))))
 
   (define-method (window-data (window <window>))
     (vector->list (slot-value window 'data)))
@@ -219,9 +213,6 @@
               (+ top-pos
                  (- (widget-rows window) rows)))))
     (call-next-method))
-
-  (define (make-window . args)
-    (apply make <window> args))
 
   (define-method (window-empty? (window <window>))
     (zero? (window-length window)))

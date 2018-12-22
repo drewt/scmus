@@ -126,9 +126,9 @@
        (current-status)))
 
 (define *status-window*
-  (make-window 'data (make-status-rows)
-               'cursed CURSED-WIN
-               'cursed-fn (win-cursed-fn)))
+  (make <window> 'data (make-status-rows)
+                 'cursed CURSED-WIN
+                 'cursed-fn (win-cursed-fn)))
 
 (define-view status
   (make-frame 'body   *status-window*

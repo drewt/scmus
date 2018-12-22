@@ -56,7 +56,6 @@
 (define *options-window*
   (make <options-window>
         'data       (make-options-data)
-        'format     *key-value-format*
         'cursed     CURSED-WIN
         'cursed-fn (win-cursed-fn)))
 
