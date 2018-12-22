@@ -52,7 +52,7 @@
                  flag-map))))))
 
 (define (invalid-argument-error nr msg #!optional location)
-  (abort (make-composite-condition
+  (raise (make-composite-condition
            (make-property-condition 'invalid-argument
                                     'argno nr
                                     'message msg)

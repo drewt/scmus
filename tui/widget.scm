@@ -24,7 +24,7 @@
     (syntax-rules ()
       ((define-abstract-method (name . args))
         (define-method (name . args)
-          (abort
+          (raise
             (make-composite-condition
               (make-property-condition 'exn
                 'message "Abstract method not implemented by subclass"

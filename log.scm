@@ -26,7 +26,8 @@
          logger-read
          logger-write!
          make-logger)
-  (import coops
+  (import (only data-structures chop)
+          coops
           coops-utils
           scmus.base)
 

@@ -81,7 +81,7 @@
 ;; macros {{{
 
 (define (user-syntax-error name arg-list)
-  (abort (make-composite-condition
+  (raise (make-composite-condition
            (make-property-condition 'exn
                                     'message (format "Syntax error: in expansion of ~a" name)
                                     'arguments (cons name arg-list)
@@ -412,7 +412,7 @@
   "Generate formatted text"
   (if (format-string-valid? fmt)
     (scmus-format (process-format fmt) len track)
-    (abort
+    (raise
       (make-composite-condition
         (make-property-condition 'exn 'message "invalid format string"
                                  'arguments fmt)

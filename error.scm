@@ -16,7 +16,8 @@
 ;;
 
 (module scmus.error (scmus-error)
-  (import scmus.base
+  (import (only extras pretty-print)
+          scmus.base
           scmus.command-line
           scmus.event
           scmus.log)

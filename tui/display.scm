@@ -174,7 +174,7 @@
                            (let-values (((y x) (getyx (stdscr))))
                              (unless (and (= y (- (LINES) 1))
                                           (= x (- (COLS) 1)))
-                               (abort exn)))
+                               (raise exn)))
           first rest ...))))
 
   (define (clear-screen x y cols rows)

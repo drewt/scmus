@@ -18,19 +18,70 @@
 (module scmus.base *
   (reexport
     (except scheme
-      string-length string-ref string-set! make-string string substring
-      string->list list->string string-fill! write-char read-char display)
-    (except chicken
-      reverse-list->string print print*)
-    (except data-structures
-      conc string-chop string-split string-translate
-      substring=? substring-ci=? substring-index substring-index-ci)
-    (except extras
-      read-string write-string read-token)
+            ; XXX: provided by utf8 egg
+            string-length
+            string-ref
+            string-set!
+            make-string
+            string
+            substring
+            string->list
+            list->string
+            string-fill!
+            write-char
+            read-char
+            display)
+    (only chicken
+          ; chicken-specific functions
+          :
+          assert
+          bitwise-ior
+          bitwise-and
+          condition->list
+          condition-case
+          define-constant
+          define-type
+          get-condition-property
+          getter-with-setter
+          nth-value
+          rec
+          setter
+          void
+
+          ; SRFI-12
+          condition-predicate
+          condition-property-accessor
+          handle-exceptions
+          make-property-condition
+          make-composite-condition
+
+          ; R7RS
+          current-error-port
+          define-record-type
+          get-output-string
+          let-values
+          make-parameter
+          open-input-string
+          open-output-string
+          when
+          unless)
+    (only data-structures
+          alist-ref
+          alist-update
+          alist-update!
+          sort
+          sort!)
+    (only extras
+          format)
     srfi-1
     utf8
     (except utf8-srfi-13 string-contains-ci)
     utf8-srfi-14)
+
+  (import (only chicken abort))
+
+  ; Use the R7RS name
+  (define raise abort)
 
   ;; XXX: utf8-srfi-13#string-contains-ci isn't case-insensitive...
   (define (string-contains-ci str sub)
