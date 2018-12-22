@@ -23,6 +23,7 @@
         scmus.event
         scmus.track
         scmus.tui
+        scmus.view
         scmus.widgets)
 
 (define *browser-location* (list "/"))

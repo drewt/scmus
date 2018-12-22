@@ -25,6 +25,7 @@
         scmus.format
         scmus.track 
         scmus.tui
+        scmus.view
         scmus.widgets)
 
 (: library-format (symbol -> format-spec))

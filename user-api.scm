@@ -31,6 +31,7 @@
         scmus.status
         scmus.track
         scmus.tui
+        scmus.view
         scmus.widgets)
 
 ;; Export an identifier unchanged (for SRFIs).

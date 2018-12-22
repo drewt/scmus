@@ -44,11 +44,6 @@
                                (slot initform . accessors) ...
                                (initialize (instance) (void))))))
 
-(define-syntax define-view
-  (syntax-rules ()
-    ((define-view name first rest ...)
-       (register-view! (quote name) (lambda () first rest ...)))))
-
 (define-type format-spec list)
 (define-type predicate (* -> boolean))
 (define-type thunk (-> undefined))

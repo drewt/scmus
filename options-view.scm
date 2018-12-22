@@ -21,6 +21,7 @@
         scmus.event
         scmus.option
         scmus.tui
+        scmus.view
         scmus.widgets)
 
 ;; TODO: mark only changed option as damaged

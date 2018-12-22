@@ -37,10 +37,10 @@ objfiles = $(foreach f,$(1),$(addsuffix .@OBJEXT@,$(f)))
 eggs = coops coops-utils matchable regex sandbox unix-sockets utf8 vector-lib
 
 units    = bindings-view browser-view commands library-view options options-view queue-view \
-	   search-view ui-curses user-api view
+	   search-view ui-curses user-api
 tui_mods = $(addprefix tui/,display frame input misc split-pane widget)
 imodules = base client command command-line config ueval event format keys log option \
-	   error status track tui $(tui_mods) widgets
+	   error status track tui $(tui_mods) view widgets
 omodules = getopt iter mpd-client ncurses trie ustring
 modules  = $(imodules) $(omodules)
 types    = $(foreach unit,$(units) $(modules),$(addsuffix .types,$(unit)))
@@ -61,8 +61,8 @@ all: $(target)
 # BUILD dependencies
 main_deps           = base client config ueval getopt log
 base_deps           = config ncurses
-bindings-view_deps  = base event keys ncurses error tui widgets
-browser-view_deps   = base client event ncurses track tui widgets
+bindings-view_deps  = base event keys ncurses error tui view widgets
+browser-view_deps   = base client event ncurses track tui view widgets
 client_deps         = base event mpd-client option error status track
 command-line_deps   = base event iter ncurses tui
 command_deps        = base command-line error ueval event trie
@@ -72,19 +72,19 @@ ueval_deps          = base event option error
 event_deps          = base
 format_deps         = base ueval error ncurses status track ustring
 keys_deps           = base ueval event ncurses
-library-view_deps   = base client event format ncurses track tui widgets
+library-view_deps   = base client event format ncurses track tui view widgets
 log_deps            = base
 option_deps         = base event
 options_deps        = base event format option tui
-options-view_deps   = base event ncurses option error tui widgets
-queue-view_deps     = base client event status track tui widgets
-search-view_deps    = base client format ncurses track tui widgets
+options-view_deps   = base event ncurses option error tui view widgets
+queue-view_deps     = base client event status track tui view widgets
+search-view_deps    = base client format ncurses track tui view widgets
 status_deps         = base mpd-client track
 track_deps          = base
-ui-curses_deps      = base client command-line event format keys \
-                      ncurses option error status tui widgets
-user-api_deps       = base client command command-line config ueval event format \
-                      keys ncurses option status track tui widgets
+ui-curses_deps      = base client command-line event format keys ncurses option error status tui \
+                      view widgets
+user-api_deps       = base client command command-line config ueval event format keys ncurses \
+                      option status track tui view widgets
 ustring_deps        = base
 view_deps           = base tui keys widgets
 widgets_deps        = base format ncurses track tui
@@ -98,16 +98,16 @@ tui/widget_deps     = base tui/display
 
 # LOAD dependencies
 main_uses           = commands options ui-curses user-api
-bindings-view_uses  = options view
-browser-view_uses   = options track view
-commands_uses       = view
-library-view_uses   = options view
-options-view_uses   = view
-queue-view_uses     = options view
-search-view_uses    = options view
+bindings-view_uses  = options
+browser-view_uses   = options track
+commands_uses       =
+library-view_uses   = options
+options-view_uses   =
+queue-view_uses     = options
+search-view_uses    = options
 ui-curses_uses      = bindings-view browser-view library-view options options-view \
-                      queue-view search-view view
-user-api_uses       = ui-curses view
+                      queue-view search-view
+user-api_uses       = ui-curses
 
 # Add $($(file)_deps) as dependencies on $(file)
 $(foreach f,$(units) $(modules) main,$(eval $(f).@OBJEXT@: $(call objfiles,$($(f)_deps))))

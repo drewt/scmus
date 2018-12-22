@@ -32,6 +32,7 @@
         scmus.option
         scmus.status
         scmus.tui
+        scmus.view
         scmus.widgets)
 
 (define current-line (make-format-text (get-format 'format-current)

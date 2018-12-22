@@ -23,6 +23,7 @@
         scmus.status
         scmus.track
         scmus.tui
+        scmus.view
         scmus.widgets)
 
 (define queue-cursed
