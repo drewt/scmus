@@ -22,7 +22,8 @@
                             command-line-text
                             command-line-text-set!
                             command-line-cursor-pos-set!
-                            command-line-get-string)
+                            command-line-get-string
+                            make-command-line-mode)
   (import coops
           drewt.iter
           drewt.ncurses
@@ -30,44 +31,46 @@
           scmus.event
           scmus.tui)
 
-  (define *command-line-mode* 'normal)
+  (define current-command-line-mode (make-parameter #f))
+
+  (define-record-type command-line-mode
+    (%make-command-line-mode prefix callback history)
+    command-line-mode?
+    (prefix   command-line-mode-prefix)
+    (callback command-line-mode-callback)
+    (history  command-line-mode-history
+              command-line-mode-history-set!))
+
+  (define (make-command-line-mode prefix callback)
+    (%make-command-line-mode prefix callback (iter)))
 
   ;; history {{{
 
   (define history
-    (let ((histories '()))
-      (getter-with-setter
-        (lambda ()
-          (let ((this-history (alist-ref *command-line-mode* histories)))
-            (if this-history
-              this-history
-              (let ((this-history (iter)))
-                (set! histories (alist-update! *command-line-mode* this-history histories))
-                this-history))))
-        (lambda (x)
-          (set! histories (alist-update! *command-line-mode* x histories))))))
+    (getter-with-setter
+      (lambda ()
+        (assert (current-command-line-mode) "history")
+        (command-line-mode-history (current-command-line-mode)))
+      (lambda (x)
+        (assert (current-command-line-mode) "(setter history")
+        (command-line-mode-history-set! (current-command-line-mode) x))))
 
-  (: history-next! (-> undefined))
   (define (history-next!)
     (set! (history) (iter-next (history))))
 
-  (: history-prev! (-> undefined))
   (define (history-prev!)
     (set! (history) (iter-prev (history))))
 
-  (: history-add! (* -> undefined))
   (define (history-add! elm)
     (unless (string=? elm "")
       (iter-add-head! (history) elm)))
 
-  (: history-data (-> *))
   (define (history-data)
     (let ((iter (history)))
       (if (iter-head? iter)
         ""
         (iter-data iter))))
 
-  (: history-reset! (-> undefined))
   (define (history-reset!)
     (set! (history) (iter-head (history))))
 
@@ -97,7 +100,7 @@
       'on-begin (lambda (w)
                   (set! (widget-cursed w) CURSED-CMDLINE))
       'on-leave (lambda (w)
-                  (set! *command-line-mode* 'normal)
+                  (current-command-line-mode #f)
                   (set! (text-input-prefix w) " ")
                   (set! (text-input-on-commit w) (lambda (w) #f))
                   (set! (text-input-on-cancel w) (lambda (w) #f)))))
@@ -124,19 +127,16 @@
   (define (command-line-cursor-pos-set! n)
     (text-input-set-cursor-pos! command-line-widget n))
 
-  (define (command-line-get-string mode then #!optional (text "") (cursor-pos 0))
+  (define (command-line-get-string mode #!optional (text "") (cursor-pos 0))
+    (current-command-line-mode mode)
     (set! (text-input-prefix command-line-widget)
-      (case mode
-        ((command) ":")
-        ((eval)    "$")
-        ((search)  "/")))
-    (set! *command-line-mode* mode)
+      (command-line-mode-prefix mode))
     (set! (text-input-on-commit command-line-widget)
       (lambda (w)
         (let ((text (text-input-get-text w)))
           (text-input-set-text! w "")
           (history-add! text)
-          (then text))))
+          ((command-line-mode-callback mode) text))))
     (set! (text-input-on-cancel command-line-widget)
       (lambda (w)
         (set! (text-input-prefix w) " ")

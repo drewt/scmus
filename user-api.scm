@@ -193,26 +193,39 @@
   arg)
 (user-synonym echo! echo)
 
-(define+user (enter-eval-mode #!optional (text "") (cursor-pos 0))
-  "Set the input mode to eval-mode"
-  (command-line-get-string 'eval
+(define eval-mode
+  (make-command-line-mode "$"
     (lambda (s)
       (when s
         (let ((r (user-eval-string s)))
           (if (and (not (condition? r))
                    (not (eqv? r (void)))
                    (get-option 'eval-mode-print))
-            (command-line-print-info! (format "~s" r))))))
-    text
-    cursor-pos))
+            (command-line-print-info! (format "~s" r))))))))
+
+(define command-mode
+  (make-command-line-mode ":"
+    (lambda (s)
+      (when s (run-command s)))))
+
+(define search-mode
+  (make-command-line-mode "/"
+    (lambda (s)
+      (when s
+        (current-search-query s)
+        (widget-search (widget-focus view-widget) s #f)))))
+
+(define+user (enter-eval-mode #!optional (text "") (cursor-pos 0))
+  "Set the input mode to eval-mode"
+  (command-line-get-string eval-mode text cursor-pos))
 
 (define/user (enter-command-mode #!optional (text "") (cursor-pos 0))
   "Set the input mode to command-mode"
-  (command-line-get-string 'command
-    (lambda (s)
-      (when s (run-command s)))
-    text
-    cursor-pos))
+  (command-line-get-string command-mode text cursor-pos))
+
+(define/user (enter-search-mode #!optional (text "") (cursor-pos 0))
+  "Set the input mode to search-mode"
+  (command-line-get-string search-mode text cursor-pos))
 
 (define/user (exit)
   "Exit the program"
@@ -684,17 +697,6 @@
   "Move the marked tracks to the cursor"
   (widget-paste (widget-focus view-widget) before))
 (user-synonym win-move-tracks! win-move-tracks)
-
-(: enter-search-mode thunk)
-(define/user (enter-search-mode #!optional (text "") (cursor-pos 0))
-  "Set the input mode to search-mode"
-  (command-line-get-string 'search
-    (lambda (s)
-      (when s
-        (current-search-query s)
-        (widget-search (widget-focus view-widget) s #f)))
-    text
-    cursor-pos))
 
 (define+user (win-search query)
   "Search the current window"
