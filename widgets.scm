@@ -430,6 +430,22 @@
             (window-select! window row)))))
     (call-next-method))
 
+;; Generates a function to call cursed-set! with the appropriate value given
+;; a window, row, and line number.
+(: win-cursed-fn (#!optional (* -> boolean) -> (window * fixnum -> fixnum)))
+(define (win-cursed-fn #!optional current?)
+  (lambda (window row line-nr)
+    (let* ((current (if current? (current? row) #f))
+           (row-pos (+ (window-top-pos window) (- line-nr 1)))
+           (selected (= row-pos (window-sel-pos window)))
+           (marked (member row-pos (window-marked window))))
+      (cond
+        ((and current selected) CURSED-WIN-CUR-SEL)
+        (current                CURSED-WIN-CUR)
+        (selected               CURSED-WIN-SEL)
+        (marked                 CURSED-WIN-MARKED)
+        (else                   CURSED-WIN)))))
+
   ;; <window> }}}
   ;; <window-row> {{{
 

@@ -37,7 +37,7 @@ objfiles = $(foreach f,$(1),$(addsuffix .@OBJEXT@,$(f)))
 eggs = coops coops-utils matchable regex sandbox unix-sockets utf8 vector-lib
 
 units    = bindings-view browser-view commands library-view options options-view queue-view \
-	   search-view ui-curses ui-lib user-api view
+	   search-view ui-curses user-api view
 tui_mods = $(addprefix tui/,display frame input misc split-pane widget)
 imodules = base client command command-line config ueval event format keys log option \
 	   error status track tui $(tui_mods) widgets
@@ -83,7 +83,6 @@ status_deps         = base mpd-client track
 track_deps          = base
 ui-curses_deps      = base client command-line event format keys \
                       ncurses option error status tui widgets
-ui-lib_deps         = base format ncurses option tui widgets
 user-api_deps       = base client command command-line config ueval event format \
                       keys ncurses option status track tui widgets
 ustring_deps        = base
@@ -99,17 +98,16 @@ tui/widget_deps     = base tui/display
 
 # LOAD dependencies
 main_uses           = commands options ui-curses user-api
-bindings-view_uses  = options ui-lib view
-browser-view_uses   = options track ui-lib view
+bindings-view_uses  = options view
+browser-view_uses   = options track view
 commands_uses       = view
-library-view_uses   = options ui-lib view
-options-view_uses   = ui-lib view
-queue-view_uses     = options ui-lib view
-search-view_uses    = options ui-lib view
+library-view_uses   = options view
+options-view_uses   = view
+queue-view_uses     = options view
+search-view_uses    = options view
 ui-curses_uses      = bindings-view browser-view library-view options options-view \
-                      queue-view search-view ui-lib view
+                      queue-view search-view view
 user-api_uses       = ui-curses view
-view_uses           = ui-lib
 
 # Add $($(file)_deps) as dependencies on $(file)
 $(foreach f,$(units) $(modules) main,$(eval $(f).@OBJEXT@: $(call objfiles,$($(f)_deps))))

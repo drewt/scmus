@@ -117,6 +117,8 @@
   (handle-exceptions exn (void)
     (endwin)))
 
+(define *key-value-format* (process-format "~-50%{key} ~{value}"))
+
 (define (make-status-rows)
   (map (lambda (pair)
          (make-window-row `((key   . ,(car pair))
