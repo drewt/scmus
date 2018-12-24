@@ -2,6 +2,7 @@
 .PHONY: clean distclean run
 
 # variables {{{
+# directories...
 prefix = @prefix@
 exec_prefix = @exec_prefix@
 datarootdir = @datarootdir@
@@ -20,27 +21,33 @@ features-@CONFIG_WIDE_CHAR@ += -feature wide-char
 types-cflags-$(typed) = -types all.types
 types-prereq-$(typed) = all.types
 
-CSC       = csc
-TFLAGS    = -uses base -prologue prologue.scm $(features-y) 
-CSCFLAGS  = -scrutinize -C -Wno-int-to-pointer-cast -C -Wno-cpp $(TFLAGS) \
-            -C '-DSCMUS_DIR=\"$(datadir)/scmus\"' \
-            -C '-DVERSION=\"$(VERSION)\"' \
-	    -R coops \
-	    -R coops-utils
-            $(types-cflags-y)
-LD        = csc
-LDFLAGS   =
-INSTALL   = @scripts/install
+# programs+flags...
+CSC          = csc
+TFLAGS       = -uses base -prologue prologue.scm $(features-y)
+CFLAGS       = -fno-var-tracking-assignments
+ALL_CFLAGS   = $(CFLAGS) \
+	       '-DSCMUS_DIR=\"$(datadir)/scmus\"' \
+               '-DVERSION=\"$(VERSION)\"'
+CSCFLAGS     =
+ALL_CSCFLAGS = $(addprefix -C , $(ALL_CFLAGS)) \
+               $(TFLAGS) \
+               -R coops \
+               -R coops-utils
+               $(types-cflags-y)
+LD           = csc
+LDFLAGS      =
+INSTALL      = @scripts/install
 
+# function to add object extension to a list of files
 objfiles = $(foreach f,$(1),$(addsuffix .@OBJEXT@,$(f)))
 
-eggs = coops coops-utils matchable regex sandbox unix-sockets utf8 vector-lib
-
+# files...
+eggs     = coops coops-utils matchable regex sandbox unix-sockets utf8 vector-lib
 units    = bindings-view browser-view commands library-view options options-view queue-view \
-	   search-view ui-curses user-api
+           search-view ui-curses user-api
 tui_mods = $(addprefix tui/,display frame input misc split-pane widget)
 imodules = base client command command-line config ueval event format keys log option \
-	   error status track tui $(tui_mods) view widgets
+           error status track tui $(tui_mods) view widgets
 omodules = getopt iter mpd-client ncurses trie ustring
 modules  = $(imodules) $(omodules)
 types    = $(foreach unit,$(units) $(modules),$(addsuffix .types,$(unit)))
@@ -48,9 +55,10 @@ target   = scmus@EXEEXT@
 
 test-units = test/iter
 
+# files to delete on 'make clean'
 clean = $(call objfiles,$(units) $(modules) $(test-units) main check) \
-	$(addprefix drewt.,$(addsuffix .import.scm,$(subst /,.,$(omodules)))) \
-	$(addprefix scmus.,$(addsuffix .import.scm,$(subst /,.,$(imodules)))) \
+        $(addprefix drewt.,$(addsuffix .import.scm,$(subst /,.,$(omodules)))) \
+        $(addprefix scmus.,$(addsuffix .import.scm,$(subst /,.,$(imodules)))) \
         $(types) $(target) all.types
 
 all: $(target)
@@ -119,10 +127,10 @@ $(call objfiles,$(units) $(modules)): prologue.scm $(types-prereq-y)
 $(call objfiles,$(test-units)): prologue.scm test/test.scm
 
 # Everything except main.scm is a unit with the same name as the source file.
-$(foreach f,$(units) $(modules),$(eval $(f).@OBJEXT@: private CSCFLAGS += -unit $(f)))
+$(foreach f,$(units) $(modules),$(eval $(f).@OBJEXT@: private ALL_CSCFLAGS += -unit $(f)))
 
 # Add load dependencies
-$(foreach f,$(units) $(modules) main,$(eval $(f).@OBJEXT@: private CSCFLAGS += $(foreach d,$($(f)_deps) $($(f)_uses), -uses $(d))))
+$(foreach f,$(units) $(modules) main,$(eval $(f).@OBJEXT@: private ALL_CSCFLAGS += $(foreach d,$($(f)_deps) $($(f)_uses), -uses $(d))))
 
 # dependencies }}}
 # rules {{{
@@ -164,12 +172,13 @@ run: all
 quiet_cmd_man   = MAN     $@
       cmd_man   = ronn --roff $(MANFLAGS) $^
 
+# generate html output from ronn markdown
 quiet_cmd_wman  = HTML    $@
       cmd_wman  = ronn --html $(MANFLAGS) $^
 
 # scheme compile for object files
 quiet_cmd_csc   = CSC     $@
-      cmd_csc   = $(CSC) -c $(CSCFLAGS) -J -o $@ $<
+      cmd_csc   = $(CSC) -c $(ALL_CSCFLAGS) -J -o $@ $<
 
 # generate type file
 quiet_cmd_types = TYPES   $@
