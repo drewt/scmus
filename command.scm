@@ -56,6 +56,7 @@
 ;; expression with the result formatted as if by the DISPLAY function.
 ;;
 (module scmus.command (command-exists?
+                       command-completion
                        define-command
                        load-command-script
                        register-command!
@@ -84,6 +85,12 @@
 
   (define (register-command! name handler)
     (trie-set! *commands* (string->list (command-name name)) handler))
+
+  ;; Return all command names beginning with STR
+  (define (command-completion str)
+    (sort! (map (lambda (x) (list->string (car x)))
+                (trie->alist/prefix *commands* (string->list str)))
+           string<?))
 
   (define-syntax define-command
     (syntax-rules ()

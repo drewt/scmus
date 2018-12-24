@@ -100,7 +100,7 @@
          #t))
     (expr (user-syntax-error 'define-command expr))))
 
-;; macros {{{
+;; macros }}}
 ;; procedures {{{
 
 (define/user (bind keys context expr #!optional (force #f))
@@ -203,10 +203,14 @@
                    (get-option 'eval-mode-print))
             (command-line-print-info! (format "~s" r))))))))
 
+(define command-mode-completion
+  (make-completion-engine char-set:graphic command-completion))
+
 (define command-mode
   (make-command-line-mode ":"
     (lambda (s)
-      (when s (run-command s)))))
+      (when s (run-command s)))
+    command-mode-completion))
 
 (define search-mode
   (make-command-line-mode "/"

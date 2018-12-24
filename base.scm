@@ -60,6 +60,7 @@
           define-record-type
           get-output-string
           let-values
+          let*-values
           make-parameter
           open-input-string
           open-output-string
