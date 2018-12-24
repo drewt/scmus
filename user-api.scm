@@ -204,7 +204,12 @@
             (command-line-print-info! (format "~s" r))))))))
 
 (define command-mode-completion
-  (make-completion-engine char-set:graphic command-completion))
+  (make-completion-engine
+    char-set:graphic
+    (lambda (tokens)
+      (if (= (length tokens) 1)
+        (command-completion (car tokens))
+        '()))))
 
 (define command-mode
   (make-command-line-mode ":"

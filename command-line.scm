@@ -46,9 +46,9 @@
                 command-line-mode-history-set!))
 
   (define-record-type completion-engine
-    (%make-completion-engine token-charset generator context)
+    (%make-completion-engine tokenize generator context)
     completion-engine?
-    (token-charset completion-token-charset)
+    (tokenize      completion-tokenize)
     (generator     completion-generator)
     (context       completion-context
                    completion-context-set!))
@@ -62,8 +62,12 @@
     (prefix      context-prefix)
     (suffix      context-suffix))
 
-  (define (make-completion-engine token-charset generator)
-    (%make-completion-engine token-charset generator #f))
+  (define (make-completion-engine tokenize generator)
+    (%make-completion-engine (if (char-set? tokenize)
+                               (char-set->tokenize tokenize)
+                               tokenize)
+                             generator
+                             #f))
 
   (define *default-completion-engine*
     (make-completion-engine
@@ -79,67 +83,84 @@
     (assert (current-command-line-mode) "completion-engine")
     (command-line-mode-completion (current-command-line-mode)))
 
-  ;; Extract the token at INDEX in TEXT.  CHARSET should be a
-  ;; SRFI-14 character set defining the allowed token characters.
-  (define (%get-token charset text index)
-    (define (token-char? i)
-      (char-set-contains? charset (string-ref text i)))
-    (if (or (string=? text "")
-            (not (token-char? index)))
-      (values #f #f #f #f)
-      (let* ((len   (string-length text))
-             (start (let loop ((index index))
-                      (cond ((zero? index) index)
-                            ((not (token-char? index)) (+ index 1))
-                            (else (loop (- index 1))))))
-             (end   (let loop ((index index))
-                      (if (or (= index len)
-                              (not (token-char? index)))
-                        index
-                        (loop (+ index 1))))))
-        (values (substring/shared text start end)
-                start
-                end
-                text))))
-
-  ;; Extract the selected token from the command line.
-  (define (get-token engine)
-    (let ((text (text-input-get-text command-line-widget))
-          (index (text-input-get-cursor-pos command-line-widget)))
-      ; XXX: if the cursor is at the end of TEXT, then we pretend it's
-      ;      at the last character instead
-      (%get-token (completion-token-charset engine)
-                  text
-                  (if (= index (string-length text))
-                    (- index 1)
-                    index))))
+  ;; Generate a tokenize function from a character set defining the token characters.
+  ;; A tokenize function is a function taking a string and returning a list of pairs:
+  ;;   (START . END)
+  ;; Where,
+  ;;   START is the start index of the token (inclusive)
+  ;;   END   is the end index of the token (exclusive)
+  (define (char-set->tokenize charset)
+    (lambda (str)
+      (let ((len (string-length str)))
+        (let loop ((index 0) (start 0) (tokens '()))
+          (cond
+            ((= index len)
+              ; reached end of string: return tokens
+              (reverse (cons (cons start index) tokens)))
+            ((not (char-set-contains? charset (string-ref str index)))
+              (if (= start index)
+                ; skip consecutive non-token chars
+                (loop (+ index 1) (+ index 1) tokens)
+                ; reached the end of a token: add to result
+                (loop (+ index 1) (+ index 1) (cons (cons start index) tokens))))
+            ; skip consecutive token chars
+            (else (loop (+ index 1) start tokens)))))))
 
   ;; Extract the selected token and generate completions.
   (define (completion-init! engine)
-    (let*-values (((token start end text) (get-token engine))
-                  ((completions) (if token ((completion-generator engine) token) '())))
+    ;; Returns a list of tokens (as strings) in reverse order,
+    ;; with the selected token at the head.
+    (define (process-tokens text tokens index)
+      (let loop ((tokens tokens) (result '()))
+        (cond
+          ((null? tokens)
+            result)
+          ((< index (caar tokens))
+            (cons "" result))
+          ; cursor is on this token: add it at head
+          ((<= index (cdar tokens))
+            (cons (substring/shared text (caar tokens) (cdar tokens))
+                  result))
+          ; cursor is beyond this token: add it at head, then loop
+          (else
+            (loop (cdr tokens)
+                  (cons (substring/shared text (caar tokens) (cdar tokens))
+                        result))))))
+    (let* ((text (text-input-get-text command-line-widget))
+           (index (text-input-get-cursor-pos command-line-widget))
+           (*tokens ((completion-tokenize engine) text))
+           (tokens (process-tokens text *tokens index))
+           (selected (or (find (lambda (x) (and (>= index (car x))
+                                                (<= index (cdr x))))
+                               *tokens)
+                         (cons index index)))
+           (completions ((completion-generator engine) tokens)))
       (if (null? completions)
         #f
         (begin
           (completion-context-set! engine
             (make-completion-context (list->iter completions)
-                                     token
-                                     (substring text 0 start)
-                                     (substring text end)))
+                                     (substring text (car selected) (cdr selected))
+                                     (substring text 0 (car selected))
+                                     (substring text (cdr selected))))
           #t))))
 
   ;; Call FUN on the completions iter for ENGINE, then substitute the completion
   ;; at the cursor.
   (define (completion-mv! engine fun)
     (let* ((context (completion-context engine))
-           (next (fun (context-completions context))))
+           (next (fun (context-completions context)))
+           (token (if (iter-head? next)
+                    (context-token context)
+                    (iter-data next))))
       (context-completions-set! context next)
       (text-input-set-text! command-line-widget
         (string-append (context-prefix context)
-                       (if (iter-head? next)
-                         (context-token context)
-                         (iter-data next))
-                       (context-suffix context)))))
+                       token
+                       (context-suffix context)))
+      (text-input-set-cursor-pos! command-line-widget
+        (+ (string-length (context-prefix context))
+           (string-length token)))))
 
   ;; Substitute the next completion.
   (define (completion-next! #!optional (engine (completion-engine)))
