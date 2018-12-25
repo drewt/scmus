@@ -203,19 +203,13 @@
                    (get-option 'eval-mode-print))
             (command-line-print-info! (format "~s" r))))))))
 
-(define command-mode-completion
-  (make-completion-engine
-    char-set:graphic
-    (lambda (tokens)
-      (if (= (length tokens) 1)
-        (command-completion (car tokens))
-        '()))))
-
 (define command-mode
   (make-command-line-mode ":"
     (lambda (s)
       (when s (run-command s)))
-    command-mode-completion))
+    (make-completion-engine
+      char-set:graphic
+      command-completion)))
 
 (define search-mode
   (make-command-line-mode "/"

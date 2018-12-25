@@ -58,6 +58,7 @@
 (module scmus.command (command-exists?
                        command-completion
                        define-command
+                       define-command/completion
                        load-command-script
                        register-command!
                        run-command)
@@ -70,7 +71,10 @@
           scmus.ueval
           scmus.event)
 
-  (define *commands* (empty-trie))
+  (define *commands* (make-hash-table test: string=?
+                                      hash: string-hash))
+
+  (define *command-completion* (empty-trie))
 
   (define (command-name name)
     (if (symbol? name)
@@ -78,24 +82,59 @@
       name))
 
   (define (get-command name)
-    (trie-ref *commands* (string->list name)))
+    (hash-table-ref/default *commands* name #f))
 
   (define (command-exists? name)
     (if (get-command name) #t #f))
 
-  (define (register-command! name handler)
-    (trie-set! *commands* (string->list (command-name name)) handler))
+  (define (make-arg-completion arg-completions)
+    ;; Convert an arg-completion object to a completion generator function.
+    (define (arg-completion->generator obj)
+      (cond
+        ((procedure? obj) obj)
+        ((list? obj)
+          (let ((comp-trie (empty-trie)))
+            (for-each (lambda (str) (trie-set! comp-trie (string->list str) #t))
+                      obj)
+            (lambda (tokens)
+              (sort! (map (lambda (x) (list->string (car x)))
+                          (trie->alist/prefix comp-trie (string->list (car tokens))))
+                     string<?))))
+        (else (assert #f "make-arg-completion" obj))))
+    (let ((generators (map arg-completion->generator arg-completions)))
+      (lambda (tokens)
+        ; XXX: 2 tokens means 1st argument, at index 0
+        (let ((arg-nr (- (length tokens) 2)))
+          (if (>= arg-nr (length arg-completions))
+            '()
+            ((list-ref generators arg-nr) tokens))))))
+
+  (define (register-command! name handler #!optional (arg-completion '()))
+    (hash-table-set! *commands* (command-name name) handler)
+    (trie-set! *command-completion*
+               (string->list (command-name name))
+               (make-arg-completion arg-completion)))
 
   ;; Return all command names beginning with STR
-  (define (command-completion str)
+  (define (command-name-completion str)
     (sort! (map (lambda (x) (list->string (car x)))
-                (trie->alist/prefix *commands* (string->list str)))
+                (trie->alist/prefix *command-completion* (string->list str)))
            string<?))
+
+  (define (command-completion tokens)
+    (if (and (pair? tokens) (null? (cdr tokens)))
+      (command-name-completion (car tokens))
+      ((trie-ref *command-completion* (string->list (last tokens))) tokens)))
 
   (define-syntax define-command
     (syntax-rules ()
       ((define-command (name . args) first . rest)
         (register-command! (quote name) (lambda args first . rest)))))
+
+  (define-syntax define-command/completion
+    (syntax-rules ()
+      ((define-command/completion (name (arg completion) ...) first . rest)
+        (register-command! (quote name) (lambda (arg ...) first . rest) (list completion ...)))))
 
   ; Helper routines {{{
 

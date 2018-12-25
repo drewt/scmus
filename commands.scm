@@ -165,7 +165,8 @@
 ;; e.g. :set consume on       ; for setting consume/repeat/random/single
 ;;      :set [option] [value] ; for setting scmus options
 
-(define-command (set option value)
+(define-command/completion (set (option '("consume" "random" "repeat" "single"))
+                                (value  '("on" "off")))
   (if (member option '("consume" "random" "repeat" "single"))
     (let ((fun (case (string->symbol option)
                  ((consume) scmus-consume-set!)
