@@ -144,8 +144,16 @@
                                   (car args)
                                   (cdr args))))
 
-(map-command 'load 'playlist-load!)
-(map-command 'save 'playlist-save!)
+(let ((playlist-completion
+        (lambda (tokens)
+          (let ((playlists (map cdr (scmus-list-playlists))))
+            (map (lambda (x) (string-append/shared "'" x "'"))
+                 (filter (lambda (x) (string-prefix? (car tokens) x))
+                         playlists))))))
+  (map-command 'load 'playlist-load!
+    (list playlist-completion))
+  (map-command 'save 'playlist-save!
+    (list playlist-completion)))
 
 (map-command 'next 'next!)
 (map-command 'pause 'pause!)
