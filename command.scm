@@ -61,6 +61,7 @@
                        define-command/completion
                        load-command-script
                        register-command!
+                       register-command-completion!
                        run-command)
   (import ports
           srfi-69
@@ -111,6 +112,9 @@
 
   (define (register-command! name handler #!optional (arg-completion '()))
     (hash-table-set! *commands* (command-name name) handler)
+    (register-command-completion! name arg-completion))
+
+  (define (register-command-completion! name arg-completion)
     (trie-set! *command-completion*
                (string->list (command-name name))
                (make-arg-completion arg-completion)))
@@ -124,7 +128,10 @@
   (define (command-completion tokens)
     (if (and (pair? tokens) (null? (cdr tokens)))
       (command-name-completion (car tokens))
-      ((trie-ref *command-completion* (string->list (last tokens))) tokens)))
+      (let ((arg-completion (trie-ref *command-completion* (string->list (last tokens)))))
+        (if (procedure? arg-completion)
+          (arg-completion tokens)
+          '()))))
 
   (define-syntax define-command
     (syntax-rules ()

@@ -15,8 +15,16 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(import scmus.base scmus.client scmus.command scmus.command-line scmus.ueval
-        scmus.keys scmus.status scmus.tui scmus.widgets)
+(import scmus.base
+        scmus.client
+        scmus.command
+        scmus.command-line
+        scmus.config
+        scmus.ueval
+        scmus.keys
+        scmus.status
+        scmus.tui
+        scmus.widgets)
 
 (define (param-is-flags? p)
   (and (> (string-length p 1))
@@ -61,10 +69,11 @@
                                     'arguments '()
                                     'location location))))
 
-(define (map-command name sym)
+(define (map-command name sym #!optional (completion '()))
   (register-command! name
     (lambda args
-      (user-eval/raw (cons sym args)))))
+      (user-eval/raw (cons sym args)))
+    completion))
 
 ; TODO: this command should take arguments, or not exist at all.  The below is
 ;       equivalent to the win-add command.
@@ -87,6 +96,8 @@
       (command-line-print-info! (format "~s" (get-binding-expression
                                                keys
                                                context))))))
+(register-command-completion! 'bind
+  '(("common" "library" "queue" "search" "browser" "status" "error" "options" "bindings")))
 
 ;; unbind [-f] <context> <keys>
 (define-command/flags (unbind ((#\f forced)) context keys)
@@ -97,10 +108,21 @@
     (if (and (not (unbind! keys context))
              (not forced))
       (invalid-argument-error 1 "No binding for keys" "unbind"))))
+(register-command-completion! 'unbind
+  '(("common" "library" "queue" "search" "browser" "status" "error" "options" "bindings")))
 
 (define-command (clear) (scmus-clear!))
 
-(map-command 'colorscheme 'colorscheme!)
+(map-command 'colorscheme 'colorscheme!
+  (list (lambda (tokens)
+          (define (ls-schemes config-dir)
+            (map (lambda (path)
+                   (substring/shared path
+                                     (+ (string-index-right path #\/) 1)
+                                     (- (string-length path) 4)))
+                 (glob (format "~a/colors/~a*.scm" config-dir (car tokens)))))
+          (append (ls-schemes *user-config-dir*)
+                  (ls-schemes *scmus-dir*)))))
 
 ;; connect [host [port [pass]]]
 ;; connect
