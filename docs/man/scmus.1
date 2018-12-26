@@ -587,7 +587,7 @@ literal tilde character
 If the string inside a \fI~{}\fR specifier is not one of the predefined values above, scmus will still try to find a metadata field with that name\. So ~{} can be used to display abritrary metadata, so long as the metadata is reporteed by MPD\.
 .
 .P
-Colors may be specified in format strings with the \fI~<>\fR specifier\. Numbers between \-1 and 255 as well as color names (e\.g\. \fIgreen\fR) are supported\. \fI~<reset>\fR or \fI~<!>\fR can be used to reset the color to the default after using color specifiers\.
+Colors may be specified in format strings with the \fI~<>\fR specifier\. Numbers between \-1 and 255 as well as color names (e\.g\. \fIgreen\fR) are supported\. \fI~<reset>\fR or \fI~<!>\fR can be used to reset the color to the default after using color specifiers\. To specify both foreground and background colors, separate them with a colon, e\.g\. \fI~<red:black>\fR\.
 .
 .P
 Arbitrary Scheme code can be embedded in a format string inside of \fI~[]\fR\. The code will be evaluated and the result substituted for the \fI~[]\fR specifier, as if formatted by \fBDISPLAY\fR\. If the code evaluates to a function, the function is called with a track object and the formatted string\'s max width as arguments, and the return value is substituted\.

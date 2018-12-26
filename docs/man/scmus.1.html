@@ -393,7 +393,7 @@ common library queue search browser status error options bindings</p></dd>
 
 <p>If the string inside a <em>~{}</em> specifier is not one of the predefined values above, scmus will still try to find a metadata field with that name.  So ~{} can be used to display abritrary metadata, so long as the metadata is reporteed by MPD.</p>
 
-<p>Colors may be specified in format strings with the <em>~&lt;&gt;</em> specifier.  Numbers between -1 and 255 as well as color names (e.g. <em>green</em>) are supported.  <em>~&lt;reset&gt;</em> or <em>~&lt;!&gt;</em> can be used to reset the color to the default after using color specifiers.</p>
+<p>Colors may be specified in format strings with the <em>~&lt;&gt;</em> specifier.  Numbers between -1 and 255 as well as color names (e.g. <em>green</em>) are supported.  <em>~&lt;reset&gt;</em> or <em>~&lt;!&gt;</em> can be used to reset the color to the default after using color specifiers.  To specify both foreground and background colors, separate them with a colon, e.g. <em>~&lt;red:black&gt;</em>.</p>
 
 <p>Arbitrary Scheme code can be embedded in a format string inside of <em>~[]</em>.  The code will be evaluated and the result substituted for the <em>~[]</em> specifier, as if formatted by <code>DISPLAY</code>.  If the code evaluates to a function, the function is called with a track object and the formatted string's max width as arguments, and the return value is substituted.</p>
 

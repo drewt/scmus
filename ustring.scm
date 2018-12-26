@@ -37,7 +37,10 @@
            (< u (+ 258 256 +unicode-private-base+)))))
 
   (define (ch->color-code ch)
-    (- (char->integer ch) +unicode-private-base+ 2))
+    (let ((code (- (char->integer ch) +unicode-private-base+ 2)))
+      (if (> code 255)
+        (values (- code 256) 'bg)
+        (values code 'fg))))
 
   (define (fg-color->char color)
     (integer->char (+ color +unicode-private-base+ 2)))

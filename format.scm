@@ -23,7 +23,8 @@
 (module scmus.format (scmus-format
                       process-format
                       format-string-valid?)
-  (import drewt.ncurses
+  (import irregex
+          drewt.ncurses
           drewt.ustring
           scmus.base
           scmus.error
@@ -306,27 +307,21 @@
         obj
         (lambda (track len) obj))))
 
-  (define (split-colors str)
-    (let loop ((chars (string->list str))
-               (word '())
-               (words '()))
-      (cond
-        ((null? chars)
-          (reverse (cons (list->string (reverse word)) words)))
-        ((char=? (car chars) #\:)
-          (loop (cdr chars) '() (cons (list->string (reverse word)) words)))
-        (else
-          (loop (cdr chars) (cons (car chars) word) words)))))
-
   (: parse-color-spec (format-spec -> *))
   (define (parse-color-spec spec)
-    (let ((vals (split-colors (parend->string spec #\< #\>))))
-      (list->string
-        (map (lambda (str f)
-               (f (*->color-code str)))
-             vals
-             (list fg-color->char
-                   bg-color->char)))))
+    (let ((str (parend->string spec #\< #\>)))
+      (cond
+        ; both fg and bg given
+        ((irregex-match "([^:]+):([^:]+)" str) =>
+          (lambda (m) (string (fg-color->char (*->color-code (irregex-match-substring m 1)))
+                              (bg-color->char (*->color-code (irregex-match-substring m 2))))))
+        ; only fg given
+        ((irregex-match "([^:]+):?" str) =>
+          (lambda (m) (string (fg-color->char (*->color-code (irregex-match-substring m 1))))))
+        ; only bg given
+        ((irregex-match ":([^:]+)" str) =>
+          (lambda (m) (string (bg-color->char (*->color-code (irregex-match-substring m 1))))))
+        (else (string-append "~<" str ">")))))
 
   (: parse-group-spec (format-spec -> *))
   (define (parse-group-spec spec)
