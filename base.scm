@@ -56,6 +56,7 @@
           make-composite-condition
 
           ; R7RS
+          case-lambda
           current-error-port
           define-record-type
           get-output-string
@@ -64,6 +65,7 @@
           make-parameter
           open-input-string
           open-output-string
+          parameterize
           when
           unless)
     (only data-structures

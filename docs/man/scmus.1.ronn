@@ -440,6 +440,8 @@ If the string inside a *~{}* specifier is not one of the predefined values above
 
 Colors may be specified in format strings with the *~&lt;&gt;* specifier.  Numbers between -1 and 255 as well as color names (e.g. *green*) are supported.  *~&lt;reset&gt;* or *~&lt;!&gt;* can be used to reset the color to the default after using color specifiers.  To specify both foreground and background colors, separate them with a colon, e.g. *~&lt;red:black&gt;*.
 
+Alternatively, the region of text to receive coloring may be delimited inside an extra pair of angle brackets.  E.g. *~&lt;&lt;red&gt;text&gt;* is equivalient to *~&lt;red&gt;text~&lt;!&gt;*.
+
 Arbitrary Scheme code can be embedded in a format string inside of *~\[\]*.  The code will be evaluated and the result substituted for the *~\[\]* specifier, as if formatted by `DISPLAY`.  If the code evaluates to a function, the function is called with a track object and the formatted string's max width as arguments, and the return value is substituted.
 
 Groups can be defined within format strings with the *~\(\)* specifier.  The text inside the parentheses will be treated as a unit with respect to width, alignment and padding.  Groups should always be used in conjunction with a width specifier.

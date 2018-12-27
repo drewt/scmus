@@ -59,6 +59,8 @@
               ((gray)          15)
               (else            #f)))))
 
+  (define color-reset-string (make-parameter (string (fg-color->char -2))))
+
   (: scmus-state-character (symbol -> string))
   (define (scmus-state->character state)
     (assert (memv state '(play stop pause unknown)) "scmus-state->character" state)
@@ -309,7 +311,7 @@
 
   (: parse-color-spec (format-spec -> *))
   (define (parse-color-spec spec)
-    (let ((str (parend->string spec #\< #\>)))
+    (define (color-spec->string str)
       (cond
         ; both fg and bg given
         ((irregex-match "([^:]+):([^:]+)" str) =>
@@ -321,7 +323,18 @@
         ; only bg given
         ((irregex-match ":([^:]+)" str) =>
           (lambda (m) (string (bg-color->char (*->color-code (irregex-match-substring m 1))))))
-        (else (string-append "~<" str ">")))))
+        (else (string-append "<" str ">"))))
+    (let ((str (parend->string spec #\< #\>)))
+      (cond
+        ((irregex-match "<([^>]*)>(.*)" str) =>
+          (lambda (m)
+            (let ((color-str (color-spec->string (irregex-match-substring m 1)))
+                  (rest-str (irregex-match-substring m 2)))
+              `(splice ,color-str
+                       ,@(parameterize ((color-reset-string color-str))
+                           (*process-format (string->list rest-str)))
+                       ,(color-reset-string)))))
+        (else (color-spec->string str)))))
 
   (: parse-group-spec (format-spec -> *))
   (define (parse-group-spec spec)
@@ -470,8 +483,13 @@
           ((null? rest) (reverse (cons last rv)))
           ((and (string? last) (char? (car rest)))
             (loop (cdr rest) (string-append last (string (car rest))) rv))
+          ((and (string? last) (string? (car rest)))
+            (loop (cdr rest) (string-append last (car rest)) rv))
           ((char? (car rest))
             (loop (cdr rest) (string (car rest)) (cons last rv)))
+          ((and (pair? (car rest))
+                (eqv? (caar rest) 'splice))
+            (loop (append (cdar rest) (cdr rest)) last rv))
           (else
             (loop (cdr rest) (car rest) (cons last rv))))))
     (stringify-format (parse-format chars))))
