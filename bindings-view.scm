@@ -30,7 +30,7 @@
   (keys key-list-keys))
 
 (define-record-printer (key-list kl out)
-  (display (key-list->string (key-list-keys kl)) out))
+  (display (string-append " " (key-list->string (key-list-keys kl))) out))
 
 (define-class <binding-row> (<split-pane>)
   ((context accessor: binding-row-context)
@@ -78,7 +78,8 @@
   (define (context->rows context)
     (if (null? (cdr context))
       '()
-      (cons (make <window-separator> 'text (string-titlecase (symbol->string (car context)))
+      (cons (make <window-separator> 'text (string-titlecase
+                                             (string-append " " (symbol->string (car context))))
                                      'cursed CURSED-WIN-TITLE)
             (sort! (binding-list->rows (cdr context) (car context)) binding-row<?))))
   (apply append (map context->rows (sort (bindings) context<?))))

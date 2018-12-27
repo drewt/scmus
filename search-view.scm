@@ -30,7 +30,7 @@
 
 
 (define (make-search-field)
-  (make-text-input "" "* " 'on-commit search-field-commit!))
+  (make-text-input "" " * " 'on-commit search-field-commit!))
 
 (define (search-field-commit! widget)
   (void))
@@ -117,7 +117,7 @@
   (make-frame 'body   (make <search-window>
                             'data       (list (make-search-field)
                                               (make <window-separator>
-                                                    'text "Results"
+                                                    'text " Results"
                                                     'cursed CURSED-WIN-TITLE))
                             'cursed     CURSED-WIN
                             'cursed-fn  (win-cursed-fn))

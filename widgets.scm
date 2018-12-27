@@ -279,6 +279,16 @@
   (define (window-cursed window row line-nr)
     ((*window-cursed window) window row line-nr))
 
+  (define (window-moved window old-sel-pos new-sel-pos scroll)
+    (if (not (zero? scroll))
+      (widget-damaged! window)
+      (let ((old-sel (vector-ref (*window-data window) old-sel-pos))
+            (new-sel (vector-ref (*window-data window) new-sel-pos)))
+        (set! (widget-cursed/cached old-sel) (window-cursed window old-sel old-sel-pos))
+        (set! (widget-cursed/cached new-sel) (window-cursed window new-sel new-sel-pos))
+        (widget-damaged! old-sel)
+        (widget-damaged! new-sel))))
+
   (: window-move-down! (window fixnum -> undefined))
   (define (window-move-down! window n)
     (let* ((top-pos  (window-top-pos window))
@@ -290,7 +300,7 @@
                                     (+ top-pos nr-lines))))))
       (set! (window-top-pos window) (+ top-pos scroll))
       (set! (window-sel-pos window) (+ sel-pos can-move))
-      (widget-damaged! window)))
+      (window-moved window sel-pos (+ sel-pos can-move) scroll)))
 
   (: window-move-up! (window fixnum -> undefined))
   (define (window-move-up! window n)
@@ -301,7 +311,7 @@
                              (- sel-pos top-pos)))))
       (set! (window-top-pos window) (- top-pos scroll))
       (set! (window-sel-pos window) (- sel-pos can-move))
-      (widget-damaged! window)))
+      (window-moved window sel-pos (- sel-pos can-move) scroll)))
 
   (: window-move-top! (window -> undefined))
   (define (window-move-top! window)
@@ -410,15 +420,8 @@
           (let ((row    (vector-ref data line))
                 (row-nr (- line top-pos)))
             (with-cursed (or (widget-cursed row)
-                             (window-cursed window row (+ y row-nr)))
-              ; FIXME: really shouldn't be using direct ncurses code here
-              (mvaddch (+ y row-nr) x #\space)
-              (mvaddch (+ y row-nr) (+ x (- cols 1)) #\space)
-              (print-widget! row
-                             (+ x (window-h-border window))
-                             (+ y row-nr)
-                             (- cols (* 2 (window-h-border window)))
-                             1)))
+                             (window-cursed window row line))
+              (print-widget! row x (+ y row-nr) cols 1)))
           (loop (+ line 1))))))
 
   (define-method (handle-input (window <window>) input event)
@@ -434,9 +437,8 @@
 ;; a window, row, and line number.
 (: win-cursed-fn (#!optional (* -> boolean) -> (window * fixnum -> fixnum)))
 (define (win-cursed-fn #!optional current?)
-  (lambda (window row line-nr)
+  (lambda (window row row-pos)
     (let* ((current (if current? (current? row) #f))
-           (row-pos (+ (window-top-pos window) (- line-nr 1)))
            (selected (= row-pos (window-sel-pos window)))
            (marked (member row-pos (window-marked window))))
       (cond

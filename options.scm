@@ -134,7 +134,7 @@
 (define (get-format name)
   (nth-value 1 (get-option name)))
 
-(define *default-track-format* "~-25%a ~3n. ~t~= ~-4y ~d")
+(define *default-track-format* " ~-25%a ~3n. ~t~= ~-4y ~d ")
 
 (define (register-format! name fmt)
   (register-option! name (format-values fmt)
@@ -142,18 +142,18 @@
     format-get
     format-stringify))
 
-(register-format! 'format-separator        "~{text}")
-(register-format! 'format-current          " ~a - ~l ~n. ~t~= ~y")
+(register-format! 'format-separator        " ~{text}")
+(register-format! 'format-current          " ~a - ~l ~n. ~t~= ~y ")
 (register-format! 'format-status           " ~P ~p / ~d - ~T vol: ~v~= ~S~R~r~C ")
-(register-format! 'format-library-playlist "~{playlist}")
-(register-format! 'format-library-artist   "~{artist}")
-(register-format! 'format-library-album    "~{album}")
+(register-format! 'format-library-playlist " ~{playlist}")
+(register-format! 'format-library-artist   " ~{artist}")
+(register-format! 'format-library-album    " ~{album}")
 (register-format! 'format-library-file     *default-track-format*)
-(register-format! 'format-library-metadata "~-50%{tag} ~{value}")
+(register-format! 'format-library-metadata " ~-50%{tag} ~{value}")
 (register-format! 'format-queue            *default-track-format*)
-(register-format! 'format-browser-file     "~{path}")
-(register-format! 'format-browser-dir      "~{directory}/")
-(register-format! 'format-browser-playlist "[~{playlist}]")
-(register-format! 'format-browser-metadata "~-50%{tag} ~{value}")
+(register-format! 'format-browser-file     " ~{path}")
+(register-format! 'format-browser-dir      " ~{directory}/")
+(register-format! 'format-browser-playlist " [~{playlist}]")
+(register-format! 'format-browser-metadata " ~-50%{tag} ~{value}")
 (register-format! 'format-search-file      *default-track-format*)
 ;; }}} Format Strings

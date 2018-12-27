@@ -29,10 +29,13 @@
 (define (option-changed!)
   (widget-damaged! (get-view 'options)))
 
+(define (option-row-name row)
+  (string->symbol (string-trim (text-text (split-pane-left-child row)))))
+
 (define (option-commit-edit! widget)
   (let ((text (text-input-get-text widget)))
     (handle-exceptions e (begin (scmus-error e) #f)
-      (set-option! (scheme-text-expr (split-pane-left-child (widget-parent widget)))
+      (set-option! (option-row-name (widget-parent widget))
                    (with-input-from-string (text-input-get-text widget) read)))))
 
 (: make-options-data (-> list))
@@ -40,7 +43,7 @@
   (map (lambda (option)
          ; TODO: instead of using a <split-pane>, use a text-input with a prefix
          ;       and set the prefix length to half the screen size
-         (make-split-pane (make-scheme-text (car option))
+         (make-split-pane (make-text (string-append " " (symbol->string (car option))))
                           (make-text-input (option-string (cdr option)) ""
                                            'on-commit option-commit-edit!)))
        (options)))
