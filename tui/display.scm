@@ -15,7 +15,42 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.tui.display *
+(module scmus.tui.display (current-cursed
+                           color->number
+                           safe-color->number
+                           attr->number
+                           call-with-cursed
+                           with-cursed
+                           palette-set!
+                           clear-screen
+                           print-line!)
+  (reexport (only drewt.ncurses
+                  COLOR_BLACK
+                  COLOR_RED
+                  COLOR_GREEN
+                  COLOR_YELLOW
+                  COLOR_BLUE
+                  COLOR_MAGENTA
+                  COLOR_CYAN
+                  COLOR_WHITE
+                  A_NORMAL
+                  A_UNDERLINE
+                  A_REVERSE
+                  A_BLINK
+                  A_BOLD
+                  A_DIM
+                  A_ALTCHARSET
+                  A_INVIS
+                  A_ATTRIBUTES
+                  A_CHARTEXT
+                  A_COLOR
+                  A_STANDOUT
+                  A_PROTECT
+                  A_LEFT
+                  A_RIGHT
+                  A_LOW
+                  A_TOP
+                  A_VERTICAL))
   (import coops
           drewt.ncurses
           drewt.ustring

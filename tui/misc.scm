@@ -15,7 +15,16 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.tui.misc *
+(module scmus.tui.misc (<separator>
+                        separator-char
+                        <pile>
+                        make-pile
+                        <textual>
+                        text-text
+                        <text>
+                        text-w
+                        text-h
+                        make-text)
   (import coops
           drewt.ncurses
           scmus.base

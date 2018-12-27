@@ -15,7 +15,46 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.tui.widget *
+(module scmus.tui.widget (define-abstract-method
+                          damaged-widgets
+                          clear-damaged-widgets!
+
+                          <widget>
+                          widget-parent
+                          widget-visible
+                          widget-cursed
+                          widget-cursed/cached
+                          widget-x
+                          widget-y
+                          widget-cols
+                          widget-rows
+                          widget-damaged!
+                          widget-visible?
+                          widget-first
+                          widget-last
+                          widget-root
+                          widget-focus
+                          widget-size
+                          print-widget!
+                          reprint-widget!
+                          handle-input
+                          widget-child/pos
+                          get-widget-at
+
+                          <container>
+                          container-children
+                          compute-layout
+
+                          <widget-wrap>
+                          widget-wrap-widget
+                          make-widget-wrap
+                          widget-wrap-swap!
+
+                          <widget-stack>
+                          make-widget-stack
+                          widget-stack-push!
+                          widget-stack-pop!
+                          widget-stack-peek)
   (import coops
           scmus.base
           scmus.tui.display)
@@ -94,13 +133,13 @@
     (set! (widget-cursed/cached widget) (current-cursed))
     (clear-screen x y cols rows))
 
-  (define-method (reprint-widget! (w <widget>))
-    (with-cursed (widget-cursed/cached w)
-      (print-widget! w (widget-x w) (widget-y w) (widget-cols w) (widget-rows w))))
-
   (define-method (print-widget! around: (widget <widget>) x y cols rows)
     (when (widget-visible? widget)
       (call-with-cursed call-next-method (widget-cursed widget))))
+
+  (define-method (reprint-widget! (w <widget>))
+    (with-cursed (widget-cursed/cached w)
+      (print-widget! w (widget-x w) (widget-y w) (widget-cols w) (widget-rows w))))
 
   ;; Input handler.  If the widget doesn't handle the input, it should invoke
   ;; CALL-NEXT-METHOD to allow the superclass to handle the input.  If the input

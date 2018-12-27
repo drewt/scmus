@@ -15,7 +15,35 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.tui.input *
+(module scmus.tui.input (key-case
+                         mouse-case
+                         <text-input>
+                         text-input-text
+                         text-input-saved-text
+                         text-input-cursor-pos
+                         text-input-prefix
+                         text-input-stolen-focus
+                         text-input-editing?
+                         text-input-on-commit
+                         text-input-on-cancel
+                         text-input-on-begin
+                         text-input-on-leave
+                         make-text-input
+                         text-input-get-text
+                         text-input-set-text!
+                         text-input-length
+                         text-input-get-cursor-pos
+                         text-input-set-cursor-pos!
+                         text-input-move!
+                         text-input-insert!
+                         text-input-backspace!
+                         text-input-delete!
+                         text-input-commit
+                         text-input-cancel
+                         text-input-begin
+                         do-handle-input
+                         enable-mouse
+                         mouse-input?)
   (import coops
           drewt.ncurses
           scmus.base

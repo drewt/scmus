@@ -15,7 +15,11 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.tui.frame *
+(module scmus.tui.frame (<frame>
+                         frame-body
+                         frame-header
+                         frame-footer
+                         make-frame)
   (import coops
           scmus.base
           scmus.tui.display
