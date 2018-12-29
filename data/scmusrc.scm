@@ -9,7 +9,7 @@
 (bind "3" 'common '(set-view 'search)   #t)
 (bind "4" 'common '(set-view 'browser)  #t)
 (bind "5" 'common '(set-view 'status)   #t)
-(bind "6" 'common '(set-view 'error)    #t)
+(bind "6" 'common '(set-view 'log)      #t)
 (bind "7" 'common '(set-view 'options)  #t)
 (bind "8" 'common '(set-view 'bindings) #t)
 

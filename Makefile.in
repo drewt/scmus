@@ -43,8 +43,8 @@ objfiles = $(foreach f,$(1),$(addsuffix .@OBJEXT@,$(f)))
 
 # files...
 eggs     = coops coops-utils matchable regex sandbox unix-sockets utf8 vector-lib
-units    = bindings-view browser-view commands library-view options options-view queue-view \
-           search-view ui-curses user-api
+units    = bindings-view browser-view commands library-view log-view options options-view \
+           queue-view search-view ui-curses user-api
 tui_mods = $(addprefix tui/,display frame input list-box misc split-pane widget)
 imodules = base client command command-line config ueval event format keys log option \
            error status track tui $(tui_mods) view widgets
@@ -81,7 +81,8 @@ event_deps          = base
 format_deps         = base ueval error ncurses status track ustring
 keys_deps           = base ueval event ncurses
 library-view_deps   = base client event format ncurses track tui view widgets
-log_deps            = base
+log_deps            = base event
+log-view_deps       = base event log tui view widgets
 option_deps         = base event
 options_deps        = base event format option tui
 options-view_deps   = base event ncurses option error tui view widgets
@@ -111,10 +112,11 @@ bindings-view_uses  = options
 browser-view_uses   = options track
 commands_uses       =
 library-view_uses   = options
+log-view_uses       =
 options-view_uses   =
 queue-view_uses     = options
 search-view_uses    = options
-ui-curses_uses      = bindings-view browser-view library-view options options-view \
+ui-curses_uses      = bindings-view browser-view library-view log-view options options-view \
                       queue-view search-view
 user-api_uses       = ui-curses
 

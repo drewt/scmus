@@ -72,12 +72,9 @@ There are 8 views in scmus.  Press keys 1-8 to change the active view.
   Displays the response to the last *status* MPD command.  This is used for
   debugging and is likely to be removed in the future.
 
-* `Error View` (6):
-  Displays a message describing the last error encountered by scmus.  This
-  should be a network/mpd related error, or an exception triggered by your own
-  code executed in `eval mode`.  If not, consider filing a bug report.
-
-  This view will be replaced by a more featureful log viewer in the future.
+* `Log View` (6):
+  Displays the contents of the log.  This should contain network/mpd related
+  errors, and exceptions triggered by your own code executed in `eval mode`.
 
 * `Options View` (7):
   Used for viewing and editing scmus's options.  The edit an option, hit the

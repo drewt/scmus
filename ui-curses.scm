@@ -137,17 +137,6 @@
   (make-frame 'body   *status-window*
               'header (make-text " MPD Status" 'cursed CURSED-WIN-TITLE)))
 
-(define (make-error-rows)
-  (map (lambda (line)
-         (make-text line 'cursed CURSED-WIN))
-       (string-split (scmus-error) "\n")))
-
-(define *error-text* (make-text "" 'cursed CURSED-WIN))
-
-(define-view error
-  (make-frame 'body   *error-text*
-              'header (make-text " Error" 'cursed CURSED-WIN-TITLE)))
-
 (define-event-handler (current-track-changed) ()
   (set! (format-text-format current-line) (get-format 'format-current))
   (set! (format-text-data current-line) (current-track)))
@@ -156,9 +145,6 @@
   (set! (list-box-data *status-window*) (make-status-rows))
   (set! (format-text-format status-line) (get-format 'format-status))
   (set! (format-text-data status-line) (current-track)))
-
-(define-event-handler (error-changed) ()
-  (set! (text-text *error-text*) (scmus-error)))
 
 (define-event-handler color-changed () update-colors!)
 

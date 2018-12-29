@@ -16,7 +16,11 @@
 ;;
 
 (module scmus.log
-        (<logger>
+        (<log-entry>
+         log-entry-type
+         log-entry-short-message
+         log-entry-long-message
+         <logger>
          <port-logger>
          current-logger
          log-read
@@ -29,7 +33,8 @@
   (import (only data-structures chop)
           coops
           coops-utils
-          scmus.base)
+          scmus.base
+          scmus.event)
 
   (define-class <log-entry> ()
     ((type          initform: '?
@@ -86,7 +91,8 @@
   ;; Write a log entry to LOGGER.  This is the method responsible for ingress filtering.
   (define-method (logger-write! (logger <logger>) type short-message #!optional long-message)
     (when ((logger-filter logger) type)
-      (logger-append-entry! logger (make-log-entry type short-message long-message))))
+      (logger-append-entry! logger (make-log-entry type short-message long-message))
+      (register-event! 'log-changed)))
 
   (define-class <port-logger> (<logger>)
     ((port initform: (current-error-port)
