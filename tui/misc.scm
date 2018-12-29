@@ -73,7 +73,7 @@
           (loop (- rows child-rows)
                 (+ y child-rows)
                 (cdr children)
-                (cons (list (car children) 0 y cols child-rows)
+                (cons (list (car children) 0 y cols child-rows #f)
                       result))))))
 
   (define-class <textual> (<widget>))

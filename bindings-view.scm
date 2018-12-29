@@ -87,8 +87,8 @@
 (define-class <bindings-window> (<window>))
 
 (define-method (widget-edit (window <bindings-window>))
-  (unless (window-empty? window)
-    (text-input-begin (split-pane-right-child (window-selected window)) steal-focus: #t)))
+  (unless (list-box-empty? window)
+    (text-input-begin (split-pane-right-child (list-box-selected window)) steal-focus: #t)))
 
 (define-method (widget-activate (window <bindings-window>))
   (widget-edit window))
@@ -97,11 +97,11 @@
   (make <bindings-window>
         'data       (make-bindings-data)
         'cursed     CURSED-WIN
-        'cursed-fn  (win-cursed-fn)))
+        'cursed-fun (win-cursed-fun)))
 
 (define-view bindings
   (make-frame 'body   *bindings-window*
               'header (make-text " Key Bindings" 'cursed CURSED-WIN-TITLE)))
 
 (define-event-handler (binding-data-changed) ()
-  (set! (window-data *bindings-window*) (make-bindings-data)))
+  (set! (list-box-data *bindings-window*) (make-bindings-data)))

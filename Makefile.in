@@ -45,7 +45,7 @@ objfiles = $(foreach f,$(1),$(addsuffix .@OBJEXT@,$(f)))
 eggs     = coops coops-utils matchable regex sandbox unix-sockets utf8 vector-lib
 units    = bindings-view browser-view commands library-view options options-view queue-view \
            search-view ui-curses user-api
-tui_mods = $(addprefix tui/,display frame input misc split-pane widget)
+tui_mods = $(addprefix tui/,display frame input list-box misc split-pane widget)
 imodules = base client command command-line config ueval event format keys log option \
            error status track tui $(tui_mods) view widgets
 omodules = getopt iter mpd-client ncurses trie ustring
@@ -100,6 +100,7 @@ tui_deps            = $(tui_mods)
 tui/display_deps    = base ncurses ustring
 tui/frame_deps      = base tui/display tui/misc tui/widget
 tui/input_deps      = base ncurses tui/widget tui/misc
+tui/list-box_deps   = base ncurses tui/display tui/input tui/widget
 tui/misc_deps       = base ncurses tui/display tui/widget
 tui/split-pane_deps = base tui/misc tui/widget
 tui/widget_deps     = base tui/display

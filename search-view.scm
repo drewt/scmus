@@ -54,20 +54,20 @@
     (filter values
             (map search-field->constraint
                  (filter (lambda (row) (instance-of? row <text-input>))
-                         (window-data window)))))
+                         (vector->list (list-box-data window))))))
   (let ((results (apply scmus-search-songs #f #f (constraints))))
-    (set! (window-data window) (append (window-data window)
-                                       (map (lambda (track)
-                                              (make-window-row track 'file search-format))
-                                            results)))))
+    (set! (list-box-data window) (append (vector->list (list-box-data window))
+                                         (map (lambda (track)
+                                                (make-window-row track 'file search-format))
+                                              results)))))
 
 (define-method (widget-edit (window <search-window>))
-  (let ((selected (window-selected window)))
+  (let ((selected (list-box-selected window)))
     (when (instance-of? selected <text-input>)
       (text-input-begin selected steal-focus: #t))))
 
 (define-method (widget-add (window <search-window>))
-  (let ((selected (window-selected window)))
+  (let ((selected (list-box-selected window)))
     (cond
       ((instance-of? selected <text-input>)
         (add-search-field! window))
@@ -75,29 +75,29 @@
         (add-selected-tracks! window)))))
 
 (define (search-window-data window)
-  (let loop ((data (window-data window)) (result '()))
+  (let loop ((data (vector->list (list-box-data window))) (result '()))
     (if (or (null? data) (instance-of? (car data) <window-separator>))
       (values (reverse result) (car data) (cdr data))
       (loop (cdr data) (cons (car data) result)))))
 
 (define (add-search-field! window)
   (let-values (((queries separator results) (search-window-data window)))
-    (set! (window-data window)
+    (set! (list-box-data window)
       (append queries
               (list (make-search-field) separator)
               results))
-    (when (>= (window-sel-pos window) (length queries))
-      (window-move-down! window 1))))
+    (when (>= (list-box-sel-pos window) (length queries))
+      (widget-move window 1 #f))))
 
 (define (add-selected-tracks! window)
   (for-each (lambda (row)
               (when (instance-of? row <window-row>)
                 (scmus-add! (track-file (window-row-data row)))))
-            (window-all-selected window)))
+            (window-selected window)))
 
 (define-method (widget-remove (window <search-window>))
-  (let-values (((prev rest) (split-at (window-data window)
-                                      (window-sel-pos window))))
+  (let-values (((prev rest) (split-at (vector->list (list-box-data window))
+                                      (list-box-sel-pos window))))
     ; FIXME: this should remove all marked rows, not just the selected row
     (cond
       ; if there's only one search field, we clear it instead of removing it
@@ -105,12 +105,12 @@
             (instance-of? (cadr rest) <window-separator>))
         (text-input-set-text! (car rest) ""))
       ((not (instance-of? (car rest) <window-separator>))
-        (set! (window-data window) (append prev (cdr rest)))))))
+        (set! (list-box-data window) (append prev (cdr rest)))))))
 
 (define-method (widget-clear (window <search-window>))
-  (let loop ((data (window-data window)) (result '()))
+  (let loop ((data (vector->list (list-box-data window))) (result '()))
     (if (or (null? data) (instance-of? (car data) <window-row>))
-      (set! (window-data window) (reverse result))
+      (set! (list-box-data window) (reverse result))
       (loop (cdr data) (cons (car data) result)))))
 
 (define-view search
@@ -120,5 +120,5 @@
                                                     'text " Results"
                                                     'cursed CURSED-WIN-TITLE))
                             'cursed     CURSED-WIN
-                            'cursed-fn  (win-cursed-fn))
+                            'cursed-fun (win-cursed-fun))
               'header (make-text " Search" 'cursed CURSED-WIN-TITLE)))

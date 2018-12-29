@@ -37,6 +37,7 @@
           assert
           bitwise-ior
           bitwise-and
+          bitwise-not
           condition->list
           condition-case
           define-constant

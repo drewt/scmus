@@ -57,12 +57,22 @@
         (split-pane-left-child pane)
         (split-pane-right-child pane))))
 
+  (define-method (widget-size (pane <split-pane>) available-cols available-rows)
+    (let-values (((l-cols l-rows) (widget-size (split-pane-left-child pane)
+                                               available-cols
+                                               available-rows))
+                 ((r-cols r-rows) (widget-size (split-pane-right-child pane)
+                                               available-cols
+                                               available-rows)))
+      (values (min available-cols l-cols r-cols)
+              (min available-rows r-rows l-rows))))
+
   (define-method (compute-layout (pane <split-pane>) cols rows)
     ; FIXME: don't create new separator for every draw
     (let* ((separator (make <separator> 'char (split-pane-separator-char pane)))
            (left-cols (inexact->exact (floor (* (split-pane-left-size pane) cols))))
            (right-cols (- cols left-cols 1)))
-      ;           WIDGET                        X               Y COLS       ROWS
-      (list (list (split-pane-left-child pane)  0               0 left-cols  rows)
-            (list separator                     left-cols       0 1          rows)
-            (list (split-pane-right-child pane) (+ left-cols 1) 0 right-cols rows)))))
+      ;           WIDGET                        X               Y COLS       ROWS CURSED
+      (list (list (split-pane-left-child pane)  0               0 left-cols  rows #f)
+            (list separator                     left-cols       0 1          rows #f)
+            (list (split-pane-right-child pane) (+ left-cols 1) 0 right-cols rows #f)))))

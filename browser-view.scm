@@ -70,8 +70,8 @@
                                                    'metadata
                                                    browser-format))
                                 (sort-metadata file)))))
-  (unless (window-empty? window)
-    (let ((selected (window-selected window)))
+  (unless (list-box-empty? window)
+    (let ((selected (list-box-selected window)))
       (case (window-row-type selected)
         ((directory) (directory-activate! (cdar (window-row-data selected))))
         ((playlist)  (playlist-activate! (cdar (window-row-data selected))))
@@ -89,14 +89,14 @@
                 ((directory) (scmus-find-add! (cons 'base (cdar (window-row-data row)))))
                 ((playlist)  (scmus-playlist-load! (cdar (window-row-data row))))
                 ((file)      (scmus-add! (cdar (window-row-data row))))))
-            (window-all-selected window))
+            (window-selected window))
   (scmus-update-queue!))
 
 (define (make-browser-window data)
   (make <browser-window>
         'data       data
         'cursed     CURSED-WIN
-        'cursed-fn  (win-cursed-fn)))
+        'cursed-fun (win-cursed-fun)))
 
 (define-view browser
   (make-frame 'body   (make-widget-stack (make-browser-window '()))
@@ -104,6 +104,6 @@
                                         'cursed CURSED-WIN-TITLE)))
 
 (define-event-handler (db-changed) ()
-  (set! (window-data (widget-last (frame-body (get-view 'browser))))
+  (set! (list-box-data (widget-last (frame-body (get-view 'browser))))
         (map (lambda (x) (make-window-row x (caar x) browser-format))
              (scmus-lsinfo "/"))))

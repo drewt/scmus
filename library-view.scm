@@ -74,8 +74,8 @@
       ((album)    album-activate!)
       ((file)     file-activate!)
       (else       void)))
-  (unless (window-empty? window)
-    (let ((selected (window-selected window)))
+  (unless (list-box-empty? window)
+    (let ((selected (list-box-selected window)))
       (when (instance-of? selected <window-row>)
         ((activate-function (window-row-type selected)) (window-row-data selected))))))
 
@@ -91,11 +91,11 @@
                   ((playlist)     (scmus-playlist-load! (cdar (window-row-data selected))))
                   ((artist album) (scmus-search-songs #t #t (car (window-row-data selected))))
                   ((file)         (scmus-add! (track-file (window-row-data selected)))))))
-            (window-all-selected window))
+            (window-selected window))
   (scmus-update-queue!))
 
 (define-event-handler (db-changed) ()
-  (set! (window-data (widget-last (frame-body (get-view 'library))))
+  (set! (list-box-data (widget-last (frame-body (get-view 'library))))
         (append! (cons (make <window-separator> 'text " Playlists" 'cursed CURSED-WIN-TITLE)
                        (map (lambda (x) (make-window-row (list x) 'playlist library-format))
                             (scmus-list-playlists)))
@@ -107,7 +107,7 @@
   (make <library-window>
         'data       data
         'cursed     CURSED-WIN
-        'cursed-fn  (win-cursed-fn)))
+        'cursed-fun (win-cursed-fun)))
 
 (define-view library
   (make-frame 'body   (make-widget-stack (make-library-window '()))

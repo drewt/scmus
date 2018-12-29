@@ -66,15 +66,15 @@
           (x      0))
       (when footer
         (let-values (((_ foot-rows) (widget-size footer cols rows)))
-          (set! footer (list footer 0 (- rows foot-rows) cols foot-rows))
+          (set! footer (list footer 0 (- rows foot-rows) cols foot-rows #f))
           (set! rows (- rows foot-rows))))
       (when title
         (let-values (((_ head-rows) (widget-size title cols rows)))
-          (set! title (list title 0 0 cols head-rows))
+          (set! title (list title 0 0 cols head-rows #f))
           (set! rows (- rows head-rows))
           (set! x (+ x head-rows))))
       (when body
-        (set! body (list body 0 x cols rows)))
+        (set! body (list body 0 x cols rows #f)))
       (append (if title  (list title)  '())
               (if body   (list body)   '())
               (if footer (list footer) '())))))

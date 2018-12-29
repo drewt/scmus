@@ -15,8 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (export make-queue-view))
-
 (import scmus.base
         scmus.client
         scmus.event
@@ -27,7 +25,7 @@
         scmus.widgets)
 
 (define queue-cursed
-  (win-cursed-fn (lambda (row) (current-track? (window-row-data row)))))
+  (win-cursed-fun (lambda (row) (current-track? (window-row-data row)))))
 
 (define (queue-format _)
   (get-format 'format-queue))
@@ -39,14 +37,11 @@
 (define-class <queue-window> (<window>))
 
 (define-method (widget-activate (window <queue-window>))
-  (unless (window-empty? window)
-    (scmus-play-track! (window-row-data (window-selected window)))))
+  (unless (list-box-empty? window)
+    (scmus-play-track! (window-row-data (list-box-selected window)))))
 
 (define-method (widget-remove (window <queue-window>))
-  (let loop ((marked (sort (window-marked window) >)))
-    (unless (null? marked)
-      (scmus-delete! (car marked))
-      (loop (cdr marked))))
+  (for-each scmus-delete! (sort (window-marked window) >))
   (widget-clear-marked window)
   (scmus-update-queue!))
 
@@ -55,7 +50,7 @@
 
 (define-method (widget-paste (window <queue-window>) before?)
   (let loop ((marked (sort (*window-marked window) <))
-             (pos    (- (window-sel-pos window)
+             (pos    (- (list-box-sel-pos window)
                         (if before? 1 0))))
     (unless (null? marked)
       (if (< (car marked) pos)
@@ -72,9 +67,9 @@
 
 (define *queue-window*
   (make <queue-window>
-        'data      (queue-make-rows)
-        'cursed    CURSED-WIN
-        'cursed-fn queue-cursed))
+        'data       (queue-make-rows)
+        'cursed     CURSED-WIN
+        'cursed-fun queue-cursed))
 
 (define-view queue
   (make-frame
@@ -85,4 +80,4 @@
   (widget-damaged! (get-view 'queue)))
 
 (define-event-handler (queue-data-changed) ()
-  (set! (window-data *queue-window*) (queue-make-rows)))
+  (set! (list-box-data *queue-window*) (queue-make-rows)))

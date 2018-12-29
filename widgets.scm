@@ -124,269 +124,86 @@
   
   ;; <format-text> }}}
   ;; <window> {{{
-  ;;
-  ;; A window is a list with a visible section and a cursor.  The visible
-  ;; section follows the cursor.
-  ;;
-  ;;              ,+- - - - - - - - - - - -+ <--- 0
-  ;;             / |                       |
-  ;;            |  +- - - - - - - - - - - -+
-  ;;            |  |                       |
-  ;;            |  +=======================+,<--- top-pos
-  ;;            |  |                       | \
-  ;;            |  +-----------------------+<-|-- sel-pos
-  ;; data-len -<   |#######################|  |
-  ;;            |  +-----------------------+   >- nr-lines
-  ;;            |  |                       |  |
-  ;;            |  +-----------------------+  |
-  ;;            |  |                       | /
-  ;;            |  +=======================+`
-  ;;             \ |                       |
-  ;;              `+- - - - - - - - - - - -+
-  ;;
-  ;; A window can be searched.  This works by calling the function in the @match
-  ;; slot on each row of the window; if @match returns true, then the row is
-  ;; considered to be a match for the query.
-  ;;
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (define-class <window> (<container>)
-    ((data       initform: #()
-                 reader:   *window-data)
-     (top-pos    initform: 0
-                 accessor: window-top-pos)
-     (sel-pos    initform: 0
-                 accessor: window-sel-pos)
-     (marked     initform: '()
-                 ; writer below
-                 reader:   *window-marked)
-     (h-border   initform: 1
-                 accessor: window-h-border)
-     (cursed-fn  initform: (lambda (w r l) #f)
-                 reader:   *window-cursed)))
+  (define-class <window> (<list-box>)
+    ((marked initform: '()
+             accessor: *window-marked)))
 
-  (define-method (initialize-instance (window <window>))
-    (call-next-method)
-    ; allow giving window-data as a list
-    (cond
-      ((vector? (*window-data window)) (void))
-      ((list? (*window-data window))
-        (set! (slot-value window 'data) (list->vector (*window-data window))))
-      (else (assert #f "initialize-instance" window))))
-
-  (define-method (window-data (window <window>))
-    (vector->list (slot-value window 'data)))
-
-  (define-method ((setter window-data) (window <window>) data)
-    ; convert data to vector
-    (let* ((data (cond
-                   ((vector? data) data)
-                   ((list? data)   (list->vector data))
-                   (else           (assert #f "(setter window-data)" window data))))
-           (len  (vector-length data)))
-      (set! (slot-value window 'data) data)
-      ; set parent on children
-      (vector-for-each (lambda (i row)
-                         (set! (widget-parent row) window))
-                       data)
-      ; update pointers into data
-      (when (>= (window-sel-pos window) len)
-        (set! (window-sel-pos window) (max 0 (- len 1))))
-      (when (>= (window-top-pos window) len)
-        (set! (window-top-pos window) (max 0 (- len 1))))
-      (widget-damaged! window)))
-
-  (define-method (window-length (window <window>))
-    (vector-length (*window-data window)))
-
-  (define-method ((setter *window-marked) (window <window>) marked)
-    (set! (slot-value window 'marked) marked)
+  (define-method ((setter *window-marked) after: (window <window>) marked)
     (widget-damaged! window))
 
-  ;; When the number of visible lines changes, the cursor may go off-screen;
-  ;; if so, we adjust TOP-POS so that the cursor remains on-screen.
-  (define-method ((setter widget-rows) (window <window>) rows)
-    (let ((top-pos (window-top-pos window))
-          (sel-pos (window-sel-pos window)))
-      (when (<= rows (- sel-pos top-pos))
-        (set! (window-top-pos window)
-              (+ top-pos
-                 (- (widget-rows window) rows)))))
-    (call-next-method))
-
-  (define-method (window-empty? (window <window>))
-    (zero? (window-length window)))
-
-  (: window-sel-offset (window -> fixnum))
-  (define (window-sel-offset window)
-    (- (window-sel-pos window)
-       (window-top-pos window)))
-
-  (: window-selected (window -> *))
   (define (window-selected window)
-    (assert (> (window-length window) (window-sel-pos window))
-            "window-selected"
-            (window-length window)
-            (window-sel-pos window))
-    (vector-ref (*window-data window) (window-sel-pos window)))
-
-  (: window-all-selected (window -> list))
-  (define (window-all-selected window)
-    (if (window-empty? window)
+    (if (list-box-empty? window)
       '()
-      (let ((data   (*window-data window))
-            (marked (window-marked window)))
-        (map (lambda (x) (vector-ref data x)) marked))))
+      (let ((data   (list-box-data window)))
+        (map (lambda (x) (vector-ref data x))
+             (window-marked window)))))
 
-  ;; XXX: selected row counts as marked
-  (: window-marked (window -> list))
   (define (window-marked window)
-    (if (window-empty? window)
+    (if (list-box-empty? window)
       '()
-      (let ((sel-pos (window-sel-pos window))
-            (marked (*window-marked window)))
-        (if (member sel-pos marked)
-          marked
-          (cons sel-pos marked)))))
+      (sort (lset-adjoin = (*window-marked window)
+                           (list-box-sel-pos window))
+            <)))
 
   (define-method (widget-mark (window <window>))
-    (let ((sel-pos (window-sel-pos window))
-          (marked (*window-marked window)))
-      (unless (or (window-empty? window)
-                  (member sel-pos marked))
-        (set! (*window-marked window) (cons sel-pos marked)))))
+    (unless (list-box-empty? window)
+      (set! (*window-marked window) (lset-adjoin = (*window-marked window)
+                                                    (list-box-sel-pos window)))))
 
   (define-method (widget-unmark (window <window>))
-    (let ((sel-pos (window-sel-pos window))
-          (marked (*window-marked window)))
-      (if (and (not (window-empty? window))
-               (member sel-pos marked))
-        (set! (*window-marked window) (remove (lambda (x) (= x sel-pos)) marked)))))
+    (unless (list-box-empty? window)
+      (set! (*window-marked window) (lset-difference = (*window-marked window)
+                                                        (list (list-box-sel-pos window))))))
 
   (define-method (widget-toggle-mark (window <window>))
-    (let ((sel-pos (window-sel-pos window))
-          (marked (*window-marked window)))
-      (when (not (window-empty? window))
-        (if (member sel-pos marked)
-          (set! (*window-marked window) (remove (lambda (x) (= x sel-pos)) marked))
+    (unless (list-box-empty? window)
+      (let ((marked  (*window-marked window))
+            (sel-pos (list-box-sel-pos window)))
+        (if (memq sel-pos marked)
+          (set! (*window-marked window) (lset-difference = marked (list sel-pos)))
           (set! (*window-marked window) (cons sel-pos marked))))))
 
   (define-method (widget-clear-marked (window <window>))
-    (set! (*window-marked window) '())
-    (widget-damaged! window))
-
-  (: window-cursed (window * fixnum -> undefined))
-  (define (window-cursed window row line-nr)
-    ((*window-cursed window) window row line-nr))
-
-  (define (window-moved window old-sel-pos new-sel-pos scroll)
-    (if (not (zero? scroll))
-      (widget-damaged! window)
-      (let ((old-sel (vector-ref (*window-data window) old-sel-pos))
-            (new-sel (vector-ref (*window-data window) new-sel-pos)))
-        (set! (widget-cursed/cached old-sel) (window-cursed window old-sel old-sel-pos))
-        (set! (widget-cursed/cached new-sel) (window-cursed window new-sel new-sel-pos))
-        (widget-damaged! old-sel)
-        (widget-damaged! new-sel))))
-
-  (: window-move-down! (window fixnum -> undefined))
-  (define (window-move-down! window n)
-    (let* ((top-pos  (window-top-pos window))
-           (sel-pos  (window-sel-pos window))
-           (data-len (window-length window))
-           (nr-lines (widget-rows window))
-           (can-move (max 0 (min n (- data-len sel-pos 1))))
-           (scroll   (max 0 (+ 1 (- (+ sel-pos can-move)
-                                    (+ top-pos nr-lines))))))
-      (set! (window-top-pos window) (+ top-pos scroll))
-      (set! (window-sel-pos window) (+ sel-pos can-move))
-      (window-moved window sel-pos (+ sel-pos can-move) scroll)))
-
-  (: window-move-up! (window fixnum -> undefined))
-  (define (window-move-up! window n)
-    (let* ((top-pos (window-top-pos window))
-           (sel-pos (window-sel-pos window))
-           (can-move (min n sel-pos))
-           (scroll (max 0 (- can-move
-                             (- sel-pos top-pos)))))
-      (set! (window-top-pos window) (- top-pos scroll))
-      (set! (window-sel-pos window) (- sel-pos can-move))
-      (window-moved window sel-pos (- sel-pos can-move) scroll)))
-
-  (: window-move-top! (window -> undefined))
-  (define (window-move-top! window)
-    (window-select! window 0)
-    (void))
-
-  (: window-move-bottom! (window -> undefined))
-  (define (window-move-bottom! window)
-    (window-select! window (- (window-length window) 1))
-    (void))
-
-  (define (window-move-cursor! window n #!optional relative)
-    (let ((nr-lines (if relative
-                      (integer-scale (widget-rows window) n)
-                      n)))
-      (if (> nr-lines 0)
-        (window-move-down! window nr-lines)
-        (window-move-up! window (abs nr-lines))))
-    (void))
+    (set! (*window-marked window) '()))
 
   (define-method (widget-move (window <window>) n relative?)
-    (let ((nr-lines (if relative?
-                      (integer-scale (widget-rows window) n)
-                      n)))
-      (if (> nr-lines 0)
-        (window-move-down! window nr-lines)
-        (window-move-up! window (abs nr-lines))))
-    (void))
+    (list-box-move window n relative?))
 
   (define-method (widget-move-top (window <window>))
-    (window-select! window 0)
-    (void))
+    (list-box-select window 0))
 
   (define-method (widget-move-bottom (window <window>))
-    (window-select! window (- (window-length window) 1))
-    (void))
-
-  (: window-select! (window fixnum -> undefined))
-  (define (window-select! window i)
-    (let* ((sel-pos (window-sel-pos window))
-           (diff (- sel-pos i)))
-      (cond
-        ((> diff 0) (window-move-up! window diff))
-        ((< diff 0) (window-move-down! window (abs diff))))))
+    (list-box-select window (- (list-box-length window) 1)))
 
   ;; search {{{
   (define-method (widget-search (window <window>) query backward?)
-    (unless (window-empty? window)
+    (unless (list-box-empty? window)
       (let ((i (if backward?
                  (window-search-backward window query)
                  (window-search-forward window query))))
-        (when i (window-select! window i)))))
+        (when i (list-box-select window i)))))
 
   (define (window-search-forward window query)
-    (define (match-fun row)
-      (widget-match row query))
-    (or (window-index window match-fun (+ 1 (window-sel-pos window)))
-        (window-index window match-fun 0 (+ 1 (window-sel-pos window)))))
+    (define (match-fun row) (widget-match row query))
+    (or (window-index window match-fun (+ 1 (list-box-sel-pos window)))
+        (window-index window match-fun 0 (+ 1 (list-box-sel-pos window)))))
 
   (define (window-search-backward window query)
-    (define (match-fun row)
-      (widget-match row query))
-    (or (window-index-right window match-fun 0 (window-sel-pos window))
-        (window-index-right window match-fun (window-sel-pos window))))
+    (define (match-fun row) (widget-match row query))
+    (or (window-index-right window match-fun 0 (list-box-sel-pos window))
+        (window-index-right window match-fun (list-box-sel-pos window))))
 
-  (define (window-index window pred? #!optional (start 0) (end (window-length window)))
-    (let ((data (*window-data window)))
+  (define (window-index window pred? #!optional (start 0) (end (list-box-length window)))
+    (let ((data (list-box-data window)))
       (let loop ((i start))
         (cond
           ((>= i end) #f)
           ((pred? (vector-ref data i)) i)
           (else (loop (+ i 1)))))))
 
-  (define (window-index-right window pred? #!optional (start 0) (end (window-length window)))
-    (let ((data (*window-data window)))
+  (define (window-index-right window pred? #!optional (start 0) (end (list-box-length window)))
+    (let ((data (list-box-data window)))
       (let loop ((i (- end 1)))
         (cond
           ((< i start) #f)
@@ -394,59 +211,38 @@
           (else (loop (- i 1)))))))
   ;; search }}}
 
-  (define-method (container-children (window <window>))
-    (vector->list (*window-data window)))
-
-  (define-method (widget-focus (window <window>))
-    (widget-focus (window-selected window)))
-
-  (define-method (compute-layout (window <window>) cols rows)
-    (let ((data     (*window-data window))
-          (top-pos  (window-top-pos window))
-          (data-len (window-length window)))
-      (map (lambda (i)
-             (list (vector-ref data (+ top-pos i)) 0 i cols 1))
-           (iota (min rows (- data-len top-pos))))))
-
-  ;; Even though <window>s are <container>s, we still implement PRINT-WIDGET!
-  ;; so that we can use WITH-CURSED per-line.
-  (define-method (print-widget! (window <window>) x y cols rows)
-    (let ((data     (*window-data window))
-          (top-pos  (window-top-pos window))
-          (data-len (window-length window)))
-      (let loop ((line top-pos))
-        (when (and (< line data-len)
-                   (< line (+ top-pos rows)))
-          (let ((row    (vector-ref data line))
-                (row-nr (- line top-pos)))
-            (with-cursed (or (widget-cursed row)
-                             (window-cursed window row line))
-              (print-widget! row x (+ y row-nr) cols 1)))
-          (loop (+ line 1))))))
-
   (define-method (handle-input (window <window>) input event)
+    ;; Get the index of an item from a row number
+    (define (get-index row)
+      (let loop ((layout (container-layout/cached window))
+                 (i 0))
+        (if (null? layout)
+          #f ;(- (list-box-length window) 1)
+          (let ((child-y (third (car layout)))
+                (child-rows (fifth (car layout))))
+            (if (and (>= row child-y)
+                     (< row (+ child-y child-rows)))
+              (+ (list-box-top-pos window) i)
+              (loop (cdr layout) (+ i 1)))))))
     (when (eqv? input KEY_MOUSE)
-      (let ((row (+ (window-top-pos window)
-                    (- (mouse-event-y event) (widget-y window)))))
-        (mouse-case event
-          ((BUTTON1_CLICKED BUTTON1_DOUBLE_CLICKED)
-            (window-select! window row)))))
+      (let ((index (get-index (- (mouse-event-y event)
+                                 (widget-y window)))))
+        (when index
+          (mouse-case event
+            ((BUTTON1_CLICKED BUTTON1_DOUBLE_CLICKED)
+              (list-box-select window index))))))
     (call-next-method))
 
-;; Generates a function to call cursed-set! with the appropriate value given
-;; a window, row, and line number.
-(: win-cursed-fn (#!optional (* -> boolean) -> (window * fixnum -> fixnum)))
-(define (win-cursed-fn #!optional current?)
-  (lambda (window row row-pos)
-    (let* ((current (if current? (current? row) #f))
-           (selected (= row-pos (window-sel-pos window)))
-           (marked (member row-pos (window-marked window))))
-      (cond
-        ((and current selected) CURSED-WIN-CUR-SEL)
-        (current                CURSED-WIN-CUR)
-        (selected               CURSED-WIN-SEL)
-        (marked                 CURSED-WIN-MARKED)
-        (else                   CURSED-WIN)))))
+  (define (win-cursed-fun #!optional current?)
+    (lambda (w i)
+      (let ((current  (and current? (current? (list-box-ref w i))))
+            (selected (= i (list-box-sel-pos w)))
+            (marked   (memq i (window-marked w))))
+        (cond ((and current selected) CURSED-WIN-CUR-SEL)
+              (current                CURSED-WIN-CUR)
+              (selected               CURSED-WIN-SEL)
+              (marked                 CURSED-WIN-MARKED)
+              (else                   CURSED-WIN)))))
 
   ;; <window> }}}
   ;; <window-row> {{{
@@ -476,6 +272,9 @@
               (string-contains-ci (format "~a" (cdadr data)) query)))
         (else #f))))
 
+  (define-method (widget-size (row <window-row>) cols rows)
+    (values cols (min 1 rows)))
+
   ;; <window-row> }}}
   ;; <window-separator> {{{
 
@@ -490,6 +289,9 @@
                                             (separator-char widget))
                                (window-separator-text widget))))
       (print-line! text x y cols (separator-char widget))))
+
+  (define-method (widget-size (w <window-separator>) cols rows)
+    (values cols (min 1 rows)))
 
   ;; <window-separator> }}}
   ;; <scheme-text> {{{

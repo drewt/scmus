@@ -30,7 +30,7 @@
   (widget-damaged! (get-view 'options)))
 
 (define (option-row-name row)
-  (string->symbol (string-trim (text-text (split-pane-left-child row)))))
+  (string->symbol (string-trim (car (text-text (split-pane-left-child row))))))
 
 (define (option-commit-edit! widget)
   (let ((text (text-input-get-text widget)))
@@ -51,21 +51,21 @@
 (define-class <options-window> (<window>))
 
 (define-method (widget-edit (window <options-window>))
-  (unless (window-empty? window)
-    (text-input-begin (split-pane-right-child (window-selected window)) steal-focus: #t)))
+  (unless (list-box-empty? window)
+    (text-input-begin (split-pane-right-child (list-box-selected window)) steal-focus: #t)))
 
 (define-method (widget-activate (window <options-window>))
   (widget-edit window))
 
 (define *options-window*
   (make <options-window>
-        'data       (make-options-data)
-        'cursed     CURSED-WIN
-        'cursed-fn (win-cursed-fn)))
+        'data        (make-options-data)
+        'cursed      CURSED-WIN
+        'cursed-fun (win-cursed-fun)))
 
 (define-view options
   (make-frame 'body   *options-window*
               'header (make-text " Options" 'cursed CURSED-WIN-TITLE)))
 
 (define-event-handler (option-data-changed) ()
-  (set! (window-data *options-window*) (make-options-data)))
+  (set! (list-box-data *options-window*) (make-options-data)))

@@ -130,8 +130,8 @@
 
 (define *status-window*
   (make <window> 'data (make-status-rows)
-                 'cursed CURSED-WIN
-                 'cursed-fn (win-cursed-fn)))
+                  'cursed CURSED-WIN
+                  'cursed-fun (win-cursed-fun)))
 
 (define-view status
   (make-frame 'body   *status-window*
@@ -153,7 +153,7 @@
   (set! (format-text-data current-line) (current-track)))
 
 (define-event-handler (status-changed) ()
-  (set! (window-data *status-window*) (make-status-rows))
+  (set! (list-box-data *status-window*) (make-status-rows))
   (set! (format-text-format status-line) (get-format 'format-status))
   (set! (format-text-data status-line) (current-track)))
 
