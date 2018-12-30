@@ -174,7 +174,14 @@
       (call-with-cursed call-next-method (widget-cursed widget))))
 
   (define-method (reprint-widget! (w <widget>))
-    (when (widget-damaged? w)
+    (define (parent-damaged? w)
+      (let ((parent (widget-parent w)))
+        (cond
+          ((not parent) #f)
+          ((widget-damaged? parent) #t)
+          (else (parent-damaged? parent)))))
+    (when (and (widget-damaged? w)
+               (not (parent-damaged? w)))
       (with-cursed (widget-cursed/cached w)
         (print-widget! w (widget-x w) (widget-y w) (widget-cols w) (widget-rows w)))))
 
