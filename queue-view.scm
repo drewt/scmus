@@ -18,6 +18,7 @@
 (import scmus.base
         scmus.client
         scmus.event
+        scmus.option
         scmus.status
         scmus.track
         scmus.tui
@@ -27,8 +28,11 @@
 (define queue-cursed
   (win-cursed-fun (lambda (row) (current-track? (window-row-data row)))))
 
-(define (queue-format _)
-  (get-format 'format-queue))
+(define queue-format
+  (let ((fmt (get-option 'format-queue)))
+    (add-option-listener 'format-queue
+      (lambda (opt) (set! fmt (option-value opt))))
+    (lambda (_) fmt)))
 
 (define (queue-make-rows)
   (map (lambda (x) (make-window-row x 'file queue-format))

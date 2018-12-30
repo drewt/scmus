@@ -35,10 +35,10 @@
         scmus.view
         scmus.widgets)
 
-(define current-line (make-format-text (get-format 'format-current)
+(define current-line (make-format-text (get-option 'format-current)
                                        (current-track)
                                        'cursed CURSED-TITLELINE))
-(define status-line (make-format-text (get-format 'format-status)
+(define status-line (make-format-text (get-option 'format-status)
                                       (current-track)
                                       'cursed CURSED-STATUSLINE))
 (define foot-pile (make-pile (list current-line status-line command-line-widget)))
@@ -139,15 +139,23 @@
 
 (add-listener/global 'current-track-changed
   (lambda ()
-    (set! (format-text-format current-line) (get-format 'format-current))
     (set! (format-text-data current-line) (current-track))))
 
 (add-listener/global 'status-changed
   (lambda ()
     (set! (list-box-data *status-window*) (make-status-rows))
-    (set! (format-text-format status-line) (get-format 'format-status))
     (set! (format-text-data status-line) (current-track))))
 
 (add-listener/global 'color-changed update-colors!)
 (add-listener/global 'db-changed scmus-update-stats!)
 (add-listener/global 'format-changed (lambda () (draw-ui root-widget)))
+
+(add-option-listener 'format-current
+  (lambda (option)
+    (set! (format-text-format current-line)
+          (option-value option))))
+
+(add-option-listener 'format-status
+  (lambda (option)
+    (set! (format-text-format status-line)
+          (option-value option))))

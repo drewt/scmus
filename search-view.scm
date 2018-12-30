@@ -16,18 +16,21 @@
 ;;
 
 (import coops-utils
-        drewt.ncurses)
-(import scmus.base
+        drewt.ncurses
+        scmus.base
         scmus.client
         scmus.format
+        scmus.option
         scmus.track
         scmus.tui
         scmus.view
         scmus.widgets)
 
-(define (search-format row)
-  (get-format 'format-search-file))
-
+(define search-format
+  (let ((fmt (get-option 'format-search-file)))
+    (add-option-listener 'format-search-file
+      (lambda (o) (set! fmt (option-value o))))
+    (lambda (_) fmt)))
 
 (define (make-search-field)
   (make-text-input "" " * " 'on-commit search-field-commit!))

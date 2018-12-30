@@ -23,20 +23,33 @@
         scmus.client
         scmus.event
         scmus.format
+        scmus.option
         scmus.track 
         scmus.tui
         scmus.view
         scmus.widgets)
 
-(: library-format (symbol -> format-spec))
-(define (library-format row)
-  (case (window-row-type row)
-    ((separator) (get-format 'format-separator))
-    ((playlist)  (get-format 'format-library-playlist))
-    ((artist)    (get-format 'format-library-artist))
-    ((album)     (get-format 'format-library-album))
-    ((file)      (get-format 'format-library-file))
-    ((metadata)  (get-format 'format-library-metadata))))
+(define library-format
+  (let ((sep (get-option 'format-separator))
+        (pla (get-option 'format-library-playlist))
+        (art (get-option 'format-library-artist))
+        (alb (get-option 'format-library-album))
+        (fil (get-option 'format-library-file))
+        (met (get-option 'format-library-metadata)))
+    (add-option-listener 'format-separator        (lambda (o) (set! sep (option-value o))))
+    (add-option-listener 'format-library-playlist (lambda (o) (set! pla (option-value o))))
+    (add-option-listener 'format-library-artist   (lambda (o) (set! art (option-value o))))
+    (add-option-listener 'format-library-album    (lambda (o) (set! alb (option-value o))))
+    (add-option-listener 'format-library-file     (lambda (o) (set! fil (option-value o))))
+    (add-option-listener 'format-library-metadata (lambda (o) (set! met (option-value o))))
+    (lambda (row)
+      (case (window-row-type row)
+        ((separator) sep)
+        ((playlist)  pla)
+        ((artist)    art)
+        ((album)     alb)
+        ((file)      fil)
+        ((metadata)  met)))))
 
 (define-class <library-window> (<window>))
 

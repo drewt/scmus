@@ -44,7 +44,7 @@
          ; TODO: instead of using a <split-pane>, use a text-input with a prefix
          ;       and set the prefix length to half the screen size
          (make-split-pane (make-text (string-append " " (symbol->string (car option))))
-                          (make-text-input (option-string (cdr option)) ""
+                          (make-text-input (option->string (cdr option)) ""
                                            'on-commit option-commit-edit!)))
        (options)))
 

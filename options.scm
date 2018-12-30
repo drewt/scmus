@@ -15,8 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (export get-format))
-
 (import scmus.base
         scmus.event
         scmus.format
@@ -24,44 +22,30 @@
         scmus.tui)
 
 ;; {{{ Miscellaneous
-(: boolean-set! option-setter)
-(define (boolean-set! option value)
-  (option-value-set! option (if value #t #f)))
+(register-option! 'mpd-address
+  (make-option "localhost" 'validator string?))
 
-(: mpd-address-set! option-setter)
-(define (mpd-address-set! option value)
-  (when (string? value)
-    (option-value-set! option value)))
+(register-option! 'mpd-port
+  (make-option 6600 'validator (lambda (port)
+                                 (or (not port)
+                                     (and (integer? port)
+                                          (< port 65536))))))
+(register-option! 'mpd-password
+  (make-option #f 'validator (lambda (pass)
+                               (or (not pass)
+                                   (string? pass)))))
 
-(: mpd-port-set! option-setter)
-(define (mpd-port-set! option value)
-  (when (or (not value)
-            (and (integer? value)
-                 (< value 65536)))
-    (option-value-set! option value)))
+(register-option! 'status-update-interval
+  (make-option 1.5 'validator (lambda (n)
+                                (and (number? n)
+                                     (positive? n)))))
 
-(: mpd-password-set! option-setter)
-(define (mpd-password-set! option value)
-  (when (or (not value) (string? value))
-    (option-value-set! option value)))
+(register-option! 'eval-mode-print
+  (make-option #f 'converter (lambda (v) (not (not v)))))
 
-(: update-interval-set! option-setter)
-(define (update-interval-set! option value)
-  (when (and (number? value)
-             (positive? value))
-    (option-value-set! option value)))
-
-(: enable-mouse-set! option-setter)
-(define (enable-mouse-set! option value)
-  (enable-mouse value)
-  (option-value-set! option (if value #t #f)))
-
-(register-option! 'mpd-address "localhost" mpd-address-set!)
-(register-option! 'mpd-port 6600 mpd-port-set!)
-(register-option! 'mpd-password #f mpd-password-set!)
-(register-option! 'status-update-interval 1.5 update-interval-set!)
-(register-option! 'eval-mode-print #f boolean-set!)
-(register-option! 'enable-mouse #t enable-mouse-set!)
+(register-option! 'enable-mouse
+  (make-option #t 'converter (lambda (v) (not (not v)))
+                  'after     (lambda (v) (enable-mouse v))))
 ;; }}} Miscellaneous
 ;; {{{ Colors
 (: color-symbol? predicate)
@@ -85,18 +69,16 @@
   (or (and (integer? value) (< value 256))
       (and (symbol? value) (color-symbol? value))))
 
-(: color-set! option-setter)
-(define (color-set! option value)
-  (when (and (list? value)
-             (= (length value) 3)
-             (attr-valid? (car value))
-             (color-valid? (cadr value))
-             (color-valid? (caddr value)))
-    (option-value-set! option value)
-    (signal-event/global 'color-changed)))
-
 (define (register-colors! name colors)
-  (register-option! name colors color-set!))
+  (register-option! name
+    (make-option colors 'validator (lambda (colors)
+                                     (and (list? colors)
+                                          (= (length colors) 3)
+                                          (attr-valid? (first colors))
+                                          (color-valid? (second colors))
+                                          (color-valid? (third colors))))
+                        'after     (lambda (_)
+                                     (signal-event/global 'color-changed)))))
 
 (register-colors! 'color-cmdline     '(default default default))
 (register-colors! 'color-error       '(default default red))
@@ -111,36 +93,27 @@
 (register-colors! 'color-win-title   '(default blue    white))
 ;; }}} Colors
 ;; {{{ Format Strings
-(: format-set! option-setter)
-(define (format-set! option value)
-  (when (and (string? value) (format-string-valid? value))
-    (option-value-set! option (format-values value))
-    (signal-event/global 'format-changed)))
+(define-class <format-option> (<option>)
+  ((string accessor: format-option-string)))
 
-(: format-get (option -> string format-spec))
-(define (format-get option)
-  (let ((pair (option-value option)))
-    (values (car pair) (cdr pair))))
+(define-method ((setter option-value) after: (option <format-option>) value)
+  (set! (format-option-string option) value))
 
-(: format-stringify (option -> string))
-(define (format-stringify option)
-  (format "~s" (car (option-value option))))
+(define-method (option->string (option <format-option>))
+  (format "~s" (format-option-string option)))
 
-(: format-values (string -> (pair string format-spec)))
-(define (format-values fmt)
-  (cons fmt (process-format fmt)))
-
-(: get-format (symbol -> format-spec))
-(define (get-format name)
-  (nth-value 1 (get-option name)))
-
-(define *default-track-format* " ~-25%a ~3n. ~t~= ~-4y ~d ")
+(define (format-valid? fmt)
+  (and (string? fmt) (format-string-valid? fmt)))
 
 (define (register-format! name fmt)
-  (register-option! name (format-values fmt)
-    format-set!
-    format-get
-    format-stringify))
+  (let ((opt (make <format-option> 'validator format-valid?
+                                   'converter process-format
+                                   'after     (lambda (_)
+                                                (signal-event/global 'format-changed)))))
+    (set! (option-value opt) fmt)
+    (register-option! name opt)))
+
+(define *default-track-format* " ~-25%a ~3n. ~t~= ~-4y ~d ")
 
 (register-format! 'format-separator        " ~{text}")
 (register-format! 'format-current          " ~a - ~l ~n. ~t~= ~y ")

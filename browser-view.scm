@@ -15,12 +15,11 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (export))
-
-(import drewt.ncurses)
-(import scmus.base
+(import drewt.ncurses
+        scmus.base
         scmus.client
         scmus.event
+        scmus.option
         scmus.track
         scmus.tui
         scmus.view
@@ -41,12 +40,21 @@
   (set! (format-text-data (frame-header (get-view 'browser)))
     (browser-title-data)))
 
-(define (browser-format row)
-  (case (window-row-type row)
-    ((directory) (get-format 'format-browser-dir))
-    ((playlist)  (get-format 'format-browser-playlist))
-    ((file)      (get-format 'format-browser-file))
-    ((metadata)  (get-format 'format-browser-metadata))))
+(define browser-format
+  (let ((dir (get-option 'format-browser-dir))
+        (pla (get-option 'format-browser-playlist))
+        (fil (get-option 'format-browser-file))
+        (met (get-option 'format-browser-metadata)))
+    (add-option-listener 'format-browser-dir      (lambda (o) (set! dir (option-value o))))
+    (add-option-listener 'format-browser-playlist (lambda (o) (set! pla (option-value o))))
+    (add-option-listener 'format-browser-file     (lambda (o) (set! fil (option-value o))))
+    (add-option-listener 'format-browser-metadata (lambda (o) (set! met (option-value o))))
+    (lambda (row)
+      (case (window-row-type row)
+        ((directory) dir)
+        ((playlist)  pla)
+        ((file)      fil)
+        ((metadata)  met)))))
 
 (define-class <browser-window> (<window>))
 
