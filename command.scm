@@ -83,7 +83,9 @@
       name))
 
   (define (get-command name)
-    (hash-table-ref/default *commands* name #f))
+    (or (hash-table-ref/default *commands* name #f)
+        (let-values (((val name) (trie-ref/prefix *command-completion* (string->list name))))
+          (and name (hash-table-ref/default *commands* (list->string name) #f)))))
 
   (define (command-exists? name)
     (if (get-command name) #t #f))

@@ -21,11 +21,15 @@
                     trie->alist/prefix
                     trie-keys
                     trie-ref
+                    trie-ref/prefix
                     trie-set!
                     trie-traverse)
   (import scheme
-          chicken ; define-record-type
-          data-structures)
+          (only chicken
+                define-record-type)
+          (only data-structures
+                alist-ref
+                alist-update!))
 
   ;; XXX: allocate a pair to use as a unique null tag (for EQ?)
   (define null-tag (cons 'null '()))
@@ -110,6 +114,16 @@
         (map (lambda (k/v) (cons (append prefix (car k/v)) (cdr k/v)))
              (trie->alist unprefix))
         default)))
+
+  ;; Like TRIE-REF, but returns successfully if PREFIX is an unambiguous
+  ;; prefix for a value in the trie.  Also, unlike TRIE-REF, this function
+  ;; returns the key as a second value.
+  (define (trie-ref/prefix node prefix #!optional default)
+    (let ((results (trie->alist/prefix node prefix)))
+      (if (or (null? results)
+              (not (null? (cdr results))))
+        (values default #f)
+        (values (cdar results) (caar results)))))
 
   (define (trie-keys node)
     (map car (trie->alist node)))
