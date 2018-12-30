@@ -36,7 +36,9 @@
   (let ((text (text-input-get-text widget)))
     (handle-exceptions e (begin (scmus-error e) #f)
       (set-option! (option-row-name (widget-parent widget))
-                   (with-input-from-string (text-input-get-text widget) read)))))
+                   (with-input-from-string (text-input-get-text widget) read)))
+    (text-input-set-text! widget
+      (option->string (*get-option (option-row-name (widget-parent widget)))))))
 
 (: make-options-data (-> list))
 (define (make-options-data)

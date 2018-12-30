@@ -21,6 +21,7 @@
                       option-value
                       option->string
                       make-option
+                      *get-option
                       get-option
                       set-option!
                       options
