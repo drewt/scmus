@@ -30,6 +30,7 @@
                           widget-rows
                           widget-damaged!
                           widget-visible?
+                          widget-can-focus?
                           widget-first
                           widget-last
                           widget-root
@@ -76,8 +77,9 @@
   (define (clear-damaged-widgets!) (set! *damaged-widgets* '()))
 
   ;; Widget flags
-  (define-constant WIDGET-HIDDEN  1)
-  (define-constant WIDGET-DAMAGED 2)
+  (define-constant WIDGET-HIDDEN       1)
+  (define-constant WIDGET-DAMAGED      2)
+  (define-constant WIDGET-REJECT-FOCUS 4)
 
   (define-class <widget> ()
     ((parent  initform: #f
@@ -127,6 +129,14 @@
         (widget-flag-clear! widget WIDGET-HIDDEN)
         (widget-damaged! widget))
       (widget-flag-set! widget WIDGET-HIDDEN)))
+
+  (define-method (widget-can-focus? (widget <widget>))
+    (not (widget-flag-ref widget WIDGET-REJECT-FOCUS)))
+
+  (define-method ((setter widget-can-focus?) (widget <widget>) can-focus?)
+    (if can-focus?
+      (widget-flag-clear! widget WIDGET-REJECT-FOCUS)
+      (widget-flag-set!   widget WIDGET-REJECT-FOCUS)))
 
   (define-method ((setter widget-cursed) after: (widget <widget>) _)
     (widget-damaged! widget))

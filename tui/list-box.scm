@@ -29,7 +29,7 @@
     ((data       initform: #()
                  reader:   list-box-data)
      (sel-pos    initform: 0
-                 accessor: list-box-sel-pos)
+                 reader:   list-box-sel-pos)
      (top-pos    initform: 0
                  accessor: list-box-top-pos)
      (nr-visible initform: 0
@@ -69,16 +69,38 @@
   (define (list-box-cursed w i)
     ((list-box-cursed-fun w) w i))
 
-  ;; Update colors on prev/new selected item.
-  (define-method ((setter list-box-sel-pos) around: (w <list-box>) new-pos)
+  ;; Changing the cursor location is rather complicated, unfortunately.
+  ;; If the item at the new sel-pos doesn't accept focus, we try to find
+  ;; the first item 'after' the given pos that does ('after' can mean
+  ;; 'before' or 'after', depending on which direction the cursor is
+  ;; moving).  If we can't find a focusable widget 'after' the given pos,
+  ;; we try looking in the other direction (otherwise you couldn't move
+  ;; to the topmost/bottommost item when it doesn't accept focus).
+  ;;
+  ;; With all that said and done, we also update the colors of the old
+  ;; and new items and mark them damaged.
+  (define-method ((setter list-box-sel-pos) (w <list-box>) new-pos)
     (let* ((old-pos (list-box-sel-pos w))
-           (old     (list-box-ref w old-pos))
-           (new     (list-box-ref w new-pos)))
-      (call-next-method)
-      (set! (widget-cursed/cached old) (list-box-cursed w old-pos))
-      (set! (widget-cursed/cached new) (list-box-cursed w new-pos))
-      (widget-damaged! old)
-      (widget-damaged! new)))
+           (len     (list-box-length w)))
+      (let loop ((this-pos new-pos)
+                 (inc      (if (positive? (- new-pos old-pos)) 1 -1))
+                 (retried? #f))
+        (cond
+          ; reached end of data; either reverse direction or give up
+          ((or (< this-pos 0) (>= this-pos len))
+            (unless retried?
+              (loop (- new-pos inc) (* inc -1) #t)))
+          ; widget is focusable, select it
+          ((widget-can-focus? (list-box-ref w this-pos))
+            (let ((old (list-box-ref w old-pos))
+                  (new (list-box-ref w this-pos)))
+              (set! (slot-value w 'sel-pos) this-pos)
+              (set! (widget-cursed/cached old) (list-box-cursed w old-pos))
+              (set! (widget-cursed/cached new) (list-box-cursed w this-pos))
+              (widget-damaged! old)
+              (widget-damaged! new)))
+          ; continue looking in the same direction
+          (else (loop (+ this-pos inc) inc retried?))))))
 
   (define-method ((setter list-box-top-pos) after: (w <list-box>) pos)
     (widget-damaged! w))
@@ -129,7 +151,9 @@
       (list-box-select/last w (list-box-sel-pos w))))
 
   (define-method (widget-focus (w <list-box>))
-    (widget-focus (list-box-selected w)))
+    (if (list-box-empty? w)
+      w
+      (widget-focus (list-box-selected w))))
 
   (define-method (container-children (w <list-box>))
     (vector->list (list-box-data w)))

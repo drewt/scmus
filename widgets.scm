@@ -284,6 +284,9 @@
      (indent initform: 0
              accessor: window-separator-indent)))
 
+  (define-method (initialize-instance after: (w <window-separator>))
+    (set! (widget-can-focus? w) #f))
+
   (define-method (print-widget! (widget <window-separator>) x y cols rows)
     (let ((text (string-append (make-string (window-separator-indent widget)
                                             (separator-char widget))
