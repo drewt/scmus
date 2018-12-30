@@ -76,8 +76,10 @@
     'body   *queue-window*
     'header (make-format-text " Queue - ~{queue-length} tracks" '() 'cursed CURSED-WIN-TITLE)))
 
-(define-event-handler (queue-changed) ()
-  (widget-damaged! (get-view 'queue)))
+(add-listener/global 'queue-changed
+  (lambda ()
+    (widget-damaged! (get-view 'queue))))
 
-(define-event-handler (queue-data-changed) ()
-  (set! (list-box-data *queue-window*) (queue-make-rows)))
+(add-listener/global 'queue-data-changed
+  (lambda ()
+    (set! (list-box-data *queue-window*) (queue-make-rows))))

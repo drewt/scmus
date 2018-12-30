@@ -94,14 +94,15 @@
             (window-selected window))
   (scmus-update-queue!))
 
-(define-event-handler (db-changed) ()
-  (set! (list-box-data (widget-last (frame-body (get-view 'library))))
-        (append! (cons (make <window-separator> 'text " Playlists" 'cursed CURSED-WIN-TITLE)
-                       (map (lambda (x) (make-window-row (list x) 'playlist library-format))
-                            (scmus-list-playlists)))
-                 (cons (make <window-separator> 'text " Artists" 'cursed CURSED-WIN-TITLE)
-                       (map (lambda (x) (make-window-row (list x) 'artist library-format))
-                            (scmus-list-tags 'artist))))))
+(add-listener/global 'db-changed
+  (lambda ()
+    (set! (list-box-data (widget-last (frame-body (get-view 'library))))
+          (append! (cons (make <window-separator> 'text " Playlists" 'cursed CURSED-WIN-TITLE)
+                         (map (lambda (x) (make-window-row (list x) 'playlist library-format))
+                              (scmus-list-playlists)))
+                   (cons (make <window-separator> 'text " Artists" 'cursed CURSED-WIN-TITLE)
+                         (map (lambda (x) (make-window-row (list x) 'artist library-format))
+                              (scmus-list-tags 'artist)))))))
 
 (define (make-library-window data)
   (make <library-window>

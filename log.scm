@@ -56,7 +56,7 @@
                 (string-split (log-entry-long-message entry) "\n"))))
 
   ;; Base logger class.  Keeps N entries in an in-memory log.
-  (define-class <logger> ()
+  (define-class <logger> (<event-source>)
     ((log    initform: '()
              accessor: logger-log)
      (size   initform: 25
@@ -92,7 +92,7 @@
   (define-method (logger-write! (logger <logger>) type short-message #!optional long-message)
     (when ((logger-filter logger) type)
       (logger-append-entry! logger (make-log-entry type short-message long-message))
-      (register-event! 'log-changed)))
+      (signal-event logger 'new-data)))
 
   (define-class <port-logger> (<logger>)
     ((port initform: (current-error-port)

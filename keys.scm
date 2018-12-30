@@ -153,7 +153,7 @@
       (if new
         (begin
           (alist-update! context new *bindings*)
-          (register-event! 'binding-data-changed)
+          (signal-event/global 'binding-data-changed)
           #t)
         #f)))
 
@@ -186,7 +186,7 @@
       (if new
         (begin
           (alist-update! context new *bindings*)
-          (register-event! 'binding-data-changed)
+          (signal-event/global 'binding-data-changed)
           #t)
         #f)))
 

@@ -119,9 +119,6 @@
 
 (set-title! "scmus")
 
-(define (log-filter log-type)
-  (or *verbose* (memv log-type '(error warning))))
-
 (define (get-environment-mpd-host)
   (let ((str (get-environment-variable "MPD_HOST")))
     (if (not str)
@@ -151,13 +148,10 @@
     (set! opts (alist-update! 'address (alist-ref 'unix opts)
                               (alist-update! 'port #f opts))))
 
-  ; set up logger
-  (current-logger (make <port-logger> 'filter log-filter
-                                      'port   *console-error-port*))
-
   ; initialize various stuff
   (handle-exceptions exn
     (begin (display "\nFailed to initialize scmus.  Exiting.\n")
+           (pp (condition->list exn))
            (exit-all)
            (exit 1))
     (initialize "signals"

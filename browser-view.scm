@@ -103,7 +103,8 @@
               'header (make-format-text " Browser: ~{location}" (browser-title-data)
                                         'cursed CURSED-WIN-TITLE)))
 
-(define-event-handler (db-changed) ()
-  (set! (list-box-data (widget-last (frame-body (get-view 'browser))))
-        (map (lambda (x) (make-window-row x (caar x) browser-format))
-             (scmus-lsinfo "/"))))
+(add-listener/global 'db-changed
+  (lambda ()
+    (set! (list-box-data (widget-last (frame-body (get-view 'browser))))
+          (map (lambda (x) (make-window-row x (caar x) browser-format))
+               (scmus-lsinfo "/")))))

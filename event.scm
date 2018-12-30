@@ -17,65 +17,61 @@
 
 (require-extension srfi-18)
 
-(module scmus.event (define-event-handler
-                     handle-events!
-                     register-event!
-                     register-event-handler!
+(module scmus.event (<event-source>
+                     add-listener
+                     add-listener/global
+                     signal-event
+                     signal-event/global
+                     handle-events
                      register-timer!
                      register-timer-event!)
-  (import srfi-18)
-  (import scmus.base)
+  (import srfi-18
+          coops
+          scmus.base)
 
-  (: *events* (list-of (pair symbol list)))
-  (define *events* '())
+  (define *deferred-events* '())
 
-  ; TODO: use a hash table
-  (: *event-handlers* (list-of (pair symbol thunk)))
-  (define *event-handlers* '())
+  (define-class <event-source> ()
+    ((listeners initform: '()
+                accessor: event-source-listeners)))
 
-  (: register-event! (symbol -> undefined))
-  (define (register-event! event . args)
-    (set! *events* (cons (cons event args) *events*)))
+  (define-method (add-listener (src <event-source>) type listener)
+    (set! (event-source-listeners src) (cons (cons type listener)
+                                             (event-source-listeners src))))
 
-  (: register-event-handler! (symbol thunk -> undefined))
-  (define (register-event-handler! event handler #!key (run-first #f))
-    (let* ((old-handlers (alist-ref event *event-handlers* eqv? '()))
-           (new-handlers (if run-first
-                           (cons handler old-handlers)
-                           (append! old-handlers (list handler)))))
-      (set! *event-handlers*
-        (alist-update! event new-handlers *event-handlers*))))
+  (define-method (signal-event (src <event-source>) type #!key (args '()))
+    (for-each (lambda (type/listener)
+                (when (eqv? (car type/listener) type)
+                  (set! *deferred-events*
+                    (cons (lambda () (apply (cdr type/listener) args))
+                          *deferred-events*))))
+              (event-source-listeners src)))
 
-  (define-syntax define-event-handler
-    (syntax-rules ()
-      ((define-event-handler (name args ...) (options ...) first rest ...)
-         (register-event-handler! 'name (lambda (args ...) first rest ...) options ...))
-      ((define-event-handler name (options ...) handler)
-         (register-event-handler! 'name handler options ...))))
+  (define *global-event-source* (make <event-source>))
 
-  (: handle-events! thunk)
-  (define (handle-events!)
-    (define (handle-event event)
-      (let loop ((handlers (reverse (alist-ref (car event) *event-handlers* eqv? '()))))
-        (unless (null? handlers)
-          (apply (car handlers) (cdr event))
-          (loop (cdr handlers)))))
+  (define (add-listener/global type listener)
+    (add-listener *global-event-source* type listener))
+
+  (define (signal-event/global type . args)
+    (apply signal-event *global-event-source* type args))
+
+  (define (handle-events)
     (handle-timers)
     ;; XXX: Events may trigger other events, so we need to loop until the queue
     ;;      is really empty.  To avoid hanging in the case where multiple events
     ;;      endlessly trigger each other, we specify a maximum recursion depth
     ;;      and discard all pending events when it's reached.
-    (let loop ((events *events*) (i 0))
-      (set! *events* '())
+    (let loop ((events *deferred-events*) (i 0))
+      (set! *deferred-events* '())
       (if (> i 10)
         (make-property-condition 'exn
-          'message "handle-events! reached depth limit"
+          'message "handle-events reached depth limit"
           'arguments events)
         (begin
-          (for-each handle-event events)
-          (if (null? *events*)
+          (for-each (lambda (ev) (ev)) events)
+          (if (null? *deferred-events*)
             #f
-            (loop *events* (+ i 1)))))))
+            (loop *deferred-events* (+ i 1)))))))
 
   (define *timers* '())
 
@@ -94,7 +90,7 @@
     (set! *timers* (append! *timers* (list (make-timer)))))
 
   (define (register-timer-event! name . rest)
-    (apply register-timer! (lambda () (register-event! name)) rest))
+    (apply register-timer! (lambda () (signal-event/global name)) rest))
 
   (define (handle-timers)
     (let ((ct (time->seconds (current-time))))

@@ -392,7 +392,7 @@
 
 (define/user refresh-library
   "Refresh the library view's data"
-  (thunk (register-event! 'db-changed)))
+  (thunk (signal-event/global 'db-changed)))
 (user-synonym refresh-library! refresh-library)
 
 (define/user (register-command name handler #!optional force?)
@@ -406,7 +406,7 @@
 (define/user (register-event-handler event handler)
   "Register an event handler"
   (when (member event *user-events*)
-    (register-event-handler! event handler)) 
+    (add-listener/global event handler))
   (void))
 (user-synonym register-event-handler! register-event-handler)
 

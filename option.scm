@@ -55,7 +55,7 @@
   (: option-set! option-setter)
   (define (option-set! option value)
     ((option-mutator option) option value)
-    (register-event! 'option-data-changed))
+    (signal-event/global 'option-data-changed))
 
   (: option-string (option -> string))
   (define (option-string option)

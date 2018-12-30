@@ -16,6 +16,7 @@
 ;;
 
 (import scmus.base
+        scmus.config
         scmus.event
         scmus.log
         scmus.tui
@@ -67,10 +68,16 @@
                      'cursed CURSED-WIN
                      'cursed-fun (win-cursed-fun)))
 
-(define-event-handler (log-changed) ()
-  (let ((entries (map make-log-text (log-read))))
-    (set! (list-box-data *log-window*) entries)
-    (widget-activate (last entries))))
+  ; set up logger
+(current-logger (make <port-logger> 'filter (lambda (type)
+                                              (or *verbose* (memv type '(error warning))))
+                                    'port   *console-error-port*))
+
+(add-listener (current-logger) 'new-data
+  (lambda ()
+    (let ((entries (map make-log-text (log-read))))
+      (set! (list-box-data *log-window*) entries)
+      (widget-activate (last entries)))))
 
 (define-view log
   (make-frame 'body *log-window*

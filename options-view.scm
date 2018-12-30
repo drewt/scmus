@@ -67,5 +67,6 @@
   (make-frame 'body   *options-window*
               'header (make-text " Options" 'cursed CURSED-WIN-TITLE)))
 
-(define-event-handler (option-data-changed) ()
-  (set! (list-box-data *options-window*) (make-options-data)))
+(add-listener/global 'option-data-changed
+  (lambda ()
+    (set! (list-box-data *options-window*) (make-options-data))))

@@ -60,6 +60,7 @@
           case-lambda
           current-error-port
           define-record-type
+          error
           get-output-string
           let-values
           let*-values

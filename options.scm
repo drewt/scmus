@@ -93,7 +93,7 @@
              (color-valid? (cadr value))
              (color-valid? (caddr value)))
     (option-value-set! option value)
-    (register-event! 'color-changed)))
+    (signal-event/global 'color-changed)))
 
 (define (register-colors! name colors)
   (register-option! name colors color-set!))
@@ -115,7 +115,7 @@
 (define (format-set! option value)
   (when (and (string? value) (format-string-valid? value))
     (option-value-set! option (format-values value))
-    (register-event! 'format-changed)))
+    (signal-event/global 'format-changed)))
 
 (: format-get (option -> string format-spec))
 (define (format-get option)

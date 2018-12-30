@@ -19,7 +19,6 @@
   (import (only extras pretty-print)
           scmus.base
           scmus.command-line
-          scmus.event
           scmus.log)
 
   (define scmus-error
@@ -36,5 +35,4 @@
               (command-line-print-error!
                 (format "~a: ~s" (get-condition-property error 'exn 'message)
                                  (get-condition-property error 'exn 'arguments))))
-            (register-event! 'error-changed)
             (get-output-string out)))))))

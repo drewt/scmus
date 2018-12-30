@@ -103,5 +103,6 @@
   (make-frame 'body   *bindings-window*
               'header (make-text " Key Bindings" 'cursed CURSED-WIN-TITLE)))
 
-(define-event-handler (binding-data-changed) ()
-  (set! (list-box-data *bindings-window*) (make-bindings-data)))
+(add-listener/global 'binding-data-changed
+  (lambda ()
+    (set! (list-box-data *bindings-window*) (make-bindings-data))))

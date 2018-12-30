@@ -79,7 +79,7 @@
 
 (: curses-update thunk)
 (define (curses-update)
-  (let ((err (handle-events!)))
+  (let ((err (handle-events)))
     (if err (scmus-error err)))
   (update-ui root-widget))
 
@@ -137,18 +137,17 @@
   (make-frame 'body   *status-window*
               'header (make-text " MPD Status" 'cursed CURSED-WIN-TITLE)))
 
-(define-event-handler (current-track-changed) ()
-  (set! (format-text-format current-line) (get-format 'format-current))
-  (set! (format-text-data current-line) (current-track)))
+(add-listener/global 'current-track-changed
+  (lambda ()
+    (set! (format-text-format current-line) (get-format 'format-current))
+    (set! (format-text-data current-line) (current-track))))
 
-(define-event-handler (status-changed) ()
-  (set! (list-box-data *status-window*) (make-status-rows))
-  (set! (format-text-format status-line) (get-format 'format-status))
-  (set! (format-text-data status-line) (current-track)))
+(add-listener/global 'status-changed
+  (lambda ()
+    (set! (list-box-data *status-window*) (make-status-rows))
+    (set! (format-text-format status-line) (get-format 'format-status))
+    (set! (format-text-data status-line) (current-track))))
 
-(define-event-handler color-changed () update-colors!)
-
-(define-event-handler db-changed () scmus-update-stats!)
-
-(define-event-handler (format-changed) ()
-  (draw-ui root-widget))
+(add-listener/global 'color-changed update-colors!)
+(add-listener/global 'db-changed scmus-update-stats!)
+(add-listener/global 'format-changed (lambda () (draw-ui root-widget)))
