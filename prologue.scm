@@ -44,17 +44,11 @@
                                (slot initform . accessors) ...
                                (initialize (instance) (void))))))
 
-(define-type format-spec list)
 (define-type predicate (* -> boolean))
 (define-type thunk (-> undefined))
 (define-type track (list-of (pair symbol *)))
 
-(define-type editable (struct editable))
 (define-type mpd-connection (struct mpd-connection))
-(define-type option (struct option))
 (define-type frame (struct frame))
 (define-type window (struct window))
 (define-type widget (struct widget))
-
-(define-type option-getter (option -> *))
-(define-type option-setter (option * -> undefined))

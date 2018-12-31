@@ -428,7 +428,7 @@
 (define/user (scmus-format fmt #!optional (track '()) (len (- (COLS) 2)))
   "Generate formatted text"
   (if (format-string-valid? fmt)
-    (scmus-format (process-format fmt) len track)
+    (scmus-format (compile-format-string fmt) len track)
     (raise
       (make-composite-condition
         (make-property-condition 'exn 'message "invalid format string"

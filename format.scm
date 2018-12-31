@@ -21,7 +21,7 @@
 ;;
 
 (module scmus.format (scmus-format
-                      process-format
+                      compile-format-string
                       format-string-valid?)
   (import irregex
           drewt.ncurses
@@ -32,48 +32,33 @@
           scmus.status
           scmus.track)
 
-  (: *->color-code (* -> fixnum))
-  (define (*->color-code x)
-    (cond
-      ((string? x) (or (*->color-code (string->number x))
-                       (*->color-code (string->symbol x))))
-      ((and (integer? x) (>= x -1) (< x 256)) x)
-      (else (case x
-              ((reset !)       -2)
-              ((default)       -1)
-              ((black)         COLOR_BLACK)
-              ((red)           COLOR_RED)
-              ((green)         COLOR_GREEN)
-              ((yellow)        COLOR_YELLOW)
-              ((blue)          COLOR_BLUE)
-              ((magenta)       COLOR_MAGENTA)
-              ((cyan)          COLOR_CYAN)
-              ((white)         COLOR_WHITE)
-              ((dark-gray)     8)
-              ((light-red)     9)
-              ((light-green)   10)
-              ((light-yellow)  11)
-              ((light-blue)    12)
-              ((light-magenta) 13)
-              ((light-cyan)    14)
-              ((gray)          15)
-              (else            #f)))))
+  ;;
+  ;; A compiled format string is a list of format instructions.
+  ;; Each format instructions is either:
+  ;;  * a function taking a track and a width, and returning a value --
+  ;;    the value is spliced into the output, formatted as if by DISPLAY
+  ;;  * a string -- the string in spliced into the output
+  ;;  * One of the symbols ALIGN-CENTER or ALIGN-RIGHT -- the portion of
+  ;;    the format string following these symbols is center/right aligned
+  ;;  * a list beginning with a sequence of:
+  ;;    * a number             -- determines the amount of padding
+  ;;    * the symbol PAD-RIGHT -- add pading on the right instead of left
+  ;;    * the symbol PAD-ZERO  -- pad with zeros instead of whitespace
+  ;;    * the symbol RELATIVE  -- interpred padding amount as a percentage
+  ;;                              of the available width
+  ;;    * the symbol GROUP     -- calls SCMUS-FORMAT recursively on the
+  ;;                              remainder of the list
+  ;;    -- the last element of the list (if GROUP is not given) is padded
+  ;;       accordingly
+  ;;
+  (define-type format-instruction (or (track fixnum -> *) string symbol pair))
+  (define-type compiled-format-string (list-of format-instruction))
 
-  (define color-reset-string (make-parameter (string (fg-color->char -2))))
+  ;; execution {{{
 
-  (: scmus-state-character (symbol -> string))
-  (define (scmus-state->character state)
-    (assert (memv state '(play stop pause unknown)) "scmus-state->character" state)
-    (case state
-      ((play) ">")
-      ((stop) ".")
-      ((pause) "|")
-      ((unknown) "?")))
-
-  ;; Takes a processed format string (see: process-format) and returns a pair of
-  ;; strings, where the car is the left-justified part and the cdr is the right
-  ;; justified part.
-  (: scmus-format (list fixnum track -> string))
+  ;; The format function.  Takes a compiled format string, a width, and a track
+  ;; object and renders a string accordingly.
+  (: scmus-format (compiled-format-string fixnum track -> string))
   (define (scmus-format fmt len track)
     (let-values (((left center right) (*scmus-format fmt len track)))
       (if (string=? center "")
@@ -90,7 +75,9 @@
                          (string-stretch center #\space center-len)
                          (string-stretch right  #\space right-len))))))
 
-  (: *scmus-format (list fixnum track -> *))
+  ;; Renders a format string, producing 3 values: the left, center and right
+  ;; aligned portions of the rendered output.
+  (: *scmus-format (compiled-format-string fixnum track -> string string string))
   (define (*scmus-format fmt len track)
     (let loop ((fmt (map (lambda (x) (format-replace x track len)) fmt))
                (acc (make-vector 3 ""))
@@ -110,10 +97,8 @@
         (else
           (loop (cdr fmt) acc idx)))))
 
-  (: format-replace ((or (track fixnum -> *) (or string symbol) pair)
-                     track
-                     fixnum
-                       -> (or string symbol)))
+  ;; Renders a single element of a processed format string.
+  (: format-replace (format-instruction track fixnum -> (or string symbol)))
   (define (format-replace e track len)
     (cond
       ((procedure? e) (interp-format-function e track len))
@@ -121,12 +106,14 @@
       ((pair? e) (interp-format-list e track len))
       (else (assert #f "format-replace" e))))
 
+  ;; Renders a function element of a compiled format string.
   (: interp-format-function ((track fixnum -> *) track fixnum -> string))
   (define (interp-format-function fun track len)
     (handle-exceptions e
       (begin (scmus-error e) "<error>")
       (format "~a" (fun track len))))
 
+  ;; Renders a list element of a compiled format string.
   (: interp-format-list (pair track fixnum -> string))
   (define (interp-format-list l track len)
     (let loop ((rest l) (pad-right #f) (pad-char #\space) (rel #f) (width len))
@@ -148,10 +135,29 @@
         ((number? (car rest))
           (loop (cdr rest) pad-right pad-char rel (car rest))))))
 
+  ;; execution }}}
+  ;; compilation {{{
+
+  ;; Remove the "total" from a track/disc number.
+  ;; E.g. "1/13" -> "1"
   (: clean-nr (string -> string))
   (define (clean-nr str)
     (let ((i (string-index str #\/)))
       (if i (string-take str i) str)))
+
+  (: scmus-state-character (symbol -> string))
+  (define (scmus-state->character state)
+    (assert (memv state '(play stop pause unknown)) "scmus-state->character" state)
+    (case state
+      ((play) ">")
+      ((stop) ".")
+      ((pause) "|")
+      ((unknown) "?")))
+
+  ;;
+  ;; Track accessor functions.  These are spliced into the processed
+  ;; format string and called at render time.
+  ;;
 
   (define (format-artist track len)
     (track-artist track))
@@ -200,117 +206,148 @@
   (define (format-bitrate track len)
     (number->string (scmus-bitrate)))
 
-  (: parse-format-spec (format-spec -> *))
-  (define (parse-format-spec spec)
+  ;; Compile a format spec.  Returns two values: the value to
+  ;; substitute for the specifier in the compiled format string,
+  ;; and the remainder of the input after consuming the specifier.
+  (: compile-format-spec ((list-of char) -> * (list-of char)))
+  (define (compile-format-spec spec)
     (case (car spec)
-      ((#\a) format-artist)
-      ((#\l) format-album)
-      ((#\A) format-albumartist)
-      ((#\D) format-discnumber)
-      ((#\n) format-tracknumber)
-      ((#\t) format-title)
-      ((#\g) format-genre)
-      ((#\c) format-comment)
-      ((#\y) format-date)
-      ((#\d) format-duration)
-      ((#\f) format-path)
-      ((#\F) format-filename)
-      ((#\=) 'align-right)
-      ((#\^) 'align-center)
-      ((#\P) format-playing)
-      ((#\p) format-current)
-      ((#\T) format-db-playtime)
-      ((#\v) format-volume)
-      ((#\R) format-repeat)
-      ((#\r) format-random)
-      ((#\S) format-single)
-      ((#\C) format-consume)
-      ((#\{) (parse-braced-spec (cdr spec)))
-      ((#\[) (parse-code-spec (cdr spec)))
-      ((#\<) (parse-color-spec (cdr spec)))
-      ((#\() (parse-group-spec (cdr spec)))
-      ((#\-) (cons 'pad-right (parse-format-spec (cdr spec))))
-      ((#\0) (cons 'pad-zero (parse-format-spec (cdr spec))))
+      ((#\a) (values format-artist (cdr spec)))
+      ((#\l) (values format-album (cdr spec)))
+      ((#\A) (values format-albumartist (cdr spec)))
+      ((#\D) (values format-discnumber (cdr spec)))
+      ((#\n) (values format-tracknumber (cdr spec)))
+      ((#\t) (values format-title (cdr spec)))
+      ((#\g) (values format-genre (cdr spec)))
+      ((#\c) (values format-comment (cdr spec)))
+      ((#\y) (values format-date (cdr spec)))
+      ((#\d) (values format-duration (cdr spec)))
+      ((#\f) (values format-path (cdr spec)))
+      ((#\F) (values format-filename (cdr spec)))
+      ((#\=) (values 'align-right (cdr spec)))
+      ((#\^) (values 'align-center (cdr spec)))
+      ((#\P) (values format-playing (cdr spec)))
+      ((#\p) (values format-current (cdr spec)))
+      ((#\T) (values format-db-playtime (cdr spec)))
+      ((#\v) (values format-volume (cdr spec)))
+      ((#\R) (values format-repeat (cdr spec)))
+      ((#\r) (values format-random (cdr spec)))
+      ((#\S) (values format-single (cdr spec)))
+      ((#\C) (values format-consume (cdr spec)))
+      ((#\{) (compile-braced-spec (cdr spec)))
+      ((#\[) (compile-code-spec (cdr spec)))
+      ((#\<) (compile-color-spec (cdr spec)))
+      ((#\() (compile-group-spec (cdr spec)))
+      ((#\-) (let-values (((next rest-spec) (compile-format-spec (cdr spec))))
+               (values (cons 'pad-right next) rest-spec)))
+      ((#\0) (let-values (((next rest-spec) (compile-format-spec (cdr spec))))
+               (values (cons 'pad-zero next) rest-spec)))
       ((#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
-        (parse-numbered-spec spec))))
-
-  (: take-until->symbol ((list-of char) char -> symbol))
-  (define (take-until->symbol chars delim)
-    (string->symbol
-      (list->string
-        (take-while
-          (lambda (x) (not (char=? x delim)))
-          chars))))
+        (compile-numbered-spec spec))
+      (else (values (string #\~ (car spec)) (cdr spec)))))
 
   ;; Splits a parenthesized format spec in two: the part inside the parentheses
   ;; and the rest.  Handles nested specifiers and escapes.
-  (: parend-split (* char char -> *))
+  (: parend-split ((list-of char) char char -> (list-of char) (list-of char)))
   (define (parend-split spec open close)
     (let loop ((rest spec) (group '()) (count 0) (escaping? #f))
       (cond
+        ; reached the end of input without a closing paren
         ((null? rest) (values (reverse group) #f))
+        ; last char was '\': escape this char
         (escaping? (loop (cdr rest) (cons (car rest) group) count #f))
+        ; open paren: increment COUNT
+        ((char=? (car rest) open)
+          (loop (cdr rest) (cons (car rest) group) (+ count 1) #f))
+        ; close paren: decrement COUNT, or return if COUNT is zero
+        ((char=? (car rest) close)
+          (if (> count 0)
+            (loop (cdr rest) (cons (car rest) group) (- count 1) #f)
+            (values (reverse group) (cdr rest))))
+        ; backslash: escape next char
+        ((char=? (car rest) #\\ )
+          (loop (cdr rest) group count #t))
         (else
-          (cond
-            ((char=? (car rest) open)
-              (loop (cdr rest) (cons (car rest) group) (+ count 1) #f))
-            ((char=? (car rest) close)
-              (if (> count 0)
-                (loop (cdr rest) (cons (car rest) group) (- count 1) #f)
-                (values (reverse group) (cdr rest))))
-            ((char=? (car rest) #\\ )
-              (loop (cdr rest) group count #t))
-            (else
-              (loop (cdr rest) (cons (car rest) group) count #f)))))))
+          (loop (cdr rest) (cons (car rest) group) count #f)))))
 
-  (: parend->symbol (* char char -> symbol))
-  (define (parend->symbol spec open close)
-    (string->symbol (list->string (parend-split spec open close))))
+  ;; Compile a ~{...} specifier.
+  (: compile-braced-spec ((list-of char) -> * (list-of char)))
+  (define (compile-braced-spec spec)
+    (let*-values (((parend rest-spec) (parend-split spec #\{ #\}))
+                  ((meta)             (string->symbol (list->string parend))))
+      (values
+        (case meta
+          ((artist)       format-artist)
+          ((album)        format-album)
+          ((albumartist)  format-albumartist)
+          ((discnumber)   format-discnumber)
+          ((tracknumber)  format-tracknumber)
+          ((title)        format-title)
+          ((genre)        format-genre)
+          ((comment)      format-comment)
+          ((date)         format-date)
+          ((duration)     format-duration)
+          ((path)         format-path)
+          ((filename)     format-filename)
+          ((playing)      format-playing)
+          ((current)      format-current)
+          ((db-playtime)  format-db-playtime)
+          ((volume)       format-volume)
+          ((queue-length) format-queue-length)
+          ((repeat)       format-repeat)
+          ((random)       format-random)
+          ((single)       format-single)
+          ((consume)      format-consume)
+          ((bitrate)      format-bitrate)
+          ((host)         (lambda (track len) (scmus-hostname)))
+          ((port)         (lambda (track len) (scmus-port)))
+          (else           (lambda (track len) (track-meta track meta))))
+        rest-spec)))
 
-  (: parend->string (* char char -> string))
-  (define (parend->string spec open close)
-    (list->string (parend-split spec open close)))
+  ;; Compile a ~[...] specifier.
+  (: compile-code-spec ((list-of char) -> * (list-of char)))
+  (define (compile-code-spec spec)
+    (let*-values (((parend rest-spec) (parend-split spec #\[ #\]))
+                  ((obj)              (user-eval-string (list->string parend))))
+      (values
+        (if (procedure? obj)
+          obj
+          (lambda (track len) obj))
+        rest-spec)))
 
-  (: parse-braced-spec (format-spec -> *))
-  (define (parse-braced-spec spec)
-    (let ((meta (parend->symbol spec #\{ #\})))
-     (case meta
-      ((artist)       format-artist)
-      ((album)        format-album)
-      ((albumartist)  format-albumartist)
-      ((discnumber)   format-discnumber)
-      ((tracknumber)  format-tracknumber)
-      ((title)        format-title)
-      ((genre)        format-genre)
-      ((comment)      format-comment)
-      ((date)         format-date)
-      ((duration)     format-duration)
-      ((path)         format-path)
-      ((filename)     format-filename)
-      ((playing)      format-playing)
-      ((current)      format-current)
-      ((db-playtime)  format-db-playtime)
-      ((volume)       format-volume)
-      ((queue-length) format-queue-length)
-      ((repeat)       format-repeat)
-      ((random)       format-random)
-      ((single)       format-single)
-      ((consume)      format-consume)
-      ((bitrate)      format-bitrate)
-      ((host)         (lambda (track len) (scmus-hostname)))
-      ((port)         (lambda (track len) (scmus-port)))
-      (else           (lambda (track len) (track-meta track meta))))))
+  ;; Convert an arbitrary value to an ncurses color code.
+  (: *->color-code (* -> (or fixnum false)))
+  (define (*->color-code x)
+    (cond
+      ((string? x) (or (*->color-code (string->number x))
+                       (*->color-code (string->symbol x))))
+      ((and (integer? x) (>= x -1) (< x 256)) x)
+      (else (case x
+              ((reset !)       -2)
+              ((default)       -1)
+              ((black)         COLOR_BLACK)
+              ((red)           COLOR_RED)
+              ((green)         COLOR_GREEN)
+              ((yellow)        COLOR_YELLOW)
+              ((blue)          COLOR_BLUE)
+              ((magenta)       COLOR_MAGENTA)
+              ((cyan)          COLOR_CYAN)
+              ((white)         COLOR_WHITE)
+              ((dark-gray)     8)
+              ((light-red)     9)
+              ((light-green)   10)
+              ((light-yellow)  11)
+              ((light-blue)    12)
+              ((light-magenta) 13)
+              ((light-cyan)    14)
+              ((gray)          15)
+              (else            #f)))))
 
-  (: parse-code-spec (format-spec -> *))
-  (define (parse-code-spec spec)
-    (let* ((str (list->string (parend-split spec #\[ #\])))
-           (obj (user-eval-string str)))
-      (if (procedure? obj)
-        obj
-        (lambda (track len) obj))))
+  (define color-reset-string (make-parameter (string (fg-color->char -2))))
 
-  (: parse-color-spec (format-spec -> *))
-  (define (parse-color-spec spec)
+  ;; Compile a ~<...> specifier.
+  (: compile-color-spec ((list-of char) -> * (list-of char)))
+  (define (compile-color-spec spec)
     (define (color-spec->string str)
       (cond
         ; both fg and bg given
@@ -324,147 +361,57 @@
         ((irregex-match ":([^:]+)" str) =>
           (lambda (m) (string (bg-color->char (*->color-code (irregex-match-substring m 1))))))
         (else (string-append "<" str ">"))))
-    (let ((str (parend->string spec #\< #\>)))
-      (cond
-        ((irregex-match "<([^>]*)>(.*)" str) =>
-          (lambda (m)
-            (let ((color-str (color-spec->string (irregex-match-substring m 1)))
-                  (rest-str (irregex-match-substring m 2)))
-              `(splice ,color-str
-                       ,@(parameterize ((color-reset-string color-str))
-                           (*process-format (string->list rest-str)))
-                       ,(color-reset-string)))))
-        (else (color-spec->string str)))))
+    (let*-values (((parend rest-spec) (parend-split spec #\< #\>))
+                  ((str)              (list->string parend)))
+      (values
+        (cond
+          ((irregex-match "<([^>]*)>(.*)" str) =>
+            (lambda (m)
+              (let ((color-str (color-spec->string (irregex-match-substring m 1)))
+                    (rest-str (irregex-match-substring m 2)))
+                `(splice ,color-str
+                         ,@(parameterize ((color-reset-string color-str))
+                             (%compile-format (string->list rest-str)))
+                         ,(color-reset-string)))))
+          (else (color-spec->string str)))
+        rest-spec)))
 
-  (: parse-group-spec (format-spec -> *))
-  (define (parse-group-spec spec)
-    (let ((group (parend-split spec #\( #\))))
-      (cons 'group (*process-format group))))
+  ;; Compile a ~(...) specifier.
+  (: compile-group-spec ((list-of char) -> * (list-of char)))
+  (define (compile-group-spec spec)
+    (let-values (((group rest-spec) (parend-split spec #\( #\))))
+      (values (cons 'group (%compile-format group))
+              rest-spec)))
 
-  (: parse-numbered-spec (format-spec -> *))
-  (define (parse-numbered-spec spec)
-    (define (*parse-spec spec n)
+  ;; Compile a ~# specifier.
+  (: compile-numbered-spec ((list-of char) -> * (list-of char)))
+  (define (compile-numbered-spec spec)
+    (define (*compile-spec spec n)
       (cond
         ((char-numeric? (car spec))
-          (*parse-spec (cdr spec)
+          (*compile-spec (cdr spec)
                        (+ (* n 10)
                           (- (char->integer (car spec))
                              (char->integer #\0)))))
         ((char=? (car spec) #\%)
-          (cons 'relative (cons n (parse-format-spec (cdr spec)))))
-        (else (cons n (parse-format-spec spec)))))
-    (*parse-spec spec 0))
+          (let-values (((next rest-spec) (compile-format-spec (cdr spec))))
+            (values (cons 'relative (cons n next))
+                    rest-spec)))
+        (else
+          (let-values (((next rest-spec) (compile-format-spec spec)))
+            (values (cons n next) rest-spec)))))
+    (*compile-spec spec 0))
 
-  ;; skips over a format spec in a char list
-  (: format-next (format-spec -> *))
-  (define (format-next spec)
-    (cond
-      ((char=? (car spec) #\{) (braced-next (cdr spec)))
-      ((char=? (car spec) #\[) (code-next   (cdr spec)))
-      ((char=? (car spec) #\<) (color-next (cdr spec)))
-      ((char=? (car spec) #\-) (format-next (cdr spec)))
-      ((char=? (car spec) #\() (group-next  (cdr spec)))
-      ((char-numeric? (car spec)) (numbered-next spec))
-      (else (cdr spec))))
+  ;; External interface for compiling format strings.
+  (: compile-format-string (string -> compiled-format-string))
+  (define (compile-format-string str)
+    (%compile-format (string->list str)))
 
-  (: braced-next (format-spec -> *))
-  (define (braced-next spec)
-    (nth-value 1 (parend-split spec #\{ #\})))
-
-  (: code-next (format-spec -> *))
-  (define (code-next spec)
-    (nth-value 1 (parend-split spec #\[ #\])))
-
-  (: color-next (format-spec -> *))
-  (define (color-next spec)
-    (nth-value 1 (parend-split spec #\< #\>)))
-
-  (: group-next (format-spec -> *))
-  (define (group-next spec)
-    (nth-value 1 (parend-split spec #\( #\))))
-
-  (: skip-number (format-spec -> *))
-  (define (skip-number spec)
-    (cond
-      ((char-numeric? (car spec)) (skip-number (cdr spec)))
-      ((char=? (car spec) #\%) (cdr spec))
-      (else spec)))
-
-  (: numbered-next (format-spec -> *))
-  (define (numbered-next spec)
-    (let ((rest (skip-number spec)))
-      (if (char=? (car rest) #\%)
-        (format-next (cdr rest))
-        (format-next rest))))
-
-  (: format-spec-valid? (format-spec -> boolean))
-  (define (format-spec-valid? spec)
-    (if (null? spec)
-      #f
-      (case (car spec)
-        ((#\a #\A #\l #\D #\n #\t #\g #\c #\y #\d #\f #\F #\~ #\= #\^ #\P #\p #\T
-          #\v #\R #\r #\S #\C) #t)
-        ((#\{) (braced-spec-valid? (cdr spec)))
-        ((#\[) (code-spec-valid?   (cdr spec)))
-        ((#\<) (color-spec-valid? (cdr spec)))
-        ((#\() (group-spec-valid?  (cdr spec)))
-        ((#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\0) (numbered-spec-valid? spec))
-        ((#\-) (format-spec-valid? (cdr spec)))
-        (else #f))))
-
-  (: braced-spec-valid? (format-spec -> boolean))
-  (define (braced-spec-valid? spec)
-    (nth-value 1 (parend-split spec #\{ #\})))
-
-  (: code-spec-valid? (format-spec -> boolean))
-  (define (code-spec-valid? spec)
-    (let-values (((code rest) (parend-split spec #\[ #\])))
-      (handle-exceptions e
-        (begin (scmus-error e) #f)
-        (read (open-input-string (list->string code)))
-        rest)))
-
-  (: color-spec-valid? (format-spec -> boolean))
-  (define (color-spec-valid? spec)
-    (let-values (((str rest) (parend-split spec #\< #\>)))
-      ;(*->color-code (list->string color))
-      ; FIXME
-      #t))
-
-  (: group-spec-valid? (format-spec -> boolean))
-  (define (group-spec-valid? spec)
-    (let-values (((group rest) (parend-split spec #\( #\))))
-      (and rest (*format-string-valid? group))))
-
-  (: numbered-spec-valid? (format-spec -> *))
-  (define (numbered-spec-valid? spec)
-    (format-spec-valid? (skip-number spec)))
-
-  ;; this should be called on any user-entered format string
-  (: format-string-valid? (string -> boolean))
-  (define (format-string-valid? str)
-    (*format-string-valid? (string->list str)))
-
-  (: *format-string-valid ((list-of char) -> boolean))
-  (define (*format-string-valid? chars)
-    (cond
-      ((null? chars) #t)
-      ((not (char=? (car chars) #\~))
-        (*format-string-valid? (cdr chars)))
-      ((format-spec-valid? (cdr chars))
-        (*format-string-valid? (format-next (cdr chars))))
-      (else #f)))
-
-  ;; replaces format specifiers with symbols.
-  ;; str is assumed valid.
-  (: process-format (string -> format-spec))
-  (define (process-format str)
-    (*process-format (string->list str)))
-
-  (: *process-format ((list-of char) -> format-spec))
-  (define (*process-format chars)
-    ; first pass: parse format specifiers from list of chars
-    (define (parse-format in)
+  (: %compile-format ((list-of char) -> compiled-format-string))
+  (define (%compile-format chars)
+    ; first pass: extract format specifiers from char list and replace them
+    ;             with formatter instructions
+    (define (compile-format in)
       (let loop ((in in) (out '()))
         (cond
           ((null? in)
@@ -472,9 +419,9 @@
           ((not (char=? (car in) #\~))
             (loop (cdr in) (cons (car in) out)))
           (else
-            (loop (format-next (cdr in))
-                  (cons (parse-format-spec (cdr in)) out))))))
-    ; second pass: convert consecutive chars to strings
+            (let-values (((compiled rest) (compile-format-spec (cdr in))))
+              (loop rest (cons compiled out)))))))
+    ; second pass: combine consecutive chars/strings
     (define (stringify-format fmt)
       (let loop ((rest (cdr fmt))
                  (last (if (char? (car fmt)) (string (car fmt)) (car fmt)))
@@ -492,4 +439,76 @@
             (loop (append (cdar rest) (cdr rest)) last rv))
           (else
             (loop (cdr rest) (car rest) (cons last rv))))))
-    (stringify-format (parse-format chars))))
+    (stringify-format (compile-format chars)))
+
+  ;; compilation }}}
+  ;; validation {{{
+
+  ;; Validate a format specifier.
+  (: format-spec-valid? ((list-of char) -> (or false (list-of char))))
+  (define (format-spec-valid? spec)
+    (if (null? spec)
+      #f
+      (case (car spec)
+        ((#\a #\A #\l #\D #\n #\t #\g #\c #\y #\d #\f #\F #\~ #\= #\^ #\P #\p #\T
+          #\v #\R #\r #\S #\C) (cdr spec))
+        ((#\{) (braced-spec-valid? (cdr spec)))
+        ((#\[) (code-spec-valid?   (cdr spec)))
+        ((#\<) (color-spec-valid? (cdr spec)))
+        ((#\() (group-spec-valid?  (cdr spec)))
+        ((#\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\0) (numbered-spec-valid? spec))
+        ((#\-) (format-spec-valid? (cdr spec)))
+        (else #f))))
+
+  ;; Validate a ~{...} specifier.
+  (: braced-spec-valid? ((list-of char) -> (or false (list-of char))))
+  (define (braced-spec-valid? spec)
+    (nth-value 1 (parend-split spec #\{ #\})))
+
+  ;; Validate a ~[...] specifier.
+  (: code-spec-valid? ((list-of char) -> (or false (list-of char))))
+  (define (code-spec-valid? spec)
+    (let-values (((code rest) (parend-split spec #\[ #\])))
+      (handle-exceptions e
+        (begin (scmus-error e) #f)
+        (read (open-input-string (list->string code)))
+        rest)))
+
+  ;; Validate a ~<...> specifier.
+  (: color-spec-valid? ((list-of char) -> (or false (list-of char))))
+  (define (color-spec-valid? spec)
+    (let-values (((str rest) (parend-split spec #\< #\>)))
+      ; FIXME: validate STR
+      rest))
+
+  ;; Validate a ~(...) specifier.
+  (: group-spec-valid? ((list-of char) -> (or false (list-of char))))
+  (define (group-spec-valid? spec)
+    (let-values (((group rest) (parend-split spec #\( #\))))
+      (and rest (*format-string-valid? group) rest)))
+
+  ;; Validate a ~# specifier.
+  (: numbered-spec-valid? ((list-of char) -> (or false (list-of char))))
+  (define (numbered-spec-valid? spec)
+    (format-spec-valid?
+      (let skip-number ((spec spec))
+        (cond ((char-numeric? (car spec)) (skip-number (cdr spec)))
+              ((char=? (car spec) #\%)    (cdr spec))
+              (else                       spec)))))
+
+  ;; This should be called on any user-entered format string.
+  (: format-string-valid? (string -> boolean))
+  (define (format-string-valid? str)
+    (*format-string-valid? (string->list str)))
+
+  (: *format-string-valid ((list-of char) -> boolean))
+  (define (*format-string-valid? chars)
+    (cond
+      ((null? chars) #t)
+      ((not (char=? (car chars) #\~))
+        (*format-string-valid? (cdr chars)))
+      ((format-spec-valid? (cdr chars)) =>
+        (lambda (rest)
+          (*format-string-valid? rest)))
+      (else #f))))
+ ;; validation }}}

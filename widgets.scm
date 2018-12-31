@@ -99,14 +99,14 @@
   ;; <format-text> {{{
 
   (define-class <format-text> (<textual>)
-    ((format initform: (process-format "")
+    ((format initform: (compile-format-string "")
              accessor: format-text-format)
      (data   initform: '()
              accessor: format-text-data)))
 
   (define (make-format-text format data . kwargs)
     (apply make <format-text> 'format (if (string? format)
-                                        (process-format format)
+                                        (compile-format-string format)
                                         format)
                               'data data kwargs))
 

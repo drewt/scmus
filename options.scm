@@ -107,7 +107,7 @@
 
 (define (register-format! name fmt)
   (let ((opt (make <format-option> 'validator format-valid?
-                                   'converter process-format
+                                   'converter compile-format-string
                                    'after     (lambda (_)
                                                 (signal-event/global 'format-changed)))))
     (set! (option-value opt) fmt)
