@@ -245,7 +245,7 @@
                   (cursed-temp-set! (cursed-fg this-cursed) code (cursed-attr this-cursed))))
               (loop (substring/shared str (+ i 1))))
             (safe-addstr str)))))
-    (string-width str))
+    (ustring-width str))
 
   (: print-line! (string fixnum fixnum fixnum -> undefined))
   (define (print-line! str col line nr-cols #!optional (fill #\space))

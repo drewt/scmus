@@ -19,38 +19,43 @@
                        ch->color-code
                        fg-color->char
                        bg-color->char
-                       string-width ; FIXME: should be ustring
+                       ustring-width
                        char-width
                        ustring-take
                        ustring-take-right
                        ustring-truncate
                        ustring-truncate-left
                        ustring-pad
-                       string-stretch ; FIXME: should be ustring
-          )
+                       ustring-stretch)
   (import scmus.base)
   (define-constant +unicode-private-base+ #xE000)
 
+  (: color-code? (char -> boolean))
   (define (color-code? ch)
     (let ((u (char->integer ch)))
       (and (>= u +unicode-private-base+)
            (< u (+ 258 256 +unicode-private-base+)))))
 
+  (: ch->color-code (char -> fixnum symbol))
   (define (ch->color-code ch)
     (let ((code (- (char->integer ch) +unicode-private-base+ 2)))
       (if (> code 255)
         (values (- code 256) 'bg)
         (values code 'fg))))
 
+  (: fg-color->char (fixnum -> char))
   (define (fg-color->char color)
     (integer->char (+ color +unicode-private-base+ 2)))
 
+  (: bg-color->char (fixnum -> char))
   (define (bg-color->char color)
     (integer->char (+ color +unicode-private-base+ 258)))
 
-  (define (string-width str)
+  (: ustring-width (string -> fixnum))
+  (define (ustring-width str)
     (fold + 0 (map char-width (string->list str))))
 
+  (: char-width (char -> fixnum))
   (define (char-width c)
     (let ((u (char->integer c)))
       (cond
@@ -89,6 +94,7 @@
         ((and (>= u #x30000) (<= u #x3fffd)) 2)
         (else 1))))
 
+  (: ustring-take (string fixnum -> string fixnum))
   (define (ustring-take str width)
     (define (finalize result space)
       (list->string
@@ -103,6 +109,7 @@
           (values (finalize result space) (+ r-width space))
           (loop (cons c result) (cdr rest) (+ r-width c-width))))))
 
+  (: ustring-take-right (string fixnum -> string fixnum))
   (define (ustring-take-right str width)
     (let loop ((result '()) (rest (reverse (string->list str))) (r-width 0))
       (let* ((c (car rest))
@@ -111,24 +118,28 @@
           (values (list->string result) r-width)
           (loop (cons c result) (cdr rest) (+ r-width c-width))))))
 
+  (: ustring-truncate (string fixnum -> string fixnum))
   (define (ustring-truncate s len)
-    (let ((width (string-width s)))
+    (let ((width (ustring-width s)))
       (if (> width len)
         (ustring-take s len)
         (values s width))))
 
+  (: ustring-truncate-left (string fixnum -> string fixnum))
   (define (ustring-truncate-left s len)
-    (let ((width (string-width s)))
+    (let ((width (ustring-width s)))
       (if (> width len)
         (ustring-take-right s len)
         (values s width))))
 
+  (: ustring-pad (string fixnum char #!optional boolean -> string))
   (define (ustring-pad str len c #!optional (right #f))
     (if right
-      (string-append str (make-string (- len (string-width str)) c))
-      (string-append (make-string (- len (string-width str)) c) str)))
+      (string-append str (make-string (- len (ustring-width str)) c))
+      (string-append (make-string (- len (ustring-width str)) c) str)))
 
-  (define (string-stretch str c len #!optional (right #f))
-    (if (> len (string-width str))
-      (values (ustring-pad str len c right) len)
+  (: ustring-stretch (string char fixnum #!optional boolean -> string))
+  (define (ustring-stretch str c len #!optional (right #f))
+    (if (> len (ustring-width str))
+      (ustring-pad str len c right)
       (nth-value 0 (ustring-truncate str len)))))
