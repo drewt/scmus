@@ -29,7 +29,8 @@ ALL_CFLAGS   = $(CFLAGS) \
 	       '-DSCMUS_DIR=\"$(datadir)/scmus\"' \
                '-DVERSION=\"$(VERSION)\"'
 CSCFLAGS     =
-ALL_CSCFLAGS = $(addprefix -C , $(ALL_CFLAGS)) \
+ALL_CSCFLAGS = $(CSCFLAGS) \
+               $(addprefix -C , $(ALL_CFLAGS)) \
                $(TFLAGS) \
                -R coops \
                -R coops-utils
