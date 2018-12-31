@@ -103,13 +103,14 @@
   (define (binding-expression binding)
     (cdr (binding-data binding)))
 
-  (: get-binding (string binding-list -> binding-data))
+  (: get-binding (string binding-list -> (or false binding-data)))
   (define (get-binding key bindings)
     (alist-ref key bindings string=?))
 
   (: get-binding-expression ((list-of string) symbol -> *))
   (define (get-binding-expression keys context)
-    (let loop ((keys keys) (key-list (alist-ref context *bindings*)))
+    (let loop ((keys keys)
+               (key-list (alist-ref context *bindings*)))
       (let ((binding (get-binding (car keys) key-list)))
         (cond
           ; found binding
@@ -233,7 +234,7 @@
     (current-context (alist-ref view *bindings*))
     (common-context (alist-ref 'common *bindings*)))
 
-  (: normal-mode-key (symbol fixnum -> undefined))
+  (: normal-mode-key (symbol (or fixnum char) -> undefined))
   (define (normal-mode-key view key)
     (if (not (current-context))
       (start-context! view))
@@ -260,7 +261,7 @@
     (hash-table-ref/default *key-table* name #f))
 
   (: key-valid? (* -> boolean))
-  (define key-valid? find-key-code)
+  (define (key-valid? k) (not (not (find-key-code k))))
  
   (: find-key-name (fixnum -> (or string boolean)))
   (define (find-key-name code)
