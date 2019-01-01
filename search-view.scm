@@ -26,11 +26,8 @@
         scmus.view
         scmus.widgets)
 
-(define search-format
-  (let ((fmt (get-option 'format-search-file)))
-    (add-option-listener 'format-search-file
-      (lambda (o) (set! fmt (option-value o))))
-    (lambda (_) fmt)))
+(add-option-listener 'format-search-file
+  (lambda (_) (widget-invalidate search-widget)))
 
 (define (make-search-field)
   (make-text-input "" " * " 'on-commit search-field-commit!))
@@ -61,7 +58,7 @@
   (let ((results (apply scmus-search-songs #f #f (constraints))))
     (set! (list-box-data window) (append (vector->list (list-box-data window))
                                          (map (lambda (track)
-                                                (make-window-row track 'file search-format))
+                                                (make-window-row track 'file 'format-search-file))
                                               results)))))
 
 (define-method (widget-edit (window <search-window>))
@@ -116,12 +113,15 @@
       (set! (list-box-data window) (reverse result))
       (loop (cdr data) (cons (car data) result)))))
 
+(define search-widget
+  (make <search-window>
+        'data       (list (make-search-field)
+                          (make <window-separator>
+                                'text " Results"
+                                'cursed CURSED-WIN-TITLE))
+        'cursed     CURSED-WIN
+        'cursed-fun (win-cursed-fun)))
+
 (define-view search
-  (make-frame 'body   (make <search-window>
-                            'data       (list (make-search-field)
-                                              (make <window-separator>
-                                                    'text " Results"
-                                                    'cursed CURSED-WIN-TITLE))
-                            'cursed     CURSED-WIN
-                            'cursed-fun (win-cursed-fun))
+  (make-frame 'body   search-widget
               'header (make-text " Search" 'cursed CURSED-WIN-TITLE)))

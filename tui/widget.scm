@@ -38,6 +38,7 @@
                           widget-size
                           print-widget!
                           reprint-widget!
+                          widget-invalidate
                           handle-input
                           widget-child/pos
                           get-widget-at
@@ -185,6 +186,10 @@
       (with-cursed (widget-cursed/cached w)
         (print-widget! w (widget-x w) (widget-y w) (widget-cols w) (widget-rows w)))))
 
+  ;; Signal for widgets to invalidate any cached data/renders.
+  (define-method (widget-invalidate (w <widget>))
+    (void))
+
   ;; Input handler.  If the widget doesn't handle the input, it should invoke
   ;; CALL-NEXT-METHOD to allow the superclass to handle the input.  If the input
   ;; is handled, HANDLE-INPUT should return #t so that the default handler is
@@ -282,6 +287,9 @@
                   (with-cursed (sixth child)
                     (apply print-widget! (adjust-positions child))))
                 layout)))
+
+  (define-method (widget-invalidate (container <container>))
+    (for-each widget-invalidate (container-children container)))
 
   ;;
   ;; Widget Wrap

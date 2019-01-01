@@ -88,7 +88,8 @@
         ((= rc KEY_CODE_YES)
           (cond
             ((>= ch 512)        (void))
-            ((=  ch KEY_RESIZE) (draw-ui root-widget))
+            ((=  ch KEY_RESIZE) (widget-invalidate root-widget)
+                                (draw-ui root-widget))
             (else               (do-handle-input root-widget ch))))
         ((not (= rc ERR))
           (do-handle-input root-widget (integer->char ch)))))))

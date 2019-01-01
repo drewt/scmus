@@ -22,6 +22,7 @@
           drewt.ncurses
           scmus.base
           scmus.format
+          scmus.option
           scmus.track
           scmus.tui)
 
@@ -248,17 +249,29 @@
   ;; <window-row> {{{
 
   (define-class <window-row> (<textual>)
-    ((data   reader: window-row-data)
-     (type   reader: window-row-type)
-     (format reader: window-row-format)))
+    ((data   reader:   window-row-data)
+     (type   reader:   window-row-type)
+     (format reader:   window-row-format)
+     (cached initform: #f
+             accessor: window-row-cached)))
 
   (define (make-window-row data type format)
     (make <window-row> 'data data 'type type 'format format))
 
+  (define-method (widget-invalidate (w <window-row>))
+    (set! (window-row-cached w) #f))
+
   (define-method (text-text (widget <window-row>))
-    (list (scmus-format ((window-row-format widget) widget)
+    (unless (window-row-cached widget)
+      (let* ((fmt-slot (window-row-format widget))
+             (row-fmt  (if (symbol? fmt-slot)
+                         (get-option fmt-slot)
+                         fmt-slot)))
+        (set! (window-row-cached widget)
+          (scmus-format row-fmt
                         (widget-cols widget)
-                        (window-row-data widget))))
+                        (window-row-data widget)))))
+    (list (window-row-cached widget)))
 
   (define-method (widget-match (row <window-row>) query)
     (let ((data (window-row-data row)))

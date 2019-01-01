@@ -125,7 +125,7 @@
          (make-window-row `((key   . ,(car pair))
                             (value . ,(cdr pair)))
                           'key-value
-                          (lambda (_) *key-value-format*)))
+                          *key-value-format*))
        (current-status)))
 
 (define *status-window*

@@ -40,21 +40,18 @@
   (set! (format-text-data (frame-header (get-view 'browser)))
     (browser-title-data)))
 
-(define browser-format
-  (let ((dir (get-option 'format-browser-dir))
-        (pla (get-option 'format-browser-playlist))
-        (fil (get-option 'format-browser-file))
-        (met (get-option 'format-browser-metadata)))
-    (add-option-listener 'format-browser-dir      (lambda (o) (set! dir (option-value o))))
-    (add-option-listener 'format-browser-playlist (lambda (o) (set! pla (option-value o))))
-    (add-option-listener 'format-browser-file     (lambda (o) (set! fil (option-value o))))
-    (add-option-listener 'format-browser-metadata (lambda (o) (set! met (option-value o))))
-    (lambda (row)
-      (case (window-row-type row)
-        ((directory) dir)
-        ((playlist)  pla)
-        ((file)      fil)
-        ((metadata)  met)))))
+(let ((invalidate (lambda (_) (widget-invalidate browser-widget))))
+  (add-option-listener 'format-browser-dir      invalidate)
+  (add-option-listener 'format-browser-playlist invalidate)
+  (add-option-listener 'format-browser-file     invalidate)
+  (add-option-listener 'format-browser-metadata invalidate))
+
+(define (browser-row-type->format type)
+  (case type
+    ((directory) 'format-browser-dir)
+    ((playlist)  'format-browser-playlist)
+    ((file)      'format-browser-file)
+    ((metadata)  'format-browser-metadata)))
 
 (define-class <browser-window> (<window>))
 
@@ -62,12 +59,13 @@
   (define (directory-activate! dir)
     (browser-location-push! (string-append "/" dir))
     (widget-stack-push! (widget-parent window)
-      (make-browser-window (map (lambda (x) (make-window-row x (caar x) browser-format))
+      (make-browser-window (map (lambda (x)
+                                  (make-window-row x (caar x) (browser-row-type->format (caar x))))
                               (scmus-lsinfo dir)))))
   (define (playlist-activate! playlist)
     (browser-location-push! (string-append "[" playlist "]"))
     (widget-stack-push! (widget-parent window)
-      (make-browser-window (map (lambda (x) (make-window-row x 'file browser-format))
+      (make-browser-window (map (lambda (x) (make-window-row x 'file 'format-browser-file))
                                 (scmus-list-playlist playlist)))))
   (define (file-activate! file)
     (browser-location-push! (string-append "/" (alist-ref 'file file)))
@@ -76,7 +74,7 @@
                                   (make-window-row (list (cons 'tag (car metadata))
                                                          (cons 'value (cdr metadata)))
                                                    'metadata
-                                                   browser-format))
+                                                   'format-browser-metadata))
                                 (sort-metadata file)))))
   (unless (list-box-empty? window)
     (let ((selected (list-box-selected window)))
@@ -106,13 +104,15 @@
         'cursed     CURSED-WIN
         'cursed-fun (win-cursed-fun)))
 
+(define browser-widget (make-widget-stack (make-browser-window '())))
+
 (define-view browser
-  (make-frame 'body   (make-widget-stack (make-browser-window '()))
+  (make-frame 'body   browser-widget
               'header (make-format-text " Browser: ~{location}" (browser-title-data)
                                         'cursed CURSED-WIN-TITLE)))
 
 (add-listener/global 'db-changed
   (lambda ()
     (set! (list-box-data (widget-last (frame-body (get-view 'browser))))
-          (map (lambda (x) (make-window-row x (caar x) browser-format))
+          (map (lambda (x) (make-window-row x (caar x) (browser-row-type->format (caar x))))
                (scmus-lsinfo "/")))))

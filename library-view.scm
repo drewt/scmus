@@ -29,27 +29,13 @@
         scmus.view
         scmus.widgets)
 
-(define library-format
-  (let ((sep (get-option 'format-separator))
-        (pla (get-option 'format-library-playlist))
-        (art (get-option 'format-library-artist))
-        (alb (get-option 'format-library-album))
-        (fil (get-option 'format-library-file))
-        (met (get-option 'format-library-metadata)))
-    (add-option-listener 'format-separator        (lambda (o) (set! sep (option-value o))))
-    (add-option-listener 'format-library-playlist (lambda (o) (set! pla (option-value o))))
-    (add-option-listener 'format-library-artist   (lambda (o) (set! art (option-value o))))
-    (add-option-listener 'format-library-album    (lambda (o) (set! alb (option-value o))))
-    (add-option-listener 'format-library-file     (lambda (o) (set! fil (option-value o))))
-    (add-option-listener 'format-library-metadata (lambda (o) (set! met (option-value o))))
-    (lambda (row)
-      (case (window-row-type row)
-        ((separator) sep)
-        ((playlist)  pla)
-        ((artist)    art)
-        ((album)     alb)
-        ((file)      fil)
-        ((metadata)  met)))))
+(let ((invalidate (lambda (_) (widget-invalidate library-widget))))
+  (add-option-listener 'format-separator        invalidate)
+  (add-option-listener 'format-library-playlist invalidate)
+  (add-option-listener 'format-library-artist   invalidate)
+  (add-option-listener 'format-library-album    invalidate)
+  (add-option-listener 'format-library-file     invalidate)
+  (add-option-listener 'format-library-metadata invalidate))
 
 (define-class <library-window> (<window>))
 
@@ -58,19 +44,19 @@
     (let ((tracks (scmus-list-playlist (cdar playlist))))
       (widget-stack-push! (widget-parent window)
         (make-library-window (map (lambda (track)
-                                    (make-window-row track 'file library-format))
+                                    (make-window-row track 'file 'format-library-file))
                                   tracks)))))
   (define (artist-activate! artist)
     (let ((albums (scmus-list-tags 'album (cons 'artist (cdar artist)))))
       (widget-stack-push! (widget-parent window)
         (make-library-window (map (lambda (album)
-                                    (make-window-row (list album) 'album library-format))
+                                    (make-window-row (list album) 'album 'format-library-album))
                                    albums)))))
   (define (album-activate! album)
     (let ((tracks (scmus-search-songs #t #f (cons 'album (cdar album)))))
       (widget-stack-push! (widget-parent window)
         (make-library-window (map (lambda (track)
-                                    (make-window-row track 'file library-format))
+                                    (make-window-row track 'file 'format-library-file))
                                   tracks)))))
   (define (file-activate! track)
     (widget-stack-push! (widget-parent window)
@@ -78,7 +64,7 @@
                                   (make-window-row (list (cons 'tag (car metadata))
                                                          (cons 'value (cdr metadata)))
                                                    'metadata
-                                                   library-format))
+                                                   'format-library-metadata))
                                 (sort-metadata track)))))
   (define (activate-function type)
     (case type
@@ -111,10 +97,12 @@
   (lambda ()
     (set! (list-box-data (widget-last (frame-body (get-view 'library))))
           (append! (cons (make <window-separator> 'text " Playlists" 'cursed CURSED-WIN-TITLE)
-                         (map (lambda (x) (make-window-row (list x) 'playlist library-format))
+                         (map (lambda (x)
+                                (make-window-row (list x) 'playlist 'format-library-playlist))
                               (scmus-list-playlists)))
                    (cons (make <window-separator> 'text " Artists" 'cursed CURSED-WIN-TITLE)
-                         (map (lambda (x) (make-window-row (list x) 'artist library-format))
+                         (map (lambda (x)
+                                (make-window-row (list x) 'artist 'format-library-artist))
                               (scmus-list-tags 'artist)))))))
 
 (define (make-library-window data)
@@ -123,6 +111,8 @@
         'cursed     CURSED-WIN
         'cursed-fun (win-cursed-fun)))
 
+(define library-widget (make-widget-stack (make-library-window '())))
+
 (define-view library
-  (make-frame 'body   (make-widget-stack (make-library-window '()))
+  (make-frame 'body   library-widget
               'header (make-text " Library" 'cursed CURSED-WIN-TITLE)))

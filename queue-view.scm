@@ -28,14 +28,11 @@
 (define queue-cursed
   (win-cursed-fun (lambda (row) (current-track? (window-row-data row)))))
 
-(define queue-format
-  (let ((fmt (get-option 'format-queue)))
-    (add-option-listener 'format-queue
-      (lambda (opt) (set! fmt (option-value opt))))
-    (lambda (_) fmt)))
+(add-option-listener 'format-queue
+  (lambda (_) (widget-invalidate queue-widget)))
 
 (define (queue-make-rows)
-  (map (lambda (x) (make-window-row x 'file queue-format))
+  (map (lambda (x) (make-window-row x 'file 'format-queue))
        (current-queue)))
 
 (define-class <queue-window> (<window>))
@@ -69,7 +66,7 @@
   (widget-clear-marked window)
   (scmus-update-queue!))
 
-(define *queue-window*
+(define queue-widget
   (make <queue-window>
         'data       (queue-make-rows)
         'cursed     CURSED-WIN
@@ -77,7 +74,7 @@
 
 (define-view queue
   (make-frame
-    'body   *queue-window*
+    'body   queue-widget
     'header (make-format-text " Queue - ~{queue-length} tracks" '() 'cursed CURSED-WIN-TITLE)))
 
 (add-listener/global 'queue-changed
@@ -86,4 +83,4 @@
 
 (add-listener/global 'queue-data-changed
   (lambda ()
-    (set! (list-box-data *queue-window*) (queue-make-rows))))
+    (set! (list-box-data queue-widget) (queue-make-rows))))
