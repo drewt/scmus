@@ -76,16 +76,33 @@
               BUTTON4_CLICKED
               BUTTON4_DOUBLE_CLICKED
               BUTTON4_TRIPLE_CLICKED
-              BUTTON5_PRESSED
-              BUTTON5_RELEASED
-              BUTTON5_CLICKED
-              BUTTON5_DOUBLE_CLICKED
-              BUTTON5_TRIPLE_CLICKED
               BUTTON_SHIFT
               BUTTON_CTRL
               BUTTON_ALT
               ALL_MOUSE_EVENTS
               REPORT_MOUSE_POSITION))
+  ; XXX: If we don't have NCURSES_MOUSE_VERSION > 1,
+  ;      then we export BUTTON5_* as zero.  That way
+  ;      KEY-CASE always fails to get a BUTTON5_* code.
+  (cond-expand
+    (ncurses-mouse-v2
+      (reexport (only drewt.ncurses
+                  BUTTON5_PRESSED
+                  BUTTON5_RELEASED
+                  BUTTON5_CLICKED
+                  BUTTON5_DOUBLE_CLICKED
+                  BUTTON5_TRIPLE_CLICKED)))
+    (else
+      (export BUTTON5_PRESSED
+              BUTTON5_RELEASED
+              BUTTON5_CLICKED
+              BUTTON5_DOUBLE_CLICKED
+              BUTTON5_TRIPLE_CLICKED)
+      (define BUTTON5_PRESSED 0)
+      (define BUTTON5_RELEASED 0)
+      (define BUTTON5_CLICKED 0)
+      (define BUTTON5_DOUBLE_CLICKED 0)
+      (define BUTTON5_TRIPLE_CLICKED 0)))
 
   ;; FOREIGN-VALUE constants don't work in CASE expressions, so we
   ;; have to use a chain of IFs.

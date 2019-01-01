@@ -357,23 +357,27 @@
    BUTTON4_CLICKED
    BUTTON4_DOUBLE_CLICKED
    BUTTON4_TRIPLE_CLICKED
-   BUTTON5_PRESSED
-   BUTTON5_RELEASED
-   BUTTON5_CLICKED
-   BUTTON5_DOUBLE_CLICKED
-   BUTTON5_TRIPLE_CLICKED
    BUTTON_SHIFT
    BUTTON_CTRL
    BUTTON_ALT
    ALL_MOUSE_EVENTS
    REPORT_MOUSE_POSITION)
 
-   (import scheme)
-   (import chicken)
-   (import foreign)
-   (import lolevel)
-   (import extras)
-   (import easyffi)
+  (import scheme)
+  (import chicken)
+  (import foreign)
+  (import lolevel)
+  (import extras)
+  (import easyffi)
+
+  (cond-expand
+    (ncurses-mouse-v2
+      (export BUTTON5_PRESSED
+              BUTTON5_RELEASED
+              BUTTON5_CLICKED
+              BUTTON5_DOUBLE_CLICKED
+              BUTTON5_TRIPLE_CLICKED))
+    (else))
 
   (define-foreign-variable OK int)
   (define-foreign-variable ERR_ int "ERR")
@@ -925,11 +929,14 @@
   (defkey BUTTON4_CLICKED)
   (defkey BUTTON4_DOUBLE_CLICKED)
   (defkey BUTTON4_TRIPLE_CLICKED)
-  (defkey BUTTON5_PRESSED)
-  (defkey BUTTON5_RELEASED)
-  (defkey BUTTON5_CLICKED)
-  (defkey BUTTON5_DOUBLE_CLICKED)
-  (defkey BUTTON5_TRIPLE_CLICKED)
+  (cond-expand
+    (ncurses-mouse-v2
+      (defkey BUTTON5_PRESSED)
+      (defkey BUTTON5_RELEASED)
+      (defkey BUTTON5_CLICKED)
+      (defkey BUTTON5_DOUBLE_CLICKED)
+      (defkey BUTTON5_TRIPLE_CLICKED))
+    (else))
   (defkey BUTTON_SHIFT)
   (defkey BUTTON_CTRL)
   (defkey BUTTON_ALT)

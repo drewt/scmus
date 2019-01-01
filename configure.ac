@@ -35,6 +35,17 @@ then
 	NCURSES_LIBS="$NCURSES_LIBS -ltinfo"
 fi
 
+# check ncurses mouse API version
+ncurses_mouse_version=1
+AC_RUN_IFELSE([AC_LANG_PROGRAM([
+#include <ncurses.h>
+],[
+#if NCURSES_MOUSE_VERSION < 2
+exit(1);
+#endif
+])], [ncurses_mouse_version=2])
+
 AC_SUBST([NCURSES_LIBS])
+AC_SUBST([ncurses_mouse_version])
 
 AC_OUTPUT(Makefile)

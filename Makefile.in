@@ -17,6 +17,7 @@ VERSION = $(or $(_ver0),$(_ver1))
 LIBS = @NCURSES_LIBS@
 
 features-@CONFIG_WIDE_CHAR@ += -feature wide-char
+features-y += -feature ncurses-mouse-v@ncurses_mouse_version@
 
 types-cflags-$(typed) = -types all.types
 types-prereq-$(typed) = all.types
