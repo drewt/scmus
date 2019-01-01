@@ -48,6 +48,9 @@
           rec
           setter
           void
+	  ; needed on old versions chicken?
+          let-optionals*
+          optional
 
           ; SRFI-12
           condition-predicate

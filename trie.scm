@@ -26,7 +26,9 @@
                     trie-traverse)
   (import scheme
           (only chicken
-                define-record-type)
+                define-record-type
+                let-optionals*
+                optional)
           (only data-structures
                 alist-ref
                 alist-update!))
