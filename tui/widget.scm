@@ -164,8 +164,7 @@
     (set! (widget-y    widget) y)
     (set! (widget-cols widget) cols)
     (set! (widget-rows widget) rows)
-    (set! (widget-cursed/cached widget) (current-cursed))
-    (clear-screen x y cols rows))
+    (set! (widget-cursed/cached widget) (current-cursed)))
 
   (define-method (print-widget! after: (widget <widget>) x y cols rows)
     (widget-flag-clear! widget WIDGET-DAMAGED))

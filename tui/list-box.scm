@@ -175,6 +175,24 @@
                   (cons (list (vector-ref data i) 0 y cols rows (list-box-cursed w i))
                         result)))))))
 
+  (define-method (print-widget! after: (w <list-box>) x y cols rows)
+    (let* ((layout     (container-layout/cached w))
+           (last-child (and (not (null? layout))
+                            (last layout)))
+           (next-y     (and last-child (+ (third last-child)
+                                          (fifth last-child)))))
+      (cond
+        ((not last-child)
+          (clear-screen (widget-x w)
+                        (widget-y w)
+                        (widget-cols w)
+                        (widget-rows w)))
+        ((< next-y rows)
+          (clear-screen (+ (widget-x w) x)
+                        (+ (widget-y w) next-y)
+                        cols
+                        (- rows next-y))))))
+
   (define-method (list-box-length (w <list-box>))
     (vector-length (list-box-data w)))
 

@@ -51,6 +51,7 @@
           (set! (slot-value bag 'active) name)))))
 
   (define-method (widget-bag-add! (bag <widget-bag>) (widget <widget>) name)
+    (set! (widget-visible widget) #f)
     (set! (widget-bag-widgets bag)
       (cons (cons name widget)
             (widget-bag-widgets bag))))
