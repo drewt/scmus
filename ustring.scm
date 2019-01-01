@@ -53,7 +53,7 @@
 
   (: ustring-width (string -> fixnum))
   (define (ustring-width str)
-    (fold + 0 (map char-width (string->list str))))
+    (string-fold (lambda (c a) (+ a (char-width c))) 0 str))
 
   (: char-width (char -> fixnum))
   (define (char-width c)
