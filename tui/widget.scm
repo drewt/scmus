@@ -170,8 +170,7 @@
     (widget-flag-clear! widget WIDGET-DAMAGED))
 
   (define-method (print-widget! around: (widget <widget>) x y cols rows)
-    (when (widget-visible? widget)
-      (call-with-cursed call-next-method (widget-cursed widget))))
+    (call-with-cursed call-next-method (widget-cursed widget)))
 
   (define-method (reprint-widget! (w <widget>))
     (define (parent-damaged? w)
@@ -181,7 +180,8 @@
           ((widget-damaged? parent) #t)
           (else (parent-damaged? parent)))))
     (when (and (widget-damaged? w)
-               (not (parent-damaged? w)))
+               (not (parent-damaged? w))
+               (widget-visible? w))
       (with-cursed (widget-cursed/cached w)
         (print-widget! w (widget-x w) (widget-y w) (widget-cols w) (widget-rows w)))))
 
