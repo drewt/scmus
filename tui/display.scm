@@ -229,7 +229,7 @@
   ; TODO: instead of embedding color codes into string, just use a list with strings and color
   ;       codes... this is more efficient anyway since we don't have to scan the string before
   ;       printing
-  (: format-addstr! (string -> fixnum))
+  (: format-addstr! (string -> undefined))
   (define (format-addstr! str)
     (let ((old-cursed (current-cursed)))
       (let loop ((str str))
@@ -245,11 +245,9 @@
                   (cursed-temp-set! (cursed-fg this-cursed) code (cursed-attr this-cursed))))
               (loop (substring/shared str (+ i 1))))
             (safe-addstr str)))))
-    (ustring-width str))
+    (void))
 
   (: print-line! (string fixnum fixnum fixnum -> undefined))
   (define (print-line! str col line nr-cols #!optional (fill #\space))
     (move line col)
-    (let ((written (format-addstr! (ustring-truncate str nr-cols))))
-      (when (< written nr-cols)
-        (safe-addstr (make-string (- nr-cols written) fill))))))
+    (format-addstr! (ustring-stretch str fill nr-cols #t))))

@@ -140,6 +140,9 @@
 
   (: ustring-stretch (string char fixnum #!optional boolean -> string))
   (define (ustring-stretch str c len #!optional (right #f))
-    (if (> len (ustring-width str))
-      (ustring-pad str len c right)
-      (nth-value 0 (ustring-truncate str len)))))
+    (let ((width (ustring-width str)))
+      (if (> len width)
+        (if right
+          (string-append str (make-string (- len width) c))
+          (string-append (make-string (- len width) c) str))
+        (nth-value 0 (ustring-truncate str len))))))
