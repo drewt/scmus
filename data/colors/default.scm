@@ -3,7 +3,7 @@
 (set-option! 'color-info        '(default default default))
 (set-option! 'color-statusline  '(default default default))
 (set-option! 'color-titleline   '(default default default))
-(set-option! 'color-win         '(default defualt default))
+(set-option! 'color-win         '(default default default))
 (set-option! 'color-win-cur     '(default default default))
 (set-option! 'color-win-title   '(default default default))
 (set-option! 'color-win-cur-sel '(default white black))
