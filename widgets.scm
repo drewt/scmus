@@ -248,7 +248,7 @@
   ;; <window> }}}
   ;; <window-row> {{{
 
-  (define-class <window-row> (<textual>)
+  (define-class <window-row> (<widget>)
     ((data   reader:   window-row-data)
      (type   reader:   window-row-type)
      (format reader:   window-row-format)
@@ -261,7 +261,7 @@
   (define-method (widget-invalidate (w <window-row>))
     (set! (window-row-cached w) #f))
 
-  (define-method (text-text (widget <window-row>))
+  (define-method (window-row-text (widget <window-row>))
     (unless (window-row-cached widget)
       (let* ((fmt-slot (window-row-format widget))
              (row-fmt  (if (symbol? fmt-slot)
@@ -271,7 +271,10 @@
           (scmus-format row-fmt
                         (widget-cols widget)
                         (window-row-data widget)))))
-    (list (window-row-cached widget)))
+    (window-row-cached widget))
+
+  (define-method (print-widget! (w <window-row>) x y cols rows)
+    (format-addstr! (window-row-text w) x y))
 
   (define-method (widget-match (row <window-row>) query)
     (let ((data (window-row-data row)))

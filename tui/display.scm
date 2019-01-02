@@ -23,6 +23,7 @@
                            with-cursed
                            palette-set!
                            clear-screen
+                           format-addstr!
                            print-line!)
   (reexport (only drewt.ncurses
                   COLOR_BLACK
@@ -229,8 +230,9 @@
   ; TODO: instead of embedding color codes into string, just use a list with strings and color
   ;       codes... this is more efficient anyway since we don't have to scan the string before
   ;       printing
-  (: format-addstr! (string -> undefined))
-  (define (format-addstr! str)
+  (: format-addstr! (string fixnum fixnum -> undefined))
+  (define (format-addstr! str col row)
+    (move row col)
     (let ((old-cursed (current-cursed)))
       (let loop ((str str))
         (let ((this-cursed (current-cursed))
@@ -249,5 +251,4 @@
 
   (: print-line! (string fixnum fixnum fixnum -> undefined))
   (define (print-line! str col line nr-cols #!optional (fill #\space))
-    (move line col)
-    (format-addstr! (ustring-stretch str fill nr-cols #t))))
+    (format-addstr! (ustring-stretch str fill nr-cols #t) col line)))
