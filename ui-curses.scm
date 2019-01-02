@@ -56,7 +56,7 @@
 
 (define (call-with-info-message message thunk)
   (command-line-print-info! message)
-  (reprint-widget! command-line-widget)
+  (update-ui root-widget)
   (refresh)
   (let ((retval (thunk)))
     (when (string=? (command-line-text) message)
