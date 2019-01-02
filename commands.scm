@@ -120,7 +120,9 @@
                    (substring/shared path
                                      (+ (string-index-right path #\/) 1)
                                      (- (string-length path) 4)))
-                 (glob (format "~a/colors/~a*.scm" config-dir (car tokens)))))
+                 (if (file-exists? (format "~a/colors/" config-dir))
+                   (glob (format "~a/colors/~a*.scm" config-dir (car tokens)))
+                   '())))
           (append (ls-schemes *user-config-dir*)
                   (ls-schemes *scmus-dir*)))))
 
