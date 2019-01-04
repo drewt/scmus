@@ -1,13 +1,16 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "SCMUS" "3" "December 2018" "" "scmus Scripting Reference"
+.TH "SCMUS" "3" "January 2019" "" "scmus Scripting Reference"
 .
 .SH "NAME"
 \fBscmus\fR \- scmus Scripting Environment
 .
 .SH "SYNOPSIS"
 (\fBbind\fR \fIkeys context expression [force]\fR)
+.
+.br
+(\fBcan\-set\-color?\fR)
 .
 .br
 (\fBclear\-queue\fR)
@@ -361,6 +364,10 @@
 Bind \fIkeys\fR to \fIexpression\fR in \fIcontext\fR\. If \fIforce\fR is \fB#t\fR, then any binding conflicting with \fIkeys\fR is first unbound\. Otherwise, if there is a conflicting binding then this function will fail to bind \fIkeys\fR and return \fB#f\fR\.
 .
 .TP
+(\fBcan\-set\-color?\fR)
+Returns \fB#t\fR if the terminal is capable or redefining colors (in which case \fBset\-color\fR may be used), otherwise \fB#f\fR\.
+.
+.TP
 (\fBclear\-queue\fR)
 Remove all tracks from the play queue\.
 .
@@ -595,6 +602,14 @@ Returns a string formatted according to the format string \fIformat\fR\. If \fIt
 .TP
 (\fBseek\fR \fIseconds\fR)
 Seek \fIseconds\fR relative to the current position in the current track\.
+.
+.TP
+(\fBset\-color\fR \fIcolor\-number\fR \fIrgb\fR)
+Set the value of the terminal color given by \fIcolor\-number\fR to the RGB value given by \fIrgb\fR\. (Hint: you can use Scheme\'s hexadecimal syntax, e\.g\. #xFFFFFF\.)
+.
+.TP
+(\fBset\-color\fR \fIcolor\-number\fR \fIr\fR \fIg\fR \fIb\fR)
+Set the value of the terminal color given by \fIcolor\-number\fR to the RGB values given by \fIr\fR \fIg\fR and \fIb\fR\. The valid range for these values is 0\-1000\.
 .
 .TP
 (\fBset\-option\fR \fIname\fR \fIvalue\fR)

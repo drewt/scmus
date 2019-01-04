@@ -114,6 +114,10 @@
       #f)))
 (user-synonym bind! bind)
 
+(define/user can-set-color?
+  "Returns #t if SET-COLOR can be used, otherwise #f"
+  can-set-color?)
+
 (define/user clear-queue
   "Clear the queue"
   (return-void scmus-clear!))
@@ -439,6 +443,10 @@
   "Seek forwards or backwards in the current track"
   (return-void scmus-seek!))
 (user-synonym seek! seek)
+
+(define/user set-color
+  "Change the RGB value of a terminal color"
+  (return-void set-color))
 
 (define/user set-option
   "Set the value of an option"

@@ -75,6 +75,7 @@
 <h2 id="SYNOPSIS">SYNOPSIS</h2>
 
 <p>(<code>bind</code> <em>keys context expression [force]</em>)<br />
+(<code>can-set-color?</code>)<br />
 (<code>clear-queue</code>)<br />
 (<code>colorscheme</code> <em>name</em>)<br />
 (<code>connect</code> <em>[host [port [password]]]</em>)<br />
@@ -195,6 +196,7 @@
 
 <dl>
 <dt>(<code>bind</code> <em>keys context expression [force]</em>)</dt><dd><p>Bind <em>keys</em> to <em>expression</em> in <em>context</em>.  If <em>force</em> is <code>#t</code>, then any binding conflicting with <em>keys</em> is first unbound.  Otherwise, if there is a conflicting binding then this function will fail to bind <em>keys</em> and return <code>#f</code>.</p></dd>
+<dt>(<code>can-set-color?</code>)</dt><dd><p>Returns <code>#t</code> if the terminal is capable or redefining colors (in which case <code>set-color</code> may be used), otherwise <code>#f</code>.</p></dd>
 <dt>(<code>clear-queue</code>)</dt><dd><p>Remove all tracks from the play queue.</p></dd>
 <dt>(<code>colorscheme</code> <em>name</em>)</dt><dd><p>Load the colorscheme <em>name</em>.  This function looks for a file named <em>name</em>.scm in the scmus colorscheme directory (usually <code>/usr/local/share/scmus/colors/</code>).</p></dd>
 <dt>(<code>connect</code> <em>[host [port [password]]]</em>)</dt><dd><p>Connect to the MPD server given by <em>password</em>@<em>host</em>:<em>port</em>, using the values of the <code>mpd-address</code>, <code>mpd-port</code> and <code>mpd-password</code> options if they are not provided as arguments.</p></dd>
@@ -254,6 +256,8 @@
 <dt>(<code>rescan</code> <em>[path]</em>)</dt><dd><p>Update the music data, rescanning even unmodified files.  If <em>path</em> is given, then only that path is updated.</p></dd>
 <dt>(<code>scmus-format</code> <em>format</em> <em>[track [length]]</em>)</dt><dd><p>Returns a string formatted according to the format string <em>format</em>.  If <em>track</em> is given, then it is used as the data source for the format string, otherwise it defaults to the null track.  If <em>length</em> is given, then it is used as the available size (in terminal columns) of the output string, otherwise it defaults to the current terminal width minus two.  See the <code>Format Strings</code> section in <code>scmus</code>(1) for information about format strings in scmus.</p></dd>
 <dt>(<code>seek</code> <em>seconds</em>)</dt><dd><p>Seek <em>seconds</em> relative to the current position in the current track.</p></dd>
+<dt>(<code>set-color</code> <em>color-number</em> <em>rgb</em>)</dt><dd><p>Set the value of the terminal color given by <em>color-number</em> to the RGB value given by <em>rgb</em>.  (Hint: you can use Scheme's hexadecimal syntax, e.g. #xFFFFFF.)</p></dd>
+<dt>(<code>set-color</code> <em>color-number</em> <em>r</em> <em>g</em> <em>b</em>)</dt><dd><p>Set the value of the terminal color given by <em>color-number</em> to the RGB values given by <em>r</em> <em>g</em> and <em>b</em>.  The valid range for these values is 0-1000.</p></dd>
 <dt>(<code>set-option</code> <em>name</em> <em>value</em>)</dt><dd><p>Set the value of the option given by <em>name</em> to <em>value</em>.</p></dd>
 <dt>(<code>set-view</code> <em>name</em>)</dt><dd><p>Change the current view to the view given by <em>name</em>.</p></dd>
 <dt>(<code>set-volume</code> <em>value</em> <em>[relative?]</em>)</dt><dd><p>Set MPD's volume level.  If <em>relative?</em> is given and not <code>#f</code>, then <em>value</em> is interpreted relative to the current volume level.</p></dd>
@@ -329,7 +333,7 @@ string instead of the status code.</p></dd>
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'></li>
-    <li class='tc'>December 2018</li>
+    <li class='tc'>January 2019</li>
     <li class='tr'>scmus(3)</li>
   </ol>
 

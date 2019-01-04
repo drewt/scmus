@@ -4,6 +4,7 @@ scmus(3) -- scmus Scripting Environment
 ## SYNOPSIS
 
 (`bind` *keys context expression \[force\]*)  
+(`can-set-color?`)  
 (`clear-queue`)  
 (`colorscheme` *name*)  
 (`connect` *\[host \[port \[password\]\]\]*)  
@@ -124,6 +125,9 @@ scmus(3) -- scmus Scripting Environment
 
 * (`bind` *keys context expression \[force\]*):
   Bind *keys* to *expression* in *context*.  If *force* is `#t`, then any binding conflicting with *keys* is first unbound.  Otherwise, if there is a conflicting binding then this function will fail to bind *keys* and return `#f`.
+
+* (`can-set-color?`):
+  Returns `#t` if the terminal is capable or redefining colors (in which case `set-color` may be used), otherwise `#f`.
 
 * (`clear-queue`):
   Remove all tracks from the play queue.
@@ -301,6 +305,12 @@ scmus(3) -- scmus Scripting Environment
 
 * (`seek` *seconds*):
   Seek *seconds* relative to the current position in the current track.
+
+* (`set-color` *color-number* *rgb*):
+  Set the value of the terminal color given by *color-number* to the RGB value given by *rgb*.  (Hint: you can use Scheme's hexadecimal syntax, e.g. #xFFFFFF.)
+
+* (`set-color` *color-number* *r* *g* *b*):
+  Set the value of the terminal color given by *color-number* to the RGB values given by *r* *g* and *b*.  The valid range for these values is 0-1000.
 
 * (`set-option` *name* *value*):
   Set the value of the option given by *name* to *value*.

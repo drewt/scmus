@@ -22,6 +22,8 @@
                            call-with-cursed
                            with-cursed
                            palette-set!
+                           can-set-color?
+                           set-color
                            clear-screen
                            format-addstr!
                            print-line!)
@@ -52,7 +54,8 @@
                   A_LOW
                   A_TOP
                   A_VERTICAL))
-  (import coops
+  (import (only chicken fxand fxshr)
+          coops
           drewt.ncurses
           drewt.ustring
           scmus.base)
@@ -194,6 +197,25 @@
   (define (palette-set! palette)
     (for-each (lambda (pair) (init-cursed! (car pair) (cdr pair)))
               palette))
+
+  (: can-set-color? (-> boolean))
+  (define (can-set-color?)
+    (can_change_color))
+
+  (: parse-rgb (fixnum -> fixnum fixnum fixnum))
+  (define (parse-rgb n)
+    (values (inexact->exact (round (* (fxshr (fxand n #xFF0000) 16) (/ 1000.0 255.0))))
+            (inexact->exact (round (* (fxshr (fxand n #x00FF00) 8)  (/ 1000.0 255.0))))
+            (inexact->exact (round (* (fxand n #x0000FF)            (/ 1000.0 255.0))))))
+
+  (: set-color (fixnum fixnum #!optional fixnum fixnum -> undefined))
+  (define (set-color color r-or-rgb #!optional g b)
+    ; TODO: allow symbol for color argument
+    (when (can_change_color)
+      (if b
+        (init_color color r-or-rgb g b)
+        (let-values (((r g b) (parse-rgb r-or-rgb)))
+          (init_color color r g b)))))
 
   ;; colors }}}
 
