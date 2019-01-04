@@ -719,16 +719,18 @@
 
 (define+user (win-search-next)
   "Move the cursor to the next search result"
-  (widget-search (widget-focus view-widget)
-                 (current-search-query)
-                 #f))
+  (when (current-search-query)
+    (widget-search (widget-focus view-widget)
+                   (current-search-query)
+                   #f)))
 (user-synonym win-search-next! win-search-next)
 
 (define+user (win-search-prev)
   "Move the cursor to the previous search result"
-  (widget-search (widget-focus view-widget)
-                 (current-search-query)
-                 #t))
+  (when (current-search-query)
+    (widget-search (widget-focus view-widget)
+                   (current-search-query)
+                   #t)))
 (user-synonym win-search-prev! win-search-prev)
 
 (define/user (win-edit)
