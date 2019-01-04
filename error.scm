@@ -26,13 +26,11 @@
       (lambda (error)
         (if (not error)
           ""
-          (let ((out (open-output-string)))
+          (let ((out (open-output-string))
+                (msg (format "~a: ~s" (get-condition-property error 'exn 'message "Error")
+                                      (get-condition-property error 'exn 'arguments '()))))
             (pretty-print (condition->list error) out)
-            (log-write! 'error (format "~a: ~s" (get-condition-property error 'exn 'message)
-                                                (get-condition-property error 'exn 'arguments))
-                               (string-trim-both (get-output-string out)))
+            (log-write! 'error msg (string-trim-both (get-output-string out)))
             (if ((condition-predicate 'exn) error)
-              (command-line-print-error!
-                (format "~a: ~s" (get-condition-property error 'exn 'message)
-                                 (get-condition-property error 'exn 'arguments))))
+              (command-line-print-error! msg))
             (get-output-string out)))))))
