@@ -170,7 +170,7 @@
   (define (scmus-update-current-song!)
     (current-track (scmus-current-song))
     (signal-event/global 'queue-changed)
-    (signal-event/global 'current-track-changed))
+    (signal-event/global 'track-changed))
 
   (: scmus-update-queue! thunk)
   (define (scmus-update-queue!)

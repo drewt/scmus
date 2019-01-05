@@ -137,7 +137,7 @@
   (make-frame 'body   *status-window*
               'header (make-text " MPD Status" 'cursed CURSED-WIN-TITLE)))
 
-(add-listener/global 'current-track-changed
+(add-listener/global 'track-changed
   (lambda ()
     (set! (format-text-data current-line) (current-track))))
 
