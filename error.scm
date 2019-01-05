@@ -26,9 +26,10 @@
       (lambda (error)
         (if (not error)
           ""
-          (let ((out (open-output-string))
-                (msg (format "~a: ~s" (get-condition-property error 'exn 'message "Error")
-                                      (get-condition-property error 'exn 'arguments '()))))
+          (let* ((out (open-output-string))
+                 (emsg (get-condition-property error 'exn 'message "Error"))
+                 (args (get-condition-property error 'exn 'arguments #f))
+                 (msg (if args (format "~a: ~s" emsg args) emsg)))
             (pretty-print (condition->list error) out)
             (log-write! 'error msg (string-trim-both (get-output-string out)))
             (if ((condition-predicate 'exn) error)

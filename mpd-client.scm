@@ -172,7 +172,7 @@
   (version mpd-version mpd-version-set!))
 
 (define re-ok+version (regexp "^OK MPD (.*)$"))
-(define re-err (regexp "^ACK ?(.*)$"))
+(define re-err (regexp "^ACK ?\\[(\\d)+@\\d+\\](.*)$"))
 (define re-pair (regexp "^([^:]+): (.*)$"))
 
 (define (raise-mpd-error msg . args)
@@ -180,6 +180,12 @@
     (make-composite-condition
       (make-property-condition 'exn 'message msg 'arguments args)
       (make-property-condition 'mpd))))
+
+(define (raise-server-error errno msg)
+  (abort
+    (make-composite-condition
+      (make-property-condition 'exn 'message (format "Error from server: ~a" msg))
+      (make-property-condition 'mpd 'errorno errno))))
 
 (define (mpd:connect #!optional (hostname "localhost") (port 6600) (password #f))
   (mpd:reconnect (make-connection hostname port password #f #f #f)))
@@ -277,7 +283,7 @@
         (reverse pairs))
       ((string-search re-err l)
         => (lambda (m)
-             (raise-mpd-error "error from server" (cadr m))))
+             (raise-server-error (string->number (cadr m)) (caddr m))))
       ((string-search re-pair l)
         => (lambda (m)
              (let ((s (string->symbol (string-downcase (cadr m)))))
