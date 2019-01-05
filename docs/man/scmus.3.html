@@ -78,6 +78,7 @@
 (<code>can-set-color?</code>)<br />
 (<code>clear-queue</code>)<br />
 (<code>colorscheme</code> <em>name</em>)<br />
+(<code>command</code> <em>arg</em> ...)<br />
 (<code>connect</code> <em>[host [port [password]]]</em>)<br />
 (<code>consume?</code>)<br />
 (<code>consume-set</code> <em>true-or-false</em>)<br />
@@ -88,7 +89,7 @@
 (<code>define-command</code> (<em>name</em> <em>args</em> ...) <em>body</em> ...)<br />
 (<code>describe</code> <em>object</em>)<br />
 (<code>disconnect</code>)<br />
-(<code>echo</code> <em>string</em>)<br />
+(<code>echo</code> <em>arg</em> ...)<br />
 (<code>enter-command-mode</code> <em>[text [cursor-pos]]</em>)<br />
 (<code>enter-eval-mode</code> <em>[text [cursor-pos]]</em>)<br />
 (<code>enter-search-mode</code> <em>[text [cursor-pos]]</em>)<br />
@@ -199,6 +200,7 @@
 <dt>(<code>can-set-color?</code>)</dt><dd><p>Returns <code>#t</code> if the terminal is capable or redefining colors (in which case <code>set-color</code> may be used), otherwise <code>#f</code>.</p></dd>
 <dt>(<code>clear-queue</code>)</dt><dd><p>Remove all tracks from the play queue.</p></dd>
 <dt>(<code>colorscheme</code> <em>name</em>)</dt><dd><p>Load the colorscheme <em>name</em>.  This function looks for a file named <em>name</em>.scm in the scmus colorscheme directory (usually <code>/usr/local/share/scmus/colors/</code>).</p></dd>
+<dt>(<code>command</code> <em>name</em> <em>arg</em> ...)</dt><dd><p>Execute the command <em>name</em> with the given arguments.  The command name and arguments are converted to strings (as if by <code>display</code>) and read as if implicitly double-quoted.</p></dd>
 <dt>(<code>connect</code> <em>[host [port [password]]]</em>)</dt><dd><p>Connect to the MPD server given by <em>password</em>@<em>host</em>:<em>port</em>, using the values of the <code>mpd-address</code>, <code>mpd-port</code> and <code>mpd-password</code> options if they are not provided as arguments.</p></dd>
 <dt>(<code>consume?</code>)</dt><dd><p>Returns <code>#t</code> if MPD is currently in consume mode, otherwise <code>#f</code>.</p></dd>
 <dt>(<code>consume-set</code> <em>true-or-false</em>)</dt><dd><p>Set the value of the <code>consume</code> MPD option to <em>true-or-false</em>.</p></dd>
@@ -209,7 +211,7 @@
 <dt>(<code>define-command</code> (<em>name</em> <em>args</em> ...) <em>body</em> ...)</dt><dd><p>Defines a handler for the command <em>name</em>, taking arguments <em>args</em> and executing <em>body</em> when the command is run.  A dotted tail may be used in the argument list to accept an arbitrary number of arguments.</p></dd>
 <dt>(<code>describe</code> <em>object</em>)</dt><dd><p>Print a description of <em>object</em> on the command line.  If <em>object</em> is a symbol, then a description is printed for the object bound to the symbol.</p></dd>
 <dt>(<code>disconnect</code>)</dt><dd><p>Disconnects from the current MPD server.</p></dd>
-<dt>(<code>echo</code> <em>string</em>)</dt><dd><p>Prints <em>string</em> to the command line.</p></dd>
+<dt>(<code>echo</code> <em>arg</em> ...)</dt><dd><p>Prints its arguments to the command line, each separated by a space.</p></dd>
 <dt>(<code>enter-command-mode</code> <em>[text [cursor-pos]]</em>)</dt><dd><p>Enter <code>command</code> mode (a mode in which commands may be entered on the command line).  If <em>text</em> is given, then the text is added on the command line.  If <em>cursor-pos</em> is given, then the cursor is moved to the given position within <em>text</em>.</p></dd>
 <dt>(<code>enter-eval-mode</code> <em>[text [cursor-pos]]</em>)</dt><dd><p>Enter <code>eval</code> mode (a mode in which scheme expressions may be entered on the command line).  See <em>enter-command-mode</em> for a description of the arguments to this procedure.</p></dd>
 <dt>(<code>enter-search-mode</code> <em>[text [cursor-pos]]</em>)</dt><dd><p>Enter <code>search</code> mode (a mode in which a search query may be entered on the command line).  See <em>enter-command-mode</em> for a description of the arguments to this procedure.</p></dd>

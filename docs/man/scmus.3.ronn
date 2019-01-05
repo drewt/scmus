@@ -7,6 +7,7 @@ scmus(3) -- scmus Scripting Environment
 (`can-set-color?`)  
 (`clear-queue`)  
 (`colorscheme` *name*)  
+(`command` *arg* ...)  
 (`connect` *\[host \[port \[password\]\]\]*)  
 (`consume?`)  
 (`consume-set` *true-or-false*)  
@@ -17,7 +18,7 @@ scmus(3) -- scmus Scripting Environment
 (`define-command` (*name* *args* ...) *body* ...)  
 (`describe` *object*)  
 (`disconnect`)  
-(`echo` *string*)  
+(`echo` *arg* ...)  
 (`enter-command-mode` *\[text \[cursor-pos\]\]*)  
 (`enter-eval-mode` *\[text \[cursor-pos\]\]*)  
 (`enter-search-mode` *\[text \[cursor-pos\]\]*)  
@@ -135,6 +136,9 @@ scmus(3) -- scmus Scripting Environment
 * (`colorscheme` *name*):
   Load the colorscheme *name*.  This function looks for a file named *name*.scm in the scmus colorscheme directory (usually `/usr/local/share/scmus/colors/`).
 
+* (`command` *name* *arg* ...):
+  Execute the command *name* with the given arguments.  The command name and arguments are converted to strings (as if by `display`) and read as if implicitly double-quoted.
+
 * (`connect` *\[host \[port \[password\]\]\]*):
   Connect to the MPD server given by *password*@*host*:*port*, using the values of the `mpd-address`, `mpd-port` and `mpd-password` options if they are not provided as arguments.
 
@@ -165,8 +169,8 @@ scmus(3) -- scmus Scripting Environment
 * (`disconnect`):
   Disconnects from the current MPD server.
 
-* (`echo` *string*):
-  Prints *string* to the command line.
+* (`echo` *arg* ...):
+  Prints its arguments to the command line, each separated by a space.
 
 * (`enter-command-mode` *\[text \[cursor-pos\]\]*):
   Enter `command` mode (a mode in which commands may be entered on the command line).  If *text* is given, then the text is added on the command line.  If *cursor-pos* is given, then the cursor is moved to the given position within *text*.

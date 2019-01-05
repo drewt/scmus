@@ -132,6 +132,13 @@
       => user-load)))
 (user-synonym colorscheme! colorscheme)
 
+(define/user (command name . args)
+  "Execute a command"
+  (eval-command (map (lambda (x)
+                       (with-input-from-string (if (string? x) x (format "~a" x))
+                         read-command/implicit-quote))
+                     (cons name args))))
+
 (define/user connect
   "Connect to an MPD server"
   ; XXX: connect! not defined yet

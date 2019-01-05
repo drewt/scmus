@@ -59,7 +59,10 @@
                        command-completion
                        define-command
                        define-command/completion
+                       eval-command
                        load-command-script
+                       read-command
+                       read-command/implicit-quote
                        register-command!
                        register-command-completion!
                        run-command)
@@ -180,57 +183,61 @@
 
   ; Helper routines }}}
 
-  (define (read-word)
-    (let loop ((result '()) (escaping #f) (quoting #f))
-      (let ((c (read-char)))
-        (cond
-          ; Terminate after reaching EOF
-          ((eof-object? c)
-            ; TODO: warn if we're escaping or quoting
-            (if (null? result)
-              (values c #t) ; return #!eof
-              (values (list->string (reverse result)) #t)))
-          ; If the last character was a backslash, escape the current character
-          (escaping
-            (case c
-              ((#\newline) (loop result #f quoting))
-              (else        (loop (cons c result) #f quoting))))
-          ; Quoting...
-          ((char=? c #\')
-            (cond ((eqv? quoting 'double) (loop (cons c result) #f quoting))
-                  ((eqv? quoting 'single) (loop result #f #f))
-                  (else                   (loop result #f 'single))))
-          ((char=? c #\")
-            (cond ((eqv? quoting 'single) (loop (cons c result) #f quoting))
-                  ((eqv? quoting 'double) (loop result #f #f))
-                  (else                   (loop result #f 'double))))
-          ((eqv? quoting 'single)
-            (loop (cons c result) #f quoting))
-          ; Backslash: escape the next character
-          ((char=? c #\\)
-            (loop result #t quoting))
-          ; Evaluate embedded Scheme expression
-          ((char=? c #\$)
-            (let ((chars (if (char=? (peek-char) #\{)
-                           (let ((chars (begin (read-char) (read-datum))))
-                             (if (char=? (peek-char) #\})
-                               (read-char)
-                               ; TODO: raise error
-                               )
-                             chars)
-                           (read-datum))))
-              (loop (append chars result) #f quoting)))
-          ; Comment
-          ((char=? c #\#)
-            (read-comment)
-            (loop result escaping quoting))
-          ; Unquoted whitespace: terminate
-          ((and (not quoting)
-                (char-whitespace? c))
-            (values (list->string (reverse result)) (char=? c #\newline)))
-          ; Regular character
-          (else
-            (loop (cons c result) #f quoting))))))
+  (define (%read-word result escaping quoting)
+    (let ((c (read-char)))
+      (cond
+        ; Terminate after reaching EOF
+        ((eof-object? c)
+          ; TODO: warn if we're escaping or quoting
+          (if (null? result)
+            (values c #t) ; return #!eof
+            (values (list->string (reverse result)) #t)))
+        ; If the last character was a backslash, escape the current character
+        (escaping
+          (case c
+            ((#\newline) (%read-word result #f quoting))
+            (else        (%read-word (cons c result) #f quoting))))
+        ; Quoting...
+        ((char=? c #\')
+          (cond ((eqv? quoting 'double)   (%read-word (cons c result) #f quoting))
+                ((eqv? quoting 'implicit) (%read-word (cons c result) #f quoting))
+                ((eqv? quoting 'single)   (%read-word result #f #f))
+                (else                     (%read-word result #f 'single))))
+        ((char=? c #\")
+          (cond ((eqv? quoting 'single)   (%read-word (cons c result) #f quoting))
+                ((eqv? quoting 'implicit) (%read-word (cons c result) #f quoting))
+                ((eqv? quoting 'double)   (%read-word result #f #f))
+                (else                     (%read-word result #f 'double))))
+        ((eqv? quoting 'single)
+          (%read-word (cons c result) #f quoting))
+        ; Backslash: escape the next character
+        ((char=? c #\\)
+          (%read-word result #t quoting))
+        ; Evaluate embedded Scheme expression
+        ((char=? c #\$)
+          (let ((chars (if (char=? (peek-char) #\{)
+                         (let ((chars (begin (read-char) (read-datum))))
+                           (if (char=? (peek-char) #\})
+                             (read-char)
+                             ; TODO: raise error
+                             )
+                           chars)
+                         (read-datum))))
+            (%read-word (append chars result) #f quoting)))
+        ; Comment
+        ((and (not quoting)
+              (char=? c #\#))
+          (read-comment)
+          (%read-word result escaping quoting))
+        ; Unquoted whitespace: terminate
+        ((and (not quoting)
+              (char-whitespace? c))
+          (values (list->string (reverse result)) (char=? c #\newline)))
+        ; Regular character
+        (else
+          (%read-word (cons c result) #f quoting)))))
+
+  (define (read-word) (%read-word '() #f #f))
   
   ;; Read a command from CURRENT-INPUT-PORT, and return it as a list of strings.
   (define (read-command)
@@ -242,6 +249,13 @@
           ((eof-object? word) (reverse result))
           (end-of-command?    (reverse (cons word result)))
           (else               (loop (cons word result)))))))
+
+  ;; Read until #!eof, as if the entire input was inside of an inescapable
+  ;; double-quote.  Any double-quote characters encountered in this mode
+  ;; are implicitly escaped.
+  (define (read-command/implicit-quote)
+    (let-values (((word _) (%read-word '() #f 'implicit)))
+      word))
 
   (define (eval-command cmd)
     (let ((i (string-index (car cmd) #\=)))
@@ -264,7 +278,7 @@
           (eval-command cmd)
           (read-eval-loop))))
     (with-input-from-file file read-eval-loop))
- 
+
   (define (run-command str)
     (define (handle-error e msg)
       (scmus-error e)

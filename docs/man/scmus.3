@@ -19,6 +19,9 @@
 (\fBcolorscheme\fR \fIname\fR)
 .
 .br
+(\fBcommand\fR \fIarg\fR \.\.\.)
+.
+.br
 (\fBconnect\fR \fI[host [port [password]]]\fR)
 .
 .br
@@ -49,7 +52,7 @@
 (\fBdisconnect\fR)
 .
 .br
-(\fBecho\fR \fIstring\fR)
+(\fBecho\fR \fIarg\fR \.\.\.)
 .
 .br
 (\fBenter\-command\-mode\fR \fI[text [cursor\-pos]]\fR)
@@ -376,6 +379,10 @@ Remove all tracks from the play queue\.
 Load the colorscheme \fIname\fR\. This function looks for a file named \fIname\fR\.scm in the scmus colorscheme directory (usually \fB/usr/local/share/scmus/colors/\fR)\.
 .
 .TP
+(\fBcommand\fR \fIname\fR \fIarg\fR \.\.\.)
+Execute the command \fIname\fR with the given arguments\. The command name and arguments are converted to strings (as if by \fBdisplay\fR) and read as if implicitly double\-quoted\.
+.
+.TP
 (\fBconnect\fR \fI[host [port [password]]]\fR)
 Connect to the MPD server given by \fIpassword\fR@\fIhost\fR:\fIport\fR, using the values of the \fBmpd\-address\fR, \fBmpd\-port\fR and \fBmpd\-password\fR options if they are not provided as arguments\.
 .
@@ -416,8 +423,8 @@ Print a description of \fIobject\fR on the command line\. If \fIobject\fR is a s
 Disconnects from the current MPD server\.
 .
 .TP
-(\fBecho\fR \fIstring\fR)
-Prints \fIstring\fR to the command line\.
+(\fBecho\fR \fIarg\fR \.\.\.)
+Prints its arguments to the command line, each separated by a space\.
 .
 .TP
 (\fBenter\-command\-mode\fR \fI[text [cursor\-pos]]\fR)
