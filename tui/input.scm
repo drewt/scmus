@@ -140,6 +140,8 @@
                     accessor: text-input-text)
      (saved-text    initform: '()
                     accessor: text-input-saved-text)
+     (scroll-pos    initform: 0
+                    accessor: text-input-scroll-pos)
      (cursor-pos    initform: 0
                     accessor: text-input-cursor-pos)
      ; TODO: allow specifying percentage of available cols to allocate to prefix
@@ -166,24 +168,48 @@
 
   (define-method (text-text (text <text-input>))
     (list (string-append (text-input-prefix text)
-                         (list->string (reverse (text-input-text text))))))
+                         (list->string (drop (reverse (text-input-text text))
+                                             (text-input-scroll-pos text))))))
 
   (define-method (widget-size (text <text-input>) available-cols available-rows)
     (values available-cols (min available-rows 1)))
 
   (define (text-input-update-cursor input)
-    (move (widget-y input)
-          (min (- (COLS) 1)
-               (+ (widget-x input)
-                  (string-length (text-input-prefix input))
-                  (- (text-input-length input)
-                     (text-input-cursor-pos input))))))
+    (let ((len  (text-input-length input))
+          (cols (- (widget-cols input)
+                   (string-length (text-input-prefix input)))))
+      ; get cursor pos relative to scroll pos
+      (define (relative-cursor-pos input)
+        (- len
+           (text-input-scroll-pos input)
+           (text-input-cursor-pos input)))
+      (define (scroll input n)
+        (set! (text-input-scroll-pos input)
+          (max 0 (min len (+ (text-input-scroll-pos input) n)))))
+      ; scroll backward if there's empty space on the right
+      (if (< (+ 1 (- len (text-input-scroll-pos input))) cols)
+        (scroll input (- (+ 1 (- len (text-input-scroll-pos input)))
+                         cols)))
+      (let ((cursor-pos (relative-cursor-pos input)))
+        (cond
+          ; cursor off right: scroll forward
+          ((>= cursor-pos cols)
+            (scroll input (- (+ 1 cursor-pos) cols)))
+          ; cursor off left: scroll backward
+          ((negative? cursor-pos)
+            (scroll input cursor-pos))))
+      (move (widget-y input)
+            (min (- (COLS) 1)
+                 (+ (widget-x input)
+                    (string-length (text-input-prefix input))
+                    (relative-cursor-pos input))))))
 
   (define-method ((setter text-input-editing?) after: (widget <text-input>) editing?)
     (if editing?
       (begin (text-input-update-cursor widget)
              (curs_set 1))
-      (curs_set 0)))
+      (curs_set 0))
+    (widget-damaged! widget))
 
   (define-method ((setter text-input-cursor-pos) after: (widget <text-input>) n)
     (when (text-input-editing? widget)
