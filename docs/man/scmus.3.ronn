@@ -8,6 +8,7 @@ scmus(3) -- scmus Scripting Environment
 (`clear-queue`)  
 (`colorscheme` *name*)  
 (`command` *arg* ...)  
+(`*command` *cmd*)  
 (`connect` *\[host \[port \[password\]\]\]*)  
 (`consume?`)  
 (`consume-set` *true-or-false*)  
@@ -125,7 +126,7 @@ scmus(3) -- scmus Scripting Environment
 ## DESCRIPTION
 
 * (`bind` *keys context expression \[force\]*):
-  Bind *keys* to *expression* in *context*.  If *force* is `#t`, then any binding conflicting with *keys* is first unbound.  Otherwise, if there is a conflicting binding then this function will fail to bind *keys* and return `#f`.
+  Bind *keys* to *expression* in *context*.  If *force* is `#t`, then any binding conflicting with *keys* is first unbound.  Otherwise, if there is a conflicting binding then this function will fail to bind *keys* and return `#f`.  If *expression* is a string, then it is implicitly wrapped in a call to `*command`: (`*command` *expression*).
 
 * (`can-set-color?`):
   Returns `#t` if the terminal is capable or redefining colors (in which case `set-color` may be used), otherwise `#f`.
@@ -138,6 +139,9 @@ scmus(3) -- scmus Scripting Environment
 
 * (`command` *name* *arg* ...):
   Execute the command *name* with the given arguments.  The command name and arguments are converted to strings (as if by `display`) and read as if implicitly double-quoted.
+
+* (`*command` *cmd*):
+  Pass the string *cmd* to the command interpreter, as if entered on the command line.  When `*command` is used in a key binding, the expression is displayed in `bindings-view` as a bare command string rather than a Scheme expression.
 
 * (`connect` *\[host \[port \[password\]\]\]*):
   Connect to the MPD server given by *password*@*host*:*port*, using the values of the `mpd-address`, `mpd-port` and `mpd-password` options if they are not provided as arguments.

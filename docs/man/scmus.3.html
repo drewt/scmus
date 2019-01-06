@@ -79,6 +79,7 @@
 (<code>clear-queue</code>)<br />
 (<code>colorscheme</code> <em>name</em>)<br />
 (<code>command</code> <em>arg</em> ...)<br />
+(<code>*command</code> <em>cmd</em>)<br />
 (<code>connect</code> <em>[host [port [password]]]</em>)<br />
 (<code>consume?</code>)<br />
 (<code>consume-set</code> <em>true-or-false</em>)<br />
@@ -196,11 +197,12 @@
 <h2 id="DESCRIPTION">DESCRIPTION</h2>
 
 <dl>
-<dt>(<code>bind</code> <em>keys context expression [force]</em>)</dt><dd><p>Bind <em>keys</em> to <em>expression</em> in <em>context</em>.  If <em>force</em> is <code>#t</code>, then any binding conflicting with <em>keys</em> is first unbound.  Otherwise, if there is a conflicting binding then this function will fail to bind <em>keys</em> and return <code>#f</code>.</p></dd>
+<dt>(<code>bind</code> <em>keys context expression [force]</em>)</dt><dd><p>Bind <em>keys</em> to <em>expression</em> in <em>context</em>.  If <em>force</em> is <code>#t</code>, then any binding conflicting with <em>keys</em> is first unbound.  Otherwise, if there is a conflicting binding then this function will fail to bind <em>keys</em> and return <code>#f</code>.  If <em>expression</em> is a string, then it is implicitly wrapped in a call to <code>*command</code>: (<code>*command</code> <em>expression</em>).</p></dd>
 <dt>(<code>can-set-color?</code>)</dt><dd><p>Returns <code>#t</code> if the terminal is capable or redefining colors (in which case <code>set-color</code> may be used), otherwise <code>#f</code>.</p></dd>
 <dt>(<code>clear-queue</code>)</dt><dd><p>Remove all tracks from the play queue.</p></dd>
 <dt>(<code>colorscheme</code> <em>name</em>)</dt><dd><p>Load the colorscheme <em>name</em>.  This function looks for a file named <em>name</em>.scm in the scmus colorscheme directory (usually <code>/usr/local/share/scmus/colors/</code>).</p></dd>
 <dt>(<code>command</code> <em>name</em> <em>arg</em> ...)</dt><dd><p>Execute the command <em>name</em> with the given arguments.  The command name and arguments are converted to strings (as if by <code>display</code>) and read as if implicitly double-quoted.</p></dd>
+<dt>(<code>*command</code> <em>cmd</em>)</dt><dd><p>Pass the string <em>cmd</em> to the command interpreter, as if entered on the command line.  When <code>*command</code> is used in a key binding, the expression is displayed in <code>bindings-view</code> as a bare command string rather than a Scheme expression.</p></dd>
 <dt>(<code>connect</code> <em>[host [port [password]]]</em>)</dt><dd><p>Connect to the MPD server given by <em>password</em>@<em>host</em>:<em>port</em>, using the values of the <code>mpd-address</code>, <code>mpd-port</code> and <code>mpd-password</code> options if they are not provided as arguments.</p></dd>
 <dt>(<code>consume?</code>)</dt><dd><p>Returns <code>#t</code> if MPD is currently in consume mode, otherwise <code>#f</code>.</p></dd>
 <dt>(<code>consume-set</code> <em>true-or-false</em>)</dt><dd><p>Set the value of the <code>consume</code> MPD option to <em>true-or-false</em>.</p></dd>

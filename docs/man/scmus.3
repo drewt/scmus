@@ -22,6 +22,9 @@
 (\fBcommand\fR \fIarg\fR \.\.\.)
 .
 .br
+(\fB*command\fR \fIcmd\fR)
+.
+.br
 (\fBconnect\fR \fI[host [port [password]]]\fR)
 .
 .br
@@ -364,7 +367,7 @@
 .
 .TP
 (\fBbind\fR \fIkeys context expression [force]\fR)
-Bind \fIkeys\fR to \fIexpression\fR in \fIcontext\fR\. If \fIforce\fR is \fB#t\fR, then any binding conflicting with \fIkeys\fR is first unbound\. Otherwise, if there is a conflicting binding then this function will fail to bind \fIkeys\fR and return \fB#f\fR\.
+Bind \fIkeys\fR to \fIexpression\fR in \fIcontext\fR\. If \fIforce\fR is \fB#t\fR, then any binding conflicting with \fIkeys\fR is first unbound\. Otherwise, if there is a conflicting binding then this function will fail to bind \fIkeys\fR and return \fB#f\fR\. If \fIexpression\fR is a string, then it is implicitly wrapped in a call to \fB*command\fR: (\fB*command\fR \fIexpression\fR)\.
 .
 .TP
 (\fBcan\-set\-color?\fR)
@@ -381,6 +384,10 @@ Load the colorscheme \fIname\fR\. This function looks for a file named \fIname\f
 .TP
 (\fBcommand\fR \fIname\fR \fIarg\fR \.\.\.)
 Execute the command \fIname\fR with the given arguments\. The command name and arguments are converted to strings (as if by \fBdisplay\fR) and read as if implicitly double\-quoted\.
+.
+.TP
+(\fB*command\fR \fIcmd\fR)
+Pass the string \fIcmd\fR to the command interpreter, as if entered on the command line\. When \fB*command\fR is used in a key binding, the expression is displayed in \fBbindings\-view\fR as a bare command string rather than a Scheme expression\.
 .
 .TP
 (\fBconnect\fR \fI[host [port [password]]]\fR)

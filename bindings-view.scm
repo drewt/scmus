@@ -38,23 +38,32 @@
    (expr    accessor: binding-row-expr)))
 
 (define (make-binding-row context keys expr . args)
-  (let ((keys (make-key-list keys)))
+  (let ((keys (make-key-list keys))
+        (text (if (and (pair? expr)
+                       (= (length expr) 2)
+                       (eqv? (car expr) '*command)
+                       (string? (cadr expr)))
+                (cadr expr)
+                (format #f "~s" expr))))
     (apply make <binding-row>
                 'context context
                 'keys keys
                 'expr expr
                 'left-child (make-scheme-text keys)
-                'right-child (make-text-input (format #f "~s" expr) ""
-                                              'on-commit binding-commit-edit!)
+                'right-child (make-text-input text ""
+                               'on-commit binding-commit-edit!)
                 args)))
 
 (define (binding-commit-edit! widget)
-  (let ((text    (text-input-get-text widget))
+  (let ((text    (string-trim-both (text-input-get-text widget)))
         (context (binding-row-context (widget-parent widget)))
         (keys    (key-list-keys (binding-row-keys (widget-parent widget)))))
     (handle-exceptions e (begin (scmus-error e) #f)
       (unbind! keys context)
-      (make-binding! keys context (with-input-from-string text read)))))
+      (when (> (string-length text) 0)
+        (if (char=? (string-ref text 0) #\()
+          (make-binding! keys context (with-input-from-string text read))
+          (make-binding! keys context `(*command ,text)))))))
 
 (define (make-bindings-data)
   (define (context<? a b)

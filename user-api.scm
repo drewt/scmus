@@ -105,7 +105,8 @@
 
 (define/user (bind keys context expr #!optional (force #f))
   "Bind a key sequence to a Scheme expression"
-  (let ((key-list (if (list? keys) keys (string-tokenize keys))))
+  (let ((key-list (if (list? keys) keys (string-tokenize keys)))
+        (expr (if (string? expr) `(*command ,expr) expr)))
     (if (binding-keys-valid? key-list)
       (begin
         (when force
@@ -138,6 +139,10 @@
                        (with-input-from-string (if (string? x) x (format "~a" x))
                          read-command/implicit-quote))
                      (cons name args))))
+
+(define/user (*command str)
+  "Execute a command"
+  (run-command str))
 
 (define/user connect
   "Connect to an MPD server"
