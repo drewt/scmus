@@ -236,15 +236,15 @@
 
 (define+user (enter-eval-mode #!optional (text "") (cursor-pos 0))
   "Set the input mode to eval-mode"
-  (command-line-get-string eval-mode text cursor-pos))
+  (command-line-enter-mode eval-mode text cursor-pos))
 
 (define/user (enter-command-mode #!optional (text "") (cursor-pos 0))
   "Set the input mode to command-mode"
-  (command-line-get-string command-mode text cursor-pos))
+  (command-line-enter-mode command-mode text cursor-pos))
 
 (define/user (enter-search-mode #!optional (text "") (cursor-pos 0))
   "Set the input mode to search-mode"
-  (command-line-get-string search-mode text cursor-pos))
+  (command-line-enter-mode search-mode text cursor-pos))
 
 (define/user (exit)
   "Exit the program"
@@ -257,6 +257,12 @@
 (define/user get-option
   "Get the value of a configuration option"
   get-option)
+
+(define/user (get-string prompt)
+  "Prompt the user to enter a string on the command line"
+  (call/cc (lambda (return)
+             (command-line-get-string prompt return)
+             (user-eval-stop))))
 
 (define/user (load file)
   "Load a Scheme file or command script"

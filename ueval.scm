@@ -22,6 +22,7 @@
 (module scmus.ueval (user-doc-ref
                      user-eval
                      user-eval/raw
+                     user-eval-stop
                      user-eval-string
                      user-export!
                      user-load
@@ -62,13 +63,22 @@
   (define (user-doc-ref name)
     (cdr (hash-table-ref *user-api* name)))
 
+  ;; Halt evalation.  Meant to be used in combination with call/cc,
+  ;; to implement blocking calls.
+  (: user-eval-stop (-> undefined))
+  (define (user-eval-stop)
+    (raise (make-composite-condition
+             (make-property-condition 'ueval)
+             (make-property-condition 'stop))))
+
   (: user-eval/raw (* -> *))
   (define (user-eval/raw expr)
-    (safe-eval expr environment: *user-env*))
+    (condition-case (safe-eval expr environment: *user-env*)
+      (e (ueval stop) (void))))
 
   (: user-eval (* -> *))
   (define (user-eval expr)
-    (condition-case (safe-eval expr environment: *user-env*)
+    (condition-case (user-eval/raw expr)
       (e () (scmus-error e) e)))
 
   (: user-eval-string (string -> *))

@@ -22,6 +22,7 @@
                             command-line-text
                             command-line-text-set!
                             command-line-cursor-pos-set!
+                            command-line-enter-mode
                             command-line-get-string
                             make-command-line-mode
                             make-completion-engine)
@@ -34,16 +35,19 @@
 
   (define current-command-line-mode (make-parameter #f))
 
-  ;; tab completion {{{
-
   (define-record-type command-line-mode
     (%make-command-line-mode prefix callback completion history)
     command-line-mode?
-    (prefix     command-line-mode-prefix)
-    (callback   command-line-mode-callback)
-    (completion command-line-mode-completion)
-    (history    command-line-mode-history
-                command-line-mode-history-set!))
+    (prefix     command-line-mode-prefix     command-line-mode-prefix-set!)
+    (callback   command-line-mode-callback   command-line-mode-callback-set!)
+    (completion command-line-mode-completion command-line-mode-completion-set!)
+    (history    command-line-mode-history    command-line-mode-history-set!))
+
+  (define (make-command-line-mode prefix callback
+                                  #!optional (engine *default-completion-engine*))
+    (%make-command-line-mode prefix callback engine (iter)))
+
+  ;; tab completion {{{
 
   (define-record-type completion-engine
     (%make-completion-engine tokenize generator context)
@@ -73,10 +77,6 @@
     (make-completion-engine
       char-set:empty
       (lambda (_) '())))
-
-  (define (make-command-line-mode prefix callback
-                                  #!optional (engine *default-completion-engine*))
-    (%make-command-line-mode prefix callback engine (iter)))
 
   ;; Get the current completion engine.
   (define (completion-engine)
@@ -269,20 +269,29 @@
   (define (command-line-cursor-pos-set! n)
     (text-input-set-cursor-pos! command-line-widget n))
 
-  (define (command-line-get-string mode #!optional (text "") (cursor-pos 0))
+  (define (command-line-enter-mode mode #!optional (text "") (cursor-pos 0))
     (current-command-line-mode mode)
     (set! (text-input-prefix command-line-widget)
       (command-line-mode-prefix mode))
     (set! (text-input-on-commit command-line-widget)
       (lambda (w)
-        (let ((text (text-input-get-text w)))
+        (let ((text (text-input-get-text w))
+              (callback (command-line-mode-callback mode)))
           (text-input-set-text! w "")
           (history-add! text)
-          ((command-line-mode-callback mode) text))))
+          (run-later (lambda () (callback text))))))
     (set! (text-input-on-cancel command-line-widget)
       (lambda (w)
         (set! (text-input-prefix w) " ")
         (text-input-set-text! w "")))
     (text-input-set-text! command-line-widget text)
     (text-input-set-cursor-pos! command-line-widget cursor-pos)
-    (text-input-begin command-line-widget steal-focus: #t)))
+    (text-input-begin command-line-widget steal-focus: #t))
+
+  (define default-command-line-mode
+    (make-command-line-mode " " void))
+
+  (define (command-line-get-string prompt then)
+    (command-line-mode-prefix-set!   default-command-line-mode prompt)
+    (command-line-mode-callback-set! default-command-line-mode then)
+    (command-line-enter-mode default-command-line-mode)))

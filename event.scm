@@ -22,6 +22,7 @@
                      add-listener/global
                      signal-event
                      signal-event/global
+                     run-later
                      handle-events
                      register-timer!
                      register-timer-event!)
@@ -54,6 +55,9 @@
 
   (define (signal-event/global type . args)
     (apply signal-event *global-event-source* type args))
+
+  (define (run-later thunk)
+    (set! *deferred-events* (cons thunk *deferred-events*)))
 
   (define (handle-events)
     (handle-timers)
