@@ -105,6 +105,7 @@
 
   (: get-binding (string binding-list -> (or false binding-data)))
   (define (get-binding key bindings)
+    (assert (string? key) "get-binding" key)
     (alist-ref key bindings string=?))
 
   (: get-binding-expression ((list-of string) symbol -> *))
@@ -125,7 +126,7 @@
           (else (loop (cdr keys) binding))))))
 
   ;; Non-destructive binding update.  Binds expr to keys in key-list.
-  (: make-binding ((list-of string) binding-list * -> binding-list))
+  (: make-binding ((list-of string) binding-list * -> (or binding-list false)))
   (define (make-binding keys key-list expr)
     (let ((binding (get-binding (car keys) key-list)))
       (cond
@@ -202,7 +203,7 @@
 
   ;; Converts an ncurses keypress event to a string.
   ;; Argument may be either a character or an integer.
-  (: key->string ((or char fixnum) -> string))
+  (: key->string ((or char fixnum) -> (or string false)))
   (define (key->string key)
     (find-key-name (if (char? key)
                      (char->integer key)
@@ -263,7 +264,7 @@
   (: key-valid? (* -> boolean))
   (define (key-valid? k) (not (not (find-key-code k))))
  
-  (: find-key-name (fixnum -> (or string boolean)))
+  (: find-key-name (fixnum -> (or string false)))
   (define (find-key-name code)
     (hash-table-fold *key-table*
                      (lambda (key value acc)
