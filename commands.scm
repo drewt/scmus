@@ -84,7 +84,7 @@
 ;; If COMMAND is ommitted, then the current binding is printed.
 (define-command/flags (bind ((#\f forced)) context keys #!optional command)
   (let ((context (with-input-from-string context read))
-        (keys    (string-split keys "-"))
+        (keys    (string-split keys " "))
         (cmd-str (and command (string-trim command))))
     ; validate arguments
     (unless (binding-keys-valid? keys)
@@ -106,7 +106,7 @@
 ;; unbind [-f] <context> <keys>
 (define-command/flags (unbind ((#\f forced)) context keys)
   (let ((context (with-input-from-string context read))
-        (keys    (string-split keys "-")))
+        (keys    (string-split keys " ")))
     (unless (binding-keys-valid? keys)
       (invalid-argument-error 2 "Invalid keys" "unbind"))
     (if (and (not (unbind! keys context))
