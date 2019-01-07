@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "SCMUS" "1" "December 2018" "" "General Commands Manual"
+.TH "SCMUS" "1" "January 2019" "" "General Commands Manual"
 .
 .SH "NAME"
 \fBscmus\fR \- Scheme MPD Client
@@ -128,7 +128,7 @@ $(win\-clear!) ; eval mode
 Search mode works like eval mode\. To enter search mode press \fB/\fR and then type the search query and press \fBENTER\fR\. Press \fBn\fR to find the next match using the same search query, or \fBN\fR to find the previous match\.
 .
 .P
-scmus uses a simple substring match search\. When the current window contains a list of tracks, artist, album, albumartist and title are searched\.
+scmus uses a simple substring match search\. When the current window contains a list of tracks, the \fIartist\fR, \fIalbum\fR, \fIalbumartist\fR and \fItitle\fR tags are searched\.
 .
 .SH "STATUS LINE"
 .
@@ -208,7 +208,7 @@ Remove all tracks from the play queue\.
 .
 .TP
 \fBcolorscheme\fR \fIname\fR
-Change color scheme\. Color schemes are found in \fI/user/local/share/scmus/colors/\fR or \fI$XDG_CONFIG_HOME/scmus/colors/\fR\.
+Change color scheme\. Color schemes are found in \fI/usr/local/share/scmus/colors/\fR or \fI$XDG_CONFIG_HOME/scmus/colors/\fR\.
 .
 .TP
 \fBconnect\fR [\fIhost\fR] [\fIport\fR [\fIpassword\fR]]]
