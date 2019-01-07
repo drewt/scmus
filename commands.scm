@@ -85,17 +85,21 @@
 (define-command/flags (bind ((#\f forced)) context keys #!optional command)
   (let ((context (with-input-from-string context read))
         (keys    (string-split keys "-"))
-        (command (if command (with-input-from-string command read) #f)))
+        (cmd-str (and command (string-trim command))))
+    ; validate arguments
     (unless (binding-keys-valid? keys)
-      (invalid-argument-error 2 "Invalid keys" "bind"))
-    (if command
-      (begin
+      (invalid-argument-error 2 "Invalid keys" "bind")) 
+    (when (and cmd-str (zero? (string-length cmd-str)))
+      (invalid-argument-error 3 "Invalid binding expression" "bind"))
+    (if (not command)
+      ; no binding given: display current binding
+      (command-line-print-info! (format "~s" (get-binding-expression keys context)))
+      (let ((command (if (char=? (string-ref cmd-str 0) #\()
+                       (with-input-from-string cmd-str read)
+                       `(*command ,cmd-str))))
         (when forced
           (unbind! keys context))
-        (make-binding! keys context command))
-      (command-line-print-info! (format "~s" (get-binding-expression
-                                               keys
-                                               context))))))
+        (make-binding! keys context command)))))
 (register-command-completion! 'bind
   '(("common" "library" "queue" "search" "browser" "status" "error" "options" "bindings")))
 
