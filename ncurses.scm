@@ -597,7 +597,7 @@
   (def err wscrl win int)
   (def c-string unctrl chtype)
   (def void ungetch int)
-  (def chtype wgetch win)
+  (def int wgetch win)
   (define (getch) (wgetch (stdscr)))
   (def err cbreak)
   (def err raw)
@@ -866,7 +866,7 @@
             (let ((rc (*get-wch (location ch))))
               (values ch rc)))))
       (else
-        (let ((r (char->integer (getch))))
+        (let ((r (getch)))
           (cond
             ((= r ERR) (values 0 ERR))
             ((> r 255) (values r KEY_CODE_YES))
