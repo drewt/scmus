@@ -85,11 +85,27 @@
     ; handle input
     (let-values (((ch rc) (get-char)))
       (cond
+        ((= rc ERR) (void))
         ((= rc KEY_CODE_YES)
           (cond
-            ((>= ch 512)        (void))
-            ((=  ch KEY_RESIZE) (widget-invalidate root-widget)
-                                (draw-ui root-widget))
-            (else               (do-handle-input root-widget ch))))
-        ((not (= rc ERR))
+            ((= ch KEY_RESIZE)
+              (widget-invalidate root-widget)
+              (draw-ui root-widget))
+            (else
+              (do-handle-input root-widget ch))))
+        ; ALT+KEY generates an #\escape followed immediately by the key
+        ; so we have to differentiate between ALT chords and real escapes
+        ((= ch 27)
+          (nocbreak) ; leave halfdelay mode
+          (nodelay (stdscr) #t)
+          ; try to get another character: if we succeed, then
+          ; it's an M-* chord, otherwise it's a real #\escape
+          (let-values (((ch rc) (get-char)))
+            (if (= rc ERR)
+              (do-handle-input root-widget #\escape)
+              (do-handle-input root-widget (+ ch 128))))
+          (nodelay (stdscr) #f)
+          (cbreak)
+          (halfdelay 5))
+        (else
           (do-handle-input root-widget (integer->char ch)))))))

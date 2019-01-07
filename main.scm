@@ -24,6 +24,7 @@
         scmus.log
         scmus.tui
         scmus.ueval)
+(import (only posix setenv))
 
 (current-output-port *console-output-port*)
 (current-error-port  *console-error-port*)
@@ -154,6 +155,7 @@
            (pp (condition->list exn))
            (exit-all)
            (exit 1))
+    (setenv "ESCDELAY" "25")
     (initialize "signals"
       (set-signal-handler! signal/chld void))
     (initialize "locale"
