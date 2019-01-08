@@ -24,7 +24,6 @@
                       compile-format-string
                       format-string-valid?)
   (import irregex
-          drewt.ncurses
           drewt.ustring
           scmus.base
           scmus.error
@@ -325,14 +324,14 @@
       (else (case x
               ((reset !)       -2)
               ((default)       -1)
-              ((black)         COLOR_BLACK)
-              ((red)           COLOR_RED)
-              ((green)         COLOR_GREEN)
-              ((yellow)        COLOR_YELLOW)
-              ((blue)          COLOR_BLUE)
-              ((magenta)       COLOR_MAGENTA)
-              ((cyan)          COLOR_CYAN)
-              ((white)         COLOR_WHITE)
+              ((black)         0)
+              ((red)           1)
+              ((green)         2)
+              ((yellow)        3)
+              ((blue)          4)
+              ((magenta)       5)
+              ((cyan)          6)
+              ((white)         7)
               ((dark-gray)     8)
               ((light-red)     9)
               ((light-green)   10)
