@@ -17,11 +17,12 @@
 
 (require-extension srfi-78)
 
+(use srfi-1)
+
 (define (start-test name)
-  (printf "; *** Running test suite: ~a ***~n" name)
+  (format #t "~%; *** Running test suite: ~a ***" name)
   (check-set-mode! 'report-failed))
 
 (define (end-test name)
-  (printf "; *** Finished test suite: ~a ***~n" name)
   (check-report)
   (check-reset!))

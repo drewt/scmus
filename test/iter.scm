@@ -1,5 +1,3 @@
-#!/usr/bin/csi -script
-
 ;;
 ;; Copyright 2014-2018 Drew Thoreson
 ;;
@@ -20,10 +18,6 @@
 (include "test/test.scm")
 (declare (unit test/iter)
          (uses iter))
-
-(cond-expand
-  (csi (include "iter.scm"))
-  (else (void)))
 
 (import drewt.iter)
 

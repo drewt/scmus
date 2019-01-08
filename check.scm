@@ -18,3 +18,4 @@
 (require-extension srfi-78)
 
 (declare (uses test/iter))
+(declare (uses test/trie))
