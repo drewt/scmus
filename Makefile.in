@@ -55,7 +55,7 @@ modules  = $(imodules) $(omodules)
 types    = $(foreach unit,$(units) $(modules),$(addsuffix .types,$(unit)))
 target   = scmus@EXEEXT@
 
-test-units = $(addprefix test/,iter trie)
+test-units = $(addprefix test/,event iter trie)
 
 # files to delete on 'make clean'
 clean = $(call objfiles,$(units) $(modules) $(test-units) main check) \

@@ -19,3 +19,4 @@
 
 (declare (uses test/iter))
 (declare (uses test/trie))
+(declare (uses test/event))
