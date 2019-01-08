@@ -15,7 +15,8 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module drewt.trie (empty-trie
+(module drewt.trie (alist->trie
+                    empty-trie
                     trie?
                     trie->alist
                     trie->alist/prefix
@@ -96,18 +97,24 @@
 
   ;; Convert the trie NODE to an association list.
   (define (trie->alist node)
-    (define (*trie->alist key/node)
+    (if (node-empty? node)
+      (*trie->alist node)
+      (cons (cons '() (node-value node))
+            (*trie->alist node))))
+
+  (define (*trie->alist node)
+    (define (child->alist key/node)
       (let* ((key   (car key/node))
              (node  (cdr key/node))
              (result (map (lambda (sub-key) (cons (cons key (car sub-key))
                                                   (cdr sub-key)))
-                          (trie->alist node))))
+                          (*trie->alist node))))
         (if (node-empty? node)
           result
           (cons (cons (list key) (node-value node)) result))))
     (if (node-is-leaf? node)
       '()
-      (apply append (map *trie->alist (node-children node)))))
+      (apply append (map child->alist (node-children node)))))
 
   ;; Like TRIE->ALIST, but efficiently filters the result by a key-prefix.
   (define (trie->alist/prefix node prefix #!optional (default '()))
@@ -116,6 +123,12 @@
         (map (lambda (k/v) (cons (append prefix (car k/v)) (cdr k/v)))
              (trie->alist unprefix))
         default)))
+
+  (define (alist->trie alist)
+    (let ((trie (empty-trie)))
+      (for-each (lambda (k/v) (trie-set! trie (car k/v) (cdr k/v)))
+                alist)
+      trie))
 
   ;; Like TRIE-REF, but returns successfully if PREFIX is an unambiguous
   ;; prefix for a value in the trie.  Also, unlike TRIE-REF, this function
