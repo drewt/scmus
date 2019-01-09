@@ -242,6 +242,7 @@
       'on-begin (lambda (w)
                   (set! (widget-cursed w) CURSED-CMDLINE))
       'on-leave (lambda (w)
+                  (history-reset!)
                   (current-command-line-mode #f)
                   (set! (text-input-prefix w) " ")
                   (set! (text-input-on-commit w) (lambda (w) #f))
