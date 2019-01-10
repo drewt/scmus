@@ -267,7 +267,8 @@
         ; regular command invocation
         (let ((fun (get-command (car cmd))))
          (if fun
-           (apply fun (cdr cmd))
+           (condition-case (apply fun (cdr cmd))
+             (e (ueval stop) (void)))
            ; TODO: raise an exception
            (command-line-print-error! (format "Unknown command: ~s" (car cmd))))))))
 
