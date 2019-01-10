@@ -223,9 +223,9 @@
   (make-command-line-mode ":"
     (lambda (s)
       (when s (run-command s)))
-    (make-completion-engine
-      char-set:graphic
-      command-completion)))
+    engine: (make-completion-engine
+              char-set:graphic
+              command-completion)))
 
 (define search-mode
   (make-command-line-mode "/"
@@ -257,6 +257,12 @@
 (define/user get-option
   "Get the value of a configuration option"
   get-option)
+
+(define/user (get-char prompt)
+  "Prompt the user to enter a character on the command line"
+  (call/cc (lambda (return)
+             (command-line-get-char prompt return)
+             (user-eval-stop))))
 
 (define/user (get-string prompt)
   "Prompt the user to enter a string on the command line"

@@ -23,6 +23,7 @@
                             command-line-text-set!
                             command-line-cursor-pos-set!
                             command-line-enter-mode
+                            command-line-get-char
                             command-line-get-string
                             make-command-line-mode
                             make-completion-engine)
@@ -36,16 +37,18 @@
   (define current-command-line-mode (make-parameter #f))
 
   (define-record-type command-line-mode
-    (%make-command-line-mode prefix callback completion history)
+    (%make-command-line-mode prefix callback completion handle-key history)
     command-line-mode?
     (prefix     command-line-mode-prefix     command-line-mode-prefix-set!)
     (callback   command-line-mode-callback   command-line-mode-callback-set!)
     (completion command-line-mode-completion command-line-mode-completion-set!)
+    (handle-key command-line-mode-handle-key command-line-mode-handle-key-set!) 
     (history    command-line-mode-history    command-line-mode-history-set!))
 
   (define (make-command-line-mode prefix callback
-                                  #!optional (engine *default-completion-engine*))
-    (%make-command-line-mode prefix callback engine (iter)))
+                                  #!key (engine *default-completion-engine*)
+                                        handle-key)
+    (%make-command-line-mode prefix callback engine handle-key (iter)))
 
   ;; tab completion {{{
 
@@ -233,7 +236,10 @@
         (completion-next!))
       ((353) ; shift+tab
         (completion-prev!))
-      (else (call-next-method))))
+      (else
+        (unless (and (command-line-mode-handle-key (current-command-line-mode))
+                     ((command-line-mode-handle-key (current-command-line-mode)) widget input))
+          (call-next-method)))))
 
   (define command-line-widget
     (make <command-line>
@@ -289,10 +295,16 @@
     (text-input-set-cursor-pos! command-line-widget cursor-pos)
     (text-input-begin command-line-widget steal-focus: #t))
 
-  (define default-command-line-mode
-    (make-command-line-mode " " void))
-
   (define (command-line-get-string prompt then)
-    (command-line-mode-prefix-set!   default-command-line-mode prompt)
-    (command-line-mode-callback-set! default-command-line-mode then)
-    (command-line-enter-mode default-command-line-mode)))
+    (command-line-enter-mode
+      (make-command-line-mode prompt then)))
+
+  (define (command-line-get-char prompt then)
+    (let ((c #f))
+      (command-line-enter-mode
+        (make-command-line-mode prompt (lambda (_) (then c))
+                                handle-key: (lambda (w k)
+                                              (if (not (char? k))
+                                                #f
+                                                (begin (set! c k)
+                                                       (text-input-commit w)))))))))
