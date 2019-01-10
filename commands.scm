@@ -117,7 +117,7 @@
 
 (define-command (clear) (scmus-clear!))
 
-(map-command 'colorscheme 'colorscheme!
+(map-command 'colorscheme 'colorscheme
   (list (lambda (tokens)
           (define (ls-schemes config-dir)
             (map (lambda (path)
@@ -156,16 +156,17 @@
             (map (lambda (x) (string-append/shared "'" x "'"))
                  (filter (lambda (x) (string-prefix? (car tokens) x))
                          playlists))))))
-  (map-command 'load 'playlist-load!
+  (map-command 'load 'playlist-load
     (list playlist-completion))
-  (map-command 'save 'playlist-save!
+  (map-command 'save 'playlist-save
     (list playlist-completion)))
 
-(map-command 'next 'next!)
-(map-command 'pause 'pause!)
-(map-command 'play 'play!)
-(map-command 'prev 'prev!)
-(map-command 'stop 'stop!)
+(map-command 'next 'next)
+(map-command 'pause 'pause)
+(map-command 'play 'play)
+(map-command 'prev 'prev)
+(map-command 'quit 'quit)
+(map-command 'stop 'stop)
 
 (define-command (seek arg)
   ;; Parse ARG as a time string, returning a number of seconds.
@@ -233,23 +234,23 @@
             (- (scmus-volume) (parse-vol (string-drop arg 1))))
           (else (parse-vol arg)))))))
 
-(map-command 'win-activate   'win-activate!)
-(map-command 'win-deactivate 'win-deactivate!)
-(map-command 'win-add        'win-add!)
-(map-command 'win-remove     'win-remove!)
-(map-command 'win-clear      'win-clear!)
+(map-command 'win-activate   'win-activate)
+(map-command 'win-deactivate 'win-deactivate)
+(map-command 'win-add        'win-add)
+(map-command 'win-remove     'win-remove)
+(map-command 'win-clear      'win-clear)
 
-(map-command 'win-search 'win-search!)
-(map-command 'win-search-next 'win-search-next!)
-(map-command 'win-search-prev 'win-search-prev!)
+(map-command 'win-search 'win-search)
+(map-command 'win-search-next 'win-search-next)
+(map-command 'win-search-prev 'win-search-prev)
 
 (define-command/flags (win-move ((#\r relative)) n)
   (unless (param-is-integer? n)
     (invalid-argument-error (if relative 2 1) "Not a number" "win-move"))
   (widget-move (widget-focus view-widget) (string->number n) relative))
 
-(map-command 'win-top 'win-top!)
-(map-command 'win-bottom 'win-bottom!)
+(map-command 'win-top 'win-top)
+(map-command 'win-bottom 'win-bottom)
 
 (define-command/flags (win-move-tracks ((#\b before)))
   (widget-paste (widget-focus view-widget) before))
