@@ -15,10 +15,29 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-78)
+(include "test/test.scm")
+(declare (unit test/ueval)
+         (uses ueval))
 
-(declare (uses test/iter))
-(declare (uses test/trie))
-(declare (uses test/event))
-(declare (uses test/option))
-(declare (uses test/ueval))
+(import scmus.ueval)
+
+(start-test "ueval")
+
+;; eval
+(check (user-eval '(+ 1 1)) => 2)
+(check (user-eval-string "(+ 1 1)") => 2)
+
+;; load
+(user-load "test/ueval-load.scm")
+(check (user-eval 'defined-as-two) => 2)
+
+;; export
+(user-export! 'exported-as-two 2)
+(check (user-eval 'exported-as-two) => 2)
+
+;; user-value-set!
+(user-value-set! 'set!-as-two 2 "The number two")
+(check (user-value-ref 'set!-as-two) => 2)
+(check (user-doc-ref 'set!-as-two) => "The number two")
+
+(end-test "ueval")
