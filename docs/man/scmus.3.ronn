@@ -56,6 +56,7 @@ scmus(3) -- scmus Scripting Environment
 (`queue-swap` *pos-a* *pos-b*)  
 (`queue-swap-id` *id-a* *id-b*)  
 (`queue-version`)  
+(`quit`)  
 (`random?`)  
 (`random-set` *true-or-false*)  
 (`refresh-library`)  
@@ -283,6 +284,9 @@ scmus(3) -- scmus Scripting Environment
 
 * (`queue-version`):
   Returns the current version of the queue.
+
+* (`quit`):
+  Display a [y/N] confirmation prompt and exit scmus.
 
 * (`random?`):
   Returns `#t` if MPD is currently in `random` mode, otherwise `#f`.

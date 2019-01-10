@@ -1,7 +1,7 @@
 (bind ":" 'common '(enter-command-mode) #t)
 (bind "/" 'common '(enter-search-mode) #t)
 (bind "$" 'common '(enter-eval-mode) #t)
-(bind "q" 'common '(exit) #t)
+(bind "q" 'common '(quit) #t)
 
 ;; views
 (bind "1" 'common '(set-view 'library)  #t)

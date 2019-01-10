@@ -409,6 +409,13 @@
   "Get the queue version"
   scmus-queue-version)
 
+(define/user (quit)
+  "Quit scmus"
+  (command-line-get-char "Quit scmus? [y/N] "
+    (lambda (c)
+      (case c
+        ((#\y #\Y) (scmus-exit 0))))))
+
 (define/user random?
   "Check if MPD is in random mode"
   scmus-random?)
