@@ -300,11 +300,7 @@
       (make-command-line-mode prompt then)))
 
   (define (command-line-get-char prompt then)
-    (let ((c #f))
-      (command-line-enter-mode
-        (make-command-line-mode prompt (lambda (_) (then c))
-                                handle-key: (lambda (w k)
-                                              (if (not (char? k))
-                                                #f
-                                                (begin (set! c k)
-                                                       (text-input-commit w)))))))))
+    (command-line-print-info! prompt)
+    (get-key (lambda (k)
+               (command-line-clear!)
+               (then k)))))

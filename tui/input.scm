@@ -41,6 +41,7 @@
                          text-input-commit
                          text-input-cancel
                          text-input-begin
+                         get-key
                          do-handle-input
                          enable-mouse
                          mouse-input?)
@@ -326,11 +327,21 @@
   (define (override-focus-end)
     (set! *focus-override* #f))
 
+  (define waiting-for-key? #f)
+
+  (define (get-key then #!optional whitelist)
+    (set! waiting-for-key? (lambda (k)
+                             (unless (and whitelist (not (memv k whitelist)))
+                               (set! waiting-for-key? #f)
+                               (then k)))))
+
   (define (do-handle-input widget input)
     (if (eqv? input KEY_MOUSE)
       (let ((mev (getmouse)))
         (handle-input (get-widget-at widget (mouse-event-x mev) (mouse-event-y mev)) input mev))
-      (handle-input (or *focus-override* (widget-focus widget)) input #f)))
+      (if waiting-for-key?
+        (waiting-for-key? input)
+        (handle-input (or *focus-override* (widget-focus widget)) input #f))))
 
   (define (enable-mouse enable?)
     (mousemask (if enable? ALL_MOUSE_EVENTS 0)))
