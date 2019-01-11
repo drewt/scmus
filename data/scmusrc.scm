@@ -28,10 +28,12 @@
 ;; movement
 (bind "^U" 'common '(win-move -50 #t) #t)
 (bind "^D" 'common '(win-move  50 #t) #t)
-(bind "page_up"   'common '(win-move -100 #t) #t)
-(bind "page_down" 'common '(win-move  100 #t) #t)
 (bind "g" 'common '(win-top) #t)
 (bind "G" 'common '(win-bottom) #t)
+(bind "home"      'common '(win-top) #t)
+(bind "end"       'common '(win-bottom) #t)
+(bind "page_down" 'common '(win-move  100 #t) #t)
+(bind "page_up"   'common '(win-move -100 #t) #t)
 
 ;; mouse
 (bind "left_mouse_double_click" 'common '(win-activate) #t)
