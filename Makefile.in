@@ -24,7 +24,7 @@ types-prereq-$(typed) = all.types
 
 # programs+flags...
 CSC          = csc
-TFLAGS       = -uses base -prologue prologue.scm $(features-y)
+TFLAGS       = -uses base -prologue src/prologue.scm $(features-y)
 CFLAGS       = -fno-var-tracking-assignments
 ALL_CFLAGS   = $(CFLAGS) \
 	       '-DSCMUS_DIR=\"$(datadir)/scmus\"' \
@@ -41,7 +41,8 @@ LDFLAGS      =
 INSTALL      = @scripts/install
 
 # function to add object extension to a list of files
-objfiles = $(foreach f,$(1),$(addsuffix .@OBJEXT@,$(f)))
+objfiles = $(foreach f,$(1),$(addprefix ./,$(addsuffix .@OBJEXT@,$(subst /,.,$(f)))))
+srcfiles = $(foreach f,$(1),$(addprefix src/,$(addsuffix .scm,$(f))))
 
 # files...
 eggs     = coops coops-utils matchable regex sandbox unix-sockets utf8 vector-lib
@@ -122,20 +123,30 @@ ui-curses_uses      = bindings-view browser-view library-view log-view options o
                       queue-view search-view
 user-api_uses       = ui-curses
 
-# Add $($(file)_deps) as dependencies on $(file)
-$(foreach f,$(units) $(modules) main,$(eval $(f).@OBJEXT@: $(call objfiles,$($(f)_deps))))
-
 # Everything depends on prologue
-$(call objfiles,$(units) $(modules)): prologue.scm $(types-prereq-y)
+$(call objfiles,$(units) $(modules)): src/prologue.scm $(types-prereq-y)
 
 # Test dependencies
-$(call objfiles,$(test-units)): prologue.scm test/test.scm
+$(call objfiles,$(test-units)): src/prologue.scm test/test.scm
 
-# Everything except main.scm is a unit with the same name as the source file.
-$(foreach f,$(units) $(modules),$(eval $(f).@OBJEXT@: private ALL_CSCFLAGS += -unit $(f)))
+# Template to create a rule building %.o from src/%.scm.  Because we are replacing '/' with '.' in
+# output filenames, we can't use an implicit rule here.
+define OBJECT_template =
+$(call objfiles,$(1)): private ALL_CSCFLAGS += $(foreach d,$($(1)_deps) $($(1)_uses), -uses $(d))
+$(call objfiles,$(1)): src/$(1).scm $(call objfiles,$($(1)_deps))
+	$$(call cmd,csc)
+endef
 
-# Add load dependencies
-$(foreach f,$(units) $(modules) main,$(eval $(f).@OBJEXT@: private ALL_CSCFLAGS += $(foreach d,$($(f)_deps) $($(f)_uses), -uses $(d))))
+$(foreach f,$(units) $(modules) main,$(eval $(call OBJECT_template,$(f))))
+$(foreach f,$(units) $(modules),$(eval $(call objfiles,$(f)): private ALL_CSCFLAGS += -unit $(f)))
+
+# Rule template for building test objects.
+define TEST_template =
+$(call objfiles,$(1)): $(1).scm
+	$$(call cmd,csc)
+endef
+
+$(foreach f,$(test-units) check, $(eval $(call TEST_template,$(f))))
 
 # dependencies }}}
 # rules {{{
@@ -154,9 +165,6 @@ distclean: clean
 
 run: all
 	$(if $(target), ./$(target))
-
-%.@OBJEXT@: %.scm
-	$(call cmd,csc)
 
 %.types: %.scm
 	$(call cmd,types)
@@ -196,10 +204,10 @@ quiet_cmd_ld    = LD      $@
 # cmd macro (taken from kbuild)
 cmd = @$(if $($(quiet)cmd_$(1)),echo '  $(call $(quiet)cmd_$(1),$(2))' &&) $(call cmd_$(1),$(2))
 
-$(target): $(call objfiles,$(units) $(modules)) main.@OBJEXT@
+$(target): $(call objfiles,$(units) $(modules) main)
 	$(call cmd,ld,$(LIBS))
 
-check: $(call objfiles,$(units) $(modules) $(test-units)) check.@OBJEXT@
+check: $(call objfiles,$(units) $(modules) $(test-units) check)
 	$(call cmd,ld,$(LIBS))
 
 all.types: $(types)
