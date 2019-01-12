@@ -52,7 +52,7 @@
                store-one)
         (mkopt 'port '("-p" "--port") '("PORT")
                "port number of the MPD server"
-               store-number (lambda (p) and (integer? p) (< p 65536)))
+               store-number (lambda (p) (and (integer? p) (< p 65536))))
         (mkopt 'unix '("-u" "--unix") '("PATH")
                "path to UNIX domain socket"
                store-one)
