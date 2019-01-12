@@ -77,6 +77,18 @@
     (with-info-message (format "Connecting to ~a:~a..." host port)
       (scmus-connect! host port pass))))
 
+(let ((authenticating? #f))
+  (add-listener/global 'mpd-unauthenticated
+    (lambda ()
+      (unless authenticating?
+        (set! authenticating? #t)
+        (command-line-get-string "Password: "
+          (lambda (pass)
+            (connect! #f 'default pass))
+          finally: (lambda ()
+                     (set! authenticating? #f))
+          password?: #t)))))
+
 (: curses-update thunk)
 (define (curses-update)
   (let ((err (handle-events)))

@@ -185,7 +185,7 @@
   (abort
     (make-composite-condition
       (make-property-condition 'exn 'message (format "Error from server: ~a" msg))
-      (make-property-condition 'mpd 'errorno errno))))
+      (make-property-condition 'mpd 'errno errno))))
 
 (define (mpd:connect #!optional (hostname "localhost") (port 6600) (password #f))
   (mpd:reconnect (make-connection hostname port password #f #f #f)))

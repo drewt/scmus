@@ -105,17 +105,26 @@
   (: *last-update* number)
   (define *last-update* -1.0)
 
+  (define (handle-mpd-error e)
+    (let ((errno (get-condition-property e 'mpd 'errno #f)))
+      (when (and errno (or (= errno 3)
+                           (= errno 4)))
+        (signal-event/global 'mpd-unauthenticated)))
+    (scmus-error e))
+
   (: scmus-connect! (string (or boolean fixnum) (or boolean string) -> boolean))
   (define (scmus-connect! host port pass)
-    (handle-exceptions e
-      (begin (scmus-error e) #f)
+    (define (do-connect)
       (let ((con (mpd:connect host port pass)))
         (if (scmus-connected?)
           (mpd:disconnect (current-connection)))
         (current-connection con)
         (do-full-update)
         (signal-event/global 'db-changed)
-        #t)))
+        #t))
+    (condition-case (do-connect)
+      (e (mpd) (handle-mpd-error e))
+      (e ()    (scmus-error e))))
 
   (: scmus-disconnect! thunk)
   (define (scmus-disconnect!)
@@ -141,12 +150,6 @@
   (define (exit-client)
     (if (current-connection)
       (mpd:disconnect (current-connection))))
-
-  (: scmus-try-reconnect thunk)
-  (define (scmus-try-reconnect)
-    (condition-case
-      (begin (current-connection (mpd:reconnect (current-connection))) #t)
-      (e () (scmus-error e) #f)))
 
   (: scmus-update-stats! thunk)
   (define (scmus-update-stats!)
@@ -179,15 +182,12 @@
 
   (: do-full-update thunk)
   (define (do-full-update)
-    (condition-case
-      (let ((version (scmus-queue-version)))
-        (scmus-update-status!)
-        (unless (= (scmus-song-id) (track-id (current-track)))
-          (scmus-update-current-song!))
-        (unless (= version (scmus-queue-version))
-          (scmus-update-queue!)))
-      (e () (scmus-error e)
-            (scmus-try-reconnect))))
+    (let ((version (scmus-queue-version)))
+      (scmus-update-status!)
+      (unless (= (scmus-song-id) (track-id (current-track)))
+        (scmus-update-current-song!))
+      (unless (= version (scmus-queue-version))
+        (scmus-update-queue!))))
 
   ;; Status update timer.  Ticks every 0.5 seconds.  Does a full status update
   ;; every STATUS-UPDATE-INTERVAL seconds, otherwise just updates elapsed time.
@@ -204,20 +204,20 @@
       (register-timer! scmus-update-client! 0.5))
     -1)
 
-  (: scmus-bail! (* -> null))
-  (define (scmus-bail! e)
-    (scmus-disconnect!)
-    (scmus-error e)
-    '())
-
   (: *scmus-command ((mpd-connection #!rest * -> *) #!rest * -> list))
   (define (*scmus-command mpd-fn . args)
+    (define (try-reconnect)
+      (handle-exceptions e (begin (scmus-error e) #f)
+        (current-connection (mpd:reconnect (current-connection)))
+        #t))
     (if (scmus-connected?)
       (condition-case (apply mpd-fn (current-connection) args)
-        (e () (scmus-error e)
-              (unless (scmus-try-reconnect)
-                (scmus-disconnect!))
-              '()))
+        (e (mpd) (handle-mpd-error e) '())
+        (e ()
+          (scmus-error e)
+          (unless (try-reconnect)
+            (scmus-disconnect!))
+          '()))
       '()))
 
   (define-syntax scmus-command

@@ -37,18 +37,22 @@
   (define current-command-line-mode (make-parameter #f))
 
   (define-record-type command-line-mode
-    (%make-command-line-mode prefix callback completion handle-key history)
+    (%make-command-line-mode prefix callback completion finally handle-key password? history)
     command-line-mode?
     (prefix     command-line-mode-prefix     command-line-mode-prefix-set!)
     (callback   command-line-mode-callback   command-line-mode-callback-set!)
     (completion command-line-mode-completion command-line-mode-completion-set!)
+    (finally    command-line-mode-finally    command-line-mode-finally-set!)
     (handle-key command-line-mode-handle-key command-line-mode-handle-key-set!) 
+    (password?  command-line-mode-password?  command-line-mode-password?-set!)
     (history    command-line-mode-history    command-line-mode-history-set!))
 
   (define (make-command-line-mode prefix callback
                                   #!key (engine *default-completion-engine*)
-                                        handle-key)
-    (%make-command-line-mode prefix callback engine handle-key (iter)))
+                                        finally
+                                        handle-key
+                                        password?)
+    (%make-command-line-mode prefix callback engine finally handle-key password? (iter)))
 
   ;; tab completion {{{
 
@@ -241,6 +245,14 @@
                      ((command-line-mode-handle-key (current-command-line-mode)) widget input))
           (call-next-method)))))
 
+  (define-method (print-widget! (w <command-line>) x y cols rows)
+    (if (and (current-command-line-mode)
+             (command-line-mode-password? (current-command-line-mode)))
+      (print-line! (string-append (text-input-prefix w)
+                                  (make-string (length (text-input-text w)) #\*))
+                   x y cols)
+      (call-next-method)))
+
   (define command-line-widget
     (make <command-line>
       'cursed   CURSED-CMDLINE
@@ -283,21 +295,24 @@
     (set! (text-input-on-commit command-line-widget)
       (lambda (w)
         (let ((text (text-input-get-text w))
-              (callback (command-line-mode-callback mode)))
+              (then (command-line-mode-callback mode))
+              (finally (command-line-mode-finally mode)))
           (text-input-set-text! w "")
           (history-add! text)
-          (run-later (lambda () (callback text))))))
+          (run-later (lambda () (then text) (when finally (finally)))))))
     (set! (text-input-on-cancel command-line-widget)
       (lambda (w)
         (set! (text-input-prefix w) " ")
-        (text-input-set-text! w "")))
+        (text-input-set-text! w "")
+        (let ((finally (command-line-mode-finally mode)))
+          (when finally (run-later finally)))))
     (text-input-set-text! command-line-widget text)
     (text-input-set-cursor-pos! command-line-widget cursor-pos)
     (text-input-begin command-line-widget steal-focus: #t))
 
-  (define (command-line-get-string prompt then)
+  (define (command-line-get-string prompt then . kwargs)
     (command-line-enter-mode
-      (make-command-line-mode prompt then)))
+      (apply make-command-line-mode prompt then kwargs)))
 
   (define (command-line-get-char prompt then)
     (command-line-print-info! prompt)
