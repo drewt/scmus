@@ -83,8 +83,14 @@
 
   (: user-eval-string (string -> *))
   (define (user-eval-string str)
-    (condition-case (user-eval/raw (with-input-from-string str read))
-      (e () (scmus-error e) e)))
+    (with-input-from-string str
+      (lambda ()
+        (handle-exceptions e (begin (scmus-error e) e)
+          (let loop ((last (void)))
+            (let ((input (read)))
+              (if (eof-object? input)
+                last
+                (loop (user-eval/raw input)))))))))
 
   (: user-load (string -> *))
   (define (user-load path)
