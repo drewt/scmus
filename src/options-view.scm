@@ -15,8 +15,10 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(import drewt.ncurses)
-(import scmus.base
+(declare (hide))
+
+(import drewt.ncurses
+        scmus.base
         scmus.error
         scmus.event
         scmus.option

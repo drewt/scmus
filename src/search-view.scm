@@ -15,6 +15,8 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
+(declare (hide))
+
 (import coops-utils
         drewt.ncurses
         scmus.base

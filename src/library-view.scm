@@ -15,7 +15,7 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (export))
+(declare (hide))
 
 (import coops-utils
         drewt.ncurses
