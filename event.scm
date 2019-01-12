@@ -15,8 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-18)
-
 (module scmus.event (<event-source>
                      add-listener
                      add-listener/global
@@ -26,8 +24,7 @@
                      handle-events
                      register-timer!
                      register-timer-event!)
-  (import srfi-18
-          coops
+  (import coops
           scmus.base)
 
   (define *deferred-events* '())
@@ -84,7 +81,7 @@
 
   (define (register-timer! thunk seconds #!key (recurring #f))
     (define (make-timer)
-      (cons (+ (time->seconds (current-time))
+      (cons (+ (current-second)
                seconds)
             (if recurring
               (rec (recurring-thunk)
@@ -97,7 +94,7 @@
     (apply register-timer! (lambda () (signal-event/global name)) rest))
 
   (define (handle-timers)
-    (let ((ct (time->seconds (current-time))))
+    (let ((ct (current-second)))
       (let loop ((timers *timers*) (thunks '()))
         (if (or (null? timers)
                 (> (timer-expire-time (car timers)) ct))

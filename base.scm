@@ -72,6 +72,7 @@
           open-output-string
           parameterize
           when
+          with-exception-handler
           unless)
     (only data-structures
           alist-ref
@@ -86,10 +87,15 @@
     (except utf8-srfi-13 string-contains-ci)
     utf8-srfi-14)
 
-  (import (only chicken abort))
+  (import (only chicken
+                abort
+                current-seconds
+                signal))
 
-  ; Use the R7RS name
+  ; Use the R7RS names
   (define raise abort)
+  (define raise-continuable signal)
+  (define current-second current-seconds)
 
   ;; XXX: utf8-srfi-13#string-contains-ci isn't case-insensitive...
   (define (string-contains-ci str sub)

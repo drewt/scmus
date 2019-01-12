@@ -15,8 +15,6 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require-extension srfi-18)
-
 (module scmus.client (scmus-connect!
                       scmus-disconnect!
                       scmus-oneshot
@@ -98,9 +96,13 @@
                       scmus-toggle-consume!
                       scmus-consume-set!
                       scmus-search-songs)
-  (import srfi-18)
-  (import drewt.mpd-client)
-  (import scmus.base scmus.error scmus.event scmus.option scmus.status scmus.track)
+  (import drewt.mpd-client
+          scmus.base
+          scmus.error
+          scmus.event
+          scmus.option
+          scmus.status
+          scmus.track)
 
   (: *last-update* number)
   (define *last-update* -1.0)
@@ -175,7 +177,7 @@
       (unless (= (alist-ref 'songid old-status eqv? -1)
                  (alist-ref 'songid new-status eqv? -1))
         (signal-event/global 'track-changed)))
-    (set! *last-update* (time->seconds (current-time))))
+    (set! *last-update* (current-second)))
 
   (: scmus-update-current-song! thunk)
   (define (scmus-update-current-song!)
@@ -202,7 +204,7 @@
   (register-timer!
     (rec (scmus-update-client!)
       (when (scmus-connected?)
-        (let ((now (time->seconds (current-time))))
+        (let ((now (current-second)))
           (if (>= (- now *last-update*)
                  (get-option 'status-update-interval))
             (do-full-update)
