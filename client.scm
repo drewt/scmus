@@ -119,7 +119,6 @@
         (if (scmus-connected?)
           (mpd:disconnect (current-connection)))
         (current-connection con)
-        (do-full-update)
         (signal-event/global 'db-changed)
         #t))
     (condition-case (do-connect)
@@ -128,7 +127,16 @@
 
   (: scmus-disconnect! thunk)
   (define (scmus-disconnect!)
-    (mpd:disconnect (current-connection)))
+    (when (scmus-connected?)
+      (mpd:disconnect (current-connection))
+      (current-queue  '())
+      (current-status '())
+      (current-stats  '())
+      (current-track  '())
+      (signal-event/global 'db-changed)
+      (signal-event/global 'queue-data-changed)
+      (signal-event/global 'status-changed)
+      (signal-event/global 'track-changed)))
 
   (: scmus-oneshot ((or boolean string)
                     (or boolean fixnum)
@@ -148,7 +156,7 @@
 
   (: exit-client thunk)
   (define (exit-client)
-    (if (current-connection)
+    (if (scmus-connected?)
       (mpd:disconnect (current-connection))))
 
   (: scmus-update-stats! thunk)
