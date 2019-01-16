@@ -74,29 +74,6 @@
                            (alist-ref 'command opts)))
   (exit 0))
 
-;; main loop
-(define (main return)
-  (set! scmus-exit return)
-
-  (handle-exceptions exn
-    (begin (set! *error* exn) 1)
-    (let loop ()
-      (curses-update)
-      (loop))))
-
-(define (exit-all)
-  (exit-curses)
-  (exit-client))
-
-(define-syntax initialize
-  (syntax-rules ()
-    ((initialize system first rest ...)
-       (handle-exceptions exn
-         (begin (log-write! 'error (format "Initialization failed: ~a" system))
-                (signal exn))
-         (begin first rest ...)
-         (log-write! 'info (format "Initialized ~a" system))))))
-
 (define (read-plugins)
   (if (file-exists? *plugins-dir*)
     (map (lambda (dir)
@@ -118,43 +95,32 @@
   (display (string-append "\x1b]2;" title "\x07"
                           (if (ui-initialized?) "\n" ""))))
 
-(set-title! "scmus")
-
-(define (get-environment-mpd-host)
-  (let ((str (get-environment-variable "MPD_HOST")))
-    (if (not str)
-      #f
-      (let ((i (string-index-right str #\@)))
-        (if (not i)
-          str
-          (substring/shared str (+ i 1)))))))
-
-(define (get-environment-mpd-password)
-  (let ((str (get-environment-variable "MPD_HOST")))
-    (if (not str)
-      #f
-      (let ((i (string-index-right str #\@)))
-        (if (not i)
-          #f
-          (substring/shared str 0 i))))))
+(define-syntax initialize
+  (syntax-rules ()
+    ((initialize system first rest ...)
+       (handle-exceptions exn
+         (begin (log-write! 'error (format "Initialization failed: ~a" system))
+                (signal exn))
+         (begin first rest ...)
+         (log-write! 'info (format "Initialized ~a" system))))))
 
 ;; initialize scmus
-(let ((opts (process-opts (command-line-arguments) *cmdline-opts*)))
-  ; process command-line options
-  (if (alist-ref 'help opts) (usage *cmdline-opts* 0))
-  (if (alist-ref 'version opts) (version))
-  (if (alist-ref 'verbose opts) (set! *verbose* #t))
-  (if (alist-ref 'command opts) (command opts))
-  (if (alist-ref 'unix opts)
-    (set! opts (alist-update! 'address (alist-ref 'unix opts)
-                              (alist-update! 'port #f opts))))
+(define (scmus-init)
+  ;; process command-line options and environment variables
+  (let* ((opts  (process-opts (command-line-arguments) *cmdline-opts*))
+         (*host (get-environment-variable "MPD_HOST"))
+         (index (and *host (string-index-right *host #\@)))
+         (host  (if index (substring/shared *host (+ 1 index)) *host))
+         (pass  (if index (substring/shared *host 0 index) #f)))
+    (if (alist-ref 'help opts) (usage *cmdline-opts* 0))
+    (if (alist-ref 'version opts) (version))
+    (if (alist-ref 'verbose opts) (set! *verbose* #t))
+    (if (alist-ref 'command opts) (command opts))
+    (if (alist-ref 'unix opts)
+      (set! opts (alist-update! 'address (alist-ref 'unix opts)
+                                (alist-update! 'port #f opts))))
 
-  ; initialize various stuff
-  (handle-exceptions exn
-    (begin (display "\nFailed to initialize scmus.  Exiting.\n")
-           (pp (condition->list exn))
-           (exit-all)
-           (exit 1))
+    ; initialize various stuff
     (setenv "ESCDELAY" "25")
     (initialize "signals"
       (set-signal-handler! signal/chld void))
@@ -171,21 +137,29 @@
         (handle-exceptions x
           (log-write! 'error (format "failed to load ~a" config))
           (user-load config))))
+    (set-title! "scmus")
     (initialize "curses"
       (init-curses))
     (initialize "mpd connection"
       (connect! (or (alist-ref 'address opts)
-                    (get-environment-mpd-host))
+                    host)
                 (or (alist-ref 'port opts eqv?)
                     (get-environment-variable "MPD_PORT")
                     'default)
                 (or (alist-ref 'password opts eqv?)
-                    (get-environment-mpd-password)
+                    pass
                     'default)))))
+
+(define (main return)
+  (set! scmus-exit return)
+  (condition-case (begin (scmus-init)
+                         (event-loop))
+    (e () (set! *error* e) 1)))
 
 ;; enter main loop, and clean up on exit
 (let ((code (call/cc main)))
-  (exit-all)
+  (exit-curses)
+  (exit-client)
   (when *error*
     (format (current-error-port) "Unexpected error.  Exiting.~n")
     (pp (condition->list *error*) (current-error-port)))

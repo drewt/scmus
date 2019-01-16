@@ -17,7 +17,7 @@
 
 (declare (export connect!
                  current-search-query
-                 curses-update
+                 event-loop
                  exit-curses
                  init-curses))
 
@@ -89,11 +89,11 @@
                      (set! authenticating? #f))
           password?: #t)))))
 
-(: curses-update thunk)
-(define (curses-update)
+(define (event-loop)
   (let ((err (handle-events)))
     (if err (scmus-error err)))
-  (update-ui root-widget))
+  (update-ui root-widget)
+  (event-loop))
 
 (define (get-color-option name)
   (let ((option (get-option name)))
