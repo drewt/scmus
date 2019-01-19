@@ -96,6 +96,11 @@
   (define-method (widget-match (widget <widget>) query)
     #f)
 
+  (define-method (widget-data (widget <widget>))
+    (if (widget-parent widget)
+      (widget-data (widget-parent widget))
+      #f))
+
   ;; special verbs }}}
   ;; <format-text> {{{
 
@@ -257,6 +262,9 @@
 
   (define (make-window-row data type format)
     (make <window-row> 'data data 'type type 'format format))
+
+  (define-method (widget-data (w <window-row>))
+    (window-row-data w))
 
   (define-method (widget-invalidate (w <window-row>))
     (set! (window-row-cached w) #f))

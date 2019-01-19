@@ -794,6 +794,10 @@
   (widget-clear-marked (widget-focus view-widget)))
 (user-synonym win-clear-marked! win-clear-marked)
 
+(define/user (win-selected)
+  "Get the current selection data"
+  (widget-data (widget-focus view-widget)))
+
 (define/user write-config
   "Write the current configuration settings to a file"
   (return-void write-config!))

@@ -48,13 +48,15 @@
                                     (make-window-row track 'file 'format-library-file))
                                   tracks)))))
   (define (artist-activate! artist)
-    (let ((albums (scmus-list-tags 'album (cons 'artist (cdar artist)))))
+    (let ((albums (apply scmus-list-tags 'album artist)))
       (widget-stack-push! (widget-parent window)
         (make-library-window (map (lambda (album)
-                                    (make-window-row (list album) 'album 'format-library-album))
+                                    (make-window-row (cons album artist)
+                                                     'album
+                                                     'format-library-album))
                                    albums)))))
   (define (album-activate! album)
-    (let ((tracks (scmus-find `(album . ,(cdar album)))))
+    (let ((tracks (apply scmus-find album)))
       (widget-stack-push! (widget-parent window)
         (make-library-window (map (lambda (track)
                                     (make-window-row track 'file 'format-library-file))
@@ -120,7 +122,7 @@
                    (cons (make <window-separator> 'text " Artists" 'cursed CURSED-WIN-TITLE)
                          (map (lambda (x)
                                 (make-window-row (list x) 'artist 'format-library-artist))
-                              (scmus-list-tags 'artist)))))))
+                              (scmus-list-tags 'albumartist)))))))
 
 (define (make-library-window data)
   (make <library-window>

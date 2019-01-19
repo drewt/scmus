@@ -119,7 +119,7 @@
 (register-format! 'format-current          " ~a - ~l ~n. ~t~= ~y ")
 (register-format! 'format-status           " ~P ~p / ~d - ~T vol: ~v~= ~S~R~r~C ")
 (register-format! 'format-library-playlist " ~{playlist}")
-(register-format! 'format-library-artist   " ~{artist}")
+(register-format! 'format-library-artist   " ~{albumartist}")
 (register-format! 'format-library-album    " ~{album}")
 (register-format! 'format-library-file     *default-track-format*)
 (register-format! 'format-library-metadata " ~-50%{tag} ~{value}")
