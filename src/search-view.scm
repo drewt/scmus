@@ -32,10 +32,7 @@
   (lambda (_) (widget-invalidate search-widget)))
 
 (define (make-search-field)
-  (make-text-input "" " * " 'on-commit search-field-commit!))
-
-(define (search-field-commit! widget)
-  (void))
+  (make-text-input "" " * "))
 
 (define-class <search-window> (<window>))
 

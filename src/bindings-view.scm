@@ -38,26 +38,28 @@
    (expr    accessor: binding-row-expr)))
 
 (define (make-binding-row context keys expr . args)
-  (let ((keys (make-key-list keys))
-        (text (if (and (pair? expr)
-                       (= (length expr) 2)
-                       (eqv? (car expr) '*command)
-                       (string? (cadr expr)))
-                (cadr expr)
-                (format #f "~s" expr))))
+  (let* ((keys (make-key-list keys))
+         (text (if (and (pair? expr)
+                        (= (length expr) 2)
+                        (eqv? (car expr) '*command)
+                        (string? (cadr expr)))
+                 (cadr expr)
+                 (format #f "~s" expr)))
+         (input (make-text-input text "")))
+    (add-listener input 'commit binding-commit-edit!)
     (apply make <binding-row>
                 'context context
                 'keys keys
                 'expr expr
                 'left-child (make-scheme-text keys)
-                'right-child (make-text-input text ""
-                               'on-commit binding-commit-edit!)
+                'right-child input
                 args)))
 
-(define (binding-commit-edit! widget)
-  (let ((text    (string-trim-both (text-input-get-text widget)))
-        (context (binding-row-context (widget-parent widget)))
-        (keys    (key-list-keys (binding-row-keys (widget-parent widget)))))
+(define (binding-commit-edit! str)
+  (let* ((widget  (current-event-source))
+         (text    (string-trim-both str))
+         (context (binding-row-context (widget-parent widget)))
+         (keys    (key-list-keys (binding-row-keys (widget-parent widget)))))
     (handle-exceptions e (begin (scmus-error e) #f)
       (unbind! keys context)
       (when (> (string-length text) 0)

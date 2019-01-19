@@ -24,10 +24,6 @@
                          text-input-prefix
                          text-input-stolen-focus
                          text-input-editing?
-                         text-input-on-commit
-                         text-input-on-cancel
-                         text-input-on-begin
-                         text-input-on-leave
                          make-text-input
                          text-input-get-text
                          text-input-set-text!
@@ -48,6 +44,7 @@
   (import coops
           drewt.ncurses
           scmus.base
+          scmus.event
           scmus.tui.widget
           scmus.tui.misc)
   (reexport (only drewt.ncurses
@@ -136,7 +133,7 @@
   ;;   <prefix> is optional descriptive text
   ;;   <text>   is editable text
   ;; TODO: scroll when the cursor moves beyond the edge of the available area
-  (define-class <text-input> (<textual>)
+  (define-class <text-input> (<textual> <event-source>)
     ((text          initform: '()
                     accessor: text-input-text)
      (saved-text    initform: '()
@@ -151,15 +148,7 @@
      (stolen-focus  initform: #f
                     accessor: text-input-stolen-focus)
      (editing?      initform: #f
-                    accessor: text-input-editing?)
-     (on-commit     initform: (lambda (_) #f)
-                    accessor: text-input-on-commit)
-     (on-cancel     initform: (lambda (_) #f)
-                    accessor: text-input-on-cancel)
-     (on-begin      initform: (lambda (_) #f)
-                    accessor: text-input-on-begin)
-     (on-leave      initform: (lambda (_) #f)
-                    accessor: text-input-on-leave)))
+                    accessor: text-input-editing?)))
 
   (define (make-text-input text prefix . args)
     (apply make <text-input>
@@ -292,7 +281,7 @@
   (define-method (text-input-commit (widget <text-input>))
     (set! (text-input-editing? widget) #f)
     (set! (text-input-saved-text widget) '())
-    ((text-input-on-commit widget) widget)
+    (signal-event widget 'commit args: (list (text-input-get-text widget)))
     (text-input-leave widget))
 
   (define-method (text-input-cancel (widget <text-input>))
@@ -300,14 +289,13 @@
     (set! (text-input-text widget)
           (text-input-saved-text widget))
     (set! (text-input-saved-text widget) '())
-    ((text-input-on-cancel widget) widget)
+    (signal-event widget 'cancel)
     (text-input-leave widget))
 
   (define-method (text-input-leave (widget <text-input>))
     (when (text-input-stolen-focus widget)
       (override-focus-end)
-      (set! (text-input-stolen-focus widget) #f))
-    ((text-input-on-leave widget) widget))
+      (set! (text-input-stolen-focus widget) #f)))
 
   (define-method (text-input-begin (widget <text-input>) #!key (steal-focus #f))
     (when steal-focus
@@ -315,8 +303,7 @@
       (override-focus widget))
     (set! (text-input-editing? widget) #t)
     (set! (text-input-saved-text widget)
-          (text-input-text widget))
-    ((text-input-on-begin widget) widget))
+          (text-input-text widget)))
 
   (define *focus-override* #f)
   

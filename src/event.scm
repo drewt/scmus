@@ -16,6 +16,7 @@
 ;;
 
 (module scmus.event (<event-source>
+                     current-event-source
                      add-listener
                      add-listener/global
                      signal-event
@@ -33,6 +34,8 @@
     ((listeners initform: '()
                 accessor: event-source-listeners)))
 
+  (define current-event-source (make-parameter #f))
+
   (define-method (add-listener (src <event-source>) type listener)
     (set! (event-source-listeners src) (cons (cons type listener)
                                              (event-source-listeners src))))
@@ -41,7 +44,9 @@
     (for-each (lambda (type/listener)
                 (when (eqv? (car type/listener) type)
                   (set! *deferred-events*
-                    (cons (lambda () (apply (cdr type/listener) args))
+                    (cons (lambda ()
+                            (parameterize ((current-event-source src))
+                              (apply (cdr type/listener) args)))
                           *deferred-events*))))
               (event-source-listeners src)))
 

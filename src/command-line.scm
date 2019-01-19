@@ -257,15 +257,28 @@
   (define command-line-widget
     (make <command-line>
       'cursed   CURSED-CMDLINE
-      'prefix   " "
-      'on-begin (lambda (w)
-                  (set! (widget-cursed w) CURSED-CMDLINE))
-      'on-leave (lambda (w)
-                  (history-reset!)
-                  (current-command-line-mode #f)
-                  (set! (text-input-prefix w) " ")
-                  (set! (text-input-on-commit w) (lambda (w) #f))
-                  (set! (text-input-on-cancel w) (lambda (w) #f)))))
+      'prefix   " "))
+
+  (define (command-line-on-leave)
+    (history-reset!)
+    (text-input-set-text! command-line-widget "")
+    (set! (text-input-prefix command-line-widget) " ")
+    (current-command-line-mode #f))
+
+  (add-listener command-line-widget 'commit
+    (lambda (s)
+      (let ((then (command-line-mode-callback (current-command-line-mode)))
+            (finally (command-line-mode-finally (current-command-line-mode))))
+        (history-add! s)
+        (command-line-on-leave)
+        (then s)
+        (when finally (finally)))))
+
+  (add-listener command-line-widget 'cancel
+    (lambda ()
+      (let ((finally (command-line-mode-finally (current-command-line-mode))))
+        (command-line-on-leave)
+        (when finally (finally)))))
 
   (define (command-line-print-info! str)
     (unless (text-input-editing? command-line-widget)
@@ -291,22 +304,9 @@
 
   (define (command-line-enter-mode mode #!optional (text "") (cursor-pos 0))
     (current-command-line-mode mode)
+    (set! (widget-cursed command-line-widget) CURSED-CMDLINE)
     (set! (text-input-prefix command-line-widget)
       (command-line-mode-prefix mode))
-    (set! (text-input-on-commit command-line-widget)
-      (lambda (w)
-        (let ((text (text-input-get-text w))
-              (then (command-line-mode-callback mode))
-              (finally (command-line-mode-finally mode)))
-          (text-input-set-text! w "")
-          (history-add! text)
-          (run-later (lambda () (then text) (when finally (finally)))))))
-    (set! (text-input-on-cancel command-line-widget)
-      (lambda (w)
-        (set! (text-input-prefix w) " ")
-        (text-input-set-text! w "")
-        (let ((finally (command-line-mode-finally mode)))
-          (when finally (run-later finally)))))
     (text-input-set-text! command-line-widget text)
     (text-input-set-cursor-pos! command-line-widget cursor-pos)
     (text-input-begin command-line-widget steal-focus: #t))
