@@ -356,6 +356,10 @@
   (return-void scmus-playlist-load!))
 (user-synonym playlist-load! playlist-load)
 
+(define/user playlist-edit
+  "Load the given playlist into the playlist editor"
+  (return-void scmus-playlist-edit))
+
 (define/user playlist-rename
   "Rename the given playlist"
   (return-void scmus-playlist-rename!))
@@ -720,9 +724,9 @@
   (widget-deactivate (widget-focus view-widget)))
 (user-synonym win-deactivate! win-deactivate)
 
-(define/user (win-add)
+(define/user (win-add #!optional (dst 'queue))
   "Add the selected row"
-  (widget-add (widget-focus view-widget)))
+  (widget-add (widget-focus view-widget) dst))
 (user-synonym win-add! win-add)
 
 (define/user (win-remove)
@@ -735,10 +739,11 @@
   (widget-clear (widget-focus view-widget)))
 (user-synonym win-clear! win-clear)
 
-(define/user (win-move-tracks #!optional (before #f))
+(define/user (win-paste #!optional (before #f))
   "Move the marked tracks to the cursor"
   (widget-paste (widget-focus view-widget) before))
-(user-synonym win-move-tracks! win-move-tracks)
+(user-synonym win-move-trakcs  win-paste)
+(user-synonym win-move-tracks! win-paste)
 
 (define+user (win-search query)
   "Search the current window"

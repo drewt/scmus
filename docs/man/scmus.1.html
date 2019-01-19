@@ -119,6 +119,11 @@ server.</p></dd>
 organized hierarchically, with artists at the top level, then albums, then
 tracks.  The arrow keys or <code>hjkl</code> are used to navigate through the
 hierarchy.</p></dd>
+<dt><code>Playlist view</code> (3)</dt><dd><p>The playlist editor.  Stored playlists can be loaded into this view using
+the <code>edit</code> command, or by pressing the <code>A</code> key with a playlist selected in
+the <code>library</code> or <code>browser</code> views.  Once a playlist is loaded into the
+editor, tracks can be appended to it by pressing the <code>A</code> key in the
+<code>library</code>, <code>search</code> or <code>browser</code> views.</p></dd>
 <dt><code>Queue view</code> (2)</dt><dd><p>Displays the tracks in the play queue.</p></dd>
 <dt><code>Search View</code> (3)</dt><dd><p>Used for searching MPD's music database.  This view is split vertically into
 two panes: the top pane has a list of search fields, and the bottom pane
@@ -198,8 +203,8 @@ finished playing.</p>
 
 <h2 id="KEY-BINDINNGS">KEY BINDINNGS</h2>
 
-<p>In scmus, a key or sequence of keys can be bound to a Scheme expression.  When
-that key or sequence of keys is pressed, the expression is evaluated.</p>
+<p>In scmus, a key or sequence of keys can be bound to a command or Scheme expression.
+When that key or sequence of keys is pressed, the command/expression is evaluated.</p>
 
 <p>See the <code>bind</code> and <code>unbind</code> commands in the <a href="#COMMANDS" title="COMMANDS" data-bare-link="true">COMMANDS</a> section for a
 description of how keys can be bound or unbound.</p>
@@ -244,7 +249,8 @@ common library queue search browser status error options bindings</p></dd>
 
 <p>If <em>pass</em> is given, it should be the password for the MPD server.</p></dd>
 <dt><code>echo</code> <em>arg</em>...</dt><dd><p>Display arguments on the command line.</p></dd>
-<dt><code>load</code> <em>playlist</em></dt><dd><p>Load the named playlist to the play queue.</p></dd>
+<dt><code>edit</code> <em>playlist</em></dt><dd><p>Load the named playlist into the playlist editor.</p></dd>
+<dt><code>load</code> <em>playlist</em></dt><dd><p>Load the named playlist into the play queue.</p></dd>
 <dt class="flush"><code>next</code></dt><dd><p>Skip to the next track.</p></dd>
 <dt class="flush"><code>pause</code></dt><dd><p>Toggle pause.</p></dd>
 <dt class="flush"><code>play</code></dt><dd><p>Play the current track from the beginning.</p></dd>
@@ -274,7 +280,7 @@ common library queue search browser status error options bindings</p></dd>
 <dt><code>win-activate</code></dt><dd><p>Activate the currently selected item.  The meaning of this command varies depending on what is selected.</p>
 
 <p>In the <code>library</code> and <code>browser</code> views, it descends into the next level or the artist/album/track or directory hierarchy.  In the <code>queue</code> view it plays the selected track.  In the <code>options</code> and <code>bindings</code> biews it begins editing the selected option/binding.  In <code>search</code> view it executes the search query.</p></dd>
-<dt class="flush"><code>win-add</code></dt><dd><p>Add the currently marked or selected track(s) to the play queue.</p></dd>
+<dt><code>win-add</code> [<em>dst</em>]</dt><dd><p>Add the currently marked or selected track(s) to the play queue or playlist editor.  <em>dst</em> should be either <code>"queue"</code> or <code>"playlist"</code>.  If <em>dst</em> is ommitted, it defaults to <code>"queue"</code>.</p></dd>
 <dt><code>win-bottom</code></dt><dd><p>Move the cursor to the bottom of the active window.</p></dd>
 <dt><code>win-clear</code></dt><dd><p>In <code>queue</code> view, clears the play queue.  In <code>search</code> view, clears the search results.</p></dd>
 <dt><code>win-deactivate</code></dt><dd><p>In the <code>library</code> and <code>browser</code> views, ascend to the next level in the artist/album/track or directory hierarchy.</p></dd>

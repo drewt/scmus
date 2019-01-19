@@ -15,7 +15,10 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(declare (export connect!
+(declare (export add-track
+                 add-playlist
+                 add/constraints
+                 connect!
                  current-search-query
                  event-loop
                  exit-curses
@@ -88,6 +91,42 @@
           finally: (lambda ()
                      (set! authenticating? #f))
           password?: #t)))))
+
+;; Ensure that there is a playlist open in the playlist
+;; editor before running some code
+(define (call-with-playlist fun)
+  (if (current-playlist-name)
+    (fun)
+    (command-line-get-string "Playlist Name: "
+      (lambda (s)
+        (current-playlist-name s)
+        (fun)
+        (signal-event/global 'db-changed)))))
+
+(define-syntax with-playlist
+  (syntax-rules ()
+    ((with-playlist first . rest)
+      (call-with-playlist (lambda () first . rest)))))
+
+(define (add-track dst track)
+    (case dst
+      ((queue)    (scmus-add! (track-file track)))
+      ((playlist) (with-playlist
+                    (scmus-playlist-add! (current-playlist-name)
+                                         (track-file track))
+                    (scmus-playlist-edit (current-playlist-name))))))
+
+(define (add/constraints dst . constraints)
+  (case dst
+    ((queue)    (apply scmus-find-add! constraints))
+    ((playlist) (with-playlist
+                  (apply scmus-search-add-pl! (current-playlist-name) constraints)
+                  (scmus-playlist-edit (current-playlist-name))))))
+
+(define (add-playlist dst name)
+  (case dst
+    ((queue)    (scmus-playlist-load! name))
+    ((playlist) (scmus-playlist-edit name))))
 
 (define (event-loop)
   (let ((err (handle-events)))

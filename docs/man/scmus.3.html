@@ -111,6 +111,7 @@
 (<code>playlist-add</code> <em>name</em> <em>uri</em>)<br />
 (<code>playlist-clear</code> <em>name</em>)<br />
 (<code>playlist-delete</code> <em>name</em> <em>song-pos</em>)<br />
+(<code>playlist-edit</code> <em>name</em>)<br />
 (<code>playlist-load</code> <em>name</em>)<br />
 (<code>playlist-move</code> <em>name</em> <em>song-id</em> <em>song-pos</em>)<br />
 (<code>playlist-rename</code> <em>name</em> <em>new-name</em>)<br />
@@ -177,7 +178,7 @@
 (<code>unbind</code> <em>keys</em> <em>context</em>)<br />
 (<code>update</code> <em>[path]</em>)<br />
 (<code>win-activate</code>)<br />
-(<code>win-add</code>)<br />
+(<code>win-add</code> <em>[dst]</em>)<br />
 (<code>win-bottom</code>)<br />
 (<code>win-clear</code>)<br />
 (<code>win-clear-marked</code>)<br />
@@ -186,6 +187,7 @@
 (<code>win-mark</code>)<br />
 (<code>win-unmark</code>)<br />
 (<code>win-move</code> <em>nr</em> <em>[relative?]</em>)<br />
+(<code>win-paste</code> <em>[before?]</em>)<br />
 (<code>win-remove</code>)<br />
 (<code>win-search</code> <em>query</em>)<br />
 (<code>win-search-next</code>)<br />
@@ -235,7 +237,8 @@
 <dt>(<code>playlist-add</code> <em>name</em> <em>uri</em>)</dt><dd><p>Add <em>uri</em> to the playlist given by <em>name</em>.</p></dd>
 <dt>(<code>playlist-clear</code> <em>name</em>)</dt><dd><p>Clear the playlist given by <em>name</em>.</p></dd>
 <dt>(<code>playlist-delete</code> <em>name</em> <em>song-pos</em>)</dt><dd><p>Delete the track at <em>song-pos</em> from the playlist given by <em>name</em>.</p></dd>
-<dt>(<code>playlist-load</code> <em>name</em>)</dt><dd><p>Load the playlist given by <em>name</em> to the play queue.</p></dd>
+<dt>(<code>playlist-edit</code> <em>name</em>)</dt><dd><p>Load the playlist given by <em>name</em> into the playlist editor.</p></dd>
+<dt>(<code>playlist-load</code> <em>name</em>)</dt><dd><p>Load the playlist given by <em>name</em> into the play queue.</p></dd>
 <dt>(<code>playlist-move</code> <em>name</em> <em>songid</em> <em>song-pos</em>)</dt><dd><p>Add <em>song-id</em> in the playlist given by <em>name</em> to the position <em>song-pos</em>.</p></dd>
 <dt>(<code>playlist-rename</code> <em>name</em> <em>new-name</em>)</dt><dd><p>Rename the playlist <em>name</em> to <em>new-name</em>.</p></dd>
 <dt>(<code>playlist-rm</code> <em>name</em>)</dt><dd><p>Delete the playlist given by <em>name</em>.</p></dd>
@@ -304,7 +307,7 @@ string instead of the status code.</p></dd>
 <dt>(<code>unbind</code> <em>keys</em> <em>context</em>)</dt><dd><p>Remove the binding for <em>keys</em> in <em>context</em>, or any bindings in conflict with <em>keys</em>.</p></dd>
 <dt>(<code>update</code> <em>[path]</em>)</dt><dd><p>Update the music database.  If <em>path</em> is given, then only that path is updated.</p></dd>
 <dt>(<code>win-activate</code>)</dt><dd><p>Activate the current window.  What this means depends on the view and the current selection.  E.g. in <code>queue</code> view, this function will begin playing the selected track.</p></dd>
-<dt>(<code>win-add</code>)</dt><dd><p>Add the current selection to the play queue.</p></dd>
+<dt>(<code>win-add</code> <em>[dst]</em>)</dt><dd><p>Add the current selection to the play queue or playlist editor.  <em>dst</em> should be either <code>'queue</code> or <code>'playlist</code>.  If <em>dst</em> is not given, it defaults to <code>'queue</code>.</p></dd>
 <dt>(<code>win-bottom</code>)</dt><dd><p>Move the cursor to the bottom of the current window.</p></dd>
 <dt>(<code>win-clear</code>)</dt><dd><p>Clear the current window.</p></dd>
 <dt>(<code>win-clear-marked</code>)</dt><dd><p>Clear the marked items in the current window.</p></dd>
@@ -313,6 +316,7 @@ string instead of the status code.</p></dd>
 <dt>(<code>win-mark</code>)</dt><dd><p>Mark the selected item in the current window.</p></dd>
 <dt>(<code>win-unmark</code>)</dt><dd><p>Clear the mark on the selected item in the current window.</p></dd>
 <dt>(<code>win-move</code> <em>nr</em> <em>[relative?]</em>)</dt><dd><p>Move the cursor up or down <em>nr</em> rows in the current window.  Positive values for <em>nr</em> mean move down; negative values mean move up.  If <em>relative</em> is <code>#t</code> then <em>nr</em> is interpreted as a percentage of the visible rows.</p></dd>
+<dt>(<code>win-paste</code> <em>[before?]</em>)</dt><dd><p>Paste the marked lines at the cursor. If <em>before?</em> is given and not <code>#f</code>, then the lines are pasted under the cursor; otherwise they are pasted beginning at the line after the cursor.</p></dd>
 <dt>(<code>win-remove</code>)</dt><dd><p>Remove the selected item in the current window (when applicable).</p></dd>
 <dt>(<code>win-search</code> <em>query</em>)</dt><dd><p>Search for <em>query</em> in the current window.</p></dd>
 <dt>(<code>win-search-next</code>)</dt><dd><p>Select the next match after the cursor for the current search query.</p></dd>

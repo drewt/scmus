@@ -18,6 +18,8 @@
 ;; TODO: replace status, etc. alists with record types
 
 (module scmus.status (current-queue
+                      current-playlist
+                      current-playlist-name
                       current-status
                       current-stats
                       current-connection
@@ -72,6 +74,8 @@
   (define current-stats (make-parameter '()))
   (define current-track (make-parameter '()))
   (define current-queue (make-parameter '()))
+  (define current-playlist (make-parameter '()))
+  (define current-playlist-name (make-parameter #f))
   (define current-connection (make-parameter #f))
 
   (: current-track? (track -> boolean))

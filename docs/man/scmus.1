@@ -58,6 +58,10 @@ There are 8 views in scmus\. Press keys 1\-8 to change the active view\.
 In this view you can browse the entire music database\. The database is organized hierarchically, with artists at the top level, then albums, then tracks\. The arrow keys or \fBhjkl\fR are used to navigate through the hierarchy\.
 .
 .TP
+\fBPlaylist view\fR (3)
+The playlist editor\. Stored playlists can be loaded into this view using the \fBedit\fR command, or by pressing the \fBA\fR key with a playlist selected in the \fBlibrary\fR or \fBbrowser\fR views\. Once a playlist is loaded into the editor, tracks can be appended to it by pressing the \fBA\fR key in the \fBlibrary\fR, \fBsearch\fR or \fBbrowser\fR views\.
+.
+.TP
 \fBQueue view\fR (2)
 Displays the tracks in the play queue\.
 .
@@ -154,7 +158,7 @@ These can be toggled by pressing the \fBS\fR, \fBR\fR, \fBr\fR, and \fBC\fR keys
 \fIConsume\fR means that tracks are removed from the play queue when they are finished playing\.
 .
 .SH "KEY BINDINNGS"
-In scmus, a key or sequence of keys can be bound to a Scheme expression\. When that key or sequence of keys is pressed, the expression is evaluated\.
+In scmus, a key or sequence of keys can be bound to a command or Scheme expression\. When that key or sequence of keys is pressed, the command/expression is evaluated\.
 .
 .P
 See the \fBbind\fR and \fBunbind\fR commands in the \fICOMMANDS\fR section for a description of how keys can be bound or unbound\.
@@ -228,8 +232,12 @@ If \fIpass\fR is given, it should be the password for the MPD server\.
 Display arguments on the command line\.
 .
 .TP
+\fBedit\fR \fIplaylist\fR
+Load the named playlist into the playlist editor\.
+.
+.TP
 \fBload\fR \fIplaylist\fR
-Load the named playlist to the play queue\.
+Load the named playlist into the play queue\.
 .
 .TP
 \fBnext\fR
@@ -300,8 +308,8 @@ Activate the currently selected item\. The meaning of this command varies depend
 In the \fBlibrary\fR and \fBbrowser\fR views, it descends into the next level or the artist/album/track or directory hierarchy\. In the \fBqueue\fR view it plays the selected track\. In the \fBoptions\fR and \fBbindings\fR biews it begins editing the selected option/binding\. In \fBsearch\fR view it executes the search query\.
 .
 .TP
-\fBwin\-add\fR
-Add the currently marked or selected track(s) to the play queue\.
+\fBwin\-add\fR [\fIdst\fR]
+Add the currently marked or selected track(s) to the play queue or playlist editor\. \fIdst\fR should be either \fB"queue"\fR or \fB"playlist"\fR\. If \fIdst\fR is ommitted, it defaults to \fB"queue"\fR\.
 .
 .TP
 \fBwin\-bottom\fR

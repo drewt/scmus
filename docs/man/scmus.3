@@ -118,6 +118,9 @@
 (\fBplaylist\-delete\fR \fIname\fR \fIsong\-pos\fR)
 .
 .br
+(\fBplaylist\-edit\fR \fIname\fR)
+.
+.br
 (\fBplaylist\-load\fR \fIname\fR)
 .
 .br
@@ -316,7 +319,7 @@
 (\fBwin\-activate\fR)
 .
 .br
-(\fBwin\-add\fR)
+(\fBwin\-add\fR \fI[dst]\fR)
 .
 .br
 (\fBwin\-bottom\fR)
@@ -341,6 +344,9 @@
 .
 .br
 (\fBwin\-move\fR \fInr\fR \fI[relative?]\fR)
+.
+.br
+(\fBwin\-paste\fR \fI[before?]\fR)
 .
 .br
 (\fBwin\-remove\fR)
@@ -517,8 +523,12 @@ Clear the playlist given by \fIname\fR\.
 Delete the track at \fIsong\-pos\fR from the playlist given by \fIname\fR\.
 .
 .TP
+(\fBplaylist\-edit\fR \fIname\fR)
+Load the playlist given by \fIname\fR into the playlist editor\.
+.
+.TP
 (\fBplaylist\-load\fR \fIname\fR)
-Load the playlist given by \fIname\fR to the play queue\.
+Load the playlist given by \fIname\fR into the play queue\.
 .
 .TP
 (\fBplaylist\-move\fR \fIname\fR \fIsongid\fR \fIsong\-pos\fR)
@@ -789,8 +799,8 @@ Update the music database\. If \fIpath\fR is given, then only that path is updat
 Activate the current window\. What this means depends on the view and the current selection\. E\.g\. in \fBqueue\fR view, this function will begin playing the selected track\.
 .
 .TP
-(\fBwin\-add\fR)
-Add the current selection to the play queue\.
+(\fBwin\-add\fR \fI[dst]\fR)
+Add the current selection to the play queue or playlist editor\. \fIdst\fR should be either \fB\'queue\fR or \fB\'playlist\fR\. If \fIdst\fR is not given, it defaults to \fB\'queue\fR\.
 .
 .TP
 (\fBwin\-bottom\fR)
@@ -823,6 +833,10 @@ Clear the mark on the selected item in the current window\.
 .TP
 (\fBwin\-move\fR \fInr\fR \fI[relative?]\fR)
 Move the cursor up or down \fInr\fR rows in the current window\. Positive values for \fInr\fR mean move down; negative values mean move up\. If \fIrelative\fR is \fB#t\fR then \fInr\fR is interpreted as a percentage of the visible rows\.
+.
+.TP
+(\fBwin\-paste\fR \fI[before?]\fR)
+Paste the marked lines at the cursor\. If \fIbefore?\fR is given and not \fB#f\fR, then the lines are pasted under the cursor; otherwise they are pasted beginning at the line after the cursor\.
 .
 .TP
 (\fBwin\-remove\fR)

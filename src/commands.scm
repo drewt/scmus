@@ -156,6 +156,8 @@
             (map (lambda (x) (string-append/shared "'" x "'"))
                  (filter (lambda (x) (string-prefix? (car tokens) x))
                          playlists))))))
+  (map-command 'edit 'playlist-edit
+    (list playlist-completion))
   (map-command 'load 'playlist-load
     (list playlist-completion))
   (map-command 'save 'playlist-save
@@ -236,7 +238,8 @@
 
 (map-command 'win-activate   'win-activate)
 (map-command 'win-deactivate 'win-deactivate)
-(map-command 'win-add        'win-add)
+(define-command (win-add #!optional (dst "queue"))
+  (user-eval/raw `(win-add (quote ,(string->symbol dst)))))
 (map-command 'win-remove     'win-remove)
 (map-command 'win-clear      'win-clear)
 

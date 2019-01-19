@@ -62,6 +62,8 @@
                       scmus-swap-id!
                       scmus-list-playlist
                       *scmus-list-playlists
+                      scmus-playlist-edit
+                      scmus-playlist-close
                       scmus-playlist-load!
                       scmus-playlist-add!
                       scmus-playlist-clear!
@@ -94,8 +96,7 @@
                       scmus-toggle-single!
                       scmus-single-set!
                       scmus-toggle-consume!
-                      scmus-consume-set!
-                      scmus-search-songs)
+                      scmus-consume-set!)
   (import drewt.mpd-client
           scmus.base
           scmus.error
@@ -277,6 +278,10 @@
   (scmus-command scmus-swap! mpd:swap!)
   (scmus-command scmus-swap-id! mpd:swap-id!)
 
+  (define (is-current-playlist? name)
+    (and (current-playlist-name)
+         (string=? name (current-playlist-name))))
+
   (scmus-command scmus-list-playlist mpd:list-playlist-info)
   (scmus-command *scmus-list-playlists mpd:list-playlists)
   (scmus-command scmus-playlist-load! mpd:playlist-load!)
@@ -284,8 +289,17 @@
   (scmus-command scmus-playlist-clear! mpd:playlist-clear!)
   (scmus-command scmus-playlist-delete! mpd:playlist-delete!)
   (scmus-command scmus-playlist-move! mpd:playlist-move!)
-  (scmus-command scmus-playlist-rename! mpd:playlist-rename!)
-  (scmus-command scmus-playlist-rm! mpd:playlist-rm!)
+
+  (define (scmus-playlist-rename! name new-name)
+    (*scmus-command mpd:playlist-rename! name new-name)
+    (when (is-current-playlist? name)
+      (current-playlist-name new-name)
+      (signal-event/global 'playlist-changed)))
+
+  (define (scmus-playlist-rm! name)
+    (when (is-current-playlist? name)
+      (scmus-playlist-close))
+    (*scmus-command mpd:playlist-rm! name))
   (scmus-command scmus-playlist-save! mpd:playlist-save!)
 
   (scmus-command scmus-count mpd:count)
@@ -333,14 +347,14 @@
   (define (scmus-toggle-consume!)
     (scmus-consume-set! (if (scmus-consume?) #f #t)))
 
-  (: scmus-searech-songs (boolean boolean #!rest (pair symbol *) -> list))
-  (define (scmus-search-songs exact add . constraints)
-    (if (null? constraints)
-      '()
-      (if exact
-        (if add
-          (apply scmus-find-add! constraints)
-          (apply scmus-find constraints))
-        (if add
-          (apply scmus-search-add! constraints)
-          (apply scmus-search constraints))))))
+  (: scmus-playlist-edit (string -> undefined))
+  (define (scmus-playlist-edit name)
+    (current-playlist (scmus-list-playlist name))
+    (current-playlist-name name)
+    (signal-event/global 'playlist-changed))
+
+  (: scmus-playlist-close (-> undefined))
+  (define (scmus-playlist-close)
+    (current-playlist '())
+    (current-playlist-name #f)
+    (signal-event/global 'playlist-changed)))

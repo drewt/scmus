@@ -124,6 +124,7 @@
 (register-format! 'format-library-file     *default-track-format*)
 (register-format! 'format-library-metadata " ~-50%{tag} ~{value}")
 (register-format! 'format-queue            *default-track-format*)
+(register-format! 'format-playlist         *default-track-format*)
 (register-format! 'format-browser-file     " ~{path}")
 (register-format! 'format-browser-dir      " ~{directory}/")
 (register-format! 'format-browser-playlist " [~{playlist}]")

@@ -5,10 +5,10 @@
 
 ;; views
 (bind "1" 'common '(set-view 'library)  #t)
-(bind "2" 'common '(set-view 'queue)    #t)
-(bind "3" 'common '(set-view 'search)   #t)
-(bind "4" 'common '(set-view 'browser)  #t)
-(bind "5" 'common '(set-view 'status)   #t)
+(bind "2" 'common '(set-view 'playlist) #t)
+(bind "3" 'common '(set-view 'queue)    #t)
+(bind "4" 'common '(set-view 'search)   #t)
+(bind "5" 'common '(set-view 'browser)  #t)
 (bind "6" 'common '(set-view 'log)      #t)
 (bind "7" 'common '(set-view 'options)  #t)
 (bind "8" 'common '(set-view 'bindings) #t)
@@ -65,7 +65,8 @@
 (bind "N" 'common '(win-search-prev) #t)
 
 ;; queue management
-(bind "a" 'common '(win-add) #t)
+(bind "a" 'common '(win-add 'queue) #t)
+(bind "A" 'common '(win-add 'playlist) #t)
 (bind "d" 'common '(win-remove) #t)
 (bind "D" 'common '(win-clear) #t)
 
@@ -82,8 +83,8 @@
 (bind "right" 'library '(win-activate)   #t)
 
 ;; queue view
-(bind "p" 'queue '(win-move-tracks))
-(bind "P" 'queue '(win-move-tracks #t))
+(bind "p" 'queue '(win-paste))
+(bind "P" 'queue '(win-paste #t))
 
 ;; browser view
 (bind "h"     'browser '(win-deactivate) #t)

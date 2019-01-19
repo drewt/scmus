@@ -51,6 +51,13 @@ There are 8 views in scmus.  Press keys 1-8 to change the active view.
   tracks.  The arrow keys or `hjkl` are used to navigate through the
   hierarchy.
 
+* `Playlist view` (3):
+  The playlist editor.  Stored playlists can be loaded into this view using
+  the `edit` command, or by pressing the `A` key with a playlist selected in
+  the `library` or `browser` views.  Once a playlist is loaded into the
+  editor, tracks can be appended to it by pressing the `A` key in the
+  `library`, `search` or `browser` views.
+
 * `Queue view` (2):
   Displays the tracks in the play queue.
 
@@ -135,8 +142,8 @@ finished playing.
 
 ## KEY BINDINNGS
 
-In scmus, a key or sequence of keys can be bound to a Scheme expression.  When
-that key or sequence of keys is pressed, the expression is evaluated.
+In scmus, a key or sequence of keys can be bound to a command or Scheme expression.
+When that key or sequence of keys is pressed, the command/expression is evaluated.
 
 See the `bind` and `unbind` commands in the [COMMANDS][] section for a
 description of how keys can be bound or unbound.
@@ -194,8 +201,11 @@ Optional parameters are in \[*square brackets*\].
 * `echo` *arg*...:
   Display arguments on the command line.
 
+* `edit` *playlist*:
+  Load the named playlist into the playlist editor.
+
 * `load` *playlist*:
-  Load the named playlist to the play queue.
+  Load the named playlist into the play queue.
 
 * `next`:
   Skip to the next track.
@@ -248,8 +258,8 @@ Optional parameters are in \[*square brackets*\].
 
   In the `library` and `browser` views, it descends into the next level or the artist/album/track or directory hierarchy.  In the `queue` view it plays the selected track.  In the `options` and `bindings` biews it begins editing the selected option/binding.  In `search` view it executes the search query.
 
-* `win-add`:
-  Add the currently marked or selected track(s) to the play queue.
+* `win-add` \[*dst*\]:
+  Add the currently marked or selected track(s) to the play queue or playlist editor.  *dst* should be either `"queue"` or `"playlist"`.  If *dst* is ommitted, it defaults to `"queue"`.
 
 * `win-bottom`:
   Move the cursor to the bottom of the active window.

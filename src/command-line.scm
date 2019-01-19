@@ -25,6 +25,7 @@
                             command-line-enter-mode
                             command-line-get-char
                             command-line-get-string
+                            command-line-confirm
                             make-command-line-mode
                             make-completion-engine)
   (import coops
@@ -318,4 +319,8 @@
     (command-line-print-info! prompt)
     (get-key (lambda (k)
                (command-line-clear!)
-               (then k)))))
+               (then k))))
+
+  (define (command-line-confirm question then)
+    (command-line-get-char (string-append question " [y/N]")
+      (lambda (c) (case c ((#\y #\Y) (then)))))))

@@ -57,7 +57,7 @@
             (map search-field->constraint
                  (filter (lambda (row) (instance-of? row <text-input>))
                          (vector->list (list-box-data window))))))
-  (let ((results (apply scmus-search-songs #f #f (constraints))))
+  (let ((results (apply scmus-search (constraints))))
     (set! (list-box-data window) (append (vector->list (list-box-data window))
                                          (map (lambda (track)
                                                 (make-window-row track 'file 'format-search-file))
@@ -68,13 +68,13 @@
     (when (instance-of? selected <text-input>)
       (text-input-begin selected steal-focus: #t))))
 
-(define-method (widget-add (window <search-window>))
+(define-method (widget-add (window <search-window>) dst)
   (let ((selected (list-box-selected window)))
     (cond
       ((instance-of? selected <text-input>)
         (add-search-field! window))
       ((instance-of? selected <window-row>)
-        (add-selected-tracks! window)))))
+        (add-selected-tracks! window dst)))))
 
 (define (search-window-data window)
   (let loop ((data (vector->list (list-box-data window))) (result '()))
@@ -91,10 +91,10 @@
     (when (>= (list-box-sel-pos window) (length queries))
       (widget-move window 1 #f))))
 
-(define (add-selected-tracks! window)
+(define (add-selected-tracks! window dst)
   (for-each (lambda (row)
               (when (instance-of? row <window-row>)
-                (scmus-add! (track-file (window-row-data row)))))
+                (add-track dst (window-row-data row))))
             (window-selected window)))
 
 (define-method (widget-remove (window <search-window>))

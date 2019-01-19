@@ -91,12 +91,12 @@
       (browser-location-pop!)
       (widget-stack-pop! window))))
 
-(define-method (widget-add (window <browser-window>))
+(define-method (widget-add (window <browser-window>) dst)
   (for-each (lambda (row)
               (case (window-row-type row)
-                ((directory) (scmus-find-add! (cons 'base (cdar (window-row-data row)))))
-                ((playlist)  (scmus-playlist-load! (cdar (window-row-data row))))
-                ((file)      (scmus-add! (cdar (window-row-data row))))))
+                ((directory) (add/constraints dst (cons 'base (cdar (window-row-data row)))))
+                ((playlist)  (add-playlist dst (cdar (window-row-data row))))
+                ((file)      (add-track dst (window-row-data row)))))
             (window-selected window))
   (scmus-update-queue!))
 

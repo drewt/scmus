@@ -40,6 +40,7 @@ scmus(3) -- scmus Scripting Environment
 (`playlist-add` *name* *uri*)  
 (`playlist-clear` *name*)  
 (`playlist-delete` *name* *song-pos*)  
+(`playlist-edit` *name*)  
 (`playlist-load` *name*)  
 (`playlist-move` *name* *song-id* *song-pos*)  
 (`playlist-rename` *name* *new-name*)  
@@ -106,7 +107,7 @@ scmus(3) -- scmus Scripting Environment
 (`unbind` *keys* *context*)  
 (`update` *\[path\]*)  
 (`win-activate`)  
-(`win-add`)  
+(`win-add` *\[dst\]*)  
 (`win-bottom`)  
 (`win-clear`)  
 (`win-clear-marked`)  
@@ -115,6 +116,7 @@ scmus(3) -- scmus Scripting Environment
 (`win-mark`)  
 (`win-unmark`)  
 (`win-move` *nr* *\[relative?\]*)  
+(`win-paste` *\[before?\]*)  
 (`win-remove`)  
 (`win-search` *query*)  
 (`win-search-next`)  
@@ -237,8 +239,11 @@ scmus(3) -- scmus Scripting Environment
 * (`playlist-delete` *name* *song-pos*):
   Delete the track at *song-pos* from the playlist given by *name*.
 
+* (`playlist-edit` *name*):
+  Load the playlist given by *name* into the playlist editor.
+
 * (`playlist-load` *name*):
-  Load the playlist given by *name* to the play queue.
+  Load the playlist given by *name* into the play queue.
 
 * (`playlist-move` *name* *songid* *song-pos*):
   Add *song-id* in the playlist given by *name* to the position *song-pos*.
@@ -442,8 +447,8 @@ scmus(3) -- scmus Scripting Environment
 * (`win-activate`):
   Activate the current window.  What this means depends on the view and the current selection.  E.g. in `queue` view, this function will begin playing the selected track.
 
-* (`win-add`):
-  Add the current selection to the play queue.
+* (`win-add` *\[dst\]*):
+  Add the current selection to the play queue or playlist editor.  *dst* should be either `'queue` or `'playlist`.  If *dst* is not given, it defaults to `'queue`.
 
 * (`win-bottom`):
   Move the cursor to the bottom of the current window.
@@ -468,6 +473,9 @@ scmus(3) -- scmus Scripting Environment
 
 * (`win-move` *nr* *\[relative?\]*):
   Move the cursor up or down *nr* rows in the current window.  Positive values for *nr* mean move down; negative values mean move up.  If *relative* is `#t` then *nr* is interpreted as a percentage of the visible rows.
+
+* (`win-paste` *\[before?\]*):
+  Paste the marked lines at the cursor. If *before?* is given and not `#f`, then the lines are pasted under the cursor; otherwise they are pasted beginning at the line after the cursor.
 
 * (`win-remove`):
   Remove the selected item in the current window (when applicable).

@@ -45,9 +45,9 @@
     (when (widget-parent widget)
       (widget-edit (widget-parent widget))))
 
-  (define-method (widget-add (widget <widget>))
+  (define-method (widget-add (widget <widget>) dst)
     (when (widget-parent widget)
-      (widget-add (widget-parent widget))))
+      (widget-add (widget-parent widget) dst)))
 
   (define-method (widget-remove (widget <widget>))
     (when (widget-parent widget)

@@ -21,6 +21,7 @@
         drewt.ncurses
         scmus.base
         scmus.client
+        scmus.command-line
         scmus.event
         scmus.format
         scmus.option
@@ -53,7 +54,7 @@
                                     (make-window-row (list album) 'album 'format-library-album))
                                    albums)))))
   (define (album-activate! album)
-    (let ((tracks (scmus-search-songs #t #f (cons 'album (cdar album)))))
+    (let ((tracks (scmus-find `(album . ,(cdar album)))))
       (widget-stack-push! (widget-parent window)
         (make-library-window (map (lambda (track)
                                     (make-window-row track 'file 'format-library-file))
@@ -83,13 +84,29 @@
     (when (widget-stack-peek window)
       (widget-stack-pop! window))))
 
-(define-method (widget-add (window <library-window>))
+(define-method (widget-remove (window <library-window>))
+  (let ((selected (map (lambda (selected)
+                         (cdar (window-row-data selected)))
+                       (filter (lambda (selected)
+                                 (eqv? (window-row-type selected)
+                                       'playlist))
+                               (window-selected window)))))
+    (unless (null? selected)
+      (command-line-confirm (if (null? (cdr selected))
+                              (format "Delete playlist ~s?" (car selected))
+                              (format "Delete (~s) playlists?" (length selected)))
+        (lambda ()
+          (for-each scmus-playlist-rm! selected)
+          (widget-clear-marked window)
+          (signal-event/global 'db-changed))))))
+
+(define-method (widget-add (window <library-window>) dst)
   (for-each (lambda (selected)
               (when (instance-of? selected <window-row>)
                 (case (window-row-type selected)
-                  ((playlist)     (scmus-playlist-load! (cdar (window-row-data selected))))
-                  ((artist album) (scmus-search-songs #t #t (car (window-row-data selected))))
-                  ((file)         (scmus-add! (track-file (window-row-data selected)))))))
+                  ((playlist)     (add-playlist dst (cdar (window-row-data selected))))
+                  ((artist album) (add/constraints dst (car (window-row-data selected))))
+                  ((file)         (add-track dst (window-row-data selected))))))
             (window-selected window))
   (scmus-update-queue!))
 
