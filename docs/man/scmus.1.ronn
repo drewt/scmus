@@ -51,17 +51,17 @@ There are 8 views in scmus.  Press keys 1-8 to change the active view.
   tracks.  The arrow keys or `hjkl` are used to navigate through the
   hierarchy.
 
-* `Playlist view` (3):
+* `Playlist view` (2):
   The playlist editor.  Stored playlists can be loaded into this view using
   the `edit` command, or by pressing the `A` key with a playlist selected in
   the `library` or `browser` views.  Once a playlist is loaded into the
   editor, tracks can be appended to it by pressing the `A` key in the
   `library`, `search` or `browser` views.
 
-* `Queue view` (2):
+* `Queue view` (3):
   Displays the tracks in the play queue.
 
-* `Search View` (3):
+* `Search View` (4):
   Used for searching MPD's music database.  This view is split vertically into
   two panes: the top pane has a list of search fields, and the bottom pane
   lists the results of the search.  To edit a search field, hit the `i` key
@@ -71,13 +71,9 @@ There are 8 views in scmus.  Press keys 1-8 to change the active view.
   (e.g. *artist:boris*).  To perform the search, hit the `enter` key.  A list
   of results will appear in the bottom pane.
 
-* `Browser View` (4):
+* `Browser View` (5):
   Like the library view, except that this view is organized as a file system
   rather than by artist/album/track.
-
-* `Status View` (5):
-  Displays the response to the last *status* MPD command.  This is used for
-  debugging and is likely to be removed in the future.
 
 * `Log View` (6):
   Displays the contents of the log.  This should contain network/mpd related
