@@ -90,12 +90,16 @@
   (import (only chicken
                 abort
                 current-seconds
+                current-milliseconds
                 signal))
 
   ; Use the R7RS names
   (define raise abort)
   (define raise-continuable signal)
   (define current-second current-seconds)
+
+  (define (current-second/precise)
+    (/ (current-milliseconds) 1000.0))
 
   ;; XXX: utf8-srfi-13#string-contains-ci isn't case-insensitive...
   (define (string-contains-ci str sub)

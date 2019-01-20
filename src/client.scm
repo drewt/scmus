@@ -178,7 +178,7 @@
       (unless (= (alist-ref 'songid old-status eqv? -1)
                  (alist-ref 'songid new-status eqv? -1))
         (signal-event/global 'track-changed)))
-    (set! *last-update* (current-second)))
+    (set! *last-update* (current-second/precise)))
 
   (: scmus-update-current-song! thunk)
   (define (scmus-update-current-song!)
@@ -202,18 +202,18 @@
 
   ;; Status update timer.  Ticks every 0.5 seconds.  Does a full status update
   ;; every STATUS-UPDATE-INTERVAL seconds, otherwise just updates elapsed time.
-  (register-timer!
-    (rec (scmus-update-client!)
-      (when (scmus-connected?)
-        (let ((now (current-second)))
-          (if (>= (- now *last-update*)
-                 (get-option 'status-update-interval))
-            (do-full-update)
-            (when (eqv? (scmus-state) 'play)
-              (scmus-elapsed-tick! 0.5)
-              (signal-event/global 'status-changed)))))
-      (register-timer! scmus-update-client! 0.5))
-    -1)
+  (let ((scmus-update-client
+          (lambda ()
+            (when (scmus-connected?)
+              (let ((now (current-second/precise)))
+                (if (>= (- now *last-update*)
+                        (get-option 'status-update-interval))
+                  (do-full-update)
+                  (when (eqv? (scmus-state) 'play)
+                    (scmus-elapsed-tick! 0.5)
+                    (signal-event/global 'status-changed))))))))
+    (run-later scmus-update-client)
+    (register-timer! scmus-update-client 0.5 recurring: #t))
 
   (: *scmus-command ((mpd-connection #!rest * -> *) #!rest * -> list))
   (define (*scmus-command mpd-fn . args)

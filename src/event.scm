@@ -85,21 +85,20 @@
   (define timer-thunk cdr)
 
   (define (register-timer! thunk seconds #!key (recurring #f))
-    (define (make-timer)
-      (cons (+ (current-second)
-               seconds)
-            (if recurring
-              (rec (recurring-thunk)
-                (thunk)
-                (register-timer! recurring-thunk seconds))
-              thunk)))
-    (set! *timers* (append! *timers* (list (make-timer)))))
+    (let ((timer (cons (+ (current-second/precise)
+                          seconds)
+                       (if recurring
+                           (rec (recurring-thunk)
+                             (thunk)
+                             (register-timer! recurring-thunk seconds))
+                           thunk))))
+      (set! *timers* (append! *timers* (list timer)))))
 
   (define (register-timer-event! name . rest)
     (apply register-timer! (lambda () (signal-event/global name)) rest))
 
   (define (handle-timers)
-    (let ((ct (current-second)))
+    (let ((ct (current-second/precise)))
       (let loop ((timers *timers*) (thunks '()))
         (if (or (null? timers)
                 (> (timer-expire-time (car timers)) ct))
