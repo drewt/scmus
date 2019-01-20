@@ -52,16 +52,16 @@
     (user-export! name value))
 
   (: user-value-ref (symbol -> *))
-  (define (user-value-ref name)
-    (car (hash-table-ref *user-api* name)))
+  (define (user-value-ref name #!optional default)
+    (car (hash-table-ref/default *user-api* name (cons default 0))))
 
   (: *user-value-ref (symbol -> *))
-  (define (*user-value-ref name)
-    (safe-environment-ref *user-env* name))
+  (define (*user-value-ref name #!optional default)
+    (safe-environment-ref *user-env* name default))
 
   (: user-doc-ref (symbol -> string))
-  (define (user-doc-ref name)
-    (cdr (hash-table-ref *user-api* name)))
+  (define (user-doc-ref name #!optional default)
+    (cdr (hash-table-ref/default *user-api* name (cons 0 default))))
 
   ;; Halt evalation.  Meant to be used in combination with call/cc,
   ;; to implement blocking calls.

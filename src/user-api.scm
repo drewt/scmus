@@ -175,22 +175,21 @@
   "Get the current volume"
   scmus-volume)
 
-(define/user (describe symbol)
-  "Describe a symbol"
-  ; FIXME: *user-api* not exported (nor should it be)
-  (let ((info (alist-ref symbol *user-api*))
-        (bind (safe-environment-ref *user-env* symbol)))
+(let ((unbound-object (cons 0 0)))
+  (define/user (describe symbol)
+    "Describe a symbol"
     (command-line-print-info!
-      (cond
-        ((not (symbol? symbol))
-           (format "~s" symbol))
-        ((not bind)
-           (format "~a: unbound" symbol))
-        ((or (not info)
-             (not (eqv? (car info) bind)))
-           (format "~a: ~s" symbol bind))
-        (else
-           (format "~a: ~a" symbol (cadr info)))))))
+      (if (not (symbol? symbol))
+        (format "~s" symbol)
+        (let ((info (user-doc-ref symbol))
+              (bind (*user-value-ref symbol unbound-object)))
+          (cond
+            ((eq? bind unbound-object)
+              (format "~a: unbound" symbol))
+            ((not info)
+               (format "~a: ~s" symbol bind))
+            (else
+               (format "~a: ~a" symbol info))))))))
 
 (define/user disconnect
   "Disconnect from the MPD server"
