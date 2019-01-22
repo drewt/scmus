@@ -226,12 +226,24 @@
               char-set:graphic
               command-completion)))
 
+(define current-search-query (make-parameter #f))
+(define searching-backward? (make-parameter #f))
+
 (define search-mode
   (make-command-line-mode "/"
     (lambda (s)
       (when s
         (current-search-query s)
+        (searching-backward? #f)
         (widget-search (widget-focus view-widget) s #f)))))
+
+(define search-backward-mode
+  (make-command-line-mode "?"
+    (lambda (s)
+      (when s
+        (current-search-query s)
+        (searching-backward? #t)
+        (widget-search (widget-focus view-widget) s #t)))))
 
 (define+user (enter-eval-mode #!optional (text "") (cursor-pos 0))
   "Set the input mode to eval-mode"
@@ -244,6 +256,10 @@
 (define/user (enter-search-mode #!optional (text "") (cursor-pos 0))
   "Set the input mode to search-mode"
   (command-line-enter-mode search-mode text cursor-pos))
+
+(define/user (enter-search-mode/backward #!optional (text "") (cursor-pos 0))
+  "Set the input mode to search-backward-mode"
+  (command-line-enter-mode search-backward-mode text cursor-pos))
 
 (define/user (exit)
   "Exit the program"
@@ -744,12 +760,13 @@
 (user-synonym win-move-trakcs  win-paste)
 (user-synonym win-move-tracks! win-paste)
 
-(define+user (win-search query)
+(define+user (win-search query #!optional backward?)
   "Search the current window"
   (current-search-query query)
+  (searching-backward? backward?)
   (widget-search (widget-focus view-widget)
                  (current-search-query)
-                 #f))
+                 backward?))
 (user-synonym win-search! win-search)
 
 (define+user (win-search-next)
@@ -757,7 +774,7 @@
   (when (current-search-query)
     (widget-search (widget-focus view-widget)
                    (current-search-query)
-                   #f)))
+                   (searching-backward?))))
 (user-synonym win-search-next! win-search-next)
 
 (define+user (win-search-prev)
@@ -765,7 +782,7 @@
   (when (current-search-query)
     (widget-search (widget-focus view-widget)
                    (current-search-query)
-                   #t)))
+                   (not (searching-backward?)))))
 (user-synonym win-search-prev! win-search-prev)
 
 (define/user (win-edit)

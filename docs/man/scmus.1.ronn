@@ -113,7 +113,9 @@ command/expression, press `ENTER` to execute it or `ESC` to cancel.
 
 Search mode works like eval mode.  To enter search mode press `/` and then type
 the search query and press `ENTER`.  Press `n` to find the next match using the
-same search query, or `N` to find the previous match.
+same search query, or `N` to find the previous match.  You may also search
+backward by pressing `?` instead of `/` (the meaning of `n` and `N` is reversed
+in this mode).
 
 scmus uses a simple substring match search.  When the current window contains a
 list of tracks, the *artist*, *album*, *albumartist* and *title* tags are searched.
@@ -279,8 +281,10 @@ Optional parameters are in \[*square brackets*\].
 * `win-remove`:
   Remove the selected entry.
 
-* `win-search` *query*:
+* `win-search` \[*-b*\] *query*:
   Search the active window.  This is the same as entering *query* in search mode.
+
+  *-b* search backwards
 
 * `win-search-next`:
   Move the cursor to the next search result.

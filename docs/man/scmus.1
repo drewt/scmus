@@ -125,7 +125,7 @@ $(play!) ; eval mode
 $(win\-clear!) ; eval mode
 .
 .SH "SEARCHING"
-Search mode works like eval mode\. To enter search mode press \fB/\fR and then type the search query and press \fBENTER\fR\. Press \fBn\fR to find the next match using the same search query, or \fBN\fR to find the previous match\.
+Search mode works like eval mode\. To enter search mode press \fB/\fR and then type the search query and press \fBENTER\fR\. Press \fBn\fR to find the next match using the same search query, or \fBN\fR to find the previous match\. You may also search backward by pressing \fB?\fR instead of \fB/\fR (the meaning of \fBn\fR and \fBN\fR is reversed in this mode)\.
 .
 .P
 scmus uses a simple substring match search\. When the current window contains a list of tracks, the \fIartist\fR, \fIalbum\fR, \fIalbumartist\fR and \fItitle\fR tags are searched\.
@@ -338,8 +338,11 @@ Move the marked or selected track(s) to the cursor location\.
 Remove the selected entry\.
 .
 .TP
-\fBwin\-search\fR \fIquery\fR
+\fBwin\-search\fR [\fI\-b\fR] \fIquery\fR
 Search the active window\. This is the same as entering \fIquery\fR in search mode\.
+.
+.IP
+\fI\-b\fR search backwards
 .
 .TP
 \fBwin\-search\-next\fR

@@ -19,7 +19,6 @@
                  add-playlist
                  add/constraints
                  connect!
-                 current-search-query
                  event-loop
                  exit-curses
                  init-curses))
@@ -47,8 +46,6 @@
 (define foot-pile (make-pile (list current-line status-line command-line-widget)))
 (define root-widget (make-frame 'body view-widget
                                 'footer foot-pile))
-
-(define current-search-query (make-parameter #f))
 
 ;; If an operation is likely to stall the UI, then this macro can be used to
 ;; inform the user about what is going on during that time.

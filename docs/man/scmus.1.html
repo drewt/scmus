@@ -173,7 +173,9 @@ $(win-clear!) ; eval mode</p></dd>
 
 <p>Search mode works like eval mode.  To enter search mode press <code>/</code> and then type
 the search query and press <code>ENTER</code>.  Press <code>n</code> to find the next match using the
-same search query, or <code>N</code> to find the previous match.</p>
+same search query, or <code>N</code> to find the previous match.  You may also search
+backward by pressing <code>?</code> instead of <code>/</code> (the meaning of <code>n</code> and <code>N</code> is reversed
+in this mode).</p>
 
 <p>scmus uses a simple substring match search.  When the current window contains a
 list of tracks, the <em>artist</em>, <em>album</em>, <em>albumartist</em> and <em>title</em> tags are searched.</p>
@@ -289,7 +291,9 @@ common library queue search browser status error options bindings</p></dd>
 
 <p><em>-b</em> Move the tracks "before" (under) the cursor.</p></dd>
 <dt><code>win-remove</code></dt><dd><p>Remove the selected entry.</p></dd>
-<dt><code>win-search</code> <em>query</em></dt><dd><p>Search the active window.  This is the same as entering <em>query</em> in search mode.</p></dd>
+<dt><code>win-search</code> [<em>-b</em>] <em>query</em></dt><dd><p>Search the active window.  This is the same as entering <em>query</em> in search mode.</p>
+
+<p><em>-b</em> search backwards</p></dd>
 <dt><code>win-search-next</code></dt><dd><p>Move the cursor to the next search result.</p></dd>
 <dt><code>win-search-prev</code></dt><dd><p>Move the cursor to the previous search result.</p></dd>
 <dt class="flush"><code>win-top</code></dt><dd><p>Move the cursor to the top of the active window.</p></dd>

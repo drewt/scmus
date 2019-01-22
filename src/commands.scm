@@ -243,7 +243,8 @@
 (map-command 'win-remove     'win-remove)
 (map-command 'win-clear      'win-clear)
 
-(map-command 'win-search 'win-search)
+(define-command/flags (win-search ((#\b backward?)) query)
+  (user-eval/raw `(win-search ,query ,backward?)))
 (map-command 'win-search-next 'win-search-next)
 (map-command 'win-search-prev 'win-search-prev)
 
