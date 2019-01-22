@@ -70,6 +70,7 @@
       (use_default_colors))
     (when enable-mouse?
       (mousemask ALL_MOUSE_EVENTS))
+    (curs_set 0)
     (ui-initialized? #t))
 
   (define (draw-ui root-widget)
