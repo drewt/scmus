@@ -59,6 +59,7 @@
                        command-completion
                        define-command
                        define-command/completion
+                       escape-command-word
                        eval-command
                        load-command-script
                        read-command
@@ -290,4 +291,14 @@
                         (eval-command cmd)))
       (e (exn syntax)  (handle-error e "Read error"))
       (e (exn sandbox) (handle-error e "Error during eval"))
-      (e (exn)         (handle-error e "Error")))))
+      (e (exn)         (handle-error e "Error"))))
+
+  (define (escape-command-word str)
+    (list->string
+      (reverse
+        (fold (lambda (c a)
+                (case c
+                  ((#\space #\' #\" #\\) (cons c (cons #\\ a)))
+                  (else (cons c a))))
+              '()
+              (string->list str))))))

@@ -82,16 +82,20 @@
 ;; bind [-f] <context> <keys> [command]
 ;; bind common a-b-c '(do-something 42)'
 ;; If COMMAND is ommitted, then the current binding is printed.
-(define-command/flags (bind ((#\f forced)) context keys #!optional command)
+(define-command/flags (bind ((#\f forced)) context keys . command)
   (let ((context (with-input-from-string context read))
         (keys    (string-split keys " "))
-        (cmd-str (and command (string-trim command))))
+        (cmd-str (and (not (null? command))
+                      (fold (lambda (x a)
+                              (string-append a " " (escape-command-word x)))
+                            (car command)
+                            (cdr command)))))
     ; validate arguments
     (unless (binding-keys-valid? keys)
       (invalid-argument-error 2 "Invalid keys" "bind")) 
     (when (and cmd-str (zero? (string-length cmd-str)))
       (invalid-argument-error 3 "Invalid binding expression" "bind"))
-    (if (not command)
+    (if (null? command)
       ; no binding given: display current binding
       (command-line-print-info! (format "~s" (get-binding-expression keys context)))
       (let ((command (if (char=? (string-ref cmd-str 0) #\()
