@@ -33,6 +33,7 @@
         scmus.keys
         scmus.option
         scmus.status
+        scmus.track
         scmus.tui
         scmus.view
         scmus.widgets)
