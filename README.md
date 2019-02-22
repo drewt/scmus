@@ -16,10 +16,13 @@ scmus is similar to the cmus music player, with a few major differences:
 Building
 --------
 
-You'll need the Chicken scheme compiler/runtime to build and run scmus.
+Requirements:
+
+* CHICKEN 4
+* ncurses
+
 Consult http://wiki.call-cc.org/platforms for instructions on getting Chicken
-on your platform.  You'll also need to install ncurses if it isn't installed
-already.  Again, the procedure will depend on your platform.
+on your platform. Note that scmus does not yet support Chicken 5.
 
 First, run the configure script:
 
