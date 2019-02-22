@@ -138,7 +138,7 @@ queue after it reaches the end.
 *Consume* means that tracks are removed from the play queue when they are
 finished playing.
 
-## KEY BINDINNGS
+## KEY BINDINGS
 
 In scmus, a key or sequence of keys can be bound to a command or Scheme expression.
 When that key or sequence of keys is pressed, the command/expression is evaluated.
