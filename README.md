@@ -47,7 +47,8 @@ Manual
 ------
 
 [scmus(1)](http://drewt.github.io/scmus/man/scmus.1.html) (general program documentation)  
-[scmus(3)](http://drewt.github.io/scmus/man/scmus.3.html) (scripting reference)
+[scmus(3)](http://drewt.github.io/scmus/man/scmus.3.html) (scripting reference)  
+[scmus-tutorial(7)](http://drewt.github.io/scmus/man/scmus-tutorial.7.html) (basic usage tutorial)
 
 
 Git Repository

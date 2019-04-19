@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv='content-type' content='text/html;charset=utf8'>
+  <meta name='generator' content='Ronn-NG/v0.8.0 (http://github.com/apjanke/ronn-ng/tree/0.8.0)'>
+  <title>scmus-tutorial(7) - scmus-tutorial(7)</title>
+  <style type='text/css' media='all'>
+  /* style: man */
+  body#manpage {margin:0}
+  .mp {max-width:100ex;padding:0 9ex 1ex 4ex}
+  .mp p,.mp pre,.mp ul,.mp ol,.mp dl {margin:0 0 20px 0}
+  .mp h2 {margin:10px 0 0 0}
+  .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left:8ex}
+  .mp h3 {margin:0 0 0 4ex}
+  .mp dt {margin:0;clear:left}
+  .mp dt.flush {float:left;width:8ex}
+  .mp dd {margin:0 0 0 9ex}
+  .mp h1,.mp h2,.mp h3,.mp h4 {clear:left}
+  .mp pre {margin-bottom:20px}
+  .mp pre+h2,.mp pre+h3 {margin-top:22px}
+  .mp h2+pre,.mp h3+pre {margin-top:5px}
+  .mp img {display:block;margin:auto}
+  .mp h1.man-title {display:none}
+  .mp,.mp code,.mp pre,.mp tt,.mp kbd,.mp samp,.mp h3,.mp h4 {font-family:monospace;font-size:14px;line-height:1.42857142857143}
+  .mp h2 {font-size:16px;line-height:1.25}
+  .mp h1 {font-size:20px;line-height:2}
+  .mp {text-align:justify;background:#fff}
+  .mp,.mp code,.mp pre,.mp pre code,.mp tt,.mp kbd,.mp samp {color:#131211}
+  .mp h1,.mp h2,.mp h3,.mp h4 {color:#030201}
+  .mp u {text-decoration:underline}
+  .mp code,.mp strong,.mp b {font-weight:bold;color:#131211}
+  .mp em,.mp var {font-style:italic;color:#232221;text-decoration:none}
+  .mp a,.mp a:link,.mp a:hover,.mp a code,.mp a pre,.mp a tt,.mp a kbd,.mp a samp {color:#0000ff}
+  .mp b.man-ref {font-weight:normal;color:#434241}
+  .mp pre {padding:0 4ex}
+  .mp pre code {font-weight:normal;color:#434241}
+  .mp h2+pre,h3+pre {padding-left:0}
+  ol.man-decor,ol.man-decor li {margin:3px 0 10px 0;padding:0;float:left;width:33%;list-style-type:none;text-transform:uppercase;color:#999;letter-spacing:1px}
+  ol.man-decor {width:100%}
+  ol.man-decor li.tl {text-align:left}
+  ol.man-decor li.tc {text-align:center;letter-spacing:4px}
+  ol.man-decor li.tr {text-align:right;float:right}
+  </style>
+</head>
+<!--
+  The following styles are deprecated and will be removed at some point:
+  div#man, div#man ol.man, div#man ol.head, div#man ol.man.
+
+  The .man-page, .man-decor, .man-head, .man-foot, .man-title, and
+  .man-navigation should be used instead.
+-->
+<body id='manpage'>
+  <div class='mp' id='man'>
+
+  <div class='man-navigation' style='display:none'>
+    <a href="#NAME">NAME</a>
+    <a href="#CONTENTS">Contents</a>
+    <a href="#STEP-1-STARTING-SCMUS">Step 1: Starting scmus</a>
+    <a href="#STEP-2-ADDING-MUSIC-TO-THE-QUEUE">Step 2: Adding Music to the Queue</a>
+    <a href="#STEP-3-CONTROLLING-PLAYBACK">Step 3: Controlling Playback</a>
+    <a href="#STEP-4-MANAGING-THE-QUEUE">Step 4: Managing the Queue</a>
+    <a href="#STEP-5-THE-PLAYLIST-EDITOR">Step 5: The Playlist Editor</a>
+    <a href="#STEP-6-FIND-THAT-TRACK">Step 6: Find that Track</a>
+    <a href="#STEP-7-CUSTOMIZATION">Step 7: Customization</a>
+    <a href="#STEP-8-QUIT">Step 8: Quit</a>
+    <a href="#STEP-9-FURTHER-READING">Step 9: Further Reading</a>
+  </div>
+
+  <ol class='man-decor man-head man head'>
+    <li class='tl'>scmus-tutorial(7)</li>
+    <li class='tc'>Miscellaneous Information Manual</li>
+    <li class='tr'>scmus-tutorial(7)</li>
+  </ol>
+
+  
+
+<h1 id="scmus-tutorial-7-">scmus-tutorial(7)</h1>
+<h2 id="NAME">NAME</h2>
+
+<p>scmus tutorial</p>
+
+<h2 id="Contents">Contents</h2>
+
+<p>Step 1: Starting scmus</p>
+
+<p>Step 2: Adding Music to the Queue</p>
+
+<p>Step 3: Controlling Playback</p>
+
+<p>Step 4: Managing the Queue</p>
+
+<p>Step 5: The Playlist Editor</p>
+
+<p>Step 6: Find that Track</p>
+
+<p>Step 7: Customization</p>
+
+<p>Step 8: Quit</p>
+
+<p>Step 9: Further Reading</p>
+
+<h2 id="Step-1-Starting-scmus">Step 1: Starting scmus</h2>
+
+<p>When you first launch scmus (just type <em>scmus</em> in a terminal and press Enter)
+it will open to the <code>queue view</code>. This is where the current queue of tracks is
+displayed.</p>
+
+<h2 id="Step-2-Adding-Music-to-the-Queue">Step 2: Adding Music to the Queue</h2>
+
+<p>Press <code>1</code> to switch to the <code>library view</code>. You should see a list of playlists,
+followed by a list of artists. Use the arrow keys or <code>hjkl</code> to navigate through
+this list. To add music to the play queue, move the cursor over the desired
+entry (this can be a playlist, artist, album or track, depending on where you
+are in the hierarchy) and press <code>a</code>.</p>
+
+<p>If you prefer to browse your library via the filesystem hierarchy, press <code>5</code>
+to switch to the <code>browser view</code>. This view behaves identically to the
+<code>library view</code>.</p>
+
+<h2 id="Step-3-Controlling-Playback">Step 3: Controlling Playback</h2>
+
+<p>Press <code>3</code> to go back to the <code>queue view</code>. Use the up and down arrow keys or
+<code>jk</code> to select a track you'd like to hear, and press Enter to play it. Here's
+some keys to control play:</p>
+
+<p>Press <code>c</code> to pause/unpause<br>
+Press <code>right</code>/<code>left</code> to seek forwards/backwards 5 seconds<br>
+Press <code>&gt;</code>/<code>&lt;</code> to seek forwards/backwards 1 minute</p>
+
+<p>scmus has some options to control what plays next (if anything) when the track
+ends. The state of these settings are shown in the bottom right corner, and
+may be toggled by pressing the corresponding key:</p>
+
+<dl>
+<dt>
+<code>S</code> (<code>S</code>ingle)</dt>
+<dd>When this is on, mpd will stop playing at the end of the current track.</dd>
+<dt>
+<code>R</code> (<code>R</code>epeat)</dt>
+<dd>If this is on (and single is off), when mpd reaches the end of the queue it
+will start again from the beginning.</dd>
+<dt>
+<code>r</code> (<code>r</code>andom)</dt>
+<dd>When this is on, mpd will play tracks in a random order.</dd>
+<dt>
+<code>C</code> (<code>C</code>consume)</dt>
+<dd>When this is on, mpd will remove tracks from the queue when it finishes
+playing them.</dd>
+</dl>
+
+
+<h2 id="Step-4-Managing-the-Queue">Step 4: Managing the Queue</h2>
+
+<p>Tracks in the queue may be moved by <em>marking</em> them with <code>spacebar</code>, and then
+<em>pasting</em> them at the cursor with <code>p</code> or <code>P</code> (<code>p</code> moves tracks <em>after</em> the
+cursor, whereas <code>P</code> moves them <em>under</em> the cursor). To remove a track from the
+queue, select it and then press <code>d</code>. Multiple tracks can be deleted in one
+operation by <em>marking</em> them and then pressing <code>d</code>. To remove all tracks from
+the queue, press <code>D</code>.</p>
+
+<h2 id="Step-5-The-Playlist-Editor">Step 5: The Playlist Editor</h2>
+
+<p>Press <code>1</code> to switch to the <code>library view</code>, and then locate some tracks that
+you would like to add to a playlist. With the tracks selected, press <code>A</code> to
+add them to a playlist. If there is no playlist currently loaded into the
+editor, you will be prompted to enter the name for a new playlist.</p>
+
+<p>Press <code>2</code> to switch to the <code>playlist view</code>. The tracks you just added should
+be listed here, similar to how they appear in the <code>queue view</code>. In fact, all
+of the queue management keybindings work identically in the <code>playlist view</code>,
+with the exception that <code>D</code> unloads the playlist rather than removing tracks
+from it.</p>
+
+<p>When you are done editing your playlist, you can load it to the play queue by
+selecting it in the <code>library</code> or <code>browser view</code> and pressing <code>a</code>.</p>
+
+<h2 id="Step-6-Find-that-Track">Step 6: Find that Track</h2>
+
+<p>On any view, press <code>/</code> to enter <code>search mode</code>. You may then enter a search
+query on the <code>command line</code> (the bottom line) to search the current view. Press
+<code>Enter</code> after typing your query, and then press <code>n</code> and <code>N</code> to repeat the
+search forward and backward respectively using the same query.</p>
+
+<p>Press <code>4</code> to switch to the <code>search view</code>. In this view, you can search for
+tracks in the mpd database. Press <code>i</code> to begin editing the first parameter of
+your query. This can be a simple keyword, or a metadata-constrained parameter
+such as <em>artist:boris</em>.</p>
+
+<p>Press <code>a</code> to add another parameter to the search, then select it and press <code>i</code>
+again to edit it. The results returned for the search query will be the logical
+<em>AND</em> of all the parameters.</p>
+
+<p>To remove a parameter, select it and press <code>d</code>.</p>
+
+<p>Finally, press <code>Enter</code> to execute the search. The search results will be
+<em>appended</em> to the list below the line which reads <em>Results</em>. Add tracks to the
+play queue by selecting them and pressing <code>a</code>. Remove tracks from the results
+by selecting them and pressing <code>d</code>, or press <code>D</code> to remove all tracks from the
+results list.</p>
+
+<h2 id="Step-7-Customization">Step 7: Customization</h2>
+
+<p>scmus has some settings that you can tweak, like changing the way tracks are
+displayed or changing the keybindings.</p>
+
+<p>Press <code>7</code> to switch to <code>options view</code>. Here you can view and edit the
+customizable options in scmus. Select an option and press <code>i</code> to begin editing
+it. Press <code>Enter</code> when you are done.</p>
+
+<p>Press <code>8</code> to switch to <code>bindings view</code>. Here you can view and edit the key
+bindings. Press <code>i</code> with a binding selected to begin editing it. Press <code>Enter</code>
+when you are finished editing.</p>
+
+<p>Please note that options and key bindings changed within scmus itself are in
+effect only for the current session (they are not saved). You must create a
+configuration file in order to permanently change the settings.</p>
+
+<p>See <span class="man-ref">scmus<span class="s">(1)</span></span> for a description of the options in scmus, and <span class="man-ref">scmus<span class="s">(3)</span></span>
+for a list of functions which may be used in key bindings.</p>
+
+<h2 id="Step-8-Quit">Step 8: Quit</h2>
+
+<p>When you're done, press <code>q</code> and then <code>y</code> to quit.</p>
+
+<h2 id="Step-9-Further-Reading">Step 9: Further Reading</h2>
+
+<p>scmus comes with a general reference manual as well as a programming reference.
+Now that you've got the basics down they should be intelligible. Try <code>man scmus</code>
+in a terminal to view the general program reference, or <code>man 3 scmus</code> to see
+the programming reference.</p>
+
+  <ol class='man-decor man-foot man foot'>
+    <li class='tl'></li>
+    <li class='tc'>April 2019</li>
+    <li class='tr'>scmus-tutorial(7)</li>
+  </ol>
+
+  </div>
+</body>
+</html>

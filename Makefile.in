@@ -177,10 +177,16 @@ run: all
 %.3: %.3.ronn
 	$(call cmd,man)
 
+%.7: %.7.ronn
+	$(call cmd,man)
+
 %.1.html: %.1.ronn
 	$(call cmd,wman)
 
 %.3.html: %.3.ronn
+	$(call cmd,wman)
+
+%.7.html: %.7.ronn
 	$(call cmd,wman)
 
 # generate roff output from ronn markdown
@@ -220,9 +226,10 @@ eggs:
 
 docs/man/scmus.1 docs/man/scmus.1.html: private MANFLAGS += --manual="General Commands Manual"
 docs/man/scmus.3 docs/man/scmus.3.html: private MANFLAGS += --manual="scmus Scripting Reference"
+docs/man/scmus-tutorial.7 docs/man/scmus-tutorial.7.html: private MANFLAGS += --manual="Miscellaneous Information Manual"
 
-man: docs/man/scmus.1 docs/man/scmus.3
-web: docs/man/scmus.1.html docs/man/scmus.3.html
+man: docs/man/scmus.1 docs/man/scmus.3 docs/man/scmus-tutorial.7
+web: docs/man/scmus.1.html docs/man/scmus.3.html docs/man/scmus-tutorial.7.html
 
 install: all
 	$(INSTALL) -m755 $(bindir) scmus
@@ -230,5 +237,6 @@ install: all
 	$(INSTALL) -m644 $(datadir)/scmus/colors $(wildcard data/colors/*)
 	$(INSTALL) -m644 $(mandir)/man1 docs/man/scmus.1
 	$(INSTALL) -m644 $(mandir)/man3 docs/man/scmus.3
+	$(INSTALL) -m644 $(mandir)/man7 docs/man/scmus-tutorial.7
 
 # rules }}}

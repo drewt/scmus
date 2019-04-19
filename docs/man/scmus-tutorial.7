@@ -1,0 +1,83 @@
+.\" generated with Ronn-NG/v0.8.0
+.\" http://github.com/apjanke/ronn-ng/tree/0.8.0
+.TH "SCMUS\-TUTORIAL" "7" "April 2019" "" "Miscellaneous Information Manual"
+.SH "NAME"
+scmus tutorial
+.SH "Contents"
+Step 1: Starting scmus
+.P
+Step 2: Adding Music to the Queue
+.P
+Step 3: Controlling Playback
+.P
+Step 4: Managing the Queue
+.P
+Step 5: The Playlist Editor
+.P
+Step 6: Find that Track
+.P
+Step 7: Customization
+.P
+Step 8: Quit
+.P
+Step 9: Further Reading
+.SH "Step 1: Starting scmus"
+When you first launch scmus (just type \fIscmus\fR in a terminal and press Enter) it will open to the \fBqueue view\fR\. This is where the current queue of tracks is displayed\.
+.SH "Step 2: Adding Music to the Queue"
+Press \fB1\fR to switch to the \fBlibrary view\fR\. You should see a list of playlists, followed by a list of artists\. Use the arrow keys or \fBhjkl\fR to navigate through this list\. To add music to the play queue, move the cursor over the desired entry (this can be a playlist, artist, album or track, depending on where you are in the hierarchy) and press \fBa\fR\.
+.P
+If you prefer to browse your library via the filesystem hierarchy, press \fB5\fR to switch to the \fBbrowser view\fR\. This view behaves identically to the \fBlibrary view\fR\.
+.SH "Step 3: Controlling Playback"
+Press \fB3\fR to go back to the \fBqueue view\fR\. Use the up and down arrow keys or \fBjk\fR to select a track you\'d like to hear, and press Enter to play it\. Here\'s some keys to control play:
+.P
+Press \fBc\fR to pause/unpause
+.br
+Press \fBright\fR/\fBleft\fR to seek forwards/backwards 5 seconds
+.br
+Press \fB>\fR/\fB<\fR to seek forwards/backwards 1 minute
+.P
+scmus has some options to control what plays next (if anything) when the track ends\. The state of these settings are shown in the bottom right corner, and may be toggled by pressing the corresponding key:
+.TP
+\fBS\fR (\fBS\fRingle)
+When this is on, mpd will stop playing at the end of the current track\.
+.TP
+\fBR\fR (\fBR\fRepeat)
+If this is on (and single is off), when mpd reaches the end of the queue it will start again from the beginning\.
+.TP
+\fBr\fR (\fBr\fRandom)
+When this is on, mpd will play tracks in a random order\.
+.TP
+\fBC\fR (\fBC\fRconsume)
+When this is on, mpd will remove tracks from the queue when it finishes playing them\.
+.SH "Step 4: Managing the Queue"
+Tracks in the queue may be moved by \fImarking\fR them with \fBspacebar\fR, and then \fIpasting\fR them at the cursor with \fBp\fR or \fBP\fR (\fBp\fR moves tracks \fIafter\fR the cursor, whereas \fBP\fR moves them \fIunder\fR the cursor)\. To remove a track from the queue, select it and then press \fBd\fR\. Multiple tracks can be deleted in one operation by \fImarking\fR them and then pressing \fBd\fR\. To remove all tracks from the queue, press \fBD\fR\.
+.SH "Step 5: The Playlist Editor"
+Press \fB1\fR to switch to the \fBlibrary view\fR, and then locate some tracks that you would like to add to a playlist\. With the tracks selected, press \fBA\fR to add them to a playlist\. If there is no playlist currently loaded into the editor, you will be prompted to enter the name for a new playlist\.
+.P
+Press \fB2\fR to switch to the \fBplaylist view\fR\. The tracks you just added should be listed here, similar to how they appear in the \fBqueue view\fR\. In fact, all of the queue management keybindings work identically in the \fBplaylist view\fR, with the exception that \fBD\fR unloads the playlist rather than removing tracks from it\.
+.P
+When you are done editing your playlist, you can load it to the play queue by selecting it in the \fBlibrary\fR or \fBbrowser view\fR and pressing \fBa\fR\.
+.SH "Step 6: Find that Track"
+On any view, press \fB/\fR to enter \fBsearch mode\fR\. You may then enter a search query on the \fBcommand line\fR (the bottom line) to search the current view\. Press \fBEnter\fR after typing your query, and then press \fBn\fR and \fBN\fR to repeat the search forward and backward respectively using the same query\.
+.P
+Press \fB4\fR to switch to the \fBsearch view\fR\. In this view, you can search for tracks in the mpd database\. Press \fBi\fR to begin editing the first parameter of your query\. This can be a simple keyword, or a metadata\-constrained parameter such as \fIartist:boris\fR\.
+.P
+Press \fBa\fR to add another parameter to the search, then select it and press \fBi\fR again to edit it\. The results returned for the search query will be the logical \fIAND\fR of all the parameters\.
+.P
+To remove a parameter, select it and press \fBd\fR\.
+.P
+Finally, press \fBEnter\fR to execute the search\. The search results will be \fIappended\fR to the list below the line which reads \fIResults\fR\. Add tracks to the play queue by selecting them and pressing \fBa\fR\. Remove tracks from the results by selecting them and pressing \fBd\fR, or press \fBD\fR to remove all tracks from the results list\.
+.SH "Step 7: Customization"
+scmus has some settings that you can tweak, like changing the way tracks are displayed or changing the keybindings\.
+.P
+Press \fB7\fR to switch to \fBoptions view\fR\. Here you can view and edit the customizable options in scmus\. Select an option and press \fBi\fR to begin editing it\. Press \fBEnter\fR when you are done\.
+.P
+Press \fB8\fR to switch to \fBbindings view\fR\. Here you can view and edit the key bindings\. Press \fBi\fR with a binding selected to begin editing it\. Press \fBEnter\fR when you are finished editing\.
+.P
+Please note that options and key bindings changed within scmus itself are in effect only for the current session (they are not saved)\. You must create a configuration file in order to permanently change the settings\.
+.P
+See scmus(1) for a description of the options in scmus, and scmus(3) for a list of functions which may be used in key bindings\.
+.SH "Step 8: Quit"
+When you\'re done, press \fBq\fR and then \fBy\fR to quit\.
+.SH "Step 9: Further Reading"
+scmus comes with a general reference manual as well as a programming reference\. Now that you\'ve got the basics down they should be intelligible\. Try \fBman scmus\fR in a terminal to view the general program reference, or \fBman 3 scmus\fR to see the programming reference\.

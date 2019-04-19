@@ -1,0 +1,152 @@
+scmus-tutorial(7)
+=================
+
+## NAME
+
+scmus tutorial
+
+## Contents
+
+Step 1: Starting scmus
+
+Step 2: Adding Music to the Queue
+
+Step 3: Controlling Playback
+
+Step 4: Managing the Queue
+
+Step 5: The Playlist Editor
+
+Step 6: Find that Track
+
+Step 7: Customization
+
+Step 8: Quit
+
+Step 9: Further Reading
+
+## Step 1: Starting scmus
+
+When you first launch scmus (just type *scmus* in a terminal and press Enter)
+it will open to the `queue view`. This is where the current queue of tracks is
+displayed.
+
+## Step 2: Adding Music to the Queue
+
+Press `1` to switch to the `library view`. You should see a list of playlists,
+followed by a list of artists. Use the arrow keys or `hjkl` to navigate through
+this list. To add music to the play queue, move the cursor over the desired
+entry (this can be a playlist, artist, album or track, depending on where you
+are in the hierarchy) and press `a`.
+
+If you prefer to browse your library via the filesystem hierarchy, press `5`
+to switch to the `browser view`. This view behaves identically to the
+`library view`.
+
+## Step 3: Controlling Playback
+
+Press `3` to go back to the `queue view`. Use the up and down arrow keys or
+`jk` to select a track you'd like to hear, and press Enter to play it. Here's
+some keys to control play:
+
+Press `c` to pause/unpause  
+Press `right`/`left` to seek forwards/backwards 5 seconds  
+Press `>`/`<` to seek forwards/backwards 1 minute  
+
+scmus has some options to control what plays next (if anything) when the track
+ends. The state of these settings are shown in the bottom right corner, and
+may be toggled by pressing the corresponding key:
+
+* `S` (`S`ingle):
+  When this is on, mpd will stop playing at the end of the current track.
+
+* `R` (`R`epeat):
+  If this is on (and single is off), when mpd reaches the end of the queue it
+  will start again from the beginning.
+
+* `r` (`r`andom):
+  When this is on, mpd will play tracks in a random order.
+
+* `C` (`C`consume):
+  When this is on, mpd will remove tracks from the queue when it finishes
+  playing them.
+
+## Step 4: Managing the Queue
+
+Tracks in the queue may be moved by *marking* them with `spacebar`, and then
+*pasting* them at the cursor with `p` or `P` (`p` moves tracks *after* the
+cursor, whereas `P` moves them *under* the cursor). To remove a track from the
+queue, select it and then press `d`. Multiple tracks can be deleted in one
+operation by *marking* them and then pressing `d`. To remove all tracks from
+the queue, press `D`.
+
+## Step 5: The Playlist Editor
+
+Press `1` to switch to the `library view`, and then locate some tracks that
+you would like to add to a playlist. With the tracks selected, press `A` to
+add them to a playlist. If there is no playlist currently loaded into the
+editor, you will be prompted to enter the name for a new playlist.
+
+Press `2` to switch to the `playlist view`. The tracks you just added should
+be listed here, similar to how they appear in the `queue view`. In fact, all
+of the queue management keybindings work identically in the `playlist view`,
+with the exception that `D` unloads the playlist rather than removing tracks
+from it.
+
+When you are done editing your playlist, you can load it to the play queue by
+selecting it in the `library` or `browser view` and pressing `a`.
+
+## Step 6: Find that Track
+
+On any view, press `/` to enter `search mode`. You may then enter a search
+query on the `command line` (the bottom line) to search the current view. Press
+`Enter` after typing your query, and then press `n` and `N` to repeat the
+search forward and backward respectively using the same query.
+
+Press `4` to switch to the `search view`. In this view, you can search for
+tracks in the mpd database. Press `i` to begin editing the first parameter of
+your query. This can be a simple keyword, or a metadata-constrained parameter
+such as *artist:boris*.
+
+Press `a` to add another parameter to the search, then select it and press `i`
+again to edit it. The results returned for the search query will be the logical
+*AND* of all the parameters.
+
+To remove a parameter, select it and press `d`.
+
+Finally, press `Enter` to execute the search. The search results will be
+*appended* to the list below the line which reads *Results*. Add tracks to the
+play queue by selecting them and pressing `a`. Remove tracks from the results
+by selecting them and pressing `d`, or press `D` to remove all tracks from the
+results list.
+
+## Step 7: Customization
+
+scmus has some settings that you can tweak, like changing the way tracks are
+displayed or changing the keybindings.
+
+Press `7` to switch to `options view`. Here you can view and edit the
+customizable options in scmus. Select an option and press `i` to begin editing
+it. Press `Enter` when you are done.
+
+Press `8` to switch to `bindings view`. Here you can view and edit the key
+bindings. Press `i` with a binding selected to begin editing it. Press `Enter`
+when you are finished editing.
+
+Please note that options and key bindings changed within scmus itself are in
+effect only for the current session (they are not saved). You must create a
+configuration file in order to permanently change the settings.
+
+See scmus(1) for a description of the options in scmus, and scmus(3)
+for a list of functions which may be used in key bindings.
+
+## Step 8: Quit
+
+When you're done, press `q` and then `y` to quit.
+
+## Step 9: Further Reading
+
+scmus comes with a general reference manual as well as a programming reference.
+Now that you've got the basics down they should be intelligible. Try `man scmus`
+in a terminal to view the general program reference, or `man 3 scmus` to see
+the programming reference.
