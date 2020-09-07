@@ -17,17 +17,36 @@
 
 (foreign-declare "#include <locale.h>")
 
-(import drewt.getopt
-        scmus.base
-        scmus.client
-        scmus.config
-        scmus.log
-        scmus.tui
-        scmus.ueval)
-(import (only posix setenv))
+(import (drewt getopt)
+        (scmus base)
+        (scmus client)
+        (scmus config)
+        (scmus log)
+        (scmus tui)
+        (scmus ueval))
+(import (chicken file)
+        (chicken pretty-print)
+        (chicken process-context)
+        (chicken process signal))
 
 (current-output-port *console-output-port*)
 (current-error-port  *console-error-port*)
+
+;; XXX: Copy-pasted from chicken compiler source code...
+;;      The sandbox egg depends on this definition but it was made internal
+;;      in 15c5f8f
+(define (##sys#eval-decorator p ll h cntr)
+  (##sys#decorate-lambda
+   p
+   (lambda (x) (and (not (##sys#immediate? x)) (##core#inline "C_lambdainfop" x)))
+   (lambda (p i)
+     (##sys#setslot
+      p i
+      (##sys#make-lambda-info
+       (let ((o (open-output-string)))
+         (write ll o)
+         (get-output-string o))))
+     p)))
 
 ;; the exit routine; initially (exit), becomes a continuation
 (define scmus-exit exit)
@@ -121,7 +140,7 @@
                                 (alist-update! 'port #f opts))))
 
     ; initialize various stuff
-    (setenv "ESCDELAY" "25")
+    (set-environment-variable! "ESCDELAY" "25")
     (initialize "signals"
       (set-signal-handler! signal/chld void))
     (initialize "locale"

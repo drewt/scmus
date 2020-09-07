@@ -18,17 +18,17 @@
 (declare (hide))
 
 (import coops-utils
-        drewt.ncurses
-        scmus.base
-        scmus.client
-        scmus.command-line
-        scmus.event
-        scmus.format
-        scmus.option
-        scmus.track 
-        scmus.tui
-        scmus.view
-        scmus.widgets)
+        (drewt ncurses)
+        (scmus base)
+        (scmus client)
+        (scmus command-line)
+        (scmus event)
+        (scmus format)
+        (scmus option)
+        (scmus track)
+        (scmus tui)
+        (scmus view)
+        (scmus widgets))
 
 (let ((invalidate (lambda (_) (widget-invalidate library-widget))))
   (add-option-listener 'format-separator        invalidate)

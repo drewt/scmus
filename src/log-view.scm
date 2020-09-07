@@ -17,13 +17,13 @@
 
 (declare (hide))
 
-(import scmus.base
-        scmus.config
-        scmus.event
-        scmus.log
-        scmus.tui
-        scmus.view
-        scmus.widgets)
+(import (scmus base)
+        (scmus config)
+        (scmus event)
+        (scmus log)
+        (scmus tui)
+        (scmus view)
+        (scmus widgets))
 
 (define-class <log-text> (<textual>)
   ((headline  accessor: log-text-headline)

@@ -15,16 +15,19 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.config (*verbose*
-                      *debug*
-                      *scmus-dir*
-                      *version*
-                      *home-dir*
-                      *user-config-dir*
-                      *plugins-dir*
-                      *sysrc-path*
-                      *scmusrc-path*)
-  (import scheme chicken foreign)
+(module (scmus config)
+    (*verbose*
+     *debug*
+     *scmus-dir*
+     *version*
+     *home-dir*
+     *user-config-dir*
+     *plugins-dir*
+     *sysrc-path*
+     *scmusrc-path*)
+  (import scheme
+          (chicken foreign)
+          (chicken process-context))
 
   (define *verbose* #f)
   (define *debug* #t)

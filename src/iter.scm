@@ -15,8 +15,19 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module drewt.iter *
-  (import scheme chicken srfi-1)
+(module (drewt iter) *
+  (import scheme
+          (only (chicken base)
+                define-record-printer
+                define-record-type
+                gensym
+                when
+                unless
+                void)
+          (chicken format)
+          (chicken read-syntax)
+          (chicken type)
+          (srfi 1))
 
   ;;
   ;; An iter is a circular, doubly linked list with a sentinel head element.

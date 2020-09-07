@@ -15,70 +15,72 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.tui.input (key-case
-                         mouse-case
-                         <text-input>
-                         text-input-text
-                         text-input-saved-text
-                         text-input-cursor-pos
-                         text-input-prefix
-                         text-input-stolen-focus
-                         text-input-editing?
-                         make-text-input
-                         text-input-get-text
-                         text-input-set-text!
-                         text-input-length
-                         text-input-get-cursor-pos
-                         text-input-set-cursor-pos!
-                         text-input-move!
-                         text-input-insert!
-                         text-input-backspace!
-                         text-input-delete!
-                         text-input-commit
-                         text-input-cancel
-                         text-input-begin
-                         get-key
-                         do-handle-input
-                         enable-mouse
-                         mouse-input?)
+(module (scmus tui input)
+    (key-case
+     mouse-case
+     <text-input>
+     text-input-text
+     text-input-saved-text
+     text-input-cursor-pos
+     text-input-prefix
+     text-input-stolen-focus
+     text-input-editing?
+     make-text-input
+     text-input-get-text
+     text-input-set-text!
+     text-input-length
+     text-input-get-cursor-pos
+     text-input-set-cursor-pos!
+     text-input-move!
+     text-input-insert!
+     text-input-backspace!
+     text-input-delete!
+     text-input-commit
+     text-input-cancel
+     text-input-begin
+     get-key
+     do-handle-input
+     enable-mouse
+     mouse-input?)
   (import coops
-          drewt.ncurses
-          scmus.base
-          scmus.event
-          scmus.tui.widget
-          scmus.tui.misc)
-  (reexport (only drewt.ncurses
-              mouse-event-id
-              mouse-event-x
-              mouse-event-y
-              mouse-event-z
-              mouse-event-bstate
-              KEY_MOUSE
-              BUTTON1_PRESSED
-              BUTTON1_RELEASED
-              BUTTON1_CLICKED
-              BUTTON1_DOUBLE_CLICKED
-              BUTTON1_TRIPLE_CLICKED
-              BUTTON2_PRESSED
-              BUTTON2_RELEASED
-              BUTTON2_CLICKED
-              BUTTON2_DOUBLE_CLICKED
-              BUTTON2_TRIPLE_CLICKED
-              BUTTON3_PRESSED
-              BUTTON3_RELEASED
-              BUTTON3_CLICKED
-              BUTTON3_DOUBLE_CLICKED
-              BUTTON3_TRIPLE_CLICKED
-              BUTTON4_PRESSED
-              BUTTON4_RELEASED
-              BUTTON4_CLICKED
-              BUTTON4_DOUBLE_CLICKED
-              BUTTON4_TRIPLE_CLICKED
-              BUTTON_SHIFT
-              BUTTON_CTRL
-              BUTTON_ALT
-              ALL_MOUSE_EVENTS
-              REPORT_MOUSE_POSITION))
+          (chicken module)
+          (drewt ncurses)
+          (scmus base)
+          (scmus event)
+          (scmus tui widget)
+          (scmus tui misc))
+  (reexport (only (drewt ncurses)
+                  mouse-event-id
+                  mouse-event-x
+                  mouse-event-y
+                  mouse-event-z
+                  mouse-event-bstate
+                  KEY_MOUSE
+                  BUTTON1_PRESSED
+                  BUTTON1_RELEASED
+                  BUTTON1_CLICKED
+                  BUTTON1_DOUBLE_CLICKED
+                  BUTTON1_TRIPLE_CLICKED
+                  BUTTON2_PRESSED
+                  BUTTON2_RELEASED
+                  BUTTON2_CLICKED
+                  BUTTON2_DOUBLE_CLICKED
+                  BUTTON2_TRIPLE_CLICKED
+                  BUTTON3_PRESSED
+                  BUTTON3_RELEASED
+                  BUTTON3_CLICKED
+                  BUTTON3_DOUBLE_CLICKED
+                  BUTTON3_TRIPLE_CLICKED
+                  BUTTON4_PRESSED
+                  BUTTON4_RELEASED
+                  BUTTON4_CLICKED
+                  BUTTON4_DOUBLE_CLICKED
+                  BUTTON4_TRIPLE_CLICKED
+                  BUTTON_SHIFT
+                  BUTTON_CTRL
+                  BUTTON_ALT
+                  ALL_MOUSE_EVENTS
+                  REPORT_MOUSE_POSITION))
   ; XXX: If we don't have NCURSES_MOUSE_VERSION > 1,
   ;      then we export BUTTON5_* as zero.  That way
   ;      KEY-CASE always fails to get a BUTTON5_* code.

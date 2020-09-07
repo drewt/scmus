@@ -17,21 +17,22 @@
 
 (require-extension srfi-69)
 
-(module scmus.option (<option>
-                      option-value
-                      option->string
-                      make-option
-                      *get-option
-                      get-option
-                      set-option!
-                      options
-                      register-option!
-                      add-option-listener
-                      write-config!)
-  (import srfi-69
+(module (scmus option)
+    (<option>
+     option-value
+     option->string
+     make-option
+     *get-option
+     get-option
+     set-option!
+     options
+     register-option!
+     add-option-listener
+     write-config!)
+  (import (srfi 69)
           coops
-          scmus.base
-          scmus.event)
+          (scmus base)
+          (scmus event))
 
   (define-class <option> (<event-source>)
     ((value     reader:   option-value)

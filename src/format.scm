@@ -20,16 +20,17 @@
 ;;       rework cmus's format_print.c and make a wrapper.
 ;;
 
-(module scmus.format (scmus-format
-                      compile-format-string
-                      format-string-valid?)
-  (import irregex
-          drewt.ustring
-          scmus.base
-          scmus.error
-          scmus.ueval
-          scmus.status
-          scmus.track)
+(module (scmus format)
+    (scmus-format
+     compile-format-string
+     format-string-valid?)
+  (import (chicken irregex)
+          (drewt ustring)
+          (scmus base)
+          (scmus error)
+          (scmus ueval)
+          (scmus status)
+          (scmus track))
 
   ;;
   ;; A compiled format string is a list of format instructions.

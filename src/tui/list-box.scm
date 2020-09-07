@@ -15,15 +15,15 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.tui.list-box *
-  (import (only extras pp))
+(module (scmus tui list-box) *
+  (import (chicken pretty-print))
   (import coops
           vector-lib
-          drewt.ncurses
-          scmus.base
-          scmus.tui.display
-          scmus.tui.input
-          scmus.tui.widget)
+          (drewt ncurses)
+          (scmus base)
+          (scmus tui display)
+          (scmus tui input)
+          (scmus tui widget))
 
   (define-class <list-box> (<container>)
     ((data       initform: #()

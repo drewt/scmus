@@ -17,49 +17,50 @@
 
 ;; TODO: replace status, etc. alists with record types
 
-(module scmus.status (current-queue
-                      current-playlist
-                      current-playlist-name
-                      current-status
-                      current-stats
-                      current-connection
-                      current-track
-                      current-track?
-                      scmus-connected?
-                      scmus-hostname
-                      scmus-port
-                      scmus-address
-                      scmus-volume
-                      scmus-repeat?
-                      scmus-random?
-                      scmus-single?
-                      scmus-consume?
-                      scmus-queue-version
-                      scmus-queue-length
-                      scmus-state
-                      scmus-song
-                      scmus-song-id
-                      scmus-next-song
-                      scmus-next-song-id
-                      scmus-elapsed-tick!
-                      scmus-elapsed-time
-                      scmus-elapsed
-                      scmus-elapsed-string
-                      scmus-bitrate
-                      scmus-xfade
-                      scmus-mixrampdb
-                      scmus-mixrampdelay
-                      scmus-updating-db
-                      scmus-uptime
-                      scmus-playtime
-                      scmus-artists
-                      scmus-albums
-                      scmus-songs
-                      scmus-db-playtime
-                      scmus-db-update)
-  (import drewt.mpd-client
-          scmus.base
-          scmus.track)
+(module (scmus status)
+    (current-queue
+     current-playlist
+     current-playlist-name
+     current-status
+     current-stats
+     current-connection
+     current-track
+     current-track?
+     scmus-connected?
+     scmus-hostname
+     scmus-port
+     scmus-address
+     scmus-volume
+     scmus-repeat?
+     scmus-random?
+     scmus-single?
+     scmus-consume?
+     scmus-queue-version
+     scmus-queue-length
+     scmus-state
+     scmus-song
+     scmus-song-id
+     scmus-next-song
+     scmus-next-song-id
+     scmus-elapsed-tick!
+     scmus-elapsed-time
+     scmus-elapsed
+     scmus-elapsed-string
+     scmus-bitrate
+     scmus-xfade
+     scmus-mixrampdb
+     scmus-mixrampdelay
+     scmus-updating-db
+     scmus-uptime
+     scmus-playtime
+     scmus-artists
+     scmus-albums
+     scmus-songs
+     scmus-db-playtime
+     scmus-db-update)
+  (import (drewt mpd-client)
+          (scmus base)
+          (scmus track))
 
   (define-syntax define/getter-setter
     (syntax-rules ()

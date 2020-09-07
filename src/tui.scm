@@ -16,12 +16,13 @@
 ;;
 
 (module scmus.tui *
-  (import (only ports
+  (import (only (chicken port)
                 make-output-port)
-          (only posix
+          (only (chicken file posix)
                 file-write
                 fileno/stdout
                 fileno/stderr)
+          (chicken module)
           drewt.ncurses
           scmus.base)
   (reexport scmus.tui.display

@@ -17,14 +17,14 @@
 
 (declare (hide))
 
-(import drewt.ncurses
-        scmus.base
-        scmus.error
-        scmus.event
-        scmus.option
-        scmus.tui
-        scmus.view
-        scmus.widgets)
+(import (drewt ncurses)
+        (scmus base)
+        (scmus error)
+        (scmus event)
+        (scmus option)
+        (scmus tui)
+        (scmus view)
+        (scmus widgets))
 
 ;; TODO: mark only changed option as damaged
 (: option-changed! thunk)

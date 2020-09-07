@@ -55,26 +55,27 @@
 ;; Scheme expression from the command string, evaluates it, and replaces the
 ;; expression with the result formatted as if by the DISPLAY function.
 ;;
-(module scmus.command (command-exists?
-                       command-completion
-                       define-command
-                       define-command/completion
-                       escape-command-word
-                       eval-command
-                       load-command-script
-                       read-command
-                       read-command/implicit-quote
-                       register-command!
-                       register-command-completion!
-                       run-command)
-  (import ports
-          srfi-69
-          drewt.trie
-          scmus.base
-          scmus.command-line
-          scmus.error
-          scmus.ueval
-          scmus.event)
+(module (scmus command)
+    (command-exists?
+     command-completion
+     define-command
+     define-command/completion
+     escape-command-word
+     eval-command
+     load-command-script
+     read-command
+     read-command/implicit-quote
+     register-command!
+     register-command-completion!
+     run-command)
+  (import (chicken port)
+          (srfi 69)
+          (drewt trie)
+          (scmus base)
+          (scmus command-line)
+          (scmus error)
+          (scmus ueval)
+          (scmus event))
 
   (define *commands* (make-hash-table test: string=?
                                       hash: string-hash))

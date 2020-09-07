@@ -1,15 +1,15 @@
-(require-extension srfi-1 utf8 utf8-srfi-13 utf8-srfi-14 vector-lib)
+(import srfi-1 utf8 utf8-srfi-13 utf8-srfi-14 vector-lib)
 
 (import
   (except scheme
     string-length string-ref string-set! make-string string substring
     string->list list->string string-fill! write-char read-char display)
-  (except chicken
-    reverse-list->string print print*)
-  (except data-structures
-    conc string-chop string-split string-translate
-    substring=? substring-ci=? substring-index substring-index-ci)
-  (except extras
+  (except (chicken base)
+    print print*)
+  (except (chicken string)
+    reverse-list->string ->string conc string-chop string-split
+    string-translate substring=? substring-ci=? substring-index)
+  (except (chicken io)
     read-string write-string read-token))
 
 (define-constant CURSED-CMDLINE 1)
@@ -24,7 +24,7 @@
 (define-constant CURSED-WIN-MARKED 10)
 (define-constant CURSED-WIN-TITLE 11)
 (define-constant NR-CURSED 11)
-   
+
 ;; Macros
 
 (define-syntax define-record/initform

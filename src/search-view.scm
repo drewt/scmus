@@ -18,15 +18,15 @@
 (declare (hide))
 
 (import coops-utils
-        drewt.ncurses
-        scmus.base
-        scmus.client
-        scmus.format
-        scmus.option
-        scmus.track
-        scmus.tui
-        scmus.view
-        scmus.widgets)
+        (drewt ncurses)
+        (scmus base)
+        (scmus client)
+        (scmus format)
+        (scmus option)
+        (scmus track)
+        (scmus tui)
+        (scmus view)
+        (scmus widgets))
 
 (add-option-listener 'format-search-file
   (lambda (_) (widget-invalidate search-widget)))

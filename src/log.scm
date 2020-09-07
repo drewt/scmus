@@ -15,26 +15,26 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.log
-        (<log-entry>
-         log-entry-type
-         log-entry-short-message
-         log-entry-long-message
-         <logger>
-         <port-logger>
-         current-logger
-         log-read
-         log-write! 
-         logger-append-entry!
-         logger-size
-         logger-read
-         logger-write!
-         make-logger)
-  (import (only data-structures chop)
+(module (scmus log)
+    (<log-entry>
+     log-entry-type
+     log-entry-short-message
+     log-entry-long-message
+     <logger>
+     <port-logger>
+     current-logger
+     log-read
+     log-write!
+     logger-append-entry!
+     logger-size
+     logger-read
+     logger-write!
+     make-logger)
+  (import (only (chicken base) chop)
           coops
           coops-utils
-          scmus.base
-          scmus.event)
+          (scmus base)
+          (scmus event))
 
   (define-class <log-entry> ()
     ((type          initform: '?

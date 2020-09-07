@@ -15,19 +15,21 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.tui.display (current-cursed
-                           color->number
-                           safe-color->number
-                           attr->number
-                           call-with-cursed
-                           with-cursed
-                           palette-set!
-                           can-set-color?
-                           set-color
-                           clear-screen
-                           format-addstr!
-                           print-line!)
-  (reexport (only drewt.ncurses
+(module (scmus tui display)
+    (current-cursed
+     color->number
+     safe-color->number
+     attr->number
+     call-with-cursed
+     with-cursed
+     palette-set!
+     can-set-color?
+     set-color
+     clear-screen
+     format-addstr!
+     print-line!)
+  (import (chicken module))
+  (reexport (only (drewt ncurses)
                   COLOR_BLACK
                   COLOR_RED
                   COLOR_GREEN
@@ -54,7 +56,7 @@
                   A_LOW
                   A_TOP
                   A_VERTICAL))
-  (import (only chicken fxand fxshr)
+  (import (only (chicken fixnum) fxand fxshr)
           coops
           drewt.ncurses
           drewt.ustring

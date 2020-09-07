@@ -15,21 +15,22 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.tui.misc (<separator>
-                        separator-char
-                        <pile>
-                        make-pile
-                        <textual>
-                        text-text
-                        <text>
-                        text-w
-                        text-h
-                        make-text)
+(module (scmus tui misc)
+    (<separator>
+     separator-char
+     <pile>
+     make-pile
+     <textual>
+     text-text
+     <text>
+     text-w
+     text-h
+     make-text)
   (import coops
-          drewt.ncurses
-          scmus.base
-          scmus.tui.display
-          scmus.tui.widget)
+          (drewt ncurses)
+          (scmus base)
+          (scmus tui display)
+          (scmus tui widget))
 
   (define-class <separator> (<widget>)
     ((char initform: #\space

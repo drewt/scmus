@@ -15,52 +15,53 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.tui.widget (define-abstract-method
-                          damaged-widgets
-                          clear-damaged-widgets!
+(module (scmus tui widget)
+    (define-abstract-method
+      damaged-widgets
+      clear-damaged-widgets!
 
-                          <widget>
-                          widget-parent
-                          widget-visible
-                          widget-cursed
-                          widget-cursed/cached
-                          widget-x
-                          widget-y
-                          widget-cols
-                          widget-rows
-                          widget-damaged!
-                          widget-visible?
-                          widget-can-focus?
-                          widget-first
-                          widget-last
-                          widget-root
-                          widget-focus
-                          widget-size
-                          print-widget!
-                          reprint-widget!
-                          widget-invalidate
-                          handle-input
-                          widget-child/pos
-                          get-widget-at
+      <widget>
+      widget-parent
+      widget-visible
+      widget-cursed
+      widget-cursed/cached
+      widget-x
+      widget-y
+      widget-cols
+      widget-rows
+      widget-damaged!
+      widget-visible?
+      widget-can-focus?
+      widget-first
+      widget-last
+      widget-root
+      widget-focus
+      widget-size
+      print-widget!
+      reprint-widget!
+      widget-invalidate
+      handle-input
+      widget-child/pos
+      get-widget-at
 
-                          <container>
-                          container-children
-                          container-layout/cached
-                          compute-layout
+      <container>
+      container-children
+      container-layout/cached
+      compute-layout
 
-                          <widget-wrap>
-                          widget-wrap-widget
-                          make-widget-wrap
-                          widget-wrap-swap!
+      <widget-wrap>
+      widget-wrap-widget
+      make-widget-wrap
+      widget-wrap-swap!
 
-                          <widget-stack>
-                          make-widget-stack
-                          widget-stack-push!
-                          widget-stack-pop!
-                          widget-stack-peek)
+      <widget-stack>
+      make-widget-stack
+      widget-stack-push!
+      widget-stack-pop!
+      widget-stack-peek)
   (import coops
-          scmus.base
-          scmus.tui.display)
+          (scmus base)
+          (scmus tui display))
 
   (define-syntax define-abstract-method
     (syntax-rules ()

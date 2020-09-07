@@ -15,18 +15,19 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.event (<event-source>
-                     current-event-source
-                     add-listener
-                     add-listener/global
-                     signal-event
-                     signal-event/global
-                     run-later
-                     handle-events
-                     register-timer!
-                     register-timer-event!)
+(module (scmus event)
+    (<event-source>
+     current-event-source
+     add-listener
+     add-listener/global
+     signal-event
+     signal-event/global
+     run-later
+     handle-events
+     register-timer!
+     register-timer-event!)
   (import coops
-          scmus.base)
+          (scmus base))
 
   (define *deferred-events* '())
 

@@ -15,16 +15,17 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.tui.split-pane (<split-pane>
-                              split-pane-left-child
-                              split-pane-right-child
-                              split-pane-left-size
-                              split-pane-separator-char
-                              make-split-pane)
+(module (scmus tui split-pane)
+    (<split-pane>
+     split-pane-left-child
+     split-pane-right-child
+     split-pane-left-size
+     split-pane-separator-char
+     make-split-pane)
   (import coops
-          scmus.base
-          scmus.tui.misc
-          scmus.tui.widget)
+          (scmus base)
+          (scmus tui misc)
+          (scmus tui widget))
 
   (define-class <split-pane> (<container>)
     ((left-child     accessor: split-pane-left-child)

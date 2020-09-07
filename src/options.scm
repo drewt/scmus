@@ -15,11 +15,11 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(import scmus.base
-        scmus.event
-        scmus.format
-        scmus.option
-        scmus.tui)
+(import (scmus base)
+        (scmus event)
+        (scmus format)
+        (scmus option)
+        (scmus tui))
 
 ;; {{{ Miscellaneous
 (register-option! 'mpd-address

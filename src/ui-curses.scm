@@ -23,20 +23,20 @@
                  exit-curses
                  init-curses))
 
-(import drewt.ncurses
-        scmus.base
-        scmus.client
-        scmus.command-line
-        scmus.error
-        scmus.event
-        scmus.format
-        scmus.keys
-        scmus.option
-        scmus.status
-        scmus.track
-        scmus.tui
-        scmus.view
-        scmus.widgets)
+(import (drewt ncurses)
+        (scmus base)
+        (scmus client)
+        (scmus command-line)
+        (scmus error)
+        (scmus event)
+        (scmus format)
+        (scmus keys)
+        (scmus option)
+        (scmus status)
+        (scmus track)
+        (scmus tui)
+        (scmus view)
+        (scmus widgets))
 
 (define current-line (make-format-text (get-option 'format-current)
                                        (current-track)

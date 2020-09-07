@@ -15,16 +15,17 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.tui.frame (<frame>
-                         frame-body
-                         frame-header
-                         frame-footer
-                         make-frame)
+(module (scmus tui frame)
+    (<frame>
+     frame-body
+     frame-header
+     frame-footer
+     make-frame)
   (import coops
-          scmus.base
-          scmus.tui.display
-          scmus.tui.misc
-          scmus.tui.widget)
+          (scmus base)
+          (scmus tui display)
+          (scmus tui misc)
+          (scmus tui widget))
 
   ;; TODO: This whole widget is an ugly hack.  This behaviour should be accomplished
   ;;       with a pile widget, in which the 'body' element is set to expand, and the

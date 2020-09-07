@@ -15,11 +15,12 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.error (scmus-error)
-  (import (only extras pretty-print)
-          scmus.base
-          scmus.command-line
-          scmus.log)
+(module (scmus error)
+    (scmus-error)
+  (import (chicken pretty-print)
+          (scmus base)
+          (scmus command-line)
+          (scmus log))
 
   (define scmus-error
     (make-parameter #f

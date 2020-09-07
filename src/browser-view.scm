@@ -17,15 +17,15 @@
 
 (declare (hide))
 
-(import drewt.ncurses
-        scmus.base
-        scmus.client
-        scmus.event
-        scmus.option
-        scmus.track
-        scmus.tui
-        scmus.view
-        scmus.widgets)
+(import (drewt ncurses)
+        (scmus base)
+        (scmus client)
+        (scmus event)
+        (scmus option)
+        (scmus track)
+        (scmus tui)
+        (scmus view)
+        (scmus widgets))
 
 (define *browser-location* (list "/"))
 

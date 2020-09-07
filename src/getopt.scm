@@ -15,8 +15,24 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module drewt.getopt (mkopt process-opts usage store-true store-one store-all store-number)
-  (import scheme chicken data-structures)
+(module (drewt getopt)
+    (mkopt
+     process-opts
+     usage
+     store-true
+     store-one
+     store-all
+     store-number)
+  (import scheme
+          (only (chicken base)
+                alist-update
+                define-record-type
+                exit
+                let-values
+                print
+                unless)
+          (only (chicken format)
+                printf))
 
   (define-record-type cmdline-opt
     (*mkopt key names args doc store valid)

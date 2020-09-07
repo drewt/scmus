@@ -15,24 +15,22 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module drewt.trie (alist->trie
-                    empty-trie
-                    trie?
-                    trie->alist
-                    trie->alist/prefix
-                    trie-keys
-                    trie-ref
-                    trie-ref/prefix
-                    trie-set!
-                    trie-traverse)
+(module (drewt trie)
+    (alist->trie
+     empty-trie
+     trie?
+     trie->alist
+     trie->alist/prefix
+     trie-keys
+     trie-ref
+     trie-ref/prefix
+     trie-set!
+     trie-traverse)
   (import scheme
-          (only chicken
-                define-record-type
-                let-optionals*
-                optional)
-          (only data-structures
+          (only (chicken base)
                 alist-ref
-                alist-update!))
+                alist-update!
+                define-record-type))
 
   ;; XXX: allocate a pair to use as a unique null tag (for EQ?)
   (define null-tag (cons 'null '()))

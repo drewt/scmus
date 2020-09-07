@@ -17,14 +17,14 @@
 
 (declare (hide))
 
-(import drewt.ncurses
-        scmus.base
-        scmus.error
-        scmus.event
-        scmus.keys
-        scmus.tui
-        scmus.view
-        scmus.widgets)
+(import (drewt ncurses)
+        (scmus base)
+        (scmus error)
+        (scmus event)
+        (scmus keys)
+        (scmus tui)
+        (scmus view)
+        (scmus widgets))
 
 (define-record-type key-list (make-key-list keys) key-list?
   (keys key-list-keys))

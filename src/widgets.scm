@@ -15,16 +15,16 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.widgets *
+(module (scmus widgets) *
   (import coops
           coops-utils
           vector-lib
-          drewt.ncurses
-          scmus.base
-          scmus.format
-          scmus.option
-          scmus.track
-          scmus.tui)
+          (drewt ncurses)
+          (scmus base)
+          (scmus format)
+          (scmus option)
+          (scmus track)
+          (scmus tui))
 
   ;; special verbs {{{
   ;;

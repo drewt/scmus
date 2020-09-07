@@ -15,25 +15,26 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.command-line (command-line-widget
-                            command-line-print-info!
-                            command-line-print-error!
-                            command-line-clear!
-                            command-line-text
-                            command-line-text-set!
-                            command-line-cursor-pos-set!
-                            command-line-enter-mode
-                            command-line-get-char
-                            command-line-get-string
-                            command-line-confirm
-                            make-command-line-mode
-                            make-completion-engine)
+(module (scmus command-line)
+    (command-line-widget
+     command-line-print-info!
+     command-line-print-error!
+     command-line-clear!
+     command-line-text
+     command-line-text-set!
+     command-line-cursor-pos-set!
+     command-line-enter-mode
+     command-line-get-char
+     command-line-get-string
+     command-line-confirm
+     make-command-line-mode
+     make-completion-engine)
   (import coops
-          drewt.iter
-          drewt.ncurses
-          scmus.base
-          scmus.event
-          scmus.tui)
+          (drewt iter)
+          (drewt ncurses)
+          (scmus base)
+          (scmus event)
+          (scmus tui))
 
   (define current-command-line-mode (make-parameter #f))
 

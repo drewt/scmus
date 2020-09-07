@@ -21,52 +21,56 @@
 ;; expression is evaluated when the key is pressed.  If a key is associated
 ;; with a binding list, then scmus enters the context given by that binding
 ;; list when the key is pressed.
-;; 
+;;
 ;; A "context" is a binding list.  When scmus is in the context of a particular
 ;; binding list, key-presses are interpreted relative to that list.  When a
 ;; key-press results in an expression being evaluated or a failure to locate a
 ;; binding, scmus returns to the top-level context from which it came.
-;; 
+;;
 ;; The "top-level" contexts are enumerated in the *bindings* alist.  Before any
 ;; keys are pressed, scmus is in one of the top-level contexts.
-;; 
+;;
 
 (require-extension srfi-1 srfi-69)
 
-(module scmus.keys (binding-context-valid?
-                    binding-data
-                    binding-expression
-                    binding-expression?
-                    binding-key
-                    binding-keys-valid?
-                    bindings
-                    get-binding-expression
-                    key-list->string
-                    make-binding!
-                    normal-mode-key
-                    register-context!
-                    unbind!
+(module (scmus keys)
+    (binding-context-valid?
+     binding-data
+     binding-expression
+     binding-expression?
+     binding-key
+     binding-keys-valid?
+     bindings
+     get-binding-expression
+     key-list->string
+     make-binding!
+     normal-mode-key
+     register-context!
+     unbind!
 
-                    LEFT_MOUSE_PRESS
-                    LEFT_MOUSE_RELEASE
-                    LEFT_MOUSE_CLICK
-                    LEFT_MOUSE_DOUBLE_CLICK
-                    LEFT_MOUSE_TRIPLE_CLICK
-                    RIGHT_MOUSE_PRESS
-                    RIGHT_MOUSE_RELEASE
-                    RIGHT_MOUSE_CLICK
-                    RIGHT_MOUSE_DOUBLE_CLICK
-                    RIGHT_MOUSE_TRIPLE_CLICK
-                    MIDDLE_MOUSE_PRESS
-                    MIDDLE_MOUSE_RELEASE
-                    MIDDLE_MOUSE_CLICK
-                    MIDDLE_MOUSE_DOUBLE_CLICK
-                    MIDDLE_MOUSE_TRIPLE_CLICK
-                    SCROLL_WHEEL_DOWN
-                    SCROLL_WHEEL_UP)
+     LEFT_MOUSE_PRESS
+     LEFT_MOUSE_RELEASE
+     LEFT_MOUSE_CLICK
+     LEFT_MOUSE_DOUBLE_CLICK
+     LEFT_MOUSE_TRIPLE_CLICK
+     RIGHT_MOUSE_PRESS
+     RIGHT_MOUSE_RELEASE
+     RIGHT_MOUSE_CLICK
+     RIGHT_MOUSE_DOUBLE_CLICK
+     RIGHT_MOUSE_TRIPLE_CLICK
+     MIDDLE_MOUSE_PRESS
+     MIDDLE_MOUSE_RELEASE
+     MIDDLE_MOUSE_CLICK
+     MIDDLE_MOUSE_DOUBLE_CLICK
+     MIDDLE_MOUSE_TRIPLE_CLICK
+     SCROLL_WHEEL_DOWN
+     SCROLL_WHEEL_UP)
 
-  (import srfi-69)
-  (import scmus.base scmus.ueval scmus.event drewt.ncurses)
+  (import (srfi 69)
+          (scmus base)
+          (scmus ueval)
+          (scmus event)
+          (drewt ncurses))
 
   (define-type binding-node (pair string pair))
   (define-type binding-list (list-of binding-node))

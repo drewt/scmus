@@ -15,13 +15,13 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.view *
+(module (scmus view) *
   (import coops
           coops-utils
-          scmus.base
-          scmus.keys
-          scmus.tui
-          scmus.widgets)
+          (scmus base)
+          (scmus keys)
+          (scmus tui)
+          (scmus widgets))
 
   ;; Custom <widget-wrap> which keeps an alist of widgets, and allows swapping
   ;; the active widget by name.

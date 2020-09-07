@@ -15,19 +15,20 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module drewt.ustring (color-code?
-                       ch->color-code
-                       fg-color->char
-                       bg-color->char
-                       ustring-width
-                       char-width
-                       ustring-take
-                       ustring-take-right
-                       ustring-truncate
-                       ustring-truncate-left
-                       ustring-pad
-                       ustring-stretch)
-  (import scmus.base)
+(module (drewt ustring)
+    (color-code?
+     ch->color-code
+     fg-color->char
+     bg-color->char
+     ustring-width
+     char-width
+     ustring-take
+     ustring-take-right
+     ustring-truncate
+     ustring-truncate-left
+     ustring-pad
+     ustring-stretch)
+  (import (scmus base))
   (define-constant +unicode-private-base+ #xE000)
 
   (: color-code? (char -> boolean))

@@ -15,16 +15,16 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(import scmus.base
-        scmus.client
-        scmus.command
-        scmus.command-line
-        scmus.config
-        scmus.ueval
-        scmus.keys
-        scmus.status
-        scmus.tui
-        scmus.widgets)
+(import (scmus base)
+        (scmus client)
+        (scmus command)
+        (scmus command-line)
+        (scmus config)
+        (scmus ueval)
+        (scmus keys)
+        (scmus status)
+        (scmus tui)
+        (scmus widgets))
 
 (define (param-is-flags? p)
   (and (> (string-length p 1))

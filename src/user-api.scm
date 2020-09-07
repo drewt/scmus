@@ -17,22 +17,28 @@
 
 (require-extension matchable)
 
-(import drewt.ncurses
-        scmus.base
-        scmus.client
-        scmus.command
-        scmus.command-line
-        scmus.config
-        scmus.ueval
-        scmus.event
-        scmus.format
-        scmus.keys
-        scmus.option
-        scmus.status
-        scmus.track
-        scmus.tui
-        scmus.view
-        scmus.widgets)
+(import (chicken file)
+        (chicken file posix)
+        (chicken port)
+        (chicken process)
+        (chicken process-context)
+        (srfi 13))
+(import (drewt ncurses)
+        (scmus base)
+        (scmus client)
+        (scmus command)
+        (scmus command-line)
+        (scmus config)
+        (scmus ueval)
+        (scmus event)
+        (scmus format)
+        (scmus keys)
+        (scmus option)
+        (scmus status)
+        (scmus track)
+        (scmus tui)
+        (scmus view)
+        (scmus widgets))
 
 ;; Export an identifier unchanged (for SRFIs).
 (define-syntax export-identifier!

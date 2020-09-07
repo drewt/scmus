@@ -17,15 +17,15 @@
 
 (declare (hide))
 
-(import scmus.base
-        scmus.client
-        scmus.event
-        scmus.option
-        scmus.status
-        scmus.track
-        scmus.tui
-        scmus.view
-        scmus.widgets)
+(import (scmus base)
+        (scmus client)
+        (scmus event)
+        (scmus option)
+        (scmus status)
+        (scmus track)
+        (scmus tui)
+        (scmus view)
+        (scmus widgets))
 
 (define-class <playlist-window> (<window>))
 

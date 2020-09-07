@@ -16,6 +16,7 @@
 ;;
 
 (module scmus.base *
+  (import (chicken module))
   (reexport
     (except scheme
             ; XXX: provided by utf8 egg
@@ -31,34 +32,20 @@
             write-char
             read-char
             display)
-    (only chicken
+    (only (chicken base)
           ; chicken-specific functions
-          :
+          alist-ref
+          alist-update
+          alist-update!
           assert
-          bitwise-ior
-          bitwise-and
-          bitwise-not
-          condition->list
-          condition-case
           define-constant
-          define-type
-          get-condition-property
           getter-with-setter
           nth-value
           rec
           setter
           void
-	  ; needed on old versions chicken?
           let-optionals*
           optional
-
-          ; SRFI-12
-          condition-predicate
-          condition-property-accessor
-          handle-exceptions
-          make-property-condition
-          make-composite-condition
-
           ; R7RS
           case-lambda
           current-error-port
@@ -72,26 +59,18 @@
           open-output-string
           parameterize
           when
-          with-exception-handler
           unless)
-    (only data-structures
-          alist-ref
-          alist-update
-          alist-update!
-          sort
-          sort!)
-    (only extras
-          format)
-    srfi-1
+    (chicken bitwise)
+    (chicken condition)
+    (only (chicken format) format)
+    (chicken sort)
+    (chicken type)
+    (srfi 1)
     utf8
     (except utf8-srfi-13 string-contains-ci)
     utf8-srfi-14)
 
-  (import (only chicken
-                abort
-                current-seconds
-                current-milliseconds
-                signal))
+  (import (chicken time))
 
   ; Use the R7RS names
   (define raise abort)

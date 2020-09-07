@@ -19,20 +19,25 @@
 (require-extension sandbox)
  
 ;; XXX: Naming a unit "eval" causes segfault -- hence ueval
-(module scmus.ueval (user-doc-ref
-                     user-eval
-                     user-eval/raw
-                     user-eval-stop
-                     user-eval-string
-                     user-export!
-                     user-load
-                     user-macro-set!
-                     user-value-ref
-                     *user-value-ref
-                     user-value-set!)
-  (import ports srfi-69)
-  (import sandbox)
-  (import scmus.base scmus.error scmus.event scmus.option)
+(module (scmus ueval)
+    (user-doc-ref
+     user-eval
+     user-eval/raw
+     user-eval-stop
+     user-eval-string
+     user-export!
+     user-load
+     user-macro-set!
+     user-value-ref
+     *user-value-ref
+     user-value-set!)
+  (import (chicken port)
+          (srfi 69)
+          sandbox)
+  (import (scmus base)
+          (scmus error)
+          (scmus event)
+          (scmus option))
 
   (define *user-env* (make-safe-environment parent: default-safe-environment
                                             mutable: #t))

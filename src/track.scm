@@ -15,33 +15,34 @@
 ;; along with this program; if not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(module scmus.track (seconds->string
-                     sort-metadata
-                     track-file
-                     track-last-modified
-                     *track-duration
-                     track-title
-                     track-artist
-                     track-album
-                     track-albumartist
-                     track-genre
-                     track-date
-                     track-track
-                     track-disc
-                     track-name
-                     track-composer
-                     track-performer
-                     track-start
-                     track-end
-                     track-pos
-                     track-id
-                     track-prio
-                     track-duration
-                     track-meta
-                     track=
-                     track-match)
-  (import scmus.base)
- 
+(module (scmus track)
+    (seconds->string
+     sort-metadata
+     track-file
+     track-last-modified
+     *track-duration
+     track-title
+     track-artist
+     track-album
+     track-albumartist
+     track-genre
+     track-date
+     track-track
+     track-disc
+     track-name
+     track-composer
+     track-performer
+     track-start
+     track-end
+     track-pos
+     track-id
+     track-prio
+     track-duration
+     track-meta
+     track=
+     track-match)
+  (import (scmus base))
+
   (define-syntax track-selector
     (syntax-rules ()
       ((track-selector name sym)
