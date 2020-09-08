@@ -1,7 +1,7 @@
 scmus - Scheme MPD Client
 =========================
 
-Copyright © 2014-2018 Drew Thoreson
+Copyright © 2014-2020 Drew Thoreson
 
 ![screenshot of scmus](https://raw.github.com/drewt/scmus/master/screens/scmus.png "scmus - queue view")
 
@@ -10,7 +10,6 @@ scmus is similar to the cmus music player, with a few major differences:
 
 * scmus is an MPD client
 * scmus can be controlled and scripted using the Scheme programming language
-* scmus is in the early stages of development
 
 
 Building
@@ -18,7 +17,7 @@ Building
 
 Requirements:
 
-* CHICKEN 4
+* CHICKEN 5
 * ncurses
 
 Consult http://wiki.call-cc.org/platforms for instructions on getting Chicken
